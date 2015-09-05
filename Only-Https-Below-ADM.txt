@@ -124,12 +124,14 @@ twitter.com##.promoted-tweet
 twitter.com,wral.com##.promotion
 twitter.com##li[label="promoted"]
 
+mail.qq.com##.todaybarnormal,.tipbook-top,.todaybaradcontainer
+www.yes.xxx###video-info > table:nth-of-type(1),#video-left
+
+
 !2015/9/4 下午12:15:28 https://www.baidu.com/
-www.baidu.com##.ad-block
-www.baidu.com###ec_im_container
+www.baidu.com##.ad-widget,.ad-block,#ec_im_container
 www.baidu.com##[data-click*="fm"][data-click*="ppim"]
-www1.baidu.com##.ad-block
-www1.baidu.com###ec_im_container
+www1.baidu.com##.ad-widget,.ad-block,#ec_im_container
 www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
 
 !2015/9/4 下午12:20:27 https://www.haosou.com
