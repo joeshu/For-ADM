@@ -1,0 +1,190 @@
+[Adblock Plus]
+!  --by Mr.yan-------------------------------
+!  https for ADM
+!  https://raw.githubusercontent.com/joeshu/For-uBlock/master/Only-Https-Below-ADM.txt
+
+||adserver.exoticads.com^/$third-party
+||ssl.google-analytics.com^/$third-party
+||cdn.exoticads.com^/$third-party
+||doubleclick.net^/$third-party
+||ad.doubleclick.net/*
+||*/ads?ad_*
+||ads.exoclick.com^/$third-party
+||rad.reporo.net^/$third-party
+||.google-analytics.com^/$third-party
+||syndication.exoclick.com/ads-iframe-display.php?*
+||hm.baidu.com/hm.js?*
+
+! 2015/9/4 下午11:18:50 https://share.dmhy.org/
+share.dmhy.org##[id$="_ad"]
+
+! 2015/9/4 下午11:37:00 https://www.hanime.tv/
+www.hanime.tv##.ng-scope.ad-content-area
+www.hanime.tv##.vertical-ad
+
+!2015/9/4 上午8:06:52 https://www.youtube.com/
+||www.youtube.com/ad_frame?*
+||www.youtube.com/ad_data_*
+www.youtube.com###video-masthead
+||pagead*.googlesyndication.com/pagead/*_ads.js
+||google.com/jsapi?autoload=*%22ads%22$script,domain=youtube.com
+||ytimg.com^*/new_watch_background.jpg?$domain=youtube.com
+||ytimg.com^*/new_watch_background_*.jpg?$domain=youtube.com
+||ytimg.com^*_banner$domain=youtube.com
+||phobos.apple.com^$image,domain=dailymotion.com|youtube.com
+||google.com/jsapi?autoload=*%22ads%22$script,domain=youtube.com
+||youtube.com/yva_video?adformat=$object-subrequest,domain=nfl.com|viki.com
+||ytimg.com^*/new_watch_background.jpg?$domain=youtube.com
+||ytimg.com^*/new_watch_background_*.jpg?$domain=youtube.com
+||ytimg.com^*_banner$domain=youtube.com
+@@||youtube.com/iframe_api$script,third-party
+@@||youtube.com/player_api$script,third-party
+||youtube.com/yva_video?adformat=$object-subrequest,domain=antena3.com|atresplayer.com|lasexta.com
+youtube.com###feed-pyv-container
+www.youtube.com##.masthead-ad-control
+www.youtube.com##.ad-div
+youtube.com#@#.afs_ads
+youtube.com###feedmodule-PRO
+youtube.com###homepage-chrome-side-promo
+youtube.com###premium-yva
+youtube.com###search-pva
+youtube.com###shelf-pyv-container
+youtube.com###video-masthead
+youtube.com###watch-branded-actions
+youtube.com###watch-buy-urls
+youtube.com###watch-channel-brand-div
+youtube.com##.ad-container
+youtube.com##.ads
+youtube.com##.carousel-offer-url-container
+youtube.com##.list-view[style="margin: 7px 0pt;"]
+youtube.com##.promoted-videos
+youtube.com##.searchView.list-view
+youtube.com##.watch-extra-info-column
+youtube.com##.watch-extra-info-right
+youtube.com##a[href^="http://www.youtube.com/cthru?"]
+youtube.com##a[href^="https://www.youtube.com/cthru?"]
+m.youtube.com##a[onclick*="\"ping_url\":\"http://www.google.com/aclk?"]
+@@||promo2.tubemogul.com/flash/youtube.swf$domain=comedy.com
+@@||s.ytimg.com/yts/swfbin/player-*/watch_as3.swf$object,domain=youtube.com
+@@||youtube.com/yt/advertise/medias/images/$image
+@@||youtube.com/yt/css/www-advertise.css
+@@||youtube.com^*_adsense_$xmlhttprequest
+@@||ytimg.com/yts/img/channels/*_banner-*.jpg$domain=youtube.com
+@@||ytimg.com/yts/img/channels/*_banner-*.png$domain=youtube.com
+@@||ytimg.com^*/channels4_banner.jpg?$domain=youtube.com
+@@||ytimg.com^*/channels4_banner_hd.jpg?$domain=youtube.com
+www.youtube.com###movie_player > .iv-promo-video.iv-promo.annotation-type-custom.annotation
+www.youtube.com###movie_player > .html5-video-content > .iv-module.video-annotations
+www.youtube.com###movie_player > .iv-drawer
+
+!2015/9/4 上午8:46:57 https://www.facebook.com/
+facebook.com,japantoday.com#@##sidebar_ads
+facebook.com###MessagingNetegoWrapper
+facebook.com###home_sponsor_nile
+facebook.com###pagelet_ads_when_no_friend_list_suggestion
+facebook.com##.-cx-PRIVATE-fbAdUnit__root
+facebook.com##.-cx-PRIVATE-fbEmu__root
+facebook.com##.-cx-PRIVATE-fbFacebarTypeaheadToken__sponsored
+facebook.com##.-cx-PRIVATE-snowliftAds__root
+facebook.com##.-cx-PRIVATE-spyml__story
+facebook.com##.-cx-PUBLIC-fbAdUnit__root
+facebook.com##.adv
+facebook.com##.ego_spo
+facebook.com##.fbAdUnit
+facebook.com##.fbEmu
+facebook.com##.fbEmuBlock
+facebook.com##.fbEmuComboList
+facebook.com##.fbEmuEgo
+facebook.com##.fbEmuEgoUnit
+facebook.com##.fbEmuLink
+facebook.com##.fbPhotoAdsCol
+facebook.com##.fbTimelineSideAds
+facebook.com##.fixedAux .pbm
+facebook.com##.muffin.group
+facebook.com##.ownsection[role="option"]
+facebook.com##[data-referrer="pagelet_side_ads"]
+facebook.com##[href^="/ads/adboard/"]
+facebook.com##a[ajaxify^="/ajax/emu/end.php?"]
+insidefacebook.com##a[href="/advertise"]
+facebook.com##a[href^="/ajax/emu/end.php?"]
+facebook.com##div[class="ego_column pagelet"]
+facebook.com##div[class="ego_column"]
+facebook.com##div[id^="sponsoredTickerStory_"]
+@@||www.facebook.com/ad.*^ajaxpipe^$subdocument,~third-party
+@@||www.facebook.com/ads/
+@@||www.facebook.com/ajax/ads/$domain=www.facebook.com
+
+!2015/9/4 上午9:18:52 https://twitter.com/
+||platform.twitter.com/widgets.js$script
+||platform.twitter.com/widgets.js$script
+twitter.com##.is-promoted
+twitter.com##.promoted-account
+twitter.com##.promoted-trend
+twitter.com##.promoted-tweet
+twitter.com,wral.com##.promotion
+twitter.com##li[label="promoted"]
+
+!2015/9/4 下午12:15:28 https://www.baidu.com/
+www.baidu.com##.ad-block
+www.baidu.com###ec_im_container
+www.baidu.com##[data-click*="fm"][data-click*="ppim"]
+www1.baidu.com##.ad-block
+www1.baidu.com###ec_im_container
+www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
+
+!2015/9/4 下午12:20:27 https://www.haosou.com
+www.haosou.com###so_bd-ad
+||s.ssl.qhimg.com/static/*/MMPlugin.js
+www.haosou.com###e_idea_pp
+www.haosou.com###so_feb > .js-pos-before-tantan.side-ad.so-cms
+www.haosou.com###so_kw-ad
+
+!2015/9/4 下午3:07:56 https://greasyfork.org/
+greasyfork.org###script-show-info-ad
+||www.projectwonderful.com/active.php?*&adboxid=*
+
+
+! 2015/9/4 下午10:08:50 https://zh.chaturbate.com/
+.chaturbate.com##.ad
+.chaturbate.com##.remove_ads
+.chaturbate.com##.adsbyxa
+
+!2015/9/4 下午3:07:56-----google
+google.*###center_col > #\5f Emc
+google.*###center_col > #resultStats + #tads
+google.*###center_col > #resultStats + #tads + #res + #tads
+google.*###center_col > #resultStats + div + #res + #tads
+google.*###center_col > #resultStats + div[style="border:1px solid #dedede;margin-bottom:11px;padding:5px 7px 5px 6px"]
+google.*###center_col > #taw > #tvcap > .rscontainer
+google.*###center_col > div[style="font-size:14px;margin-right:0;min-height:5px"] > div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff8e7"]
+google.*###cnt #center_col > #res > #topstuff > .ts
+google.*###main_col > #center_col div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff7ed"]
+google.*###mbEnd[cellspacing="0"][cellpadding="0"]
+google.*###mclip_container:last-child
+google.*###mn #center_col > div > h2.spon:first-child
+google.*###mn #center_col > div > h2.spon:first-child + ol:last-child
+google.*###resultspanel > #topads
+google.*###rhs_block > #mbEnd
+google.*###rhs_block > .ts[cellspacing="0"][cellpadding="0"][style="padding:0"]
+google.*###rhswrapper > #rhssection[border="0"][bgcolor="#ffffff"]
+google.*###ssmiwdiv[jsdisplay]
+google.*###tads + div + .c
+google.*###tads.c
+google.*###tadsb.c
+google.*###tadsto.c
+google.*###topstuff > #tads
+google.*##.ch[onclick="ga(this,event)"]
+google.*##.commercial-unit-desktop-rhs
+google.*##.commercial-unit-desktop-top
+google.*##.lads[width="100%"][style="background:#FFF8DD"]
+google.*##.mod > ._jH + .rscontainer
+google.*##.mw > #rcnt > #center_col > #taw > #tvcap > .c
+google.*##.mw > #rcnt > #center_col > #taw > .c
+google.*##.ra[align="left"][width="30%"]
+google.*##.ra[align="right"][width="30%"]
+google.*##.ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0"]
+google.*##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]
+google.*##.rscontainer > .ellip
+google.*###sqh
+google.*###center_col > #tads
+search.yahoo.com###main > div > style + ol
