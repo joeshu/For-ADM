@@ -185,6 +185,5 @@ google.*##.ra[align="right"][width="30%"]
 google.*##.ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0"]
 google.*##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]
 google.*##.rscontainer > .ellip
-google.*###sqh
 google.*###center_col > #tads
 search.yahoo.com###main > div > style + ol
