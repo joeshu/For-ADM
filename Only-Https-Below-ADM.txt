@@ -1,7 +1,7 @@
 [Adblock Plus]
 !  --by Mr.yan-------------------------------
 !  https for ADM
-!  https://raw.githubusercontent.com/joeshu/For-uBlock/master/Only-Https-Below-ADM.txt
+!  https://raw.githubusercontent.com/joeshu/For-ADM/master/Only-Https-Below-ADM.txt
 
 ||adserver.exoticads.com^/$third-party
 ||ssl.google-analytics.com^/$third-party
