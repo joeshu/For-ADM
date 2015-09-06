@@ -6,7 +6,7 @@
 ||adserver.exoticads.com^/$third-party
 ||ssl.google-analytics.com^/$third-party
 ||cdn.exoticads.com^/$third-party
-||doubleclick.net^/$third-party
+|https://*.doubleclick.net^/$third-party
 ||ad.doubleclick.net/*
 ||*/ads?ad_*
 ||ads.exoclick.com^/$third-party
