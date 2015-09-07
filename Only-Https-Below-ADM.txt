@@ -13,7 +13,7 @@
 ||rad.reporo.net^/$third-party
 ||.google-analytics.com^/$third-party
 ||syndication.exoclick.com/ads-iframe-display.php?*
-||hm.baidu.com/hm.js?*
+|https://hm.baidu.com/hm.js?*
 
 ! 2015/9/4 下午11:18:50 https://share.dmhy.org/
 share.dmhy.org##[id$="_ad"]
