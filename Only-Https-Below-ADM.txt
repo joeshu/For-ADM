@@ -1,5 +1,6 @@
 [Adblock Plus 2.0]
 !  Title: Only-Https-Below-ADM
+!  Email: 350027830@qq.com 
 !  Homepage: https://raw.githubusercontent.com/joeshu/For-ADM/master/Only-Https-Below-ADM.txt
 
 ||adserver.exoticads.com^/$third-party
