@@ -1,6 +1,5 @@
 [Adblock Plus]
-!  --by Mr.yan-------------------------------
-!  Title: https for ADM
+!  Title: Only-Https-Below-ADM
 !  Homepage: https://raw.githubusercontent.com/joeshu/For-ADM/master/Only-Https-Below-ADM.txt
 
 ||adserver.exoticads.com^/$third-party
