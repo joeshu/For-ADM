@@ -142,6 +142,7 @@ greasyfork.org###script-show-info-ad
 .chaturbate.com##.ad,.remove_ads,.adsbyxa
 
 !2015/9/4 下午3:07:56-----google
+google.*##[class="ads-ad"]
 google.*###center_col > #\5f Emc
 google.*###center_col > #resultStats + #tads
 google.*###center_col > #resultStats + #tads + #res + #tads
