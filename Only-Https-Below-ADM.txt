@@ -21,7 +21,8 @@
 share.dmhy.org##[id$="_ad"]
 
 ! 2015/9/4 下午11:37:00 https://www.hanime.tv/
-www.hanime.tv##.ng-scope.ad-content-area,.vertical-ad
+www.hanime.tv##.ng-scope.ad-content-area
+www.hanime.tv##.vertical-ad
 
 !2015/9/4 上午8:06:52 https://www.youtube.com/
 ||www.youtube.com/ad_frame?*
@@ -118,22 +119,38 @@ facebook.com##div[id^="sponsoredTickerStory_"]
 !2015/9/4 上午9:18:52 https://twitter.com/
 ||platform.twitter.com/widgets.js$script
 ||platform.twitter.com/widgets.js$script
-twitter.com##.is-promoted,.promoted-account,.promoted-trend,.promoted-tweet,.promotion,li[label="promoted"]
+twitter.com##.is-promoted
+twitter.com##.promoted-account
+twitter.com##.promoted-trend
+twitter.com##.promoted-tweet
+twitter.com##.promotion
+twitter.com##[label="promoted"]
 
-mail.qq.com##.todaybarnormal,.tipbook-top,.todaybaradcontainer
-www.yes.xxx###video-info > table:nth-of-type(1),#video-left
+mail.qq.com##.todaybarnormal
+mail.qq.com##.tipbook-top
+mail.qq.com##.todaybaradcontainer
+www.yes.xxx###video-info > table:nth-of-type(1)
+www.yes.xxx###video-left
 
 
 !2015/9/4 下午12:15:28 https://www.baidu.com/
-www.baidu.com##.ad-widget,.ad-block,#ec_im_container
+www.baidu.com##.ad-widget
+www.baidu.com##.ad-block
+www.baidu.com###ec_im_container
 www.baidu.com##[data-click*="fm"][data-click*="ppim"]
-www1.baidu.com##.ad-widget,.ad-block,#ec_im_container
+www1.baidu.com##.ad-widget
+www1.baidu.com##.ad-block
+www1.baidu.com###ec_im_container
 www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
 
 !2015/9/4 下午12:20:27 https://www.haosou.com
 ||s.ssl.qhimg.com/static/*/MMPlugin.js
-www.haosou.com###e_idea_pp,#so_feb > .js-pos-before-tantan.side-ad.so-cms,#so_kw-ad,#so_bd-ad
-www.haosou.com##div[id="m-spread-left"],DIV[id="m-spread-bottom"],div[class="e-buss"]
+www.haosou.com###e_idea_pp
+www.haosou.com##so_feb > .js-pos-before-tantan.side-ad.so-cms
+www.haosou.com##so_kw-ad,#so_bd-ad
+www.haosou.com##div[id="m-spread-left"]
+www.haosou.com#DIV[id="m-spread-bottom"]
+www.haosou.com#div[class="e-buss"]
 
 !2015/9/4 下午3:07:56 https://greasyfork.org/
 greasyfork.org###script-show-info-ad
@@ -141,7 +158,10 @@ greasyfork.org###script-show-info-ad
 
 
 ! 2015/9/4 下午10:08:50 https://zh.chaturbate.com/
-.chaturbate.com##.ad,.remove_ads,.adsbyxa
+chaturbate.com##.adsbyxa
+!chaturbate.com##[class="ad top_tags"]
+chaturbate.com##.ad
+chaturbate.com##.remove_ads
 
 !2015/9/4 下午3:07:56-----google
 google.*##[class="ads-ad"]
