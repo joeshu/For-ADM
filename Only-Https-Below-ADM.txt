@@ -129,9 +129,6 @@ twitter.com##[label="promoted"]
 mail.qq.com##.todaybarnormal
 mail.qq.com##.tipbook-top
 mail.qq.com##.todaybaradcontainer
-www.yes.xxx###video-info > table:nth-of-type(1)
-www.yes.xxx###video-left
-
 
 !2015/9/4 下午12:15:28 https://www.baidu.com/
 www.baidu.com##.ad-widget
@@ -159,7 +156,6 @@ greasyfork.org###script-show-info-ad
 
 ! 2015/9/4 下午10:08:50 https://zh.chaturbate.com/
 chaturbate.com##.adsbyxa
-!chaturbate.com##[class="ad top_tags"]
 chaturbate.com##.ad
 chaturbate.com##.remove_ads
 
