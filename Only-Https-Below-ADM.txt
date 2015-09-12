@@ -153,7 +153,7 @@ chaturbate.com##.ad
 chaturbate.com##.remove_ads
 
 !2015/9/4 下午3:07:56-----google
-www.google.##class="ads-"]
+www.google.##[class^="ads-"]
 www.google.##.ads-ad
 www.google.###center_col > #\5f Emc
 www.google.###center_col > #resultStats + #tads
