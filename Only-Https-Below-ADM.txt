@@ -59,7 +59,6 @@ youtube.com##.watch-extra-info-right
 youtube.com##a[href^="http://www.youtube.com/cthru?"]
 youtube.com##a[href^="https://www.youtube.com/cthru?"]
 m.youtube.com##a[onclick*="\"ping_url\":\"http://www.google.com/aclk?"]
-@@||promo2.tubemogul.com/flash/youtube.swf$domain=comedy.com
 @@||s.ytimg.com/yts/swfbin/player-*/watch_as3.swf$object,domain=youtube.com
 @@||youtube.com/yt/advertise/medias/images/$image
 @@||youtube.com/yt/css/www-advertise.css
@@ -154,42 +153,41 @@ chaturbate.com##.ad
 chaturbate.com##.remove_ads
 
 !2015/9/4 下午3:07:56-----google
-
-google.*##li[class="ads-ad"]
-google.*###center_col > #\5f Emc
-google.*###center_col > #resultStats + #tads
-google.*###center_col > #resultStats + #tads + #res + #tads
-google.*###center_col > #resultStats + div + #res + #tads
-google.*###center_col > #resultStats + div[style="border:1px solid #dedede;margin-bottom:11px;padding:5px 7px 5px 6px"]
-google.*###center_col > #taw > #tvcap > .rscontainer
-google.*###center_col > div[style="font-size:14px;margin-right:0;min-height:5px"] > div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff8e7"]
-google.*###cnt #center_col > #res > #topstuff > .ts
-google.*###main_col > #center_col div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff7ed"]
-google.*###mbEnd[cellspacing="0"][cellpadding="0"]
-google.*###mclip_container:last-child
-google.*###mn #center_col > div > h2.spon:first-child
-google.*###mn #center_col > div > h2.spon:first-child + ol:last-child
-google.*###resultspanel > #topads
-google.*###rhs_block > #mbEnd
-google.*###rhs_block > .ts[cellspacing="0"][cellpadding="0"][style="padding:0"]
-google.*###rhswrapper > #rhssection[border="0"][bgcolor="#ffffff"]
-google.*###ssmiwdiv[jsdisplay]
-google.*###tads + div + .c
-google.*###tads.c
-google.*###tadsb.c
-google.*###tadsto.c
-google.*###topstuff > #tads
-google.*##.ch[onclick="ga(this,event)"]
-google.*##.commercial-unit-desktop-rhs
-google.*##.commercial-unit-desktop-top
-google.*##.lads[width="100%"][style="background:#FFF8DD"]
-google.*##.mod > ._jH + .rscontainer
-google.*##.mw > #rcnt > #center_col > #taw > #tvcap > .c
-google.*##.mw > #rcnt > #center_col > #taw > .c
-google.*##.ra[align="left"][width="30%"]
-google.*##.ra[align="right"][width="30%"]
-google.*##.ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0"]
-google.*##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]
-google.*##.rscontainer > .ellip
-google.*###center_col > #tads
+www.google.##[class^="ads-"]
+www.google.###center_col > #\5f Emc
+www.google.###center_col > #resultStats + #tads
+www.google.###center_col > #resultStats + #tads + #res + #tads
+www.google.###center_col > #resultStats + div + #res + #tads
+www.google.###center_col > #resultStats + div[style="border:1px solid #dedede;margin-bottom:11px;padding:5px 7px 5px 6px"]
+www.google.###center_col > #taw > #tvcap > .rscontainer
+www.google.###center_col > div[style="font-size:14px;margin-right:0;min-height:5px"] > div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff8e7"]
+www.google.###cnt #center_col > #res > #topstuff > .ts
+www.google.###main_col > #center_col div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff7ed"]
+www.google.###mbEnd[cellspacing="0"][cellpadding="0"]
+www.google.###mclip_container:last-child
+www.google.###mn #center_col > div > h2.spon:first-child
+www.google.###mn #center_col > div > h2.spon:first-child + ol:last-child
+www.google.###resultspanel > #topads
+www.google.###rhs_block > #mbEnd
+www.google.###rhs_block > .ts[cellspacing="0"][cellpadding="0"][style="padding:0"]
+www.google.###rhswrapper > #rhssection[border="0"][bgcolor="#ffffff"]
+www.google.###ssmiwdiv[jsdisplay]
+www.google.###tads + div + .c
+www.google.###tads.c
+www.google.###tadsb.c
+www.google.###tadsto.c
+www.google.###topstuff > #tads
+www.google.##.ch[onclick="ga(this,event)"]
+www.google.##.commercial-unit-desktop-rhs
+www.google.##.commercial-unit-desktop-top
+www.google.##.lads[width="100%"][style="background:#FFF8DD"]
+www.google.##.mod > ._jH + .rscontainer
+www.google.##.mw > #rcnt > #center_col > #taw > #tvcap > .c
+www.google.##.mw > #rcnt > #center_col > #taw > .c
+www.google.##.ra[align="left"][width="30%"]
+www.google.##.ra[align="right"][width="30%"]
+www.google.##.ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0"]
+www.google.##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]
+www.google.##.rscontainer > .ellip
+www.google.###center_col > #tads
 search.yahoo.com###main > div > style + ol
