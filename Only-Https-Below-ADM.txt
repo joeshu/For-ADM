@@ -17,13 +17,6 @@
 ||syndication.exoclick.com/ads-iframe-display.php?*
 |https://hm.baidu.com/hm.js?*
 
-! 2015/9/4 下午11:18:50 https://share.dmhy.org/
-share.dmhy.org##[id$="_ad"]
-
-! 2015/9/4 下午11:37:00 https://www.hanime.tv/
-www.hanime.tv##.ng-scope.ad-content-area
-www.hanime.tv##.vertical-ad
-
 !2015/9/4 上午8:06:52 https://www.youtube.com/
 ||www.youtube.com/ad_frame?*
 ||www.youtube.com/ad_data_*
@@ -129,8 +122,12 @@ twitter.com##[label="promoted"]
 mail.qq.com##.todaybarnormal
 mail.qq.com##.tipbook-top
 mail.qq.com##.todaybaradcontainer
+share.dmhy.org##[id$="_ad"]
+www.hanime.tv##.ng-scope.ad-content-area
+www.hanime.tv##.vertical-ad
+www.moe-acg.cc##DIV[class="panel-body adsense"]
+www.moe-acg.cc##DIV[class="textwidget"] > [data-ride]
 
-!2015/9/4 下午12:15:28 https://www.baidu.com/
 www.baidu.com##.ad-widget
 www.baidu.com##.ad-block
 www.baidu.com###ec_im_container
@@ -140,7 +137,6 @@ www1.baidu.com##.ad-block
 www1.baidu.com###ec_im_container
 www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
 
-!2015/9/4 下午12:20:27 https://www.haosou.com
 ||s.ssl.qhimg.com/static/*/MMPlugin.js
 www.haosou.com###e_idea_pp
 www.haosou.com##so_feb > .js-pos-before-tantan.side-ad.so-cms
@@ -149,10 +145,8 @@ www.haosou.com##div[id="m-spread-left"]
 www.haosou.com#DIV[id="m-spread-bottom"]
 www.haosou.com#div[class="e-buss"]
 
-!2015/9/4 下午3:07:56 https://greasyfork.org/
 greasyfork.org###script-show-info-ad
 ||www.projectwonderful.com/active.php?*&adboxid=*
-
 
 ! 2015/9/4 下午10:08:50 https://zh.chaturbate.com/
 chaturbate.com##.adsbyxa
