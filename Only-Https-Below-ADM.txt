@@ -127,6 +127,8 @@ www.hanime.tv##.vertical-ad
 www.moe-acg.cc##DIV[class="panel-body adsense"]
 www.moe-acg.cc##DIV[class="textwidget"] > [data-ride]
 |https://player.005.tv:60000/ad.
+laimowo.com##.mainArea.px9>[id="top"]
+||laimowo.com/template/default/ads/*.js$script
 
 www.baidu.com##.ad-widget
 www.baidu.com##.ad-block
@@ -137,7 +139,7 @@ www1.baidu.com##.ad-block
 www1.baidu.com###ec_im_container
 www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
 
-||s.ssl.qhimg.com/static/*/MMPlugin.js
+||s.ssl.qhimg.com/static/*/MMPlugin.js$script
 www.haosou.com###e_idea_pp
 www.haosou.com##so_feb > .js-pos-before-tantan.side-ad.so-cms
 www.haosou.com##so_kw-ad,#so_bd-ad
