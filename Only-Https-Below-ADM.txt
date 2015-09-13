@@ -5,6 +5,22 @@
 !  Homepage: https://raw.githubusercontent.com/joeshu/For-ADM/master/Only-Https-Below-ADM.txt
 !  --------------------------------------------------------------------------------------------
 
+----------------TEST----------------------------------
+##.adsbygoogle
+google.com##[class*='id-ad-"]
+google.com##[id^="ad-"]
+
+
+----------------------------------------------
+||.google.com/pagead/
+||ad-*.doubleclick.net/
+||ad.turn.com/$third-party
+||loadm.exelator.com/$third-party
+||oauth.googleusercontent.com/gadgets/js/
+||pagead*.googlesyndication.com/pagead/
+||secure.adnxs.com/$third-party
+||sync.adap.tv/$third-party
+||sync.teads.tv/$third-party
 ||adserver.exoticads.com^/$third-party
 ||ssl.google-analytics.com^/$third-party
 ||cdn.exoticads.com^/$third-party
@@ -195,3 +211,5 @@ www.google.##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:
 www.google.##.rscontainer > .ellip
 www.google.###center_col > #tads
 search.yahoo.com###main > div > style + ol
+
+
