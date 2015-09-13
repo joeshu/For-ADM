@@ -7,9 +7,6 @@
 
 ----------------TEST----------------------------------
 ##.adsbygoogle
-google.com##[class*='id-ad-"]
-google.com##[id^="ad-"]
-
 
 ----------------------------------------------
 ||.google.com/pagead/
@@ -172,6 +169,16 @@ chaturbate.com##.ad
 chaturbate.com##.remove_ads
 
 !2015/9/4 下午3:07:56-----google
+google.com.hk###ad-target
+google.com.hk##.id-ad-target.ads-300-250
+google.com.hk###ad-label
+google.com.hk##.id-ad-label
+google.com###ad-target
+google.com##.id-ad-target.ads-300-250
+google.com###ad-label
+google.com##.id-ad-label
+google.com###ad
+google.com.hk###ad
 google.com##.ads-ad
 www.google.##.ads-ad
 www.google.###center_col > #\5f Emc
