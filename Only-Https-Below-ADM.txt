@@ -9,7 +9,7 @@
 ##.adsbygoogle
 
 ----------------------------------------------
-||.google.com/pagead/
+|https://*.google.com/pagead/
 ||ad-*.doubleclick.net/
 ||ad.turn.com/$third-party
 ||loadm.exelator.com/$third-party
