@@ -85,6 +85,9 @@ www.youtube.com###movie_player > .html5-video-content > .iv-module.video-annotat
 www.youtube.com###movie_player > .iv-drawer
 
 !2015/9/4 上午8:46:57 https://www.facebook.com/
+facebook.com##[id^="PageAdsPagelet"]
+facebook.com##.ego_unit_container>data-ad
+www.facebook.com##data-ad
 facebook.com,japantoday.com#@##sidebar_ads
 facebook.com###MessagingNetegoWrapper
 facebook.com###home_sponsor_nile
