@@ -7,7 +7,7 @@
 
 ! ----------------TEST----------------------------------
 ##.adsbygoogle
-
+###bottomads
 ! ----------------------------------------------
 |https://*.google.com/pagead/
 ||ad-*.doubleclick.net/
@@ -155,6 +155,10 @@ www1.baidu.com##.ad-block
 www1.baidu.com###ec_im_container
 www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
 
+
+www.baidu.com##[href^="http://e.baidu.com/"]
+|https://ss*.bdstatic.com/*/tam-ogel/*.js
+
 ||s.ssl.qhimg.com/static/*/MMPlugin.js$script
 www.haosou.com###e_idea_pp
 www.haosou.com##so_feb > .js-pos-before-tantan.side-ad.so-cms
@@ -220,6 +224,7 @@ www.google.##.ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0
 www.google.##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]
 www.google.##.rscontainer > .ellip
 www.google.###center_col > #tads
+mail.google.com##.aeF > .nH > .nH[role="main"] > .aKB
 search.yahoo.com###main > div > style + ol
 
 
