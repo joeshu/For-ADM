@@ -8,7 +8,7 @@
 ! ----------------TEST----------------------------------
 
 ! ----------------------------------------------
-|https://*.google.com/pagead/
+||.google.com/pagead/
 ||ad-*.doubleclick.net/
 ||ad.turn.com/$third-party
 ||loadm.exelator.com/$third-party
@@ -17,23 +17,22 @@
 ||secure.adnxs.com/$third-party
 ||sync.adap.tv/$third-party
 ||sync.teads.tv/$third-party
-||adserver.exoticads.com^/$third-party
-||ssl.google-analytics.com^/$third-party
-||cdn.exoticads.com^/$third-party
-|https://*.doubleclick.net^/$third-party
+||adserver.exoticads.com/$third-party
+||ssl.google-analytics.com/$third-party
+||cdn.exoticads.com/$third-party
+||.doubleclick.net/$third-party
 ||ad.doubleclick.net/*
-||*/ads?ad_*
-||ads.exoclick.com^/$third-party
+|https://*/ads?ad_*
+||ads.exoclick.com/$third-party
 ||rad.reporo.net^/$third-party
-||.google-analytics.com^/$third-party
+||.google-analytics.com/$third-party
 ||syndication.exoclick.com/ads-iframe-display.php?*
-|https://hm.baidu.com/hm.js?*
+||hm.baidu.com/hm.js?*
 
 !2015/9/4 上午8:06:52 https://www.youtube.com/
 ||www.youtube.com/ad_frame?*
 ||www.youtube.com/ad_data_*
 www.youtube.com###video-masthead
-||pagead*.googlesyndication.com/pagead/*_ads.js
 ||google.com/jsapi?autoload=*%22ads%22$script,domain=youtube.com
 ||ytimg.com^*/new_watch_background.jpg?$domain=youtube.com
 ||ytimg.com^*/new_watch_background_*.jpg?$domain=youtube.com
@@ -50,7 +49,6 @@ www.youtube.com###video-masthead
 youtube.com###feed-pyv-container
 www.youtube.com##.masthead-ad-control
 www.youtube.com##.ad-div
-youtube.com#@#.afs_ads
 youtube.com###feedmodule-PRO
 youtube.com###homepage-chrome-side-promo
 youtube.com###premium-yva
@@ -91,12 +89,6 @@ facebook.com,japantoday.com#@##sidebar_ads
 facebook.com###MessagingNetegoWrapper
 facebook.com###home_sponsor_nile
 facebook.com###pagelet_ads_when_no_friend_list_suggestion
-facebook.com##.-cx-PRIVATE-fbAdUnit__root
-facebook.com##.-cx-PRIVATE-fbEmu__root
-facebook.com##.-cx-PRIVATE-fbFacebarTypeaheadToken__sponsored
-facebook.com##.-cx-PRIVATE-snowliftAds__root
-facebook.com##.-cx-PRIVATE-spyml__story
-facebook.com##.-cx-PUBLIC-fbAdUnit__root
 facebook.com##.adv
 facebook.com##.ego_spo
 facebook.com##.fbAdUnit
@@ -141,7 +133,7 @@ www.hanime.tv##.ng-scope.ad-content-area
 www.hanime.tv##.vertical-ad
 www.moe-acg.cc##DIV[class="panel-body adsense"]
 www.moe-acg.cc##DIV[class="textwidget"] > [data-ride]
-|https://player.005.tv:60000/ad.
+||player.005.tv:60000/ad.*
 laimowo.com##.mainArea.px9>[id="top"]
 ||laimowo.com/template/default/ads/*.js$script
 
@@ -156,7 +148,7 @@ www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
 
 
 www.baidu.com##[href^="http://e.baidu.com/"]
-|https://ss*.bdstatic.com/*/tam-ogel/*.js
+||ss*.bdstatic.com/*/tam-ogel/*.js
 
 ||s.ssl.qhimg.com/static/*/MMPlugin.js$script
 www.haosou.com###e_idea_pp
@@ -187,23 +179,7 @@ google.com###ad
 google.com.hk###ad
 google.com##.ads-ad
 www.google.##.ads-ad
-www.google.###center_col > #\5f Emc
-www.google.###center_col > #resultStats + #tads
-www.google.###center_col > #resultStats + #tads + #res + #tads
-www.google.###center_col > #resultStats + div + #res + #tads
-www.google.###center_col > #resultStats + div[style="border:1px solid #dedede;margin-bottom:11px;padding:5px 7px 5px 6px"]
-www.google.###center_col > #taw > #tvcap > .rscontainer
-www.google.###center_col > div[style="font-size:14px;margin-right:0;min-height:5px"] > div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff8e7"]
-www.google.###cnt #center_col > #res > #topstuff > .ts
-www.google.###main_col > #center_col div[style="font-size:14px;margin:0 4px;padding:1px 5px;background:#fff7ed"]
-www.google.###mbEnd[cellspacing="0"][cellpadding="0"]
-www.google.###mclip_container:last-child
-www.google.###mn #center_col > div > h2.spon:first-child
-www.google.###mn #center_col > div > h2.spon:first-child + ol:last-child
 www.google.###resultspanel > #topads
-www.google.###rhs_block > #mbEnd
-www.google.###rhs_block > .ts[cellspacing="0"][cellpadding="0"][style="padding:0"]
-www.google.###rhswrapper > #rhssection[border="0"][bgcolor="#ffffff"]
 www.google.###ssmiwdiv[jsdisplay]
 www.google.###tads + div + .c
 www.google.###tads.c
@@ -213,17 +189,6 @@ www.google.###topstuff > #tads
 www.google.##.ch[onclick="ga(this,event)"]
 www.google.##.commercial-unit-desktop-rhs
 www.google.##.commercial-unit-desktop-top
-www.google.##.lads[width="100%"][style="background:#FFF8DD"]
-www.google.##.mod > ._jH + .rscontainer
-www.google.##.mw > #rcnt > #center_col > #taw > #tvcap > .c
-www.google.##.mw > #rcnt > #center_col > #taw > .c
-www.google.##.ra[align="left"][width="30%"]
-www.google.##.ra[align="right"][width="30%"]
-www.google.##.ra[width="30%"][align="right"] + table[width="70%"][cellpadding="0"]
-www.google.##.rhsvw[style="background-color:#fff;margin:0 0 14px;padding-bottom:1px;padding-top:1px;"]
-www.google.##.rscontainer > .ellip
-www.google.###center_col > #tads
-mail.google.com##.aeF > .nH > .nH[role="main"] > .aKB
 search.yahoo.com###main > div > style + ol
 
 
