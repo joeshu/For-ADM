@@ -1,31 +1,28 @@
 [Adblock Plus 2.0]
 !  Title: Only-Https-Below-ADM
 !  ---------------------------By-Mr.Yan--------------------------------------------------------
-!  Email: 350027830@qq.com 
+!  Email: 350027830@qq.com
 !  Homepage: https://raw.githubusercontent.com/joeshu/For-ADM/master/Only-Https-Below-ADM.txt
 !  --------------------------------------------------------------------------------------------
 
 ! ----------------TEST----------------------------------
 
 ! ----------------------------------------------
-|https://*.google.com/pagead/
-||ad-*.doubleclick.net/
+||.google.com/pagead/
+||doubleclick.net/$third-party
 ||ad.turn.com/$third-party
 ||loadm.exelator.com/$third-party
 ||oauth.googleusercontent.com/gadgets/js/
-||pagead*.googlesyndication.com/pagead/
+||googlesyndication.com/pagead/
 ||secure.adnxs.com/$third-party
 ||sync.adap.tv/$third-party
 ||sync.teads.tv/$third-party
-||adserver.exoticads.com^/$third-party
-||ssl.google-analytics.com^/$third-party
-||cdn.exoticads.com^/$third-party
-|https://*.doubleclick.net^/$third-party
-||ad.doubleclick.net/*
-||*/ads?ad_*
-||ads.exoclick.com^/$third-party
-||rad.reporo.net^/$third-party
-||.google-analytics.com^/$third-party
+||adserver.exoticads.com/$third-party
+||google-analytics.com/$third-party
+||cdn.exoticads.com/$third-party
+||ads.exoclick.com/$third-party
+||rad.reporo.net/$third-party
+||.google-analytics.com/$third-party
 ||syndication.exoclick.com/ads-iframe-display.php?*
 |https://hm.baidu.com/hm.js?*
 
@@ -33,7 +30,6 @@
 ||www.youtube.com/ad_frame?*
 ||www.youtube.com/ad_data_*
 www.youtube.com###video-masthead
-||pagead*.googlesyndication.com/pagead/*_ads.js
 ||google.com/jsapi?autoload=*%22ads%22$script,domain=youtube.com
 ||ytimg.com^*/new_watch_background.jpg?$domain=youtube.com
 ||ytimg.com^*/new_watch_background_*.jpg?$domain=youtube.com
