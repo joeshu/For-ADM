@@ -189,6 +189,16 @@ www.google.###topstuff > #tads
 www.google.##.ch[onclick="ga(this,event)"]
 www.google.##.commercial-unit-desktop-rhs
 www.google.##.commercial-unit-desktop-top
+
+!yahoo.com
 search.yahoo.com###main > div > style + ol
-
-
+||ads.yahoo.com
+.yahoo.com##.rmx-ad,.ad-tl1,#ad-north-base,#ad-north,#ad,#my-adsFPAD,#my-adsFPL,#my-adsFPT,#fpad2,.yom-ad
+||bs.serving-sys.com/BurstingPipe/adServer.bs?*
+||.yimg.com/uq/syndication/yad.js
+||.yimg.com/uq/syndication/yad-iframe*.html
+||s^.2mdn.net/ads/*
+||.yimg.com/gs/apex/mediastore/
+||.yimg.com/rq/darla/*.html$domain=yahoo.com
+||.yimg.com/ja/ap/*/RichGutter_^_edge.js
+||syndication.streamads.yahoo.com
