@@ -124,9 +124,7 @@ twitter.com##.promoted-tweet
 twitter.com##.promotion
 twitter.com##[label="promoted"]
 
-mail.qq.com##.todaybarnormal
-mail.qq.com##.tipbook-top
-mail.qq.com##.todaybaradcontainer
+mail.qq.com##.todaybarnormal,.tipbook-top,.todaybaradcontainer
 share.dmhy.org##[id$="_ad"]
 www.hanime.tv##.ng-scope.ad-content-area,.vertical-ad
 www.moe-acg.cc##[class="textwidget"]>[data-ride],[class="textwidget"]>p,[class="panel-body adsense"],[class="dmengslide-wrapper"]
@@ -134,34 +132,19 @@ www.moe-acg.cc##[class="textwidget"]>[data-ride],[class="textwidget"]>p,[class="
 laimowo.com##.mainArea.px9>[id="top"]
 ||laimowo.com/template/default/ads/*.js$script
 
-www.baidu.com##.ad-widget
-www.baidu.com##.ad-block
-www.baidu.com###ec_im_container
-www.baidu.com##[data-click*="fm"][data-click*="ppim"]
-www1.baidu.com##.ad-widget
-www1.baidu.com##.ad-block
-www1.baidu.com###ec_im_container
-www1.baidu.com##[data-click*="fm"][data-click*="ppim"]
+www.baidu.com##.ad-widget,.ad-block,#ec_im_container,[data-click*="fm"][data-click*="ppim"]
+www1.baidu.com##.ad-widget,.ad-block,#ec_im_container,[data-click*="fm"][data-click*="ppim"]
 
-
-www.baidu.com##[href^="http://e.baidu.com/"]
 ||ss*.bdstatic.com/*/tam-ogel/*.js
-
 ||s.ssl.qhimg.com/static/*/MMPlugin.js$script
-www.haosou.com###e_idea_pp
 www.haosou.com##so_feb > .js-pos-before-tantan.side-ad.so-cms
-www.haosou.com##so_kw-ad,#so_bd-ad
-www.haosou.com##div[id="m-spread-left"]
-www.haosou.com#DIV[id="m-spread-bottom"]
-www.haosou.com#div[class="e-buss"]
+www.haosou.com##so_kw-ad,#so_bd-ad,#e_idea_pp,div[id="m-spread-left"],DIV[id="m-spread-bottom"],div[class="e-buss"]
 
 greasyfork.org###script-show-info-ad
 ||www.projectwonderful.com/active.php?*&adboxid=*
 
 ! 2015/9/4 下午10:08:50 https://zh.chaturbate.com/
-chaturbate.com##.adsbyxa
-chaturbate.com##.ad
-chaturbate.com##.remove_ads
+chaturbate.com##.adsbyxa,.ad,.remove_ads
 
 !2015/9/4 下午3:07:56-----google
 google.com.hk###ad-target
