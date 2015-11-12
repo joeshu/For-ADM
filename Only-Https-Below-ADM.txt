@@ -130,7 +130,7 @@ mail.qq.com##.tipbook-top
 mail.qq.com##.todaybaradcontainer
 share.dmhy.org##[id$="_ad"]
 www.hanime.tv##.ng-scope.ad-content-area,.vertical-ad
-www.moe-acg.cc##[class="textwidget"]>[data-ride],[class="textwidget"]>p,[class="panel-body adsense"]
+www.moe-acg.cc##[class="textwidget"]>[data-ride],[class="textwidget"]>p,[class="panel-body adsense"],[class="dmengslide-wrapper"]
 ||player.005.tv:60000/ad.*
 laimowo.com##.mainArea.px9>[id="top"]
 ||laimowo.com/template/default/ads/*.js$script
