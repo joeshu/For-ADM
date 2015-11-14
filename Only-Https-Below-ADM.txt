@@ -81,7 +81,7 @@ www.youtube.com###movie_player > .iv-promo-video.iv-promo.annotation-type-custom
 www.youtube.com###movie_player > .html5-video-content > .iv-module.video-annotations
 www.youtube.com###movie_player > .iv-drawer
 
-!2015/9/4 上午8:46:57 https://www.facebook.com/
+!https://www.facebook.com/
 facebook.com##[id^="PageAdsPagelet"]
 facebook.com##.ego_unit_container>[data-ad]
 www.facebook.com##[data-ad]
@@ -115,7 +115,7 @@ facebook.com##div[id^="sponsoredTickerStory_"]
 @@||www.facebook.com/ads/
 @@||www.facebook.com/ajax/ads/$domain=www.facebook.com
 
-!2015/9/4 上午9:18:52 https://twitter.com/
+!https://twitter.com/
 ||platform.twitter.com/widgets.js$script
 ||platform.twitter.com/widgets.js$script
 twitter.com##.is-promoted
@@ -144,10 +144,9 @@ www.haosou.com##so_kw-ad,#so_bd-ad,#e_idea_pp,div[id="m-spread-left"],DIV[id="m-
 greasyfork.org###script-show-info-ad
 ||www.projectwonderful.com/active.php?*&adboxid=*
 
-! 2015/9/4 下午10:08:50 https://zh.chaturbate.com/
 chaturbate.com##.adsbyxa,.ad,.remove_ads
 
-!2015/9/4 下午3:07:56-----google
+!google
 google.com.hk###ad-target
 google.com.hk##.id-ad-target.ads-300-250
 google.com.hk###ad-label
