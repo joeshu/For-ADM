@@ -8,6 +8,8 @@
 !如果你有其他不想过滤的论坛或者网站类的, 可以在自定义里面仿造上面的规则写一条
 !例如 有些人不想过滤 http://www.baidu.com/
 !那么可以在user.txt 自定义中加一条规则  @@|http://$domain=.baidu.com|   保存即可
+!Homepage: https://raw.githubusercontent.com/joeshu/For-ADM/master/the-white-rule-for-demander.txt
+
 
 !-------------需要订阅此规则的------------属于个人行为----------------------------------
 !电商类
