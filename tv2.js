@@ -14,7 +14,7 @@ var obj = JSON.parse(body);
 
 obj.data["focusAdList"] = null;
 obj.data["floatAd"] = null;
-obj.data.hotMudleList.id[("246"] = 0;
+
 body = JSON.stringify(obj);
 
 console.log(body);
