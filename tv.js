@@ -2,14 +2,16 @@
 /****************************************
 [rewrite_local]
 ^https:\/\/yzy*\.*\.com\/v2\/api\/basic\/init url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
-
 [mitm]
 hostname = yzy*.*.com
 *************************************/
-
-
+/* ^https:\/\/yzy*\.*\.com\/v2\/api\/basic\/init  url response-body "startAdShowTime":?", response-body "startAdShowTime":0" */
 var body = $response.body;
+var obj = JSON.parse(body);
 
-body = body.replace(/\"startAdShowTime":\d+/g, '\"startAdShowTime":0');
+obj['startAdShowTime'] = 0;
+body = JSON.stringify(obj);
 
-$done({body});
+console.log(body);
+
+$done(body);
