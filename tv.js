@@ -16,13 +16,13 @@
 ^https?:\/\/yzy0916\.q8nsderug\.com\/v2\/api\/adInfo\/getTextAd url reject-200
 ^https?:\/\/yzy0916\.q8nsderug\.com\/v2\/api\/vodInfo\/getVodBodyAd url reject-200
 
-^https?:\/\/yzy0916\.*\.com\/v2\/api\/adInfo\/get*Ad url reject-200
+^https?:\/\/yzy0916\.*\.com\/v2\/api\/adInfo\/getPageAd url reject-200
 ^https?:\/\/yzy0916\.*\.com\/v2\/api\/vodInfo\/getVodBodyAd url reject-200
 ^https?:\/\/yzy0916\.*\.com\/v2\/api\/home\/notice url reject-200
-^https?:\/\/yz1018\.*\.com\/v2\/api\/adInfo\/get*Ad url reject-200
+^https?:\/\/yz1018\.*\.com\/v2\/api\/adInfo\/getPageAd url reject-200
 ^https?:\/\/yz1018\.*\.com\/v2\/api\/vodInfo\/getVodBodyAd url reject-200
 ^https?:\/\/yz1018\.*\.com\/v2\/api\/home\/notice url reject-200
-^https?:\/\/yz250907\.*\.com\/v2\/api\/adInfo\/get*Ad url reject-200
+^https?:\/\/yz250907\.*\.com\/v2\/api\/adInfo\/getPageAd url reject-200
 ^https?:\/\/yz250907\.*\.com\/v2\/api\/vodInfo\/getVodBodyAd url reject-200
 ^https?:\/\/yz250907\.*\.com\/v2\/api\/home\/notice url reject-200
 
