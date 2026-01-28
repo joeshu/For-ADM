@@ -1,7 +1,7 @@
 
 /****************************************
 [rewrite_local]
-^https:\/\/(yzy.*\.*\.com url script-response-body 9.js
+^https:\/\/(yzy.*\.*\.com url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
 
 [mitm]
 hostname = yzy*.*.com
