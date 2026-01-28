@@ -11,9 +11,13 @@ hostname = yzy*.*.com,yz1018.*.com,yz250907.*.com,
 var body = $response.body;
 var obj = JSON.parse(body);
 
-
+/*
 obj.data["focusAdList"] = null;
 obj.data["floatAd"] = null;
+*/
+
+delete obj.data.focusAdList;
+delete obj.data.floatAd;
 
 body = JSON.stringify(obj);
 
