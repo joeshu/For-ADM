@@ -11,7 +11,7 @@ hostname = yzy*.*.com
 var body = $response.body;
 var obj = JSON.parse(body);
 
-obj['startAdShowTime'] = 0;
+obj["startAdShowTime"] = 0;
 body = JSON.stringify(obj);
 
 console.log(body);
