@@ -1,12 +1,13 @@
 
 /****************************************
 [rewrite_local]
-^https?:\/\/(yzy0916|yz1018|yz250907)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
-^https?:\/\/(yzy0916|yz1018|yz250907)\..+\.com\/v2\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getVodBodyAd|getVodPauseAd) url reject-200
-^https?:\/\/(yzy0916|yz1018|yz250907)\..+\.com\/v2\/api\/home\/notice url reject-200
+^https?:\/\/(yzy0916|yz1018|yz250907|yz0320)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
+^https?:\/\/(yzy0916|yz1018|yz250907|yz0320)\..+\.com\/v2\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getVodBodyAd|getVodPauseAd) url reject-200
+^https?:\/\/(yzy0916|yz1018|yz250907|yz0320)\..+\.com\/v2\/api\/home\/notice url reject-200
+
 
 [mitm]
-hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com
+hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com,yz0320.*.com,cfvip.*.com
 *************************************/
 const path1 = "/basic/init";
 const path2 = "/home/firstScreen";
