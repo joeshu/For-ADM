@@ -1,10 +1,9 @@
 
 /****************************************
 [rewrite_local]
-^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
 ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getVodBodyAd|getVodPauseAd) url reject-200
-^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/home\/notice url reject-200
-
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/home\/notice url reject
 
 [mitm]
 hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com,yz0320.*.com,cfvip.*.com
@@ -90,7 +89,7 @@ delete obj.data.floatAd;
 }
 /*
 if ($request.url.indexOf(path4) != -1){
-delete obj.data.adList[[{"id":283,"title":"招商","subTitle":"","fileType":1,"imgUrl":"https://ff1.1t4b19ec.com/upload/images/202512/ec74a9b0-da96-40a6-99e4-1f90613d604d.png","adImgType":2,"adAction":2,"actionContent":"https://t.me/yqk2024","adInsertRule":null}],
+delete obj.data.adList[
 ];
 }
 */
