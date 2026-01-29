@@ -12,7 +12,7 @@ hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com,yz0320.*.com,cfvip.*.com
 const path1 = "/basic/init";
 const path2 = "/home/firstScreen";
 const path3 = "/adInfo/getPageAd";
-
+const path4 = "/home/body";
 var body = $response.body;
 var obj = JSON.parse(body);
 
@@ -89,10 +89,11 @@ if ($request.url.indexOf(path3) != -1){
 delete obj.data.floatAd;
 }
 
+if ($request.url.indexOf(path4) != -1){
+delete obj.data.adList[1];
+}
 
-
-
-
+//[{"id":283,"title":"招商","subTitle":"","fileType":1,"imgUrl":"https://ff1.1t4b19ec.com/upload/images/202512/ec74a9b0-da96-40a6-99e4-1f90613d604d.png","adImgType":2,"adAction":2,"actionContent":"https://t.me/yqk2024","adInsertRule":null}],
 
 
 
