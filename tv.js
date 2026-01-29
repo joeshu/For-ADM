@@ -6,7 +6,7 @@
 ^https?:\/\/(yzy0916|yz1018|yz250907)\.(q8nsderug|6vh3qyu9x|goi6lhmry|tgs2hl4ut|o5r52at9v|hzkeka49|jba2yo1c|3nyk7h9o|7k5jb8t9|zazy3mc5)\.com\/v2\/api\/home\/notice url reject-200
 
 [mitm]
-hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com,
+hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com
 *************************************/
 const path1 = "/basic/init";
 const path2 = "/home/firstScreen";
