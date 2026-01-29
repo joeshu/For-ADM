@@ -1,7 +1,7 @@
 
 /****************************************
 [rewrite_local]
-^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
 ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getVodBodyAd|getVodPauseAd) url reject-200
 ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/home\/notice url reject-200
 
