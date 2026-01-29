@@ -90,10 +90,10 @@ delete obj.data.floatAd;
 }
 
 if ($request.url.indexOf(path4) != -1){
-delete obj.data.adList[1];
+delete obj.data.adList[[{"id":283,"title":"招商","subTitle":"","fileType":1,"imgUrl":"https://ff1.1t4b19ec.com/upload/images/202512/ec74a9b0-da96-40a6-99e4-1f90613d604d.png","adImgType":2,"adAction":2,"actionContent":"https://t.me/yqk2024","adInsertRule":null}],
+];
 }
 
-//[{"id":283,"title":"招商","subTitle":"","fileType":1,"imgUrl":"https://ff1.1t4b19ec.com/upload/images/202512/ec74a9b0-da96-40a6-99e4-1f90613d604d.png","adImgType":2,"adAction":2,"actionContent":"https://t.me/yqk2024","adInsertRule":null}],
 
 
 
