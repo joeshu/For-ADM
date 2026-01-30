@@ -11,10 +11,10 @@ var obj = JSON.parse(body);
 
 /*************************************/
 if ($request.url.indexOf(path4) != -1){
-obj.data.adList[0].imgUrl= "";
-obj.data.adList[0].adImgType= 0;
-obj.data.adList[0].adAction= 0;
-obj.data.adList[0].actionContent= "";
+obj.data.adList[1].imgUrl= "";
+obj.data.adList[1].adImgType= 0;
+obj.data.adList[1].adAction= 0;
+obj.data.adList[1].actionContent= "";
 
 }
 
