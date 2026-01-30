@@ -29,12 +29,12 @@ obj.data["startAdList"] = null;
 /*************************************/
 if ($request.url.indexOf(path2) != -1){
 delete obj.data.focusAdList; 
-obj.data.hotMudleList.pop();
-obj.data.hotMudleList.pop();
-obj.data.hotMudleList.pop();
-obj.data.hotMudleList.pop();
-obj.data.hotMudleList.pop();
-      
+//obj.data.hotMudleList.pop();
+//obj.data.hotMudleList.pop();
+//obj.data.hotMudleList.pop();
+//obj.data.hotMudleList.pop();
+obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
+
       /*
       obj.data.hotMudleList = [
       {
