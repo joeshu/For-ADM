@@ -33,8 +33,8 @@ delete obj.data.focusAdList;
 //obj.data.hotMudleList.pop();
 //obj.data.hotMudleList.pop();
 //obj.data.hotMudleList.pop();
-obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
-
+//obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
+obj.data.hotMudleList = obj.data.hotMudleList.slice(6, 10);
       /*
       obj.data.hotMudleList = [
       {
