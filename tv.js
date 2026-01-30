@@ -1,7 +1,7 @@
 
 /****************************************
 [rewrite_local]
-^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
+^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
 ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getVodBodyAd|getVodPauseAd) url reject-200
 ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/v2\/api\/home\/notice url reject
 
@@ -14,7 +14,7 @@ const path3 = "/adInfo/getPageAd";
 const path4 = "/home/body";
 var body = $response.body;
 var obj = JSON.parse(body);
-
+//^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
 /*************************************/
 if ($request.url.indexOf(path1) != -1){
 obj.data["startAdShowTime"] = 0;
