@@ -10,7 +10,7 @@
 hostname= gateway-api.yizhilive.com
 ***************************/
 
-const path1 = "/v2/index/carouses/(3|6|8|11))";
+const path1 = "/v2/index/carouses/(3|6|8|11)";
 const path2 = "/v3/index/all?page=1&pageSize=20&position=2";
 var body = $response.body;
 var obj = JSON.parse(body);
