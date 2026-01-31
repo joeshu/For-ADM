@@ -4,10 +4,11 @@
 [mitm]
 hostname = www.bigbangquant.com
 ***/
+var body = $response.body;
+var obj = JSON.parse(body);
 
 
-var obj = JSON.parse($response.body);
-if (obj && obj.data) {
+if (obj.data) {
     obj.data.vipLevel = 1;
     obj.data.check_in_days_cycle = 1000;
     obj.data.check_in_days_continue = 100;
@@ -17,7 +18,10 @@ if (obj && obj.data) {
     obj.data.vipEndTime = "2027-02-01 21:50:41";
     obj.data.vip_day_card = 200;
     obj.data.received_likes = 200;
-    obj.data.check _in_days_all = 2000;
-    obj.data.partner = 2000;
+    obj.data.check_in_days_all = 2000;
+    //obj.data.parter = 2000;
 }
-$done({body: JSON.stringify(obj)});
+
+body = JSON.stringify(obj);
+console.log(body);
+$done(body);
