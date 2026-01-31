@@ -14,7 +14,7 @@ var obj = JSON.parse(body);
 
 /********************************************/
 
- if (url.match(/\/api\/v2\/index\/carouses\/(8|11|6|3)) {
+ if (url.match(/\/api\/v2\/index\/carouses\/(8|11|6|3)/) {
   if (Array.isArray(obj.data)) {
     obj.data = [];
   }
