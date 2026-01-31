@@ -1,4 +1,5 @@
-/******************
+/****************************************
+[rewrite_local]
 # 移除球竞弹窗推广
 ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(8|11)(\?.*)?$ response-body-json-jq 'if (.data|type)=="array" then .data=[] else . end'
 
@@ -8,6 +9,6 @@
 
 # 移除球竞我的页面推广
 ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/3(\?.*)?$ response-body-json-jq 'if (.data|type)=="array" then .data=[] else . end'
-
+[mitm]
 hostname= gateway-api.yizhilive.com
 ***************************/
