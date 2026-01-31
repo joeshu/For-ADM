@@ -17,13 +17,13 @@ var body = $response.body;
 var obj = JSON.parse(body);
 
 /********************************************/
-/*
- if (url.match(/\/api\/v2\/index\/carouses\/(8|11|6|3)/gi) {
+
+ if (url.match(/\/api\/v2\/index\/carouses\/(11|8|6|3)\b/) {
   if (Array.isArray(obj.data)) {
     obj.data = [];
   }
 }
-*/
+/*
 if ($request.url.indexOf(path3) != -1){
   if (Array.isArray(obj.data)) {
     obj.data = [];
