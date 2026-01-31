@@ -13,13 +13,14 @@ if (obj.data) {
     obj.data.check_in_days_cycle = 1000;
     obj.data.check_in_days_continue = 100;
     obj.data.reset_card = 101;
-    obj.data.assets.yanhua = 99999;
-    obj.data.assets.baozhu = 99991;
+    obj.data.assets.yanhua = 39999;
+    obj.data.assets.baozhu = 39991;
     obj.data.vipEndTime = "2027-02-01 21:50:41";
     obj.data.vip_day_card = 200;
     obj.data.received_likes = 200;
-    obj.data.check_in_days_all = 2000;
-    //obj.data.parter = 2000;
+    obj.data.check_in_days_all = 200;
+    obj.data.partner = 2000;
+    obj.data.score = 20000;
 }
 
 body = JSON.stringify(obj);
