@@ -17,8 +17,8 @@ var body = $response.body;
 var obj = JSON.parse(body);
 
 /********************************************/
+if (url.match(/\/api\/v2\/index\/carouses\/(11|8|6|3)\b/)) {
 
-if (url.match(/\\/api\\/v2\\/index\\/carouses\\/(3|6|8|11)(?:\\b|$|\\/|\\?|#)/)) {
    console.log(`匹配到URL: ${url}`);
  if (Array.isArray(obj.data)) {
     obj.data = [];
