@@ -21,9 +21,6 @@ if (obj.data) {
     obj.data.check_in_days_all = 200;
     obj.data.partner = 2000;
     obj.data.score = 20000;
-    obj.data.buyProducts = ["product_id":3,"product_name":"年卡会员","product_type":1,"product_type_sub":3];
-
-
     
 }
 
