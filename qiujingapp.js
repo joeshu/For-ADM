@@ -1,7 +1,7 @@
 /****************************************
 [rewrite_local]
 # 移除球竞弹窗推广
-^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(8|11|6|3)(\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/qiujingapp.js
+^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(3|6|8|11)(\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/qiujingapp.js
 # 移除球竞轮播广告
 ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v3\/index\/all\?.*position=2.*$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/qiujingapp.js
 [mitm]
@@ -30,7 +30,7 @@ if ($request.url.indexOf(path6) != -1){
 */
 /************************************************/
 if (url.match(/\/api\/v3\/index\/all\?.*position=2.*$/)) {
-  console.log(`匹配到URL: ${url}`);
+//console.log(`匹配到URL: ${url}`);
    if(obj.data&&obj.data.banners){
   obj.data.banners = [];
 }
