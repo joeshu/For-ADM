@@ -4,7 +4,7 @@
 *******************************
 [rewrite_local]
 # > gps工具箱
-^^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo url script-response-body https://raw.githubusercontent.com/WeiGiegie/666/main/gps.js
+^^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/gps.js
 
 [mitm]
 hostname = service.gpstool.com
