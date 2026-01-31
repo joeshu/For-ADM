@@ -21,18 +21,19 @@ var obj = JSON.parse(body);
 }
 
 /************************************************/
-// if (url.match(api\/v3\/index\/all\?.*position=2.*$)) {
-//  if(obj.data&&obj.data.banners){
-//  obj.data.banners = [];
-//  }
-//}
+if (url.match(/\/api\/v3\/index\/all\?.*position=2/gi))) {
+  if(obj.data&&obj.data.banners){
+  obj.data.banners = [];
+}
+}
 
-
+/*
 if ($request.url.indexOf(path2) != -1){
   if(obj.data&&obj.data.banners){
   obj.data.banners = [];
  }
 }
+*/
 
 body = JSON.stringify(obj);
 console.log(body);
