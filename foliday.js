@@ -12,7 +12,7 @@ let body = $response.body;
 
 if (url.includes("getPageComponents")) {
     let obj = JSON.parse(body);
-    const excludedSet = new Set(["TCMP_home_followingadvertising","TC_AIGO"]);
+    const excludedSet = new Set(["TCMP_home_followingadvertising","TC_Interactive_Ad","TC_Member_Banner","TC_AIGO"]);
     if (obj?.data?.pageComponents?.length > 0) {
         obj.data.pageComponents = obj.data.pageComponents.filter(
            item => !excludedSet.has(item.componentCode)
