@@ -1,7 +1,7 @@
 /************************************************
 # > 复游会<微信小程序> - FOLIDAY
 [rewrite_local]
-^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents url script-response-body https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js
+^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/foliday.js
 ^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getAdAndRecommendedProduct url response-body "adComponent":.+, response-body "adComponent":null,
 [mitm]
 hostname = apis.folidaymall.com
@@ -21,6 +21,7 @@ if (url.includes("getPageComponents")) {
     body = JSON.stringify(obj);
 }
 
-
+//const excludedCodes = ["TCMP_home_followingadvertising","TC_AIGO"];
+//obj.data.pageComponents = obj.data.pageComponents.(item => !excludedCodes.includes(item.componentCode));
 
 $done({body});
