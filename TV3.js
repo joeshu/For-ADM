@@ -26,7 +26,20 @@ if ($request.url.indexOf(path2) != -1){
 delete obj.data.focusAdList; 
 //obj.data.hotMudleList.pop();
 //obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
-obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
+//obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
+if (obj?.data?.hotMudleList?.length > 0) {
+    let list = obj.data.hotMudleList;
+    const newList = [];
+    for (let item of list) {
+      if (item?.title?.some((i) =>
+          i?.text?.includes("广告招商"))
+      ) {
+        continue;
+      }
+      newList.push(item);
+    }
+    obj.data.hotMudleList = newList;
+  }
 }
 
 /*************************************/
