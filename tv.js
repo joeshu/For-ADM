@@ -38,20 +38,7 @@ delete obj.data.popupAd;
 }
 
 if ($request.url.indexOf(path4) != -1){
-//obj.data.adList.shift();
-if (obj?.data?.adList?.length > 0) {
-    let list = obj.data.adList;
-    const newList = [];
-    for (let item of list) {
-      if (item?.title?.some((i) =>
-          i?.text?.includes("招商"))
-      ) {
-        continue;
-      }
-      newList.push(item);
-    }
-    obj.data.adList = newList;
-  }
+obj.data.adList.shift();
 }
 
 /*************************
