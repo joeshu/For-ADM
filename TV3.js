@@ -1,27 +1,42 @@
-/***********
+/****************************************
 [rewrite_local]
-^https?:\/\/www\.bigbangquant\.com\/api-new\/user\/login\/signInToken url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/TV3.js
+^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tv.js
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getVodBodyAd|getVodPauseAd|getUserCenterAd) url reject-200
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(home\/notice|gameCenter\/gameDetailList) url reject-200
+
 [mitm]
-hostname = www.bigbangquant.com
-***/
+hostname = yzy0916.*.com,yz1018.*.com,yz250907.*.com,yz0320.*.com,cfvip.*.com
+*************************************/
+const path1 = "/basic/init";
+const path2 = "/home/firstScreen";
+const path3 = "/adInfo/getPageAd";
+const path4 = "/home/body";
+
 var body = $response.body;
 var obj = JSON.parse(body);
+/*************************************/
+if ($request.url.indexOf(path1) != -1){
+obj.data["startAdShowTime"] = 0;
+obj.data["startAd"] = null;
+obj.data["startAdList"] = null;
+}
 
+/*************************************/
+if ($request.url.indexOf(path2) != -1){
+delete obj.data.focusAdList; 
+//obj.data.hotMudleList.pop();
+//obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
+obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
+}
 
-if (obj.data) {
-    obj.data.vipLevel = 2;
-    obj.data.check_in_days_cycle = 1000;
-    obj.data.check_in_days_continue = 100;
-    obj.data.reset_card = 101;
-    obj.data.assets.yanhua = 39999;
-    obj.data.assets.baozhu = 39991;
-    obj.data.vipEndTime = "2027-02-01 21:50:41";
-    obj.data.vip_day_card = 200;
-    obj.data.received_likes = 200;
-    obj.data.check_in_days_all = 200;
-    obj.data.partner = 2000;
-    obj.data.score = 20000;
-    
+/*************************************/
+if ($request.url.indexOf(path3) != -1){
+delete obj.data.floatAd;
+delete obj.data.popupAd;
+}
+
+if ($request.url.indexOf(path4) != -1){
+obj.data.adList.shift();
 }
 
 body = JSON.stringify(obj);
