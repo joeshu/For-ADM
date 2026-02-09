@@ -13,67 +13,62 @@ const path2 = "/home/firstScreen";
 const path3 = "/adInfo/getPageAd";
 const path4 = "/home/body";
 
+// 修复：检查 response body 是否存在
+if (!$response || !$response.body) {
+    $done({});
+}
+
 var body = $response.body;
-var obj = JSON.parse(body);
+var obj;
 
-/*************************************/
-if ($request.url.indexOf(path1) != -1){
-obj.data["startAdShowTime"] = 0;
-obj.data["startAd"] = null;
-obj.data["startAdList"] = null;
+// 修复：使用 try-catch 解析 JSON
+try {
+    obj = JSON.parse(body);
+} catch (e) {
+    console.log("JSON parse error: " + e);
+    $done({});
+}
+
+// 修复：检查 obj.data 是否存在
+if (!obj || !obj.data) {
+    $done({body: body});
 }
 
 /*************************************/
-if ($request.url.indexOf(path2) != -1){
-delete obj.data.focusAdList; 
-//obj.data.hotMudleList.pop();
-//obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
-obj.data.hotMudleList = obj.data.hotMudleList.slice(0,5);
-}
-
-/*************************************/
-if ($request.url.indexOf(path3) != -1){
-delete obj.data.floatAd;
-delete obj.data.popupAd;
-}
-
-if ($request.url.indexOf(path4) != -1){
-obj.data.adList.shift();
-}
-
-/*************************
-const url = $request.url;
-if (!$response.body) $done({});
-let obj = JSON.parse($response.body);
-
-if (
-    url.includes("/api/news/index") ||
-    url.includes("/api/topmenu/getfeeds")
-) {
-  if (obj?.data?.list?.length > 0) {
-    let list = obj.data.list;
-    const newList = [];
-    for (let item of list) {
-      if (item?.feedContent?.smallTags?.some((i) =>
-          i?.text?.includes("广告"))
-      ) {
-        continue;
-      }
-      if ([10002, 10003].includes(item?.feedType)) {
-        continue;
-      }
-      newList.push(item);
+if ($request.url.indexOf(path1) != -1) {
+    if (obj.data) {
+        obj.data["startAdShowTime"] = 0;
+        obj.data["startAd"] = null;
+        obj.data["startAdList"] = null;
     }
-    obj.data.list = newList;
-  }
 }
-$done({body: JSON.stringify(obj)})
-*****///
 
+/*************************************/
+if ($request.url.indexOf(path2) != -1) {
+    if (obj.data) {
+        delete obj.data.focusAdList;
+        //obj.data.hotMudleList.pop();
+        //obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
+        if (obj.data.hotMudleList && Array.isArray(obj.data.hotMudleList)) {
+            obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
+        }
+    }
+}
 
+/*************************************/
+if ($request.url.indexOf(path3) != -1) {
+    if (obj.data) {
+        delete obj.data.floatAd;
+        delete obj.data.popupAd;
+    }
+}
+
+if ($request.url.indexOf(path4) != -1) {
+    if (obj.data && obj.data.adList && Array.isArray(obj.data.adList) && obj.data.adList.length > 0) {
+        obj.data.adList.shift();
+    }
+}
 
 body = JSON.stringify(obj);
 //console.log(body);
-$done(body);
-
-
+$done({body: body});
