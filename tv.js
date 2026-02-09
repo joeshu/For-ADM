@@ -67,7 +67,6 @@ if (obj?.data?.adList?.length > 0) {
     obj.data.adList = newList;
   }
 ********/
-
 }
 
 /*************************
@@ -102,7 +101,7 @@ $done({body: JSON.stringify(obj)})
 
 
 body = JSON.stringify(obj);
-console.log(body);
+//console.log(body);
 $done(body);
 
 
