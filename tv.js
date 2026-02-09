@@ -51,7 +51,8 @@ delete obj.data.popupAd;
 }
 
 if ($request.url.indexOf(path4) != -1){
-//obj.data.adList.shift();
+obj.data.adList.shift();
+/*******
 if (obj?.data?.adList?.length > 0) {
     let list = obj.data.adList;
     const newList = [];
@@ -65,6 +66,8 @@ if (obj?.data?.adList?.length > 0) {
     }
     obj.data.adList = newList;
   }
+********/
+
 }
 
 /*************************
