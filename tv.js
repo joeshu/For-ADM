@@ -28,7 +28,7 @@ if ($request.url.indexOf(path2) != -1){
 delete obj.data.focusAdList; 
 //obj.data.hotMudleList.pop();
 //obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
-obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
+obj?.data?.hotMudleList = obj?.data?.hotMudleList?.slice(0, 5);
 }
 
 /*************************************/
@@ -38,7 +38,7 @@ delete obj.data.popupAd;
 }
 
 if ($request.url.indexOf(path4) != -1){
-obj.data.adList.shift();
+obj?.data?.adList?.shift();
 }
 
 /*************************
