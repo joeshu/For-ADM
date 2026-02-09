@@ -28,20 +28,7 @@ if ($request.url.indexOf(path2) != -1){
 delete obj.data.focusAdList; 
 //obj.data.hotMudleList.pop();
 //obj.data.hotMudleList = obj.data.hotMudleList.slice(0, -5);
-//obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
-if (obj?.data?.hotMudleList?.length > 0) {
-    let list = obj.data.hotMudleList;
-    const newList = [];
-    for (let item of list) {
-      if (item?.title?.some((i) =>
-          i?.text?.includes("广告招商"))
-      ) {
-        continue;
-      }
-      newList.push(item);
-    }
-    obj.data.hotMudleList = newList;
-  }
+obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
 }
 
 /*************************************/
@@ -51,8 +38,7 @@ delete obj.data.popupAd;
 }
 
 if ($request.url.indexOf(path4) != -1){
-obj.data.adList.shift();
-/*******
+//obj.data.adList.shift();
 if (obj?.data?.adList?.length > 0) {
     let list = obj.data.adList;
     const newList = [];
@@ -66,7 +52,6 @@ if (obj?.data?.adList?.length > 0) {
     }
     obj.data.adList = newList;
   }
-********/
 }
 
 /*************************
