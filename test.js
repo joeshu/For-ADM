@@ -47,10 +47,7 @@ if (
 
 $done({body: JSON.stringify(obj)})
 
-
-
-
-*****//
+/*****//
 
 
 const url = $request.url;
@@ -67,18 +64,5 @@ if (url.includes("/meta-interface/v2/index?")) {
   delete obj.data.recom_btns;
 }
 
-if (url.includes("/meta-interface/v1/index/plaza?")) {
-  delete obj.data.tabs[1].badge;
-  delete obj.data.recommend_ads;
-}
-
-if (url.includes("/open-interface/v1/string/market_page?title=metabolism_config")) {
-  delete obj.dtop_banner;
-  delete obj.diagnos_config;
-  delete obj.partner_hospital;
-  delete obj.question_answer;
-  delete obj.product;
-  delete obj.brand_story;
-}
 
 $done({body: JSON.stringify(obj)});
