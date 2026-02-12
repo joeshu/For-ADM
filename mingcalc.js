@@ -8,7 +8,7 @@
  * ============================================
  */
 [rewrite_local]
-^http://jsq\.mingcalc\.cn\/XMGetMeCount\.ashx url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/mingcalc.js
+^http://jsq\.mingcalc\.cn\/XMGetMeCount\.ashx url script-analyze-echo-response https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/mingcalc.js
 
 [mitm]
 hostname = jsq.mingcalc.cn
