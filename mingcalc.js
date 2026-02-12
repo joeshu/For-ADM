@@ -12,158 +12,164 @@
 
 [mitm]
 hostname =jsq.mingcalc.cn
+/*
 // ==================== 第一部分: 环境初始化 ====================
 
-// Quantumult X / Surge 环境对象
-const $ = new Env('小明计算器');
+// 安全获取环境对象
+const $ = (typeof init !== 'undefined') ? init() : 
+          (typeof $task !== 'undefined') ? $task : 
+          (typeof $httpClient !== 'undefined') ? $httpClient :
+          (typeof $rocket !== 'undefined') ? $rocket :
+          createEnv('小明计算器');
+
+// 兼容不同代理工具的环境构造
+function createEnv(name) {
+    return {
+        name: name,
+        log: function(message) {
+            console.log(`[${this.name}] ${message}`);
+        },
+        msg: function(title, subtitle, message) {
+            console.log(`${title}\n${subtitle}\n${message}`);
+        },
+        done: function(data) {
+            if (typeof $done !== 'undefined') {
+                $done(data);
+            } else if (typeof $task !== 'undefined' && $task.done) {
+                $task.done(data);
+            } else {
+                console.log('Response:', data);
+            }
+        }
+    };
+}
 
 // ==================== 第二部分: 主程序逻辑 ====================
 
 (function main() {
+    // 安全检查：确保 $response 存在
+    if (typeof $response === 'undefined' || !$response) {
+        $.log('❌ 错误: $response 对象不存在');
+        $.done({ body: JSON.stringify({ code: 500, message: "环境错误" }) });
+        return;
+    }
+
     // 获取原始HTTP响应体
     let body = $response.body;
-    
+
+    // 如果 body 为空，构造新响应
+    if (!body) {
+        $.log('⚠️ 响应体为空，构造新VIP响应');
+        const newResponse = createVIPResponse();
+        $.done({ body: JSON.stringify(newResponse) });
+        return;
+    }
+
     try {
         // 解析JSON响应
         let responseObj = JSON.parse(body);
-        
+
         // 调用破解核心函数
         const hackedResponse = unlockVIP(responseObj);
-        
+
         // 输出调试日志
         $.log('✅ 小明计算器VIP解锁成功');
         $.log('📅 VIP到期时间: 2099-12-31');
         $.log('👤 用户等级: 永久会员');
-        
+
         // 返回修改后的响应
-        $done({ body: JSON.stringify(hackedResponse) });
-        
+        $.done({ body: JSON.stringify(hackedResponse) });
+
     } catch (error) {
         // 异常处理：解析失败时返回原始数据
         $.log('❌ 解析失败: ' + error.message);
-        $done({ body: body });
+        // 返回原始 body 避免崩溃
+        $.done({ body: body || "{}" });
     }
 })();
 
 // ==================== 第三部分: 破解核心函数 ====================
 
-/**
- * VIP解锁主函数
- * @param {Object} originalData - 原始服务器响应数据
- * @returns {Object} - 修改后的VIP数据
- */
 function unlockVIP(originalData) {
-    
+    // 确保输入是对象
+    if (!originalData || typeof originalData !== 'object') {
+        originalData = {};
+    }
+
     // 确保data对象存在
     if (!originalData.data) {
         originalData.data = {};
     }
-    
+
     const data = originalData.data;
-    
-    // ------- 3.1 会员状态解锁 -------
-    data.isVip = true;                    // VIP标识
-    data.vipStatus = 1;                   // VIP状态码 (1=生效)
-    data.memberType = "premium";          // 会员类型
-    data.userType = 1;                    // 用户类型 (1=付费用户)
-    
-    // ------- 3.2 时间设置 (永久有效) -------
     const permanentDate = "2099-12-31 23:59:59";
-    const permanentTimestamp = 4102444799000;  // 2099年时间戳
-    
-    data.vipExpireTime = permanentDate;           // VIP过期时间(字符串)
-    data.vipExpireDate = permanentDate;           // 备用字段
-    data.vipExpireTimestamp = permanentTimestamp; // VIP过期时间(时间戳)
-    data.vipStartTime = "2020-01-01 00:00:00";    // VIP开始时间
-    
-    // ------- 3.3 功能权限解锁 -------
+    const permanentTimestamp = 4102444799000;
+
+    // VIP状态
+    data.isVip = true;
+    data.vipStatus = 1;
+    data.memberType = "premium";
+    data.userType = 1;
+    data.vipExpireTime = permanentDate;
+    data.vipExpireDate = permanentDate;
+    data.vipExpireTimestamp = permanentTimestamp;
+    data.vipStartTime = "2020-01-01 00:00:00";
+
+    // 权限
     data.permissions = {
-        "advancedCalculate": true,    // 高级计算
-        "historyExport": true,        // 历史记录导出
-        "cloudSync": true,            // 云同步
-        "voiceInput": true,           // 语音输入
-        "customTheme": true,          // 自定义主题
-        "noAds": true,                // 去广告
-        "batchCalculation": true,     // 批量计算
-        "formulaEditor": true         // 公式编辑
+        "advancedCalculate": true,
+        "historyExport": true,
+        "cloudSync": true,
+        "voiceInput": true,
+        "customTheme": true,
+        "noAds": true,
+        "batchCalculation": true,
+        "formulaEditor": true
     };
-    
-    // ------- 3.4 皮肤主题解锁 -------
-    // 解锁所有付费皮肤
-    data.skinList = [
-        "default",           // 默认皮肤
-        "dark",             // 暗夜黑
-        "business",         // 商务蓝
-        "pink",             // 少女粉
-        "green",            // 清新绿
-        "purple",           // 优雅紫
-        "golden",           // 土豪金
-        "minimal",          // 极简白
-        "tech",             // 科技蓝
-        "custom"            // 自定义
-    ];
-    data.currentSkin = data.currentSkin || "golden";  // 默认使用金色皮肤
-    data.unlockedSkins = data.skinList;               // 已解锁皮肤列表
-    
-    // ------- 3.5 广告配置关闭 -------
+
+    // 皮肤
+    data.skinList = ["default", "dark", "business", "pink", "green", "purple", "golden", "minimal", "tech", "custom"];
+    data.currentSkin = data.currentSkin || "golden";
+    data.unlockedSkins = data.skinList;
+
+    // 广告关闭
     data.adConfig = {
-        "showBannerAd": false,        // 底部横幅广告
-        "showInterstitialAd": false,  // 插屏广告
-        "showRewardAd": false,        // 激励视频广告
-        "showSplashAd": false,        // 开屏广告
-        "adFree": true                // 无广告标识
+        "showBannerAd": false,
+        "showInterstitialAd": false,
+        "showRewardAd": false,
+        "showSplashAd": false,
+        "adFree": true
     };
-    data.showAd = false;              // 总广告开关
-    data.adEnabled = false;           // 广告启用状态
-    
-    // ------- 3.6 计算器功能增强 -------
+    data.showAd = false;
+    data.adEnabled = false;
+
+    // 计算器配置
     data.calcConfig = {
-        "precision": 10,              // 计算精度(小数位)
-        "maxHistory": 9999,           // 最大历史记录数
-        "maxFavorites": 999,          // 最大收藏数
-        "enableSound": true,          // 按键音效
-        "enableVibration": true,      // 按键震动
-        "scientificMode": true        // 科学计算模式
+        "precision": 10,
+        "maxHistory": 9999,
+        "maxFavorites": 999,
+        "enableSound": true,
+        "enableVibration": true,
+        "scientificMode": true
     };
-    
-    // ------- 3.7 用户信息显示 -------
+
+    // 用户信息
     data.userInfo = {
         "nickname": "VIP用户",
         "avatar": "https://example.com/vip-avatar.png",
-        "level": 99,                  // 用户等级
-        "exp": 99999,                 // 经验值
-        "credit": 9999                // 积分
+        "level": 99,
+        "exp": 99999,
+        "credit": 9999
     };
-    
-    // ------- 3.8 响应状态码 -------
-    originalData.code = 200;          // HTTP状态码
-    originalData.message = "success"; // 响应消息
-    originalData.success = true;      // 成功标识
-    
+
+    // 响应状态
+    originalData.code = 200;
+    originalData.message = "success";
+    originalData.success = true;
+
     return originalData;
 }
 
-// ==================== 第四部分: 工具函数 ====================
-
-/**
- * 环境对象构造函数 (Env)
- * 用于Quantumult X / Surge / Loon等代理工具
- */
-function Env(name) {
-    this.name = name;
-    this.log = function(message) {
-        console.log(`[${this.name}] ${message}`);
-    };
-    this.msg = function(title, subtitle, message) {
-        console.log(`${title}\n${subtitle}\n${message}`);
-    };
-}
-
-// ==================== 第五部分: 响应对象构造示例 ====================
-
-/**
- * 如果原始响应为空，构造全新的VIP响应
- */
 function createVIPResponse() {
     return {
         "code": 200,
@@ -178,9 +184,7 @@ function createVIPResponse() {
             "memberType": "lifetime",
             "vipExpireTime": "2099-12-31 23:59:59",
             "vipStartTime": "2020-01-01 00:00:00",
-            "permissions": {
-                "all": true
-            },
+            "permissions": { "all": true },
             "skinList": ["default", "dark", "business", "pink", "green", "purple", "golden"],
             "currentSkin": "golden",
             "adConfig": {
@@ -198,6 +202,6 @@ function createVIPResponse() {
                 "exp": 99999
             }
         },
-        "timestamp": new Date().getTime()
+        "timestamp": Date.now()
     };
 }
