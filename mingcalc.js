@@ -11,8 +11,8 @@
 ^http:\/\/jsq\.mingcalc\.cn\/XMGetMeCount\.ashx url script-analyze-echo-response https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/mingcalc.js
 
 [mitm]
-hostname =jsq.mingcalc.cn
-/*
+hostname = jsq.mingcalc.cn
+********/
 // ==================== 第一部分: 环境初始化 ====================
 
 // 安全获取环境对象
