@@ -1,11 +1,4 @@
 /**
- * ============================================
- * 小明计算器 VIP解锁脚本 (反混淆版本)
- * ============================================
- * 目标应用: 小明计算器 (MingCalc)
- * 功能: 解锁永久VIP、去除广告、解锁所有皮肤
- * 拦截接口: jsq.mingcalc.cn/XMGetMeCount.ashx
- * ============================================
 [rewrite_local]
 ^http:\/\/jsq\.mingcalc\.cn\/XMGetMeCount\.ashx url script-analyze-echo-response https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/mingcalc.js
 
