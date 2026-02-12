@@ -1,17 +1,49 @@
-/**
+/*
+ * ============================================
+ * 小明计算器 VIP解锁脚本 (修复版)
+ * ============================================
+ * 目标应用: 小明计算器 (MingCalc)
+ * 功能: 解锁永久VIP、去除广告、解锁所有皮肤
+ * 拦截接口: jsq.mingcalc.cn/XMGetMeCount.ashx
+ * ============================================
+ */
 [rewrite_local]
-^http:\/\/jsq\.mingcalc\.cn\/XMGetMeCount\.ashx url script-analyze-echo-response https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/mingcalc.js
+^http://jsq\.mingcalc\.cn\/XMGetMeCount\.ashx url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/mingcalc.js
 
 [mitm]
 hostname = jsq.mingcalc.cn
-********/
+
 // ==================== 第一部分: 环境初始化 ====================
+
 // 安全获取环境对象
 const $ = (typeof init !== 'undefined') ? init() : 
           (typeof $task !== 'undefined') ? $task : 
           (typeof $httpClient !== 'undefined') ? $httpClient :
           (typeof $rocket !== 'undefined') ? $rocket :
           createEnv('小明计算器');
+
+// 兼容不同代理工具的环境构造
+function createEnv(name) {
+    return {
+        name: name,
+        log: function(message) {
+            console.log(`[${this.name}] ${message}`);
+        },
+        msg: function(title, subtitle, message) {
+            console.log(`${title}\n${subtitle}\n${message}`);
+        },
+        done: function(data) {
+            if (typeof $done !== 'undefined') {
+                $done(data);
+            } else if (typeof $task !== 'undefined' && $task.done) {
+                $task.done(data);
+            } else {
+                console.log('Response:', data);
+            }
+        }
+    };
+}
+
 // ==================== 第二部分: 主程序逻辑 ====================
 
 (function main() {
