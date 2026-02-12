@@ -6,36 +6,12 @@
 hostname = jsq.mingcalc.cn
 ********/
 // ==================== 第一部分: 环境初始化 ====================
-
 // 安全获取环境对象
 const $ = (typeof init !== 'undefined') ? init() : 
           (typeof $task !== 'undefined') ? $task : 
           (typeof $httpClient !== 'undefined') ? $httpClient :
           (typeof $rocket !== 'undefined') ? $rocket :
           createEnv('小明计算器');
-
-// 兼容不同代理工具的环境构造
-function createEnv(name) {
-    return {
-        name: name,
-        log: function(message) {
-            console.log(`[${this.name}] ${message}`);
-        },
-        msg: function(title, subtitle, message) {
-            console.log(`${title}\n${subtitle}\n${message}`);
-        },
-        done: function(data) {
-            if (typeof $done !== 'undefined') {
-                $done(data);
-            } else if (typeof $task !== 'undefined' && $task.done) {
-                $task.done(data);
-            } else {
-                console.log('Response:', data);
-            }
-        }
-    };
-}
-
 // ==================== 第二部分: 主程序逻辑 ====================
 
 (function main() {
