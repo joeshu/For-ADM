@@ -15,7 +15,7 @@ if (!$request || !$request.body) {
 
 let body = $request.body;
 let obj;
-
+/**
 // 解析 JSON
 try {
     obj = JSON.parse(body);
@@ -24,15 +24,15 @@ try {
     $done({}); // 使用 $done 而不是 return
     return;
 }
-
+**/
 // 检查并处理 posCodeArr
-if (obj && obj.body && obj.body.posCodeArr === "APP_START_PAGE") {
-    console.log("Before delete:", obj.body);
-    delete obj.body;
-    console.log("After delete:", obj);
+if (body && body.body && body.body.posCodeArr === "APP_START_PAGE") {
+    console.log("Before delete:", body.body);
+    delete body.body;
+    console.log("After delete:", body);
 }
 
-body = JSON.stringify(obj);
+body = JSON.stringify(body);
 console.log("Final body:", body);
 
 $done({ body: body });
