@@ -7,32 +7,28 @@
  * hostname = iotpservice.smartont.net
  */
 
-// 检查请求体是否存在
 if (!$request || !$request.body) {
     $done({});
-    return; // 显式返回，避免后续执行
 }
 
 let body = $request.body;
 let obj;
-/**
-// 解析 JSON
+
 try {
     obj = JSON.parse(body);
 } catch (e) {
     console.log("JSON parse error: " + e);
-    $done({}); // 使用 $done 而不是 return
-    return;
-}
-**/
-// 检查并处理 posCodeArr
-if (body && body.body && body.body.posCodeArr === "APP_START_PAGE") {
-    console.log("Before delete:", body.body);
-    delete body.body;
-    console.log("After delete:", body);
+    $done({});
 }
 
-body = JSON.stringify(body);
+// 修复：检查 posCodeArr 数组是否包含 "APP_START_PAGE"
+if (obj?.body?.posCodeArr?.includes("APP_START_PAGE")) {
+    console.log("Before delete:", JSON.stringify(obj.body));
+    delete obj.body;
+    console.log("After delete:", JSON.stringify(obj));
+}
+
+body = JSON.stringify(obj);
 console.log("Final body:", body);
 
 $done({ body: body });
