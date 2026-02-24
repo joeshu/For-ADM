@@ -12,6 +12,8 @@ if (!$request || !$request.body) {
     $done({});
 }
 
+let body = $request.body;
+let obj;
 // 修复：使用 try-catch 解析 JSON
 try {
     obj = JSON.parse(body);
@@ -19,10 +21,6 @@ try {
     console.log("JSON parse error: " + e);
     return $done({});
 }
-
-let body = $request.body;
-let obj;
-
 // 修复：检查 obj.body 是否存在，并正确比较 posCodeArr
 if (!obj || !obj.body || obj.body.posCodeArr === "APP_START_PAGE") {
  console.log(obj.body);   
