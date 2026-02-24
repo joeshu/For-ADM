@@ -23,10 +23,10 @@ try {
 }
 
 // 修复：检查 obj.data 是否存在
-if (!obj || (obj.posCodeArr = "APP_START_PAGE") ) {
-    obj.body = {};
+if (!obj || (obj.body.posCodeArr = "APP_START_PAGE") ) {
+        delete obj.body;
 }
 
 body = JSON.stringify(obj);
-//console.log(body);
+console.log(body);
 $done({body: body});
