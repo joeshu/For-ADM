@@ -23,10 +23,10 @@ try {
 
 // 修复：检查 posCodeArr 数组是否包含 "APP_START_PAGE"
 if (obj?.body?.posCodeArr?.includes("APP_START_PAGE")) {
-    console.log("Before delete:", JSON.stringify(obj.body));
+    console.log("Before delete:", JSON.stringify($request.body));
     //delete obj.body;
      obj.body.posCodeArr = [];
-    console.log("After delete:", JSON.stringify(obj.body));
+    console.log("After delete:", JSON.stringify($request.body));
 }
 
 body = JSON.stringify(obj);
