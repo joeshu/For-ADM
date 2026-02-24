@@ -24,8 +24,8 @@ try {
 }
 
 // 修复：检查 obj.body 是否存在，并正确比较 posCodeArr
-if (obj && obj.body && obj.body.posCodeArr === "APP_START_PAGE") {
-    delete obj.body;
+if (obj && obj.body && obj.body.body.posCodeArr === "APP_START_PAGE") {
+    delete obj.body.body;
 }
 
 body = JSON.stringify(obj);
