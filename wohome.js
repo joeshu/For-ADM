@@ -26,9 +26,9 @@ if (obj?.body?.posCodeArr?.includes("APP_START_PAGE")) {
     console.log("Before delete:", JSON.stringify(obj.body.posCodeArr));
     //delete obj.body;
      obj.body.posCodeArr = [];
-    //console.log("After delete:", JSON.stringify(obj.body));
+    console.log("After delete:", JSON.stringify(obj.body));
 }
 
 body = JSON.stringify(obj);
-console.log("Final body:", body);
+//console.log("Final body:", body);
 $done({ body: body });
