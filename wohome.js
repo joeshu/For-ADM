@@ -30,6 +30,5 @@ if (obj?.body?.posCodeArr?.includes("APP_START_PAGE")) {
 }
 
 body = JSON.stringify(obj);
-console.log("Final body:", body);
-
+//console.log("Final body:", body);
 $done({ body: body });
