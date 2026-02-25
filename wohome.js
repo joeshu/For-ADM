@@ -2,16 +2,16 @@
  * @function 联通智家
  * @date 2026-02-24
  [rewrite_local]
-^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-request-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/wohome.js   
+^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/wohome.js   
  [mitm]
 hostname = iotpservice.smartont.net
  *****/
 
-if (!$request || !$request.body) {
+if (!$response || !$response.body) {
     $done({});
 }
 
-let body = $request.body;
+let body = $response.body;
 let obj;
 
 try {
