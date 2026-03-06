@@ -16,7 +16,7 @@ let obj;
 
 try {
     obj = JSON.parse(body);
- console.log("After delete:"）
+ console.log("Before delete:", JSON.parse(obj));
 } catch (e) {
     console.log("JSON parse error: " + e);
     $done({});
