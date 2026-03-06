@@ -22,11 +22,11 @@ try {
 }
 
 // 修复：检查 posCodeArr 数组是否包含 "APP_START_PAGE"
-if (obj?.data?.posCodeArr?.includes("APP_START_PAGE")) {
-    //console.log("Before delete:", JSON.parse($request.body));
+if (obj?.data?.posCode?.includes("APP_START_PAGE")) {
+    console.log("Before delete:", JSON.parse($request.body));
     delete obj.data.configList;
      //obj.body = {};
-    //console.log("After delete:", JSON.parse($request.body));
+    console.log("After delete:", JSON.parse($request.body));
 }
 
 body = JSON.stringify(obj);
