@@ -1,10 +1,10 @@
 /**
  * @function 联通智家 - 去除开屏广告
  * @date 2026-02-24
- * [rewrite_local]
- * ^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/wohome.js
- * [mitm]
- * hostname = iotpservice.smartont.net
+[rewrite_local]
+ ^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/wohome.js
+ [mitm]
+ hostname = iotpservice.smartont.net
  */
 
 if (!$response || !$response.body) {
