@@ -3,10 +3,10 @@
  * @desc 修改 account/sync 接口响应，强制返回永久 VIP 状态
  * 
  [rewrite_local]
- ^https:\/\/api2\.tophub\.today\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tophub.js
+ ^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tophub.js
  
  [mitm]
- hostname = api2.tophub.today
+ hostname = api2.tophub.today,api2.tophub.app
  */
 
 const $ = new Env('TopHubVIP');
