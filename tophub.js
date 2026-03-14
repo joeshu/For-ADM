@@ -1,4 +1,4 @@
-/**
+ /**
  * @function 今日热榜 VIP 解锁
  * @desc 修改 account/sync 接口响应，强制返回永久 VIP 状态
  * 
@@ -29,7 +29,7 @@ try {
 
 // 强制修改为 VIP 状态
 if (obj && obj.data) {
-    $.log("Original VIP status: is_vip=" + obj.data.is_vip + ", is_vip_now=" + obj.data.is_vip_now);
+  //  $.log("Original VIP status: is_vip=" + obj.data.is_vip + ", is_vip_now=" + obj.data.is_vip_now);
     
     // 修改 VIP 相关字段
     obj.error = 0;
@@ -42,7 +42,7 @@ if (obj && obj.data) {
     //obj.data.vip_type = "lifetime";
     //obj.data.vip_level = 99;
     
-    $.log("Modified VIP status: permanent VIP until " + obj.data.vip_expired);
+   // $.log("Modified VIP status: permanent VIP until " + obj.data.vip_expired);
 } else {
     // 如果响应结构异常，构造一个新的 VIP 响应
     obj = {
