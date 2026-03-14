@@ -3,7 +3,7 @@
  * @desc 修改 account/sync 接口响应，强制返回永久 VIP 状态
  * 
  * [rewrite_local]
- * ^https:\/\/api2\.tophub\.today\/account\/sync url script-response-body https://raw.githubusercontent.com/yourname/quantumultx/main/tophub_vip.js
+ * ^https:\/\/api2\.tophub\.today\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/tophub.js
  * 
  * [mitm]
  * hostname = api2.tophub.today
@@ -39,8 +39,8 @@ if (obj && obj.data) {
     obj.data.vip_expired = "2099-12-31 23:59:59";
     
     // 可选：添加其他 VIP 字段（根据实际接口可能需要）
-    obj.data.vip_type = "lifetime";
-    obj.data.vip_level = 99;
+    //obj.data.vip_type = "lifetime";
+    //obj.data.vip_level = 99;
     
     $.log("Modified VIP status: permanent VIP until " + obj.data.vip_expired);
 } else {
