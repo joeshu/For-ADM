@@ -42,7 +42,7 @@ if (obj && obj.data) {
     //obj.data.vip_type = "lifetime";
     //obj.data.vip_level = 99;
     
-   // $.log("Modified VIP status: permanent VIP until " + obj.data.vip_expired);
+   $.log("Modified VIP status: permanent VIP until " + obj.data.vip_expired);
 } else {
     // 如果响应结构异常，构造一个新的 VIP 响应
     obj = {
