@@ -411,14 +411,26 @@ if (typeof $response == "undefined") {
     for (const i in src) {
       const test = src === list ? ua : bundle_id;
       if (new RegExp(`^${i}`, `i`).test(test)) {
-      if (src[i].cm.indexOf('sja') != -1) { data = {  "purchase_date" : "2023-09-09T09:09:09Z",  "expires_date" : "2099-09-09T09:09:09Z" };  } else if (src[i].cm.indexOf('sjb') != -1) { data = {  "purchase_date" : "2023-09-09T09:09:09Z" }; }
-      ids = src[i].id;name = src[i].name;idb = src[i].idb;nameb = src[i].nameb;
+      if (src[i].cm.indexOf('sja') != -1) { 
+        data = {  
+          "purchase_date" : "2023-09-09T09:09:09Z",  
+          "expires_date" : "2099-09-09T09:09:09Z" 
+        };  
+      } 
+      else if (src[i].cm.indexOf('sjb') != -1) { 
+        data = {  "purchase_date" : "2023-09-09T09:09:09Z" }; }
+      ids = src[i].id;
+        name = src[i].name;
+        idb = src[i].idb;
+        nameb = src[i].nameb;
       break;
       }
     }
   }
   if (!name || !ids) {
-    data = {  "purchase_date" : "2023-09-09T09:09:09Z",  "expires_date" : "2099-09-09T09:09:09Z" };
+    data = {  
+      "purchase_date" : "2023-09-09T09:09:09Z",  
+      "expires_date" : "2099-09-09T09:09:09Z"     };
     name = 'pro';
     ids = 'com.chxm1023.pro';
   }
