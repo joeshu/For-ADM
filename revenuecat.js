@@ -31,16 +31,11 @@
 **************************************
 
 [rewrite_local]
-#修改
-^https:\/\/(api\.revenuecat\.com|api\.rc-backup\.com)\/.+\/(receipts$|subscribers\/[^/]+$) url script-response-body https://raw.githubusercontent.com/Yu9191/Rewrite/main/Revenuecat.js
-#清理
-^https:\/\/(api\.revenuecat\.com|api\.rc-backup\.com)\/.+\/(receipts$|subscribers\/[^/]+$) url script-request-header https://raw.githubusercontent.com/Yu9191/Rewrite/main/Revenuecat.js
+^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/revenuecat.js
+^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/revenuecat.js
 
-https://api.lianjiu.fun/app/api/v1/profile url reject
-
-[mitm] 
-hostname = api.revenuecat.com, api.lianjiu.fun
-
+[mitm]
+hostname = api.revenuecat.com, api.rc-backup.com
 ************************************/
 
 const Q = {};
