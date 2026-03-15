@@ -32,8 +32,8 @@ try {
     chxm1023 = JSON.parse($response.body);
   }
 } catch (e) {
-  console.log("JSON解析错误: " + e.message);
-  chxm1023 = null;
+    console.log("JSON解析错误: " + e.message);
+    chxm1023 = null;
 }
 
 // 获取User-Agent和Bundle ID
@@ -428,9 +428,11 @@ if (typeof $response === "undefined") {
   delete headers["X-RevenueCat-ETag"];
   chxm1024.headers = headers;
 } else if (chxm1023 && chxm1023.subscriber) {
-  // 确保subscriptions和entitlements对象存在
+  // 确保所有对象存在
   chxm1023.subscriber.subscriptions = chxm1023.subscriber.subscriptions || {};
   chxm1023.subscriber.entitlements = chxm1023.subscriber.entitlements || {};
+  chxm1023.subscriber.non_subscriptions = chxm1023.subscriber.non_subscriptions || {};
+  chxm1023.subscriber.other_purchases = chxm1023.subscriber.other_purchases || {};
 
   // 初始化变量
   let name = null;
@@ -438,6 +440,10 @@ if (typeof $response === "undefined") {
   let ids = null;
   let idb = null;
   let data = null;
+
+  // 购买日期（使用用户期望的2024年）
+  const purchaseDate = "2024-09-09T09:09:09Z";
+  const expiresDate = "2099-09-09T09:09:09Z";
 
   // 遍历映射表进行匹配
   for (const src of [list, bundle]) {
@@ -450,13 +456,13 @@ if (typeof $response === "undefined") {
       try {
         if (new RegExp(`^${i}`, 'i').test(test)) {
           // 根据cm参数确定数据格式
-          if (src[i].cm.indexOf('sja') !== -1) {
+          if (src[i].cm.indexOf('sja') !== -1 || src[i].cm.indexOf('sjc') !== -1) {
             data = {
-              "purchase_date": "2023-09-09T09:09:09Z",
-              "expires_date": "2099-09-09T09:09:09Z"
+              "purchase_date": purchaseDate,
+              "expires_date": expiresDate
             };
           } else if (src[i].cm.indexOf('sjb') !== -1) {
-            data = { "purchase_date": "2023-09-09T09:09:09Z" };
+            data = { "purchase_date": purchaseDate };
           }
 
           ids = src[i].id || null;
@@ -476,12 +482,35 @@ if (typeof $response === "undefined") {
   // 如果没有匹配到任何APP，使用默认配置
   if (!name || !ids) {
     data = {
-      "purchase_date": "2023-09-09T09:09:09Z",
-      "expires_date": "2099-09-09T09:09:09Z"
+      "purchase_date": purchaseDate,
+      "expires_date": expiresDate
     };
     name = 'pro';
     ids = 'com.chxm1023.pro';
   }
+
+  // 构建购买记录数据（包含完整的交易信息）
+  const purchaseRecord = {
+    "is_sandbox": false,
+    "ownership_type": "PURCHASED",
+    "id": "888888888",
+    "expires_date": expiresDate,
+    "original_purchase_date": purchaseDate,
+    "store_transaction_id": "490001314520000",
+    "purchase_date": purchaseDate,
+    "store": "app_store"
+  };
+
+  // 构建订阅数据
+  const subData = Object.assign({}, data, {
+    "is_sandbox": false,
+    "ownership_type": "PURCHASED",
+    "expires_date": expiresDate,
+    "original_purchase_date": purchaseDate,
+    "store_transaction_id": "490001314520000",
+    "purchase_date": purchaseDate,
+    "store": "app_store"
+  });
 
   // 设置entitlements
   if (name && ids) {
@@ -493,16 +522,6 @@ if (typeof $response === "undefined") {
     }
   }
 
-  // 构建订阅数据
-  const subData = Object.assign({}, data, {
-    "Author": "chxm1023",
-    "Telegram": "https://t.me/chxm1023",
-    "warning": "仅供学习，禁止转载或售卖",
-    "original_purchase_date": "2023-09-09T09:09:09Z",
-    "store": "app_store",
-    "ownership_type": "PURCHASED"
-  });
-
   // 设置subscriptions
   if (ids) {
     chxm1023.subscriber.subscriptions[ids] = subData;
@@ -510,6 +529,40 @@ if (typeof $response === "undefined") {
     // 如果有第二个subscription
     if (typeof idb !== 'undefined' && idb !== null) {
       chxm1023.subscriber.subscriptions[idb] = subData;
+    }
+  }
+
+  // 设置non_subscriptions（非订阅购买记录）
+  if (ids) {
+    // 如果该产品ID在non_subscriptions中不存在，初始化为空数组
+    if (!chxm1023.subscriber.non_subscriptions[ids]) {
+      chxm1023.subscriber.non_subscriptions[ids] = [];
+    }
+    // 添加购买记录到数组
+    chxm1023.subscriber.non_subscriptions[ids].push(purchaseRecord);
+
+    // 如果有第二个ID
+    if (typeof idb !== 'undefined' && idb !== null) {
+      if (!chxm1023.subscriber.non_subscriptions[idb]) {
+        chxm1023.subscriber.non_subscriptions[idb] = [];
+      }
+      chxm1023.subscriber.non_subscriptions[idb].push(purchaseRecord);
+    }
+  }
+
+  // 设置other_purchases（其他购买记录）
+  if (ids) {
+    chxm1023.subscriber.other_purchases[ids] = {
+      "expires_date": expiresDate,
+      "purchase_date": purchaseDate
+    };
+
+    // 如果有第二个ID
+    if (typeof idb !== 'undefined' && idb !== null) {
+      chxm1023.subscriber.other_purchases[idb] = {
+        "expires_date": expiresDate,
+        "purchase_date": purchaseDate
+      };
     }
   }
 
