@@ -2,7 +2,7 @@
 
 项目名称：Revenuecat 系列解锁合集（优化版）
 下载地址：https://too.st/CollectionsAPP
-更新日期：2026-3-16
+更新日期：2026-3-15
 脚本作者：chxm1023
 优化者：MiniMax Agent
 电报频道：https://t.me/chxm1023
@@ -11,9 +11,8 @@
 **************************************
 
 [rewrite_local]
-^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/recat1.js
-^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/recat1.js
-^https:\/\/api\.(revenuecat|rc-backup)\.com\/v1\/subscribers\/.+\/offerings url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/recat1.js
+^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/recat.js
+^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/recat.js
 
 [mitm]
 hostname = api.revenuecat.com, api.rc-backup.com
@@ -428,9 +427,12 @@ if (typeof $response === "undefined") {
   delete headers["x-revenuecat-etag"];
   delete headers["X-RevenueCat-ETag"];
   chxm1024.headers = headers;
+  $done(chxm1024);
 } else if (chxm1023 && chxm1023.subscriber) {
-  // 获取用户ID用于请求offerings
-  const userId = chxm1023.subscriber.original_app_user_id;
+  // 从请求URL中提取用户ID
+  const requestUrl = $request.url;
+  const userIdMatch = requestUrl.match(/subscribers\/([^\/]+)/);
+  const userId = userIdMatch ? userIdMatch[1] : (chxm1023.subscriber.original_app_user_id || '');
 
   // 确保所有对象存在
   chxm1023.subscriber.subscriptions = chxm1023.subscriber.subscriptions || {};
@@ -438,9 +440,50 @@ if (typeof $response === "undefined") {
   chxm1023.subscriber.non_subscriptions = chxm1023.subscriber.non_subscriptions || {};
   chxm1023.subscriber.other_purchases = chxm1023.subscriber.other_purchases || {};
 
+  // 初始化变量
+  let name = null;
+  let nameb = null;
+  let ids = null;
+  let idb = null;
+  let data = null;
+
   // 购买日期（使用用户期望的2024年）
   const purchaseDate = "2024-09-09T09:09:09Z";
   const expiresDate = "2099-09-09T09:09:09Z";
+
+  // 遍历映射表进行匹配
+  for (const src of [list, bundle]) {
+    for (const i in src) {
+      if (!src.hasOwnProperty(i)) continue;
+
+      const test = src === list ? ua : bundle_id;
+      if (!test) continue;
+
+      try {
+        if (new RegExp(`^${i}`, 'i').test(test)) {
+          // 根据cm参数确定数据格式
+          if (src[i].cm.indexOf('sja') !== -1 || src[i].cm.indexOf('sjc') !== -1) {
+            data = {
+              "purchase_date": purchaseDate,
+              "expires_date": expiresDate
+            };
+          } else if (src[i].cm.indexOf('sjb') !== -1) {
+            data = { "purchase_date": purchaseDate };
+          }
+
+          ids = src[i].id || null;
+          name = src[i].name || null;
+          idb = src[i].idb || null;
+          nameb = src[i].nameb || null;
+          break;
+        }
+      } catch (e) {
+        console.log("正则匹配错误: " + e.message);
+      }
+    }
+
+    if (name && ids) break;
+  }
 
   // 构建购买记录数据（包含完整的交易信息）
   const purchaseRecord = {
@@ -463,145 +506,224 @@ if (typeof $response === "undefined") {
       "original_purchase_date": purchaseDate,
       "store_transaction_id": "490001314520000",
       "purchase_date": purchaseDate,
-      "store": "app_store",
-      "Author": "chxm1023",
-      "Telegram": "https://t.me/chxm1023",
-      "warning": "仅供学习，禁止转载或售卖"
+      "store": "app_store"
     };
   };
 
-  // 请求offerings API获取所有产品ID
-  const offeringsUrl = 'https://api.revenuecat.com/v1/subscribers/' + userId + '/offerings';
+  // 如果没有匹配到任何APP，调用offerings API获取产品列表
+  if (!name || !ids) {
+    const offeringsUrl = 'https://api.revenuecat.com/v1/subscribers/' + userId + '/offerings';
+    const options = {
+      url: offeringsUrl,
+      headers: headers
+    };
 
-  const options = {
-    url: offeringsUrl,
-    headers: headers
-  };
+    $task.fetch(options).then(response => {
+      let allProductIds = [];
+      let entitlementName = 'Premium';
+      let mainProductId = null;
 
-  $task.fetch(options).then(response => {
-    let allProductIds = [];
-    let entitlementName = 'Premium';
-    let mainProductId = null;
+      try {
+        if (response.status === 200 && response.body) {
+          const offeringsData = JSON.parse(response.body);
 
-    try {
-      if (response.status === 200 && response.body) {
-        const offeringsData = JSON.parse(response.body);
+          // 解析所有offerings中的产品ID
+          if (offeringsData.offerings) {
+            offeringsData.offerings.forEach(offering => {
+              if (offering.packages && offering.packages.length > 0) {
+                offering.packages.forEach(pkg => {
+                  if (pkg.platform_product_identifier) {
+                    allProductIds.push(pkg.platform_product_identifier);
+                  }
+                });
+              }
+            });
+          }
 
-        // 解析所有offerings中的产品ID
-        if (offeringsData.offerings) {
-          offeringsData.offerings.forEach(offering => {
-            if (offering.packages && offering.packages.length > 0) {
-              offering.packages.forEach(pkg => {
-                if (pkg.platform_product_identifier) {
-                  allProductIds.push(pkg.platform_product_identifier);
-                }
-              });
-            }
-          });
+          // 获取当前offering的产品作为主产品
+          const currentOfferingId = offeringsData.current_offering_id;
+          const currentOffering = offeringsData.offerings ?
+            offeringsData.offerings.find(o => o.identifier === currentOfferingId) : null;
+
+          if (currentOffering && currentOffering.packages && currentOffering.packages.length > 0) {
+            // 优先选择yearly或lifetime作为主产品
+            const yearlyPkg = currentOffering.packages.find(p =>
+              p.identifier === '$rc_annual' || p.identifier.includes('yearly') || p.identifier.includes('annual')
+            );
+            const lifetimePkg = currentOffering.packages.find(p =>
+              p.identifier === '$rc_lifetime' || p.identifier.includes('lifetime')
+            );
+            const monthlyPkg = currentOffering.packages.find(p =>
+              p.identifier === '$rc_monthly' || p.identifier.includes('monthly')
+            );
+
+            // 优先顺序: yearly > lifetime > monthly
+            mainProductId = yearlyPkg ? yearlyPkg.platform_product_identifier :
+                           (lifetimePkg ? lifetimePkg.platform_product_identifier :
+                           (monthlyPkg ? monthlyPkg.platform_product_identifier :
+                           currentOffering.packages[0].platform_product_identifier));
+          }
+
+          // 去重
+          allProductIds = [...new Set(allProductIds)];
         }
-
-        // 获取当前offering的产品作为主产品
-        const currentOfferingId = offeringsData.current_offering_id;
-        const currentOffering = offeringsData.offerings ?
-          offeringsData.offerings.find(o => o.identifier === currentOfferingId) : null;
-
-        if (currentOffering && currentOffering.packages && currentOffering.packages.length > 0) {
-          // 优先选择yearly或lifetime作为主产品
-          const yearlyPkg = currentOffering.packages.find(p =>
-            p.identifier === '$rc_annual' || p.identifier.includes('yearly') || p.identifier.includes('annual')
-          );
-          const lifetimePkg = currentOffering.packages.find(p =>
-            p.identifier === '$rc_lifetime' || p.identifier.includes('lifetime')
-          );
-          const monthlyPkg = currentOffering.packages.find(p =>
-            p.identifier === '$rc_monthly' || p.identifier.includes('monthly')
-          );
-
-          // 优先顺序: yearly > lifetime > monthly
-          mainProductId = yearlyPkg ? yearlyPkg.platform_product_identifier :
-                         (lifetimePkg ? lifetimePkg.platform_product_identifier :
-                         (monthlyPkg ? monthlyPkg.platform_product_identifier :
-                         currentOffering.packages[0].platform_product_identifier));
-        }
-
-        // 去重
-        allProductIds = [...new Set(allProductIds)];
+      } catch (e) {
+        console.log("解析offerings错误: " + e.message);
       }
-    } catch (e) {
-      console.log("解析offerings错误: " + e.message);
-    }
 
-    // 如果没有从offerings获取到产品ID，使用默认配置
-    if (allProductIds.length === 0) {
-      allProductIds = ['com.chxm1023.pro'];
-      mainProductId = 'com.chxm1023.pro';
-      entitlementName = 'pro';
-    }
+      // 如果没有从offerings获取到产品ID，使用默认配置
+      if (allProductIds.length === 0) {
+        allProductIds = ['com.chxm1023.pro'];
+        mainProductId = 'com.chxm1023.pro';
+        entitlementName = 'pro';
+      }
 
-    // 设置entitlements（只设置主产品）
-    if (mainProductId) {
-      chxm1023.subscriber.entitlements[entitlementName] = {
+      // 设置entitlements（只设置主产品）
+      if (mainProductId) {
+        chxm1023.subscriber.entitlements[entitlementName] = {
+          "expires_date": expiresDate,
+          "product_identifier": mainProductId,
+          "purchase_date": purchaseDate
+        };
+      }
+
+      // 设置subscriptions（所有产品ID）
+      const subData = buildSubData();
+      allProductIds.forEach(productId => {
+        chxm1023.subscriber.subscriptions[productId] = Object.assign({}, subData);
+      });
+
+      // 设置non_subscriptions（所有产品ID，数组格式）
+      allProductIds.forEach(productId => {
+        if (!chxm1023.subscriber.non_subscriptions[productId]) {
+          chxm1023.subscriber.non_subscriptions[productId] = [];
+        }
+        chxm1023.subscriber.non_subscriptions[productId].push(Object.assign({}, purchaseRecord));
+      });
+
+      // 设置other_purchases（所有产品ID）
+      allProductIds.forEach(productId => {
+        chxm1023.subscriber.other_purchases[productId] = {
+          "expires_date": expiresDate,
+          "purchase_date": purchaseDate
+        };
+      });
+
+      // 序列化并输出
+      chxm1024.body = JSON.stringify(chxm1023);
+      console.log('已操作成功 - 产品数量: ' + allProductIds.length + '\n叮当猫の分享频道: https://t.me/chxm1023');
+      $done(chxm1024);
+    }).catch(err => {
+      console.log("请求offerings失败: " + err.message);
+
+      // 如果请求失败，使用默认配置
+      data = {
+        "purchase_date": purchaseDate,
+        "expires_date": expiresDate
+      };
+      name = 'pro';
+      ids = 'com.chxm1023.pro';
+
+      // 构建订阅数据
+      const subData = Object.assign({}, data, {
+        "is_sandbox": false,
+        "ownership_type": "PURCHASED",
         "expires_date": expiresDate,
-        "product_identifier": mainProductId,
+        "original_purchase_date": purchaseDate,
+        "store_transaction_id": "490001314520000",
+        "purchase_date": purchaseDate,
+        "store": "app_store"
+      });
+
+      // 设置entitlements
+      chxm1023.subscriber.entitlements[name] = Object.assign({}, data, { product_identifier: ids });
+
+      // 设置subscriptions
+      chxm1023.subscriber.subscriptions[ids] = subData;
+
+      // 设置non_subscriptions
+      if (!chxm1023.subscriber.non_subscriptions[ids]) {
+        chxm1023.subscriber.non_subscriptions[ids] = [];
+      }
+      chxm1023.subscriber.non_subscriptions[ids].push(purchaseRecord);
+
+      // 设置other_purchases
+      chxm1023.subscriber.other_purchases[ids] = {
+        "expires_date": expiresDate,
         "purchase_date": purchaseDate
       };
+
+      chxm1024.body = JSON.stringify(chxm1023);
+      $done(chxm1024);
+    });
+  } else {
+    // 如果匹配到APP，使用原有的同步逻辑
+    // 构建订阅数据
+    const subData = Object.assign({}, data, {
+      "is_sandbox": false,
+      "ownership_type": "PURCHASED",
+      "expires_date": expiresDate,
+      "original_purchase_date": purchaseDate,
+      "store_transaction_id": "490001314520000",
+      "purchase_date": purchaseDate,
+      "store": "app_store"
+    });
+
+    // 设置entitlements
+    if (name && ids) {
+      chxm1023.subscriber.entitlements[name] = Object.assign({}, data, { product_identifier: ids });
+
+      // 如果有第二个entitlement
+      if (typeof nameb !== 'undefined' && nameb !== null && idb) {
+        chxm1023.subscriber.entitlements[nameb] = Object.assign({}, data, { product_identifier: idb });
+      }
     }
 
-    // 设置subscriptions（所有产品ID）
-    const subData = buildSubData();
-    allProductIds.forEach(productId => {
-      chxm1023.subscriber.subscriptions[productId] = Object.assign({}, subData);
-    });
+    // 设置subscriptions
+    if (ids) {
+      chxm1023.subscriber.subscriptions[ids] = subData;
 
-    // 设置non_subscriptions（所有产品ID，数组格式）
-    allProductIds.forEach(productId => {
-      if (!chxm1023.subscriber.non_subscriptions[productId]) {
-        chxm1023.subscriber.non_subscriptions[productId] = [];
+      // 如果有第二个subscription
+      if (typeof idb !== 'undefined' && idb !== null) {
+        chxm1023.subscriber.subscriptions[idb] = subData;
       }
-      chxm1023.subscriber.non_subscriptions[productId].push(Object.assign({}, purchaseRecord));
-    });
+    }
 
-    // 设置other_purchases（所有产品ID）
-    allProductIds.forEach(productId => {
-      chxm1023.subscriber.other_purchases[productId] = {
+    // 设置non_subscriptions（非订阅购买记录）
+    if (ids) {
+      if (!chxm1023.subscriber.non_subscriptions[ids]) {
+        chxm1023.subscriber.non_subscriptions[ids] = [];
+      }
+      chxm1023.subscriber.non_subscriptions[ids].push(purchaseRecord);
+
+      if (typeof idb !== 'undefined' && idb !== null) {
+        if (!chxm1023.subscriber.non_subscriptions[idb]) {
+          chxm1023.subscriber.non_subscriptions[idb] = [];
+        }
+        chxm1023.subscriber.non_subscriptions[idb].push(purchaseRecord);
+      }
+    }
+
+    // 设置other_purchases（其他购买记录）
+    if (ids) {
+      chxm1023.subscriber.other_purchases[ids] = {
         "expires_date": expiresDate,
         "purchase_date": purchaseDate
       };
-    });
+
+      if (typeof idb !== 'undefined' && idb !== null) {
+        chxm1023.subscriber.other_purchases[idb] = {
+          "expires_date": expiresDate,
+          "purchase_date": purchaseDate
+        };
+      }
+    }
 
     // 序列化并输出
     chxm1024.body = JSON.stringify(chxm1023);
-    console.log('已操作成功 - 产品数量: ' + allProductIds.length + '\n叮当猫の分享频道: https://t.me/chxm1023');
+    console.log('已操作成功🎉🎉🎉\n叮当猫の分享频道: https://t.me/chxm1023');
     $done(chxm1024);
-  }).catch(err => {
-    console.log("请求offerings失败: " + err.message);
-
-    // 如果请求失败，使用默认配置
-    const defaultProductId = 'com.chxm1023.pro';
-    const defaultEntitlement = 'pro';
-
-    chxm1023.subscriber.entitlements[defaultEntitlement] = {
-      "expires_date": expiresDate,
-      "product_identifier": defaultProductId,
-      "purchase_date": purchaseDate
-    };
-
-    const subData = buildSubData();
-    chxm1023.subscriber.subscriptions[defaultProductId] = subData;
-
-    if (!chxm1023.subscriber.non_subscriptions[defaultProductId]) {
-      chxm1023.subscriber.non_subscriptions[defaultProductId] = [];
-    }
-    chxm1023.subscriber.non_subscriptions[defaultProductId].push(purchaseRecord);
-
-    chxm1023.subscriber.other_purchases[defaultProductId] = {
-      "expires_date": expiresDate,
-      "purchase_date": purchaseDate
-    };
-
-    chxm1024.body = JSON.stringify(chxm1023);
-    $done(chxm1024);
-  });
+  }
 } else {
   // 非subscriber响应，直接返回
   if (typeof $response !== "undefined" && $response.body) {
