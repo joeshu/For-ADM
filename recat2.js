@@ -421,8 +421,14 @@ const list = {
  'VSCO': { name: 'pro', id: 'vscopro_global_5999_annual_7D_free', cm: 'sja' } //VSCO-照片与视频编辑编辑
 };
 
+
+  // 从请求URL中提取用户ID
+const requestUrl = $request.url;
+const userIdMatch = requestUrl.match(/subscribers\/([^\/]+)/);
+const userId = userIdMatch ? userIdMatch[1] : (chxm1023.subscriber.original_app_user_id || '');
 // RevenueCat Offerings API 配置
-const OFFERINGS_URL = 'https://api.revenuecat.com/v1/subscribers/c6d7b0a3-61e2-4737-9ab0-e70b6d9fc013/offerings';
+const OFFERINGS_URL = 'https://api.revenuecat.com/v1/subscribers/' + userId + '/offerings';
+
 
 // 判断是否为请求头处理（无响应体）
 if (typeof $response === "undefined") {
