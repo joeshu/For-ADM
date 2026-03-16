@@ -441,11 +441,8 @@ if (typeof $response === "undefined") {
 function fetchOfferingsAndProcess() {
  const myRequest = {
  url: OFFERINGS_URL,
- method: 'GET',
- headers: {
- 'Accept': 'application/json',
- 'Content-Type': 'application/json'
- },
+ //method: 'GET',
+ headers: headers, 
  timeout: 10
  };
 
