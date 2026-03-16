@@ -472,15 +472,15 @@ function findLocalMatch() {
             result.data = { "purchase_date": purchaseDate };
           }
 
-          // 修改：确保 ids 始终是数组，即使只有一个 id
+          // 确保 ids 始终是数组，即使只有一个 id
           result.ids = src[i].id ? [src[i].id] : [];
           result.name = src[i].name || null;
           result.idb = src[i].idb || null;
           result.nameb = src[i].nameb || null;
           
-          // 修改：如果没有 name 但有 id，使用 id 作为 name（兜底方案）
+          // 修改：如果没有 name 但有 id，使用 "DefaultMembership" 作为 name
           if (!result.name && src[i].id) {
-            result.name = src[i].id;
+            result.name = "DefaultMembership";
           }
           
           return result;
