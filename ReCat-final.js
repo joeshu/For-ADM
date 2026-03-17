@@ -1,8 +1,9 @@
 /**
- * ReCat 订阅解锁脚本 - 优化版
+ * ========================================
+ * RevenueCat 订阅解锁脚本 - 最终优化版 v3.0
+ * ========================================
  * 更新: 2026-03-17
  *
-***************************************
 [rewrite_local]
 ^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/ReCat-final.js
 ^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/ReCat-final.js
@@ -10,17 +11,42 @@
 [mitm]
 hostname = api.revenuecat.com, api.rc-backup.com
 ******************************************/
-// ==================== 常量定义 ====================
+// ==================== 全局常量定义 ====================
+
+/**
+ * 订阅日期常量
+ * 统一管理，避免多处修改
+ */
 const PURCHASE_DATE = "2024-09-09T09:09:09Z";
 const EXPIRES_DATE = "2099-09-09T09:09:09Z";
 
-// 禁止MITM的应用列表
+/**
+ * 禁止 MITM 的应用列表
+ * 这些应用检测到后直接返回，不做任何处理
+ */
 const FORBIDDEN_APPS = [
-  'PicSeedClient', 'ReflixiOS', 'Pomodoro', 'MyHabit',
-  'Rond', 'Filebar', 'Fileball', 'APTV'
+  'PicSeedClient',  // 图片处理类
+  'ReflixiOS',      // 视频类
+  'Pomodoro',       // 效率类
+  'MyHabit',        // 习惯类
+  'Rond',           // 日记类
+  'Filebar',        // 文件管理类
+  'Fileball',       // 文件管理类
+  'APTV'            // 视频类
 ];
 
-// Bundle ID 映射表 (O(1) 查找)
+/**
+ * Bundle ID 映射表
+ * 用途: 通过 X-Client-Bundle-ID 头快速匹配应用配置
+ * 查找复杂度: O(1) 哈希查找
+ *
+ * 配置字段说明:
+ * - name: 主要 entitlement 名称
+ * - id: 主要产品标识符
+ * - nameb: 第二个 entitlement 名称 (可选)
+ * - idb: 第二个产品标识符 (可选)
+ * - cm: 数据格式标记 (sja=有expires_date, sjb=无expires_date)
+ */
 const BUNDLE_MAP = {
   'com.flexicalc.app': { name: 'pro', id: 'pro_product', cm: 'sja' },  //灵活计算器
   'com.trainfitness.Train': { name: 'Pro', id: 'TrainAnnualSubscription', cm: 'sja' },  //TrainFitness 健身追踪器
@@ -389,50 +415,92 @@ const UA_MAP = {
   '1Blocker': { name: 'premium', id: 'blocker.ios.iap.lifetime', cm: 'sjb' },  //1Blocker-广告拦截
   'VSCO': { name: 'pro', id: 'vscopro_global_5999_annual_7D_free', cm: 'sja' }  //VSCO-照片与视频编辑编辑
 };
-
-// 默认配置
+/**
+ * 默认配置
+ * 当本地和远程都无法匹配时使用
+ */
 const DEFAULT_CONFIG = {
   name: 'pro',
+  id: 'com.chxm1023.pro',
   ids: ['com.chxm1023.pro'],
-  data: { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
+  // 默认包含 expires_date
+  data: {
+    purchase_date: PURCHASE_DATE,
+    expires_date: EXPIRES_DATE
+  }
 };
 
 // ==================== 工具函数 ====================
 
 /**
- * 安全解析 JSON
+ * 安全解析 JSON 字符串
+ *
+ * 功能: 尝试解析 JSON，失败时返回 null 并记录错误
+ *
+ * @param {string} str - 要解析的 JSON 字符串
+ * @returns {object|null} 解析后的对象或 null
  */
 function safeJSONParse(str) {
+  // 检查输入是否有效
+  if (!str || typeof str !== 'string') {
+    return null;
+  }
+
   try {
-    return str ? JSON.parse(str) : null;
+    return JSON.parse(str);
   } catch (e) {
+    // 记录错误但不让脚本崩溃
     console.log('JSON解析错误: ' + e.message);
     return null;
   }
 }
 
 /**
- * 检查是否为禁止的应用
+ * 检查是否为禁止 MITM 的应用
+ *
+ * 功能: 检查 UA 或请求体中是否包含禁止应用的标识
+ *
+ * @param {string} ua - User-Agent 头
+ * @param {string} body - 请求体
+ * @returns {boolean} true 表示是禁止的应用
  */
 function isForbiddenApp(ua, body) {
+  // 使用 some() 短路求值，找到第一个匹配就返回 true
   return FORBIDDEN_APPS.some(app =>
-    (ua && ua.includes(app)) || (body && body.includes(app))
+    (ua && ua.includes(app)) ||
+    (body && body.includes(app))
   );
 }
 
 /**
- * 从 Bundle ID 查找配置
+ * 通过 Bundle ID 查找应用配置
+ *
+ * 功能: O(1) 时间复杂度查找
+ *
+ * @param {string} bundleId - 应用 Bundle ID
+ * @returns {object|null} 应用配置或 null
  */
 function findByBundleId(bundleId) {
-  if (!bundleId) return null;
+  // 防御性检查
+  if (!bundleId || typeof bundleId !== 'string') {
+    return null;
+  }
   return BUNDLE_MAP[bundleId] || null;
 }
 
 /**
- * 从 UA 查找配置 (前缀匹配)
+ * 通过 User-Agent 查找应用配置
+ *
+ * 功能: 前缀匹配查找
+ * 注意: UA_MAP 为空时直接返回 null
+ *
+ * @param {string} ua - User-Agent 字符串
+ * @returns {object|null} 应用配置或 null
  */
 function findByUA(ua) {
-  if (!ua) return null;
+  if (!ua || typeof ua !== 'string') {
+    return null;
+  }
 
   // 遍历 UA_MAP 查找匹配
   for (const key in UA_MAP) {
@@ -444,27 +512,35 @@ function findByUA(ua) {
 }
 
 /**
- * 构建订阅数据
+ * 构建订阅数据对象
+ *
+ * 功能: 创建 subscriptions 字段所需的完整数据结构
+ *
+ * @returns {object} 订阅数据对象
  */
 function buildSubscriptionData() {
   return {
     purchase_date: PURCHASE_DATE,
     expires_date: EXPIRES_DATE,
-    is_sandbox: false,
-    ownership_type: "PURCHASED",
-    store_transaction_id: "490001314520000",
-    store: "app_store"
+    is_sandbox: false,              // 非沙盒环境
+    ownership_type: "PURCHASED",    // 已购买
+    store_transaction_id: "490001314520000",  // 模拟交易ID
+    store: "app_store"              // App Store
   };
 }
 
 /**
- * 构建购买记录
+ * 构建购买记录对象
+ *
+ * 功能: 创建 non_subscriptions 字段所需的购买记录
+ *
+ * @returns {object} 购买记录对象
  */
 function buildPurchaseRecord() {
   return {
     is_sandbox: false,
     ownership_type: "PURCHASED",
-    id: "888888888",
+    id: "888888888",               // 模拟购买ID
     expires_date: EXPIRES_DATE,
     original_purchase_date: PURCHASE_DATE,
     store_transaction_id: "490001314520000",
@@ -473,179 +549,300 @@ function buildPurchaseRecord() {
   };
 }
 
-// ==================== 主逻辑 ====================
+/**
+ * 构建 entitlement 数据对象
+ *
+ * 功能: 创建 entitlements 字段所需的数据结构
+ *
+ * @param {string} productId - 产品标识符
+ * @returns {object} entitlement 数据对象
+ */
+function buildEntitlementData(productId) {
+  return {
+    purchase_date: PURCHASE_DATE,
+    expires_date: EXPIRES_DATE,
+    product_identifier: productId
+  };
+}
 
+// ==================== 核心逻辑 ====================
+
+/**
+ * 主入口函数
+ *
+ * 执行流程:
+ * 1. 获取请求头信息
+ * 2. 检查是否为禁止的应用
+ * 3. 判断请求类型 (有响应体/无响应体)
+ * 4. 解析响应体 JSON
+ * 5. 查找匹配的本地配置
+ * 6. 处理订阅或从 API 获取
+ * 7. 返回修改后的响应
+ */
 function main() {
-  // 1. 获取请求头
+  // ===== 步骤 1: 获取请求头信息 =====
   const headers = $request.headers;
+  // 兼容大小写头
   const ua = headers['User-Agent'] || headers['user-agent'] || '';
   const bundleId = headers['X-Client-Bundle-ID'] || headers['x-client-bundle-id'] || '';
   const body = $request.body || '';
 
-  // 2. 检查禁止的应用
+  // ===== 步骤 2: 检查禁止的应用 =====
   if (isForbiddenApp(ua, body)) {
     console.log('⛔️ 检测到禁止 MITM 的 APP，脚本停止运行！');
     return $done({});
   }
 
-  // 3. 判断请求类型
-  // 3.1 只有请求头（无响应体）- 清理缓存头
+  // ===== 步骤 3: 判断请求类型 =====
+  // $response 不存在表示这是请求头阶段的处理
   if (typeof $response === 'undefined') {
+    // 清理 RevenueCat 的缓存头，避免响应被缓存
     delete headers['x-revenuecat-etag'];
     delete headers['X-RevenueCat-ETag'];
     return $done({ headers });
   }
 
-  // 3.2 有响应体 - 解析并修改
+  // ===== 步骤 4: 解析响应体 =====
   const responseBody = safeJSONParse($response.body);
 
-  // 检查响应是否有效
+  // 验证响应体有效性
   if (!responseBody || !responseBody.subscriber) {
     return $done({});
   }
 
-  // 4. 查找匹配配置
+  // ===== 步骤 5: 查找匹配配置 =====
+  // 优先从 Bundle ID 查找，其次从 UA 查找
   let config = findByBundleId(bundleId) || findByUA(ua);
 
-  // 5. 处理订阅
+  // ===== 步骤 6: 处理订阅 =====
   if (config) {
+    // 本地配置存在，直接处理
     processSubscription(responseBody, config);
   } else {
-    // 未匹配到本地配置，尝试从 API 获取
+    // 本地未匹配，尝试从 RevenueCat API 获取
     console.log('本地未匹配，尝试从 RevenueCat API 获取...');
     fetchFromAPI(headers, responseBody);
-    return; // 异步处理
+    return;  // 异步处理，提前返回
   }
 
-  // 6. 返回修改后的响应
+  // ===== 步骤 7: 返回修改后的响应 =====
   return $done({
     body: JSON.stringify(responseBody)
   });
 }
 
 /**
- * 处理订阅数据
+ * 处理订阅数据 - 核心函数
+ *
+ * 功能: 修改 RevenueCat 响应体，注入订阅信息
+ *
+ * @param {object} data - 解析后的响应体对象
+ * @param {object} config - 应用配置对象
  */
 function processSubscription(data, config) {
+  // 获取 subscriber 对象
   const subscriber = data.subscriber;
 
-  // 确保对象存在
+  // ===== 防御性初始化 =====
+  // 确保所有必要的对象存在，避免后续赋值报错
   subscriber.subscriptions = subscriber.subscriptions || {};
   subscriber.entitlements = subscriber.entitlements || {};
   subscriber.non_subscriptions = subscriber.non_subscriptions || {};
   subscriber.other_purchases = subscriber.other_purchases || {};
 
-  const { name, id, nameb, idb, cm } = config;
-  const ids = id ? [id] : [];
+  // ===== 解析配置参数 =====
+  // 从配置中提取所需的字段
+  const {
+    name,      // 主要 entitlement 名称
+    id,        // 主要产品 ID
+    nameb,     // 第二个 entitlement 名称 (可选)
+    idb,       // 第二个产品 ID (可选)
+    cm,        // 数据格式标记 (暂未使用，保留扩展)
+    extraEntitlements  // 从 API 获取的额外 entitlements
+  } = config;
+
+  // 处理 id 可能为数组或字符串的情况
+  // 统一转换为数组格式
+  let idsArray = [];
+  if (id) {
+    if (Array.isArray(id)) {
+      idsArray = id;
+    } else {
+      idsArray = [id];
+    }
+  }
+
+  // 预先构建重复使用的数据对象
   const subData = buildSubscriptionData();
   const purchaseRecord = buildPurchaseRecord();
 
-  // 设置 entitlements
-  if (name) {
-    subscriber.entitlements[name] = {
-      purchase_date: PURCHASE_DATE,
-      expires_date: EXPIRES_DATE,
-      product_identifier: id || 'com.chxm1023.pro'
-    };
+  // ===== 核心逻辑: Entitlements 处理 =====
+  // ========================================
+  // 修复说明: 统一处理所有来源的 entitlements
+  // 避免之前的覆盖问题和逻辑错误
+
+  // 1. 收集所有 entitlement 目标到统一队列
+  const entitlementTargets = [];
+
+  // 1.1 添加主 entitlement (本地配置中的 name + id)
+  if (name && id) {
+    entitlementTargets.push({
+      name: name,
+      id: id
+    });
   }
 
-  // 设置第二个 entitlement（可选）
+  // 1.2 添加从 API 获取的额外 entitlements
+  // 这些来自 RevenueCat API 的 product_entitlement_mapping
+  if (extraEntitlements && Array.isArray(extraEntitlements)) {
+    extraEntitlements.forEach(extra => {
+      // 确保数据有效
+      if (extra.name && extra.ids && extra.ids.length > 0) {
+        entitlementTargets.push({
+          name: extra.name,
+          id: extra.ids[0]  // 只取第一个产品 ID
+        });
+      }
+    });
+  }
+
+  // 1.3 添加第二个 entitlement (本地配置的 nameb + idb)
+  // 注意: nameb 放在最后处理
+  // 如果发生名称冲突，后面的会覆盖前面的
+  // 这是合理的设计: 本地配置优先级高于 API 获取的配置
   if (nameb && idb) {
-    subscriber.entitlements[nameb] = {
-      purchase_date: PURCHASE_DATE,
-      expires_date: EXPIRES_DATE,
-      product_identifier: idb
-    };
+    entitlementTargets.push({
+      name: nameb,
+      id: idb
+    });
   }
 
-  // 设置 subscriptions
-  ids.forEach(productId => {
+  // 2. 统一执行 entitlements 注入
+  // 使用循环处理所有目标，避免重复代码
+  entitlementTargets.forEach(target => {
+    subscriber.entitlements[target.name] = buildEntitlementData(target.id);
+  });
+
+  // ===== 处理 subscriptions =====
+  // ================================
+  // 构建所有产品 ID 列表
+  const allProductIds = [...idsArray];
+  if (idb) {
+    allProductIds.push(idb);
+  }
+
+  // 为每个产品 ID 创建订阅记录
+  allProductIds.forEach(productId => {
     subscriber.subscriptions[productId] = subData;
   });
-  if (idb) {
-    subscriber.subscriptions[idb] = subData;
-  }
 
-  // 设置 non_subscriptions
-  ids.forEach(productId => {
+  // ===== 处理 non_subscriptions =====
+  // ================================
+  allProductIds.forEach(productId => {
+    // 确保数组存在
     if (!subscriber.non_subscriptions[productId]) {
       subscriber.non_subscriptions[productId] = [];
     }
+    // 添加购买记录
     subscriber.non_subscriptions[productId].push(purchaseRecord);
   });
-  if (idb) {
-    if (!subscriber.non_subscriptions[idb]) {
-      subscriber.non_subscriptions[idb] = [];
-    }
-    subscriber.non_subscriptions[idb].push(purchaseRecord);
-  }
 
-  // 设置 other_purchases
-  ids.forEach(productId => {
+  // ===== 处理 other_purchases =====
+  // ==============================
+  allProductIds.forEach(productId => {
     subscriber.other_purchases[productId] = {
       expires_date: EXPIRES_DATE,
       purchase_date: PURCHASE_DATE
     };
   });
-  if (idb) {
-    subscriber.other_purchases[idb] = {
-      expires_date: EXPIRES_DATE,
-      purchase_date: PURCHASE_DATE
-    };
-  }
 
-  console.log('✅ 订阅处理完成: ' + (name || 'unknown'));
+  // ===== 输出日志 =====
+  // 生成详细的处理结果日志
+  const entitlementCount = entitlementTargets.length;
+  const logMessage = entitlementCount > 1
+    ? `✅ 订阅处理完成: ${name || 'unknown'} (共${entitlementCount}个entitlements)`
+    : `✅ 订阅处理完成: ${name || 'unknown'}`;
+
+  console.log(logMessage);
 }
 
 /**
  * 从 RevenueCat API 获取配置
+ *
+ * 功能: 当本地配置无法匹配时，尝试从 API 获取 entitlement mapping
+ *
+ * @param {object} headers - 请求头 (用于 API 认证)
+ * @param {object} data - 响应体数据 (会被修改)
  */
 function fetchFromAPI(headers, data) {
   const apiUrl = 'https://api.revenuecat.com/v1/product_entitlement_mapping';
 
+  // 发起 API 请求
   $task.fetch({
     url: apiUrl,
     headers: headers,
-    timeout: 10
+    timeout: 10  // 10秒超时
   }).then(response => {
+    // ===== 请求成功 =====
     const mappingData = safeJSONParse(response.body);
 
+    // 检查数据有效性
     if (mappingData && mappingData.product_entitlement_mapping) {
+      // 从 mapping 数据提取配置
       const apiConfig = extractFromMapping(mappingData);
-      if (apiConfig.name && apiConfig.ids && apiConfig.ids.length > 0) {
+
+      // 检查提取结果
+      if (apiConfig.name && apiConfig.id) {
         console.log('API 获取成功: ' + apiConfig.name);
         processSubscription(data, apiConfig);
       } else {
+        // API 数据无效，使用默认配置
         processSubscription(data, DEFAULT_CONFIG);
       }
     } else {
+      // mapping 数据不存在，使用默认配置
       processSubscription(data, DEFAULT_CONFIG);
     }
 
+    // 返回修改后的响应
     $done({ body: JSON.stringify(data) });
 
   }).catch(reason => {
-    console.log('API 请求失败: ' + reason.error);
+    // ===== 请求失败 =====
+    console.log('API 请求失败: ' + (reason.error || reason.message || '未知错误'));
+    // API 失败时使用默认配置
     processSubscription(data, DEFAULT_CONFIG);
     $done({ body: JSON.stringify(data) });
   });
 }
 
 /**
- * 从 mapping 数据提取配置
+ * 从 product_entitlement_mapping 提取配置
+ *
+ * 功能: 解析 RevenueCat API 返回的 mapping 数据
+ *
+ * @param {object} mappingData - API 返回的 mapping 数据
+ * @returns {object} 标准化后的配置对象
  */
 function extractFromMapping(mappingData) {
   const mapping = mappingData.product_entitlement_mapping;
+
+  // 用于存储 entitlement -> 产品ID 的映射
   const entitlementMap = {};
 
-  // 遍历 mapping 构建 entitlement 映射
+  // ===== 遍历 mapping 构建映射 =====
+  // 格式: { product_id: { entitlements: ['entitlement_name', ...] } }
   Object.keys(mapping).forEach(productId => {
     const item = mapping[productId];
-    if (item.entitlements && item.entitlements.length > 0) {
+
+    // 检查 entitlements 字段
+    if (item.entitlements && Array.isArray(item.entitlements)) {
       item.entitlements.forEach(ent => {
+        // 初始化 entitlement 数组
         if (!entitlementMap[ent]) {
           entitlementMap[ent] = [];
         }
+        // 添加产品 ID (去重)
         if (!entitlementMap[ent].includes(productId)) {
           entitlementMap[ent].push(productId);
         }
@@ -653,19 +850,40 @@ function extractFromMapping(mappingData) {
     }
   });
 
+  // 获取所有 entitlement 名称
   const entitlementNames = Object.keys(entitlementMap);
 
+  // ===== 处理结果 =====
   if (entitlementNames.length > 0) {
+    // 有 entitlements 数据
+
+    // 第一个作为主 entitlement
+    const mainEntitlement = entitlementNames[0];
+
+    // 其余的作为 extraEntitlements
+    const extraEntitlements = [];
+    if (entitlementNames.length > 1) {
+      for (let i = 1; i < entitlementNames.length; i++) {
+        extraEntitlements.push({
+          name: entitlementNames[i],
+          ids: entitlementMap[entitlementNames[i]]
+        });
+      }
+    }
+
+    // 返回标准化配置
     return {
-      name: entitlementNames[0],
-      id: entitlementMap[entitlementNames[0]][0],
-      ids: entitlementMap[entitlementNames[0]],
-      cm: 'sja'
+      name: mainEntitlement,
+      id: entitlementMap[mainEntitlement][0],
+      ids: entitlementMap[mainEntitlement],
+      extraEntitlements: extraEntitlements,
+      cm: 'sja'  // API 获取的默认使用 sja 格式
     };
   }
 
+  // 没有 entitlements 数据，返回默认配置
   return DEFAULT_CONFIG;
 }
 
-// ==================== 启动 ====================
+// ==================== 启动入口 ====================
 main();
