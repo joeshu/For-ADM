@@ -62,6 +62,7 @@
 
 'use strict';
 
+
 // ==========================================
 // 常量定义区 - 全局使用的常量值
 // ==========================================
@@ -101,45 +102,11 @@ const PROCESSING_MODES = Object.freeze({
  * - name: 应用显示名称（用于日志）
  * - urlPattern: URL 正则表达式，用于自动识别当前请求对应的应用
  * - mode: 处理模式，见 PROCESSING_MODES
- * 
- * 【处理模式选择】
- * 模式一：JSON 对象模式（json）
- * - 使用 fields 配置简单字段映射
- * - 或使用 customProcessor 实现复杂逻辑
- * - 适合结构化的标准 JSON 接口
- *
- * 模式二：正则替换模式（regex）
- * - 使用 regexReplacements 配置正则规则数组
- * - 直接操作文本，不解析 JSON
- * - 适合数据结构复杂、字段不统一的接口
- *
- * 模式三：游戏数值模式（game）
- * - 使用 gameResources 配置游戏资源数值
- * - 专门针对转义 JSON 中的数值字段替换
- * - 适合游戏类应用修改金币/钻石/经验等
- *
- * 模式四：混合模式（hybrid）
- * - 优先使用 JSON 对象处理（含数组遍历逻辑）
- * - JSON 解析失败时自动回退到正则替换
- * - 适合需要容错处理的复杂接口
- *
- * 模式五：多路径模式（multipath）
- * - 根据 URL 路径执行不同处理逻辑
- * - 每个路径可配置不同操作（删除、置空、数组清空/过滤等）
- * - 适合去广告场景（foday、qiujingapp、tv等）
- *
- * 模式六：HTML 替换模式（html）
- * - 直接操作 HTML 文本内容
- * - 使用正则匹配替换特定标签或内容
- * - 适合网页去广告（V2EX等）
  */
 const APP_CONFIGS = Object.freeze({
   
   /**
    * iAppDaily 应用配置
-   * 原文件：iappdaily.js
-   * 处理模式：JSON 对象模式（简单字段映射）
-   * 功能：修改余额查询接口，激活 VIP 并增加金币
    */
   iappdaily: {
     id: 'iappdaily',
@@ -157,9 +124,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * TopHub 应用配置
-   * 原文件：tophub.js
-   * 处理模式：JSON 对象模式（字段映射+响应包装器）
-   * 功能：修改账户同步接口，强制返回永久 VIP 状态
    */
   tophub: {
     id: 'tophub',
@@ -193,9 +157,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * gps 应用配置
-   * 原文件：gps.js（作者：joeshu）
-   * 处理模式：JSON 对象模式（简单字段映射）
-   * 功能：GPS工具箱 VIP 解锁（多种VIP类型）
    */
   gps: {
     id: 'gps',
@@ -215,9 +176,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * kyxq 应用配置
-   * 原文件：kyxq.js（作者：WeiGiegie）
-   * 处理模式：JSON 对象模式（自定义处理器-多场景）
-   * 功能：口语星球 VIP 解锁（多场景处理）
    */
   kyxq: {
     id: 'kyxq',
@@ -257,9 +215,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * mhlz 应用配置
-   * 原文件：mhlz.js（作者：WeiGiegie）
-   * 处理模式：JSON 对象模式（自定义处理器-嵌套遍历+条件逻辑）
-   * 功能：魔幻粒子游戏货币修改（任务进度/普通货币/事件货币区分处理）
    */
   mhlz: {
     id: 'mhlz',
@@ -300,9 +255,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * v2ex 应用配置
-   * 原文件：v2ex.ads.js（作者：ddgksf2013）
-   * 处理模式：HTML 替换模式（网页去广告专用）
-   * 功能：V2EX 技术社区网站去广告（注入 CSS 隐藏广告元素）
    */
   v2ex: {
     id: 'v2ex',
@@ -323,9 +275,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * foday 应用配置
-   * 原文件：foday.js（作者：joeshu）
-   * 处理模式：多路径模式（去广告专用-数组过滤）
-   * 功能：复游会微信小程序去广告（页面组件过滤）
    */
   foday: {
     id: 'foday',
@@ -370,9 +319,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * qiujingapp 应用配置
-   * 原文件：qiujingapp.js（作者：joeshu）
-   * 处理模式：多路径模式（去广告专用-数组清空）
-   * 功能：球竞APP去广告（轮播广告/弹窗推广数组清空）
    */
   qiujingapp: {
     id: 'qiujingapp',
@@ -427,9 +373,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * Keep 应用配置
-   * 原文件：keep.js（作者：WeiGiegie）
-   * 处理模式：正则替换模式（特殊）
-   * 功能：解锁课程预览、直播课、会员付费课跟练、会员训练计划
    */
   keep: {
     id: 'keep',
@@ -464,9 +407,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * bqwz 应用配置
-   * 原文件：bqwz.js（作者：WeiGiegie）
-   * 处理模式：游戏数值模式（转义 JSON 正则替换）
-   * 功能：标枪王者游戏数据修改（金币/钻石/经验/排位券/PVE体力）
    */
   bqwz: {
     id: 'bqwz',
@@ -484,9 +424,6 @@ const APP_CONFIGS = Object.freeze({
 
   /**
    * bxkt 应用配置
-   * 原文件：bxkt.js（作者：WeiGiegie）
-   * 处理模式：混合模式（JSON为主，失败回退正则）
-   * 功能：伴学课堂 VIP 解锁，遍历嵌套数组解锁所有视频
    */
   bxkt: {
     id: 'bxkt',
@@ -531,7 +468,7 @@ const APP_CONFIGS = Object.freeze({
   },
 
   /**
-   * tv 应用配置
+   * tv 应用配置 - 参考原始 tv.js 优化
    * 原文件：tv.js（作者：joeshu）
    * 处理模式：多路径模式（去广告专用）
    * 功能：影视应用去广告（开屏广告、焦点图广告、浮层广告、弹窗广告、列表广告）
@@ -541,29 +478,49 @@ const APP_CONFIGS = Object.freeze({
     name: '影视去广告',
     urlPattern: /^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body)/,
     mode: PROCESSING_MODES.MULTIPATH,
+    
+    // 路径处理器 - 严格匹配原始 tv.js 逻辑
     pathHandlers: [
       {
         path: '/basic/init',
         description: '初始化接口 - 去除开屏广告',
         actions: [
-          { type: 'set', field: 'data.startAdShowTime', value: 0, description: '开屏广告显示时间置0' },
-          { type: 'set', field: 'data.startAd', value: null, description: '开屏广告对象置空' },
-          { type: 'set', field: 'data.startAdList', value: null, description: '开屏广告列表置空' }
+          {
+            type: 'custom',
+            description: '设置开屏广告相关字段',
+            processor(obj, env) {
+              if (!obj.data) {
+                env.log('No obj.data in /basic/init');
+                return obj;
+              }
+              obj.data.startAdShowTime = 0;
+              obj.data.startAd = null;
+              obj.data.startAdList = null;
+              env.log('Cleared start ads in /basic/init');
+              return obj;
+            }
+          }
         ]
       },
       {
         path: '/home/firstScreen',
         description: '首页首屏 - 去除焦点图广告、精简热门模块',
         actions: [
-          { type: 'delete', field: 'data.focusAdList', description: '删除焦点图广告列表' },
           {
             type: 'custom',
-            description: '热门模块列表保留前5个',
+            description: '删除焦点图广告并精简热门模块',
             processor(obj, env) {
-              const list = obj?.data?.hotMudleList;
-              if (Array.isArray(list)) {
-                const originalLength = list.length;
-                obj.data.hotMudleList = list.slice(0, 5);
+              if (!obj.data) {
+                env.log('No obj.data in /home/firstScreen');
+                return obj;
+              }
+              // 删除焦点图广告列表
+              delete obj.data.focusAdList;
+              
+              // 精简热门模块列表（保留前5个）
+              if (Array.isArray(obj.data.hotMudleList)) {
+                const originalLength = obj.data.hotMudleList.length;
+                obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
                 env.log(`Sliced hotMudleList: ${originalLength} -> ${obj.data.hotMudleList.length}`);
               }
               return obj;
@@ -575,8 +532,20 @@ const APP_CONFIGS = Object.freeze({
         path: '/adInfo/getPageAd',
         description: '页面广告接口 - 去除浮层和弹窗广告',
         actions: [
-          { type: 'delete', field: 'data.floatAd', description: '删除浮层广告' },
-          { type: 'delete', field: 'data.popupAd', description: '删除弹窗广告' }
+          {
+            type: 'custom',
+            description: '删除浮层和弹窗广告',
+            processor(obj, env) {
+              if (!obj.data) {
+                env.log('No obj.data in /adInfo/getPageAd');
+                return obj;
+              }
+              delete obj.data.floatAd;
+              delete obj.data.popupAd;
+              env.log('Deleted floatAd and popupAd');
+              return obj;
+            }
+          }
         ]
       },
       {
@@ -585,13 +554,14 @@ const APP_CONFIGS = Object.freeze({
         actions: [
           {
             type: 'custom',
-            description: '广告列表shift移除首个',
+            description: '移除广告列表第一个元素',
             processor(obj, env) {
-              const adList = obj?.data?.adList;
-              if (Array.isArray(adList) && adList.length > 0) {
-                const removed = adList.shift();
-                env.log(`Removed first ad from adList: ${removed?.title || 'item'}`);
+              if (!obj.data?.adList || !Array.isArray(obj.data.adList) || obj.data.adList.length === 0) {
+                env.log('No adList or empty in /home/body');
+                return obj;
               }
+              const removed = obj.data.adList.shift();
+              env.log(`Removed first ad from adList: ${removed?.title || 'item'}`);
               return obj;
             }
           }
@@ -631,12 +601,6 @@ class Env {
 // ==========================================
 
 const Utils = {
-  /**
-   * 安全解析 JSON
-   * @param {string} str - JSON 字符串
-   * @param {*} defaultVal - 解析失败时的默认值
-   * @returns {*}
-   */
   safeJsonParse(str, defaultVal = {}) {
     try {
       return JSON.parse(str);
@@ -645,11 +609,6 @@ const Utils = {
     }
   },
 
-  /**
-   * 安全序列化 JSON
-   * @param {*} obj - 要序列化的对象
-   * @returns {string}
-   */
   safeJsonStringify(obj) {
     try {
       return JSON.stringify(obj);
@@ -659,23 +618,10 @@ const Utils = {
     }
   },
 
-  /**
-   * 根据路径获取对象值
-   * @param {Object} obj - 目标对象
-   * @param {string} path - 路径，如 'data.is_vip'
-   * @returns {*}
-   */
   getValueByPath(obj, path) {
     return path.split('.').reduce((acc, part) => acc?.[part], obj);
   },
 
-  /**
-   * 根据路径设置对象值
-   * @param {Object} obj - 目标对象
-   * @param {string} path - 路径
-   * @param {*} value - 要设置的值
-   * @returns {Object}
-   */
   setValueByPath(obj, path, value) {
     const parts = path.split('.');
     let current = obj;
@@ -692,12 +638,6 @@ const Utils = {
     return obj;
   },
 
-  /**
-   * 检查路径是否存在
-   * @param {Object} obj - 目标对象
-   * @param {string} path - 路径
-   * @returns {boolean}
-   */
   pathExists(obj, path) {
     const parts = path.split('.');
     let current = obj;
@@ -711,12 +651,6 @@ const Utils = {
     return true;
   },
 
-  /**
-   * 根据 URL 检测应用配置
-   * @param {string} url - 请求 URL
-   * @param {Object} configs - 配置对象
-   * @returns {Object|null}
-   */
   detectApp(url, configs) {
     for (const config of Object.values(configs)) {
       if (config.urlPattern?.test(url)) {
@@ -728,8 +662,7 @@ const Utils = {
 };
 
 // ==========================================
-// VIP 解锁核心引擎（增强版）
-// 支持 JSON对象/正则替换/游戏数值/混合/多路径/HTML替换 六种模式
+// VIP 解锁核心引擎
 // ==========================================
 
 class VipUnlockEngine {
@@ -740,15 +673,17 @@ class VipUnlockEngine {
 
   setConfig(config) {
     this.config = config;
-    this.env.log(`Initialized for: ${config.name} [Mode: ${config.mode || 'auto'}]`);
+    this.env.log(`Initialized for: ${config.name} [Mode: ${config.mode || 'json'}]`);
   }
 
   /**
    * 主处理入口
    * @param {Object} response - 响应对象
+   * @param {string} requestUrl - 请求 URL（从 $request 获取）
    * @returns {Object}
    */
-  process(response) {
+  process(response, requestUrl) {
+    // 严格检查 response body
     if (!response?.body) {
       this.env.log('No response body found');
       return {};
@@ -756,9 +691,15 @@ class VipUnlockEngine {
 
     const mode = this.config.mode || PROCESSING_MODES.JSON;
     
+    // 多路径模式需要 requestUrl
+    if (mode === PROCESSING_MODES.MULTIPATH && !requestUrl) {
+      this.env.log('MULTIPATH mode requires requestUrl but got undefined');
+      return { body: response.body };
+    }
+    
     const modeHandlers = {
       [PROCESSING_MODES.HTML]: () => this.processHtmlMode(response.body),
-      [PROCESSING_MODES.MULTIPATH]: () => this.processMultipathMode(response.body, response.url),
+      [PROCESSING_MODES.MULTIPATH]: () => this.processMultipathMode(response.body, requestUrl),
       [PROCESSING_MODES.HYBRID]: () => this.processHybridMode(response.body),
       [PROCESSING_MODES.GAME]: () => this.processGameMode(response.body),
       [PROCESSING_MODES.REGEX]: () => this.processRegexMode(response.body),
@@ -775,26 +716,10 @@ class VipUnlockEngine {
       return handler();
     } catch (error) {
       this.env.log(`Processing error in ${mode} mode: ${error.message}`);
-      // 混合模式下已经处理了回退逻辑，其他模式直接返回原内容
-      return mode === PROCESSING_MODES.HYBRID ? { body: response.body } : this.fallbackProcess(response.body);
+      return { body: response.body };
     }
   }
 
-  /**
-   * 兜底处理 - 当主处理失败时
-   * @param {string} body - 响应体
-   * @returns {Object}
-   */
-  fallbackProcess(body) {
-    this.env.log('Using fallback processing (returning original body)');
-    return { body };
-  }
-
-  /**
-   * HTML 替换处理模式（v2ex）
-   * @param {string} body - HTML 内容
-   * @returns {Object}
-   */
   processHtmlMode(body) {
     const replacements = this.config.htmlReplacements || [];
     
@@ -821,7 +746,7 @@ class VipUnlockEngine {
             : `Pattern not matched: ${rule.description || 'unnamed rule'}`
         );
       } catch (e) {
-        this.env.log(`HTML replacement error in rule "${rule.description}": ${e.message}`);
+        this.env.log(`HTML replacement error: ${e.message}`);
       }
     }
 
@@ -830,114 +755,71 @@ class VipUnlockEngine {
   }
 
   /**
-   * 多路径处理模式（tv/qiujingapp/foday）
-   * @param {string} body - 响应体
-   * @param {string} url - 请求 URL
-   * @returns {Object}
+   * 多路径处理模式 - 参考 tv.js 优化
+   * 关键修复：使用 indexOf 进行路径匹配（与原始 tv.js 一致）
    */
-  processMultipathMode(body, url) {
-    const obj = Utils.safeJsonParse(body);
-    
-    if (!obj || Object.keys(obj).length === 0) {
-      this.env.log('Failed to parse response body');
+  processMultipathMode(body, requestUrl) {
+    // 先解析 JSON
+    let obj;
+    try {
+      obj = JSON.parse(body);
+    } catch (e) {
+      this.env.log(`JSON parse error: ${e.message}`);
       return { body };
     }
 
+    // 检查 obj.data 是否存在
+    if (!obj || !obj.data) {
+      this.env.log('No obj.data found in response');
+      return { body: JSON.stringify(obj) };
+    }
+
     const pathHandlers = this.config.pathHandlers || [];
-    const matchedHandler = pathHandlers.find(handler => {
-      if (!url.includes(handler.path)) return false;
-      if (handler.pathRegex && !handler.pathRegex.test(url)) return false;
-      if (handler.urlContains && !url.includes(handler.urlContains)) return false;
-      return true;
-    });
+    let matched = false;
 
-    if (!matchedHandler) {
+    // 遍历所有路径处理器，使用 indexOf 匹配（与原始 tv.js 一致）
+    for (const handler of pathHandlers) {
+      if (requestUrl.indexOf(handler.path) !== -1) {
+        // 额外验证（可选）
+        if (handler.pathRegex && !handler.pathRegex.test(requestUrl)) {
+          continue;
+        }
+        if (handler.urlContains && requestUrl.indexOf(handler.urlContains) === -1) {
+          continue;
+        }
+
+        matched = true;
+        this.env.log(`Matched path handler: ${handler.path} (${handler.description})`);
+
+        // 执行该路径的所有操作
+        for (const action of handler.actions) {
+          try {
+            if (action.type === 'custom' && typeof action.processor === 'function') {
+              const result = action.processor(obj, this.env);
+              if (result !== undefined) {
+                Object.assign(obj, result);
+              }
+              this.env.log(`Executed: ${action.description}`);
+            }
+            // 其他 action 类型保留但 tv.js 主要使用 custom
+          } catch (e) {
+            this.env.log(`Action error: ${e.message}`);
+          }
+        }
+        
+        this.env.log(`Completed processing for path: ${handler.path}`);
+        // 匹配到一个路径后退出（与原始 tv.js 的 if-else 逻辑一致）
+        break;
+      }
+    }
+
+    if (!matched) {
       this.env.log('No matching path handler found for this URL');
-      return { body: Utils.safeJsonStringify(obj) };
     }
 
-    this.env.log(`Matched path handler: ${matchedHandler.path} (${matchedHandler.description})`);
-
-    for (const action of matchedHandler.actions) {
-      try {
-        this.executeMultipathAction(obj, action);
-      } catch (e) {
-        this.env.log(`Error executing action ${action.type}: ${e.message}`);
-      }
-    }
-
-    this.env.log(`Ad removal completed for path: ${matchedHandler.path}`);
-    return { body: Utils.safeJsonStringify(obj) };
+    return { body: JSON.stringify(obj) };
   }
 
-  /**
-   * 执行多路径操作
-   * @param {Object} obj - 数据对象
-   * @param {Object} action - 操作配置
-   */
-  executeMultipathAction(obj, action) {
-    switch (action.type) {
-      case 'delete': {
-        if (Utils.pathExists(obj, action.field)) {
-          const parts = action.field.split('.');
-          let current = obj;
-          for (let i = 0; i < parts.length - 1; i++) {
-            current = current[parts[i]];
-          }
-          delete current[parts[parts.length - 1]];
-          this.env.log(`Deleted field: ${action.field} (${action.description})`);
-        }
-        break;
-      }
-      
-      case 'set': {
-        Utils.setValueByPath(obj, action.field, action.value);
-        this.env.log(`Set field: ${action.field} = ${JSON.stringify(action.value)} (${action.description})`);
-        break;
-      }
-      
-      case 'arraySlice': {
-        const arr = Utils.getValueByPath(obj, action.field);
-        if (Array.isArray(arr)) {
-          const originalLength = arr.length;
-          Utils.setValueByPath(obj, action.field, arr.slice(0, action.keepCount));
-          this.env.log(`Sliced array: ${action.field} ${originalLength} -> ${action.keepCount} (${action.description})`);
-        }
-        break;
-      }
-      
-      case 'arrayShift': {
-        const arr = Utils.getValueByPath(obj, action.field);
-        if (Array.isArray(arr) && arr.length > 0) {
-          const removed = arr.shift();
-          this.env.log(`Shifted array: ${action.field}, removed: ${removed?.title || 'item'} (${action.description})`);
-        }
-        break;
-      }
-      
-      case 'custom': {
-        if (typeof action.processor === 'function') {
-          // 注意：自定义处理器可能修改并返回 obj，也可能直接修改传入的 obj
-          const result = action.processor(obj, this.env);
-          // 如果处理器返回了值，使用返回值；否则继续使用原对象
-          if (result !== undefined) {
-            Object.assign(obj, result);
-          }
-          this.env.log(`Executed custom processor: ${action.description}`);
-        }
-        break;
-      }
-      
-      default:
-        this.env.log(`Unknown action type: ${action.type}`);
-    }
-  }
-
-  /**
-   * 混合处理模式（bxkt）
-   * @param {string} body - 响应体
-   * @returns {Object}
-   */
   processHybridMode(body) {
     const obj = Utils.safeJsonParse(body, null);
 
@@ -956,11 +838,6 @@ class VipUnlockEngine {
     return this.processRegexMode(body);
   }
 
-  /**
-   * JSON 对象处理模式
-   * @param {string} body - 响应体
-   * @returns {Object}
-   */
   processJsonMode(body) {
     let obj = Utils.safeJsonParse(body);
 
@@ -992,11 +869,6 @@ class VipUnlockEngine {
     return { body: Utils.safeJsonStringify(obj) };
   }
 
-  /**
-   * 正则替换处理模式
-   * @param {string} body - 响应体
-   * @returns {Object}
-   */
   processRegexMode(body) {
     const replacements = this.config.regexReplacements || [];
     
@@ -1021,7 +893,7 @@ class VipUnlockEngine {
           this.env.log(`Applied: ${rule.description || 'unnamed rule'}`);
         }
       } catch (e) {
-        this.env.log(`Regex error in rule "${rule.description}": ${e.message}`);
+        this.env.log(`Regex error: ${e.message}`);
       }
     }
 
@@ -1029,11 +901,6 @@ class VipUnlockEngine {
     return { body: modifiedBody };
   }
 
-  /**
-   * 游戏数值处理模式（bqwz）
-   * @param {string} body - 响应体
-   * @returns {Object}
-   */
   processGameMode(body) {
     const resources = this.config.gameResources || [];
     
@@ -1042,7 +909,6 @@ class VipUnlockEngine {
 
     for (const resource of resources) {
       try {
-        // 转义 JSON 中的数值字段匹配
         const pattern = new RegExp(`\\\\"${resource.field}\\\\":\\\\d+`, 'g');
         const replacement = `\\\\"${resource.field}\\\\":${resource.value}`;
         
@@ -1052,7 +918,7 @@ class VipUnlockEngine {
         this.env.log(
           originalBody !== modifiedBody
             ? `Modified ${resource.description} (${resource.field}): ${resource.value}`
-            : `Field not found or already modified: ${resource.field}`
+            : `Field not found: ${resource.field}`
         );
       } catch (e) {
         this.env.log(`Error modifying ${resource.description}: ${e.message}`);
@@ -1063,10 +929,6 @@ class VipUnlockEngine {
     return { body: modifiedBody };
   }
 
-  /**
-   * 应用字段映射
-   * @param {Object} obj - 目标对象
-   */
   applyFieldMapping(obj) {
     for (const [key, field] of Object.entries(this.config.fields)) {
       const currentValue = Utils.getValueByPath(obj, field.path);
@@ -1091,38 +953,19 @@ class PluginManager {
     this.plugins = new Map();
   }
 
-  /**
-   * 注册插件
-   * @param {string} id - 插件 ID
-   * @param {Object} config - 插件配置
-   */
   register(id, config) {
     this.plugins.set(id, config);
-    console.log(`Plugin registered: ${config.name} [${config.mode || 'auto'}]`);
+    console.log(`Plugin registered: ${config.name} [${config.mode || 'json'}]`);
   }
 
-  /**
-   * 获取插件配置
-   * @param {string} id - 插件 ID
-   * @returns {Object|undefined}
-   */
   getConfig(id) {
     return this.plugins.get(id);
   }
 
-  /**
-   * 自动检测应用
-   * @param {string} url - 请求 URL
-   * @returns {Object|null}
-   */
   autoDetect(url) {
     return Utils.detectApp(url, Object.fromEntries(this.plugins));
   }
 
-  /**
-   * 初始化配置
-   * @param {Object} configs - 配置对象
-   */
   initConfigs(configs) {
     for (const [key, config] of Object.entries(configs)) {
       this.register(key, config);
@@ -1141,8 +984,19 @@ function main() {
   // 加载所有配置
   pluginManager.initConfigs(APP_CONFIGS);
 
+  // 获取响应和请求信息
   const response = env.getResponse();
-  const requestUrl = response.url || (typeof $request !== 'undefined' ? $request.url : '');
+  
+  // 关键修复：优先使用 $request.url（与原始 tv.js 一致）
+  const requestUrl = (typeof $request !== 'undefined' && $request.url) 
+    ? $request.url 
+    : (response.url || '');
+
+  if (!requestUrl) {
+    env.log('No request URL found');
+    env.done({});
+    return;
+  }
 
   // 自动检测应用
   let appConfig = pluginManager.autoDetect(requestUrl);
@@ -1186,11 +1040,11 @@ function main() {
     };
   }
 
-  // 创建引擎并执行
+  // 创建引擎并执行 - 传入 requestUrl 用于多路径模式
   const engine = new VipUnlockEngine(env);
   engine.setConfig(appConfig);
 
-  const result = engine.process(response);
+  const result = engine.process(response, requestUrl);
   env.done(result);
 }
 
