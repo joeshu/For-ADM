@@ -5,12 +5,12 @@
  * @date 2026-03-17
  *
  * @usage
- * [rewrite_local]
- * ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
- * ^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
- *
- * [mitm]
- * hostname = api.iappdaily.com,api2.tophub.today,api2.tophub.app
+  [rewrite_local]
+  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
+  ^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
+ 
+  [mitm]
+  hostname = api.iappdaily.com,api2.tophub.today,api2.tophub.app
  */
 
 // ==========================================
