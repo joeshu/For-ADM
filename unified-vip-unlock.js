@@ -25,9 +25,9 @@
  //^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
  ^https:\/\/(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
  [mitm]
- hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app
+ hostname = api.iappdaily.com, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, api2.tophub.xyz, api2.tophub.today, api2.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, 
+tophub.ipadown.com
  */
-
 // ==========================================
 // 配置区 - 新增应用只需在此添加配置，无需修改下方核心逻辑
 // ==========================================
