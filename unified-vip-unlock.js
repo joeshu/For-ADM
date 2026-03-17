@@ -1,22 +1,155 @@
 /**
  * @file unified-vip-unlock.js
  * @description 统一VIP解锁脚本 - 支持多应用扩展
- * @version 2.0.0
+ * @version 2.1.0
  * @date 2026-03-17
- *@usage
+ *
+ * @usage
  [rewrite_local]
  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
  ^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
  
  [mitm]
  hostname = api.iappdaily.com,api2.tophub.today,api2.tophub.app
+ *
+ * ==========================================
+ * 新增应用配置说明
+ * ==========================================
+ * 在 appConfigs 数组中添加新的应用配置
  */
 
 // ==========================================
-// 1. 环境适配层
+// 1. 应用配置注册表
 // ==========================================
-const $ = new Env('UnifiedVIP');
+const appConfigs = [
+    // --- iAppDaily ---
+    {
+        name: "iAppDaily",
+        hostPattern: "api.iappdaily.com",
+        pathPattern: "/my/balance",
+        handler: (obj) => {
+            if (obj && obj.data) {
+                obj.data.is_vip = 1;
+                obj.data.is_paid = 1;
+                obj.data.vip_expired = 4102444800;
+                obj.data.remain_coins = 9999;
+                obj.data.total_coins = 9999;
+                return { success: true, msg: "iAppDaily VIP activated" };
+            }
+            return { success: false };
+        }
+    },
 
+    // --- 今日热榜 (TopHub) ---
+    {
+        name: "今日热榜",
+        hostPattern: "api2.tophub.today",
+        pathPattern: "/account/sync",
+        handler: (obj) => {
+            if (obj && obj.data) {
+                obj.error = 0;
+                obj.status = 200;
+                obj.data.is_vip = "1";
+                obj.data.is_vip_now = 1;
+                obj.data.vip_expired = "2099-12-31 23:59:59";
+                return { success: true, msg: "TopHub VIP activated" };
+            } else {
+                // 响应结构异常，构造新的VIP响应
+                obj = {
+                    "error": 0,
+                    "status": 200,
+                    "data": {
+                        "is_vip": "1",
+                        "is_vip_now": 1,
+                        "vip_expired": "2099-12-31 23:59:59",
+                        "vip_type": "lifetime",
+                        "vip_level": 99
+                    }
+                };
+                return { success: true, msg: "Created new VIP response", newObj: obj };
+            }
+        }
+    }
+
+    // ======================================
+    // 新增应用配置示例
+    // ======================================
+    // {
+    //     name: "新应用名称",
+    //     hostPattern: "api.example.com",
+    //     pathPattern: "/api/user",
+    //     handler: (obj) => {
+    //         if (obj && obj.data) {
+    //             obj.data.is_vip = 1;
+    //             return { success: true, msg: "App VIP activated" };
+    //         }
+    //         return { success: false };
+    //     }
+    // }
+];
+
+// ==========================================
+// 2. 路由匹配函数
+// ==========================================
+function findMatchingApp(url) {
+    for (const app of appConfigs) {
+        if (url.indexOf(app.hostPattern) !== -1 && url.indexOf(app.pathPattern) !== -1) {
+            return app;
+        }
+    }
+    return null;
+}
+
+// ==========================================
+// 3. 主处理逻辑
+// ==========================================
+function main() {
+    // 检查响应是否存在
+    if (!$response || !$response.body) {
+        $.done({});
+        return;
+    }
+
+    let body = $response.body;
+    let obj;
+
+    // 解析JSON
+    try {
+        obj = JSON.parse(body);
+    } catch (e) {
+        $.log("JSON parse error: " + e);
+        $.done({});
+        return;
+    }
+
+    // 查找匹配的应用
+    const url = $response.url || '';
+    const matchedApp = findMatchingApp(url);
+
+    if (!matchedApp) {
+        $.done({});
+        return;
+    }
+
+    // 执行VIP解锁逻辑
+    const result = matchedApp.handler(obj);
+
+    if (result.success) {
+        // 如果生成了新对象，使用新对象
+        if (result.newObj) {
+            obj = result.newObj;
+        }
+        $.log(result.msg);
+        body = JSON.stringify(obj);
+        $.done({ body: body });
+    } else {
+        $.done({});
+    }
+}
+
+// ==========================================
+// 4. Env类定义
+// ==========================================
 function Env(name) {
     this.name = name;
     this.log = function(msg) {
@@ -27,165 +160,9 @@ function Env(name) {
     };
 }
 
-// ==========================================
-// 2. 工具函数
-// ==========================================
-function safeJSONParse(body) {
-    try {
-        return JSON.parse(body);
-    } catch (e) {
-        $.log("JSON解析错误: " + e);
-        return null;
-    }
-}
+const $ = new Env('UnifiedVIP');
 
 // ==========================================
-// 3. VIP数据模板
+// 5. 脚本入口
 // ==========================================
-const VIPTemplates = {
-    standard: {
-        is_vip: 1,
-        is_paid: 1,
-        vip_expired: 4102444800
-    },
-    stringType: {
-        is_vip: "1",
-        is_vip_now: 1,
-        vip_expired: "2099-12-31 23:59:59",
-        vip_type: "lifetime",
-        vip_level: 99
-    },
-    extended: {
-        is_vip: 1,
-        is_paid: 1,
-        vip_expired: 4102444800,
-        remain_coins: 9999,
-        total_coins: 9999
-    }
-};
-
-// ==========================================
-// 4. 应用策略注册表
-// ==========================================
-const appRegistry = [
-    // --- iAppDaily ---
-    {
-        name: "iAppDaily",
-        id: "iappdaily",
-        hostRegex: /api\.iappdaily\.com/,
-        pathHandlers: [
-            {
-                path: /\/my\/balance/,
-                handler: (data, url) => {
-                    const vipData = VIPTemplates.extended;
-                    data.is_vip = vipData.is_vip;
-                    data.is_paid = vipData.is_paid;
-                    data.vip_expired = vipData.vip_expired;
-                    data.remain_coins = vipData.remain_coins;
-                    data.total_coins = vipData.total_coins;
-                    $.log("iAppDaily VIP已激活");
-                    return data;
-                }
-            }
-        ]
-    },
-    // --- 今日热榜 ---
-    {
-        name: "今日热榜",
-        id: "tophub",
-        hostRegex: /api2\.tophub\.(today|app)/,
-        pathHandlers: [
-            {
-                path: /\/account\/sync/,
-                handler: (data, url) => {
-                    if (!data) {
-                        return VIPTemplates.stringType;
-                    }
-                    const vipData = VIPTemplates.stringType;
-                    data.error = 0;
-                    data.status = 200;
-                    data.is_vip = vipData.is_vip;
-                    data.is_vip_now = vipData.is_vip_now;
-                    data.vip_expired = vipData.vip_expired;
-                    data.vip_type = vipData.vip_type;
-                    data.vip_level = vipData.vip_level;
-                    $.log("今日热榜 VIP已激活");
-                    return data;
-                }
-            }
-        ]
-    }
-];
-
-// ==========================================
-// 5. 路由处理
-// ==========================================
-function findMatchingApp(url) {
-    for (const app of appRegistry) {
-        if (app.hostRegex.test(url)) {
-            return app;
-        }
-    }
-    return null;
-}
-
-function findMatchingHandler(app, url) {
-    if (!app.pathHandlers) return null;
-    for (const handler of app.pathHandlers) {
-        if (handler.path.test(url)) {
-            return handler;
-        }
-    }
-    return null;
-}
-
-// ==========================================
-// 6. 主逻辑
-// ==========================================
-function main() {
-    const response = $response || {};
-    const url = response.url || '';
-    const body = response.body || '';
-
-    if (!body) {
-        $.done({});
-        return;
-    }
-
-    const data = safeJSONParse(body);
-    if (!data) {
-        $.done({});
-        return;
-    }
-
-    const matchedApp = findMatchingApp(url);
-    if (!matchedApp) {
-        $.done({});
-        return;
-    }
-
-    const matchedHandler = findMatchingHandler(matchedApp, url);
-    if (!matchedHandler) {
-        $.done({});
-        return;
-    }
-
-    let targetData = data.data !== undefined ? data.data : data;
-
-    try {
-        const modifiedData = matchedHandler.handler(targetData, url);
-        if (modifiedData) {
-            if (data.data !== undefined) {
-                data.data = modifiedData;
-            }
-            $.done({ body: JSON.stringify(data) });
-        } else {
-            $.done({});
-        }
-    } catch (e) {
-        $.log("处理错误: " + e);
-        $.done({});
-    }
-}
-
 main();
