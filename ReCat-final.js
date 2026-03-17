@@ -3,10 +3,14 @@
  * 支持 Quantumult X / Surge / Loon
  * 更新: 2026-03-17
  *
- * 购买日期: 2024-09-09T09:09:09Z
- * 过期日期: 2099-09-09T09:09:09Z
- */
+***************************************
+[rewrite_local]
+^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Recat-final.js
+^https:\/\/api\.(revenuecat|rc-backup)\.com\/.+\/(receipts$|subscribers\/?(.*?)*$) url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Recat-final.js
 
+[mitm]
+hostname = api.revenuecat.com, api.rc-backup.com
+******************************************/
 // ==================== 常量定义 ====================
 const PURCHASE_DATE = "2024-09-09T09:09:09Z";
 const EXPIRES_DATE = "2099-09-09T09:09:09Z";
