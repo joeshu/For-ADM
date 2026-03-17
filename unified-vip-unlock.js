@@ -23,7 +23,8 @@
  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
  # TopHub - 账户同步接口
  //^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
- ^https:\/\/(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
+ //^https:\/\/(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
+ ^https:\/\/(?:(?:api[23]\.tophub\.(?:xyz|today|app))|(?:tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com)))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/unified-vip-unlock.js
  [mitm]
  hostname = api.iappdaily.com, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, api2.tophub.xyz, api2.tophub.today, api2.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, 
 tophub.ipadown.com
@@ -119,8 +120,8 @@ const APP_CONFIGS = {
         
         // URL 匹配正则：匹配 api2.tophub.today 或 api2.tophub.app 的 /account/sync 接口
         //urlPattern: /api[23]\.tophub\.(today|app|xyz)\/account\/sync/,
-        urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
-        
+        //urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+        urlPattern: /(?:(?:api[23]\.tophub\.(?:xyz|today|app))|(?:tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com)))\/account\/sync,
         fields: {
             // API 错误码：0 表示成功
             error: { 
