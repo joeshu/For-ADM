@@ -120,8 +120,8 @@ const APP_CONFIGS = {
         
         // URL 匹配正则：匹配 api2.tophub.today 或 api2.tophub.app 的 /account/sync 接口
         //urlPattern: /api[23]\.tophub\.(today|app|xyz)\/account\/sync/,
-        //urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
-        urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata|idaily|remai|iappdaiy|ipadown)\.(?:com|today))\/account\/sync,
+        urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+        
         fields: {
             // API 错误码：0 表示成功
             error: { 
