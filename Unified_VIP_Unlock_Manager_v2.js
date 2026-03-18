@@ -758,7 +758,7 @@ class VipUnlockEngine {
 
         let obj = Utils.safeJsonParse(body);
         if (!obj) {
-            return this.createErrorResponse('Failed to parse JSON');
+            //return this.createErrorResponse('Failed to parse JSON');
         }
 
         const handlers = this.config.pathHandlers || [];
