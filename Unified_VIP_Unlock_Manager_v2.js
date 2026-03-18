@@ -1,11 +1,11 @@
 /**
  * ==========================================
- * Unified VIP Unlock Manager v13.1.1
- * 统一 VIP 解锁管理器 - Bug修复版
- * @version 13.1.1
- * @description 修复 multipath 模式下 url undefined 错误
+ * Unified VIP Unlock Manager v13.1.3
+ * 统一 VIP 解锁管理器 - 正则表达式修复版
+ * @version 13.1.3
+ * @description 修复深拷贝导致正则表达式失效的问题
  * ==========================================
-  [rewrite_local]
+[rewrite_local]
   # iAppDaily - 余额查询接口（JSON模式-字段映射）
   ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v2.js
   # TopHub - 账户同步接口（JSON模式-字段映射+包装器）
@@ -44,8 +44,7 @@
 // ==========================================
 
 const GLOBAL_CONFIG = Object.freeze({
-    // 日志总开关：true 输出所有日志，false 完全静默（包括 error）
-    DEBUG: true ,
+    DEBUG: true,
     ENABLE_CACHE: true,
     MAX_CACHE_SIZE: 100
 });
@@ -56,7 +55,7 @@ const GLOBAL_CONFIG = Object.freeze({
 
 const META = {
     name: 'UnifiedVIP',
-    version: '13.1.2',
+    version: '13.1.3',
     author: 'joeshu & contributors',
     description: 'Unified VIP Unlock Manager',
     updated: '2026-03-18'
@@ -87,7 +86,7 @@ const CONSTANTS = Object.freeze({
 });
 
 // ==========================================
-// 应用配置工厂
+// 应用配置工厂 - 修复深拷贝问题
 // ==========================================
 
 const AppConfigFactory = {
@@ -100,13 +99,50 @@ const AppConfigFactory = {
         return this._configs;
     },
 
+    /**
+     * 深拷贝配置，保留正则表达式和函数
+     * 修复：JSON.parse/stringify 会破坏 RegExp 和 Function
+     */
+    deepCloneConfig(config) {
+        if (!config) return null;
+        
+        const cloned = {};
+        
+        for (const [key, value] of Object.entries(config)) {
+            if (value instanceof RegExp) {
+                // 保留正则表达式（创建新实例以确保隔离性）
+                cloned[key] = new RegExp(value.source, value.flags);
+            } else if (typeof value === 'function') {
+                // 保留函数引用
+                cloned[key] = value;
+            } else if (Array.isArray(value)) {
+                // 深拷贝数组
+                cloned[key] = value.map(item => {
+                    if (typeof item === 'object' && item !== null) {
+                        return this.deepCloneConfig(item);
+                    }
+                    return item;
+                });
+            } else if (typeof value === 'object' && value !== null) {
+                // 深拷贝对象
+                cloned[key] = this.deepCloneConfig(value);
+            } else {
+                // 基本类型直接复制
+                cloned[key] = value;
+            }
+        }
+        
+        return cloned;
+    },
+
     getConfigByUrl(url) {
         if (!url) return null;
         
         const configs = this.configs;
         for (const [key, config] of Object.entries(configs)) {
             if (config.urlPattern && config.urlPattern.test(url)) {
-                return JSON.parse(JSON.stringify(config));
+                // 使用自定义深拷贝代替 JSON.parse/stringify
+                return this.deepCloneConfig(config);
             }
         }
         return null;
@@ -484,7 +520,7 @@ const AppConfigFactory = {
 };
 
 // ==========================================
-// 工具类 - Env 兼容层（完全静默版）
+// 工具类 - Env 兼容层
 // ==========================================
 
 class Environment {
@@ -503,13 +539,7 @@ class Environment {
         return 'Unknown';
     }
 
-    /**
-     * 日志输出（严格受 DEBUG 开关控制）
-     * DEBUG: true  -> 输出所有级别日志（debug/info/warn/error）
-     * DEBUG: false -> 完全静默，不输出任何日志（包括 error）
-     */
     log(level, msg) {
-        // 严格模式：DEBUG 为 false 时，任何级别的日志都不输出
         if (!GLOBAL_CONFIG.DEBUG) return;
         
         const timestamp = new Date().toISOString();
@@ -518,7 +548,6 @@ class Environment {
         
         console.log(message);
         
-        // 只有 DEBUG 为 true 时才可能触发通知
         if (this.isQX && level === 'error') {
             $notify(this.name, 'Error', msg);
         }
@@ -531,7 +560,6 @@ class Environment {
 
     done(object) {
         if (!object || !object.body) {
-            // 注意：这里的 warn 也受 DEBUG 控制，DEBUG: false 时不输出
             this.warn('Empty response body, returning original');
             $done({});
             return;
@@ -568,10 +596,6 @@ const Utils = {
         try {
             return JSON.stringify(obj, null, pretty ? 2 : undefined);
         } catch (e) {
-            // 此处的 error 输出也受 DEBUG 控制，通过 console.error 直接输出
-            // 但通常 JSON 序列化错误很少发生，且 console.error 不受我们的封装控制
-            // 如需完全静默，可注释掉下一行
-            // console.error(`JSON stringify error: ${e}`);
             return '{}';
         }
     },
@@ -741,8 +765,13 @@ class VipUnlockEngine {
         let matched = false;
 
         for (const handler of handlers) {
+            // 安全检查：确保 pathRegex 是有效的 RegExp
             const pathMatch = url && handler.path && url.includes(handler.path);
-            const regexMatch = !handler.pathRegex || (url && handler.pathRegex.test(url));
+            const regexMatch = !handler.pathRegex || (
+                handler.pathRegex instanceof RegExp && 
+                url && 
+                handler.pathRegex.test(url)
+            );
             const containsMatch = !handler.urlContains || (url && url.includes(handler.urlContains));
 
             if (pathMatch && regexMatch && containsMatch) {
@@ -1048,7 +1077,6 @@ function main() {
         const requestUrl = response.url || env.getRequest().url || '';
 
         if (!requestUrl) {
-            // 此 error 也受 DEBUG 控制，DEBUG: false 时不输出
             env.error('No URL found in request/response');
             env.done({});
             return;
@@ -1089,7 +1117,6 @@ function main() {
         env.done(result);
 
     } catch (e) {
-        // 此 error 也受 DEBUG 控制
         env.error(`Fatal error: ${e.message}`);
         env.done({ body: $response?.body });
     }
@@ -1097,4 +1124,3 @@ function main() {
 
 // 执行
 main();
- 
