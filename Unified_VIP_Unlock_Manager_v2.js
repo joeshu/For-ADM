@@ -35,9 +35,13 @@
   ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(home\/notice|gameCenter\/gameDetailList) url reject-dict
   # 成语来解压 - 微信小程序无限金币（游戏数值模式）
   ^https?:\/\/yr-game-api\.feigo\.fun\/api\/user\/get-game-user-value url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v2.js
+  # 星际使命 - 微信小程序游戏数据修改（JSON自定义处理器）
+  ^https?:\/\/star\.jvplay\.cn\/v2\/storage url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v2.js
 
  [mitm]
- hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com, service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com, api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun
+ hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com, 
+ service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com, 
+ api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn
  */
 'use strict';
 
@@ -274,6 +278,94 @@ const AppConfigFactory = {
                     return obj;
                 }
             },
+          /**
+     * 星际使命 - 微信小程序游戏数据修改
+     * 模式：JSON 自定义处理器（数组遍历 + 嵌套 JSON 解析）
+     * 原脚本：https://raw.githubusercontent.com/WeiGiegie/666/main/xjsm.js
+     */
+    xjsm: {
+        id: 'xjsm',
+        name: '星际使命',
+        urlPattern: /^https?:\/\/star\.jvplay\.cn\/v2\/storage/,
+        mode: 'json',
+        customProcessor: function(obj, env) {
+            if (!obj || !Array.isArray(obj.objects)) {
+                env.warn('Invalid response structure: objects array not found');
+                return obj;
+            }
+
+            const TARGET_VALUE = 999988990;
+            const WEAPON_IDS = ["1100", "1101", "1102", "1103", "1104", "1105", "1106", "1107", "1108", "1109", "1110"];
+            let walletModified = false;
+            let bagModified = false;
+
+            for (let i = 0; i < obj.objects.length; i++) {
+                const item = obj.objects[i];
+
+                // 1. 修改钱包数据
+                if (item.collection === "Common" && item.key === "wallet") {
+                    try {
+                        let wallet = JSON.parse(item.value);
+                        
+                        wallet.coin = TARGET_VALUE;      // 金币
+                        wallet.coupon = TARGET_VALUE;    // 广告卷
+                        wallet.gem = TARGET_VALUE;       // 钻石
+                        
+                        item.value = JSON.stringify(wallet);
+                        walletModified = true;
+                        env.debug('Wallet modified successfully');
+                    } catch (e) {
+                        env.error(`Wallet parse failed: ${e.message}`);
+                    }
+                }
+
+                // 2. 修改背包数据：确保所有武器碎片存在且数量充足
+                if (item.collection === "Common" && item.key === "Bag") {
+                    try {
+                        let bag = JSON.parse(item.value);
+                        
+                        // 确保 m_ItemList 存在且为数组
+                        if (!bag.m_ItemList || !Array.isArray(bag.m_ItemList)) {
+                            bag.m_ItemList = [];
+                        }
+
+                        // 遍历所有目标武器ID
+                        for (let id of WEAPON_IDS) {
+                            let found = false;
+                            
+                            // 查找是否已存在该ID的物品
+                            for (let it of bag.m_ItemList) {
+                                if (it.ItemID === id) {
+                                    it.Count = TARGET_VALUE;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            
+                            // 如果不存在，则添加新条目
+                            if (!found) {
+                                bag.m_ItemList.push({ 
+                                    Count: TARGET_VALUE, 
+                                    ItemID: id 
+                                });
+                            }
+                        }
+
+                        item.value = JSON.stringify(bag);
+                        bagModified = true;
+                        env.debug(`Bag modified: ${WEAPON_IDS.length} weapon fragments ensured`);
+                    } catch (e) {
+                        env.error(`Bag parse failed: ${e.message}`);
+                    }
+                }
+            }
+
+            if (walletModified) env.info('Wallet: unlimited coins/coupons/gems activated');
+            if (bagModified) env.info('Bag: all weapon fragments unlocked');
+            
+            return obj;
+        }
+    },
 
             v2ex: {
                 id: 'v2ex',
