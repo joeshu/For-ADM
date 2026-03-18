@@ -45,7 +45,7 @@
 
 const GLOBAL_CONFIG = Object.freeze({
     // 日志总开关：true 输出所有日志，false 完全静默（包括 error）
-    DEBUG: false,
+    DEBUG: true ,
     ENABLE_CACHE: true,
     MAX_CACHE_SIZE: 100
 });
