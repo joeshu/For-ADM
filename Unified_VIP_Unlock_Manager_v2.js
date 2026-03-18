@@ -164,7 +164,8 @@ const APP_CONFIGS = Object.freeze({
     tophub: {
         id: 'tophub',
         name: 'TopHub',
-        urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+        //urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+        urlPattern: /api2\.tophub\.(today|app)\/account\/sync/,
         mode: 'json',
         fields: {
             error: { path: 'error', value: CONSTANTS.STATUS_OK, type: 'number' },
