@@ -245,8 +245,10 @@ const AppConfigFactory = {
                 htmlReplacements: [
                     {
                         pattern: /<\/head>/i,
-                        //replacement: ``,
-                        replacement: `<head><style>.topic-ads,.sidebar-ads,.adsbygoogle,[class*="ads"],[id*="ads"]{display:none!important;}</style>`,
+                        //replacement: `<head><style>.topic-ads,.sidebar-ads,.adsbygoogle,[class*="ads"],[id*="ads"]{display:none!important;}</style>`,
+                      replacement: `<head><style>
+                      .sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}
+                      </style>`,
                         description: '注入CSS隐藏广告元素'
                     }
                 ]
