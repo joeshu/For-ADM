@@ -48,7 +48,7 @@
 // ==========================================
 
 const GLOBAL_CONFIG = Object.freeze({
-    DEBUG: true,
+    DEBUG: false,
     ENABLE_CACHE: true,
     MAX_CACHE_SIZE: 100
 });
