@@ -70,7 +70,7 @@ const CONSTANTS = Object.freeze({
   // 过期时间戳（毫秒）
   EXPIRE_TIMESTAMP_MS: 4102416000000,
   // 大数值字符串（用于游戏货币）
-  BIG_NUMBER_STR: "9999999999999999999988888888",
+  BIG_NUMBER_STR: "999999988888888",
   // 默认金币/积分数量
   DEFAULT_COINS: 9999,
   // 默认 VIP 等级
