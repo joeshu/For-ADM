@@ -675,7 +675,7 @@ class VipUnlockEngine {
         try {
             if (!response?.body) {
                 this.env.warn('No response body found');
-                return this.createErrorResponse('No response body');
+                //return this.createErrorResponse('No response body');
             }
 
             const mode = this.config.mode || this.detectMode();
