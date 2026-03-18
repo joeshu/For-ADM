@@ -889,7 +889,7 @@ class VipUnlockEngine {
     processJsonMode(body) {
         let obj = Utils.safeJsonParse(body);
         if (!obj) {
-            return this.createErrorResponse('Failed to parse JSON');
+            return this.createErrorResponse('Failed to parse JSON1');
         }
 
         if (this.config.responseWrapper?.enabled) {
