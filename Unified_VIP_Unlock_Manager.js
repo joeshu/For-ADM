@@ -75,12 +75,12 @@
  * 全局调试配置
  * debugMode: 是否开启调试模式（显示详细执行步骤）
  * logLevel: 日志级别 DEBUG/INFO/WARN/ERROR（默认INFO，DEBUG显示所有，ERROR只显示错误）
- * enableTimestamp: 是否在日志中添加时间戳
+ * enableTimestamp: 是否在日志中添加时间戳  true/false
  */
 const GLOBAL_DEBUG_CONFIG = {
-    debugMode: false,           // 全局调试开关
+    debugMode: true,           // 全局调试开关
     logLevel: 'INFO',          // 全局日志级别：DEBUG/INFO/WARN/ERROR
-    enableTimestamp: true,     // 启用时间戳
+    enableTimestamp: false,     // 启用时间戳
     maxLogLength: 500          // 单条日志最大长度，防止过长日志
 };
 
