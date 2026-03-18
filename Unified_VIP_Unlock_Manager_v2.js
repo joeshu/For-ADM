@@ -1,15 +1,11 @@
-
 /**
  * ==========================================
- * Unified VIP Unlock Manager v13.1.0
- * 统一 VIP 解锁管理器 - 优化版
- * @version 13.1.0
- * @description 插件化架构，支持 JSON对象/正则替换/游戏数值/混合/多路径/HTML替换 多模式
- * @changelog
- * v13.1.0 - 性能优化：URL动态懒加载、日志总开关、减少初始化开销
+ * Unified VIP Unlock Manager v13.1.1
+ * 统一 VIP 解锁管理器 - Bug修复版
+ * @version 13.1.1
+ * @description 修复 multipath 模式下 url undefined 错误
  * ==========================================
-
- [rewrite_local]
+  [rewrite_local]
   # iAppDaily - 余额查询接口（JSON模式-字段映射）
   ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v2.js
   # TopHub - 账户同步接口（JSON模式-字段映射+包装器）
@@ -41,6 +37,7 @@
  [mitm]
  hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com, service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com, api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com
  */
+
 'use strict';
 
 // ==========================================
@@ -48,11 +45,8 @@
 // ==========================================
 
 const GLOBAL_CONFIG = Object.freeze({
-    // 日志总开关：false 时只输出错误日志，true 时输出所有日志
-    DEBUG: false,
-    // 缓存URL匹配结果，提升性能
+    DEBUG: true,
     ENABLE_CACHE: true,
-    // 最大缓存条目数
     MAX_CACHE_SIZE: 100
 });
 
@@ -62,14 +56,14 @@ const GLOBAL_CONFIG = Object.freeze({
 
 const META = {
     name: 'UnifiedVIP',
-    version: '13.1.0',
+    version: '13.1.1',
     author: 'joeshu & contributors',
     description: 'Unified VIP Unlock Manager',
     updated: '2026-03-18'
 };
 
 // ==========================================
-// 常量定义区 - 全局使用的常量值
+// 常量定义区
 // ==========================================
 
 const CONSTANTS = Object.freeze({
@@ -93,16 +87,12 @@ const CONSTANTS = Object.freeze({
 });
 
 // ==========================================
-// 应用配置工厂 - 按需返回配置，避免一次性加载所有
+// 应用配置工厂
 // ==========================================
 
 const AppConfigFactory = {
-    // 配置定义存储
     _configs: null,
     
-    /**
-     * 懒加载获取配置定义
-     */
     get configs() {
         if (!this._configs) {
             this._configs = this._initConfigs();
@@ -110,31 +100,20 @@ const AppConfigFactory = {
         return this._configs;
     },
 
-    /**
-     * 根据URL动态获取匹配的配置
-     */
     getConfigByUrl(url) {
         if (!url) return null;
         
         const configs = this.configs;
         for (const [key, config] of Object.entries(configs)) {
             if (config.urlPattern && config.urlPattern.test(url)) {
-                // 返回深拷贝，防止修改影响原始配置
                 return JSON.parse(JSON.stringify(config));
             }
         }
         return null;
     },
 
-    /**
-     * 初始化所有配置定义（仅在首次访问时执行）
-     */
     _initConfigs() {
         return Object.freeze({
-            // ==========================================
-            // 1. JSON 对象模式
-            // ==========================================
-            
             iappdaily: {
                 id: 'iappdaily',
                 name: 'iAppDaily',
@@ -258,10 +237,6 @@ const AppConfigFactory = {
                 }
             },
 
-            // ==========================================
-            // 2. HTML 替换模式
-            // ==========================================
-
             v2ex: {
                 id: 'v2ex',
                 name: 'V2EX去广告',
@@ -275,10 +250,6 @@ const AppConfigFactory = {
                     }
                 ]
             },
-
-            // ==========================================
-            // 3. 多路径模式
-            // ==========================================
 
             foday: {
                 id: 'foday',
@@ -426,10 +397,6 @@ const AppConfigFactory = {
                 ]
             },
 
-            // ==========================================
-            // 4. 正则替换模式
-            // ==========================================
-
             keep: {
                 id: 'keep',
                 name: 'Keep',
@@ -461,10 +428,6 @@ const AppConfigFactory = {
                 ]
             },
 
-            // ==========================================
-            // 5. 游戏数值模式
-            // ==========================================
-
             bqwz: {
                 id: 'bqwz',
                 name: '标枪王者',
@@ -478,10 +441,6 @@ const AppConfigFactory = {
                     { field: 'pve_power', value: 888, description: 'PVE体力' }
                 ]
             },
-
-            // ==========================================
-            // 6. 混合模式
-            // ==========================================
 
             bxkt: {
                 id: 'bxkt',
@@ -525,7 +484,7 @@ const AppConfigFactory = {
 };
 
 // ==========================================
-// 工具类 - Env 兼容层（支持 QX/Surge/Loon）
+// 工具类 - Env 兼容层
 // ==========================================
 
 class Environment {
@@ -544,11 +503,7 @@ class Environment {
         return 'Unknown';
     }
 
-    /**
-     * 日志输出（受 DEBUG 开关控制）
-     */
     log(level, msg) {
-        // 如果 DEBUG 为 false，只输出 error 级别日志
         if (!GLOBAL_CONFIG.DEBUG && level !== 'error') return;
         
         const timestamp = new Date().toISOString();
@@ -586,7 +541,7 @@ class Environment {
 }
 
 // ==========================================
-// 工具函数库 - 优化版
+// 工具函数库
 // ==========================================
 
 const Utils = {
@@ -658,7 +613,7 @@ const Utils = {
 };
 
 // ==========================================
-// VIP 解锁核心引擎 v2.0
+// VIP 解锁核心引擎 v2.1 - 修复版
 // ==========================================
 
 class VipUnlockEngine {
@@ -676,7 +631,6 @@ class VipUnlockEngine {
     setConfig(config) {
         this.config = config;
         this.stats.mode = config.mode || 'auto';
-        // 只在 DEBUG 模式下输出初始化信息
         if (GLOBAL_CONFIG.DEBUG) {
             this.env.info(`Initialized: ${config.name} [Mode: ${this.stats.mode}]`);
         }
@@ -700,6 +654,7 @@ class VipUnlockEngine {
                 case CONSTANTS.MODES.HTML:
                     return this.processHtmlMode(response.body);
                 case CONSTANTS.MODES.MULTIPATH:
+                    // 修复：传递完整的 response 对象，确保能获取 url
                     return this.processMultipathMode(response.body, response.url);
                 case CONSTANTS.MODES.HYBRID:
                     return this.processHybridMode(response.body);
@@ -757,7 +712,21 @@ class VipUnlockEngine {
         return { body: modifiedBody };
     }
 
+    /**
+     * 多路径处理模式 - 修复 url undefined 问题
+     */
     processMultipathMode(body, url) {
+        // 修复点1：确保 url 有值，从 response 或 request 中获取
+        if (!url) {
+            url = this.env.getResponse().url || this.env.getRequest().url || '';
+        }
+        
+        // 修复点2：如果仍然没有 url，记录错误并返回原始 body
+        if (!url) {
+            this.env.error('URL is undefined in multipath mode, cannot match handlers');
+            return { body: body };
+        }
+
         let obj = Utils.safeJsonParse(body);
         if (!obj) {
             return this.createErrorResponse('Failed to parse JSON');
@@ -767,9 +736,10 @@ class VipUnlockEngine {
         let matched = false;
 
         for (const handler of handlers) {
-            const pathMatch = url.includes(handler.path);
-            const regexMatch = !handler.pathRegex || handler.pathRegex.test(url);
-            const containsMatch = !handler.urlContains || url.includes(handler.urlContains);
+            // 修复点3：安全的路径匹配逻辑，确保 url 和 handler.path 都存在
+            const pathMatch = url && handler.path && url.includes(handler.path);
+            const regexMatch = !handler.pathRegex || (url && handler.pathRegex.test(url));
+            const containsMatch = !handler.urlContains || (url && url.includes(handler.urlContains));
 
             if (pathMatch && regexMatch && containsMatch) {
                 matched = true;
@@ -789,7 +759,7 @@ class VipUnlockEngine {
         }
 
         if (!matched && GLOBAL_CONFIG.DEBUG) {
-            this.env.debug('No matching path handler found');
+            this.env.debug(`No matching path handler found for url: ${url}`);
         }
 
         return { body: Utils.safeJsonStringify(obj) };
@@ -1005,31 +975,24 @@ class VipUnlockEngine {
 }
 
 // ==========================================
-// 插件管理器 v3.0 - 懒加载优化版
+// 插件管理器 v3.0
 // ==========================================
 
 class PluginManager {
     constructor() {
-        // 使用 LRU 缓存策略
         this.urlCache = new Map();
         this.cacheKeys = [];
     }
 
-    /**
-     * 获取配置（按需加载，带缓存）
-     */
     getConfig(url) {
         if (!url) return null;
 
-        // 检查缓存
         if (GLOBAL_CONFIG.ENABLE_CACHE && this.urlCache.has(url)) {
-            // 更新访问顺序（LRU）
             const config = this.urlCache.get(url);
             this._updateCacheOrder(url);
             return config;
         }
 
-        // 动态获取配置
         const config = AppConfigFactory.getConfigByUrl(url);
         
         if (config && GLOBAL_CONFIG.ENABLE_CACHE) {
@@ -1039,11 +1002,7 @@ class PluginManager {
         return config;
     }
 
-    /**
-     * 添加缓存（带大小限制）
-     */
     _addToCache(url, config) {
-        // 如果缓存已满，移除最旧的
         if (this.cacheKeys.length >= GLOBAL_CONFIG.MAX_CACHE_SIZE) {
             const oldestKey = this.cacheKeys.shift();
             this.urlCache.delete(oldestKey);
@@ -1053,9 +1012,6 @@ class PluginManager {
         this.cacheKeys.push(url);
     }
 
-    /**
-     * 更新缓存访问顺序
-     */
     _updateCacheOrder(url) {
         const index = this.cacheKeys.indexOf(url);
         if (index > -1) {
@@ -1064,9 +1020,6 @@ class PluginManager {
         }
     }
 
-    /**
-     * 清理缓存
-     */
     clearCache() {
         this.urlCache.clear();
         this.cacheKeys = [];
@@ -1074,22 +1027,19 @@ class PluginManager {
 }
 
 // ==========================================
-// 主入口 - 优化版
+// 主入口
 // ==========================================
 
 function main() {
     const env = new Environment(META.name);
 
     try {
-        // 只在 DEBUG 模式下输出启动信息
         if (GLOBAL_CONFIG.DEBUG) {
             env.info(`Starting ${META.name} v${META.version} on ${env.platform}`);
         }
 
-        // 初始化插件管理器（无配置加载开销）
         const pluginManager = new PluginManager();
 
-        // 获取请求信息
         const response = env.getResponse();
         const requestUrl = response.url || env.getRequest().url || '';
 
@@ -1103,10 +1053,8 @@ function main() {
             env.debug(`Processing URL: ${requestUrl}`);
         }
 
-        // 动态获取匹配的配置（懒加载）
         let appConfig = pluginManager.getConfig(requestUrl);
 
-        // 兜底：使用通用配置
         if (!appConfig) {
             if (GLOBAL_CONFIG.DEBUG) {
                 env.warn('App not detected, using generic config');
@@ -1123,7 +1071,6 @@ function main() {
             env.info(`Matched app: ${appConfig.name}`);
         }
 
-        // 创建引擎并执行
         const engine = new VipUnlockEngine(env);
         engine.setConfig(appConfig);
 
