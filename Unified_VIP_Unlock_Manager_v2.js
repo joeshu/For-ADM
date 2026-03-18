@@ -21,7 +21,7 @@
  * 1. 在 [rewrite_local] 中配置不同应用的规则，指向此统一文件
  * 2. 在 APP_CONFIGS 配置区添加新应用配置即可自动生效
  * 3. 脚本会自动根据 URL 识别当前请求对应的应用
- */
+
 * 【配置示例】
  [rewrite_local]
   # iAppDaily - 余额查询接口（JSON模式-字段映射）
@@ -164,8 +164,8 @@ const APP_CONFIGS = Object.freeze({
     tophub: {
         id: 'tophub',
         name: 'TopHub',
-        //urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
-        urlPattern: /api2\.tophub\.(today|app)\/account\/sync/,
+        urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+        //urlPattern: /api2\.tophub\.(today|app)\/account\/sync/,
         mode: 'json',
         fields: {
             error: { path: 'error', value: CONSTANTS.STATUS_OK, type: 'number' },
