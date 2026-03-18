@@ -255,7 +255,7 @@ const AppConfigFactory = {
                       div[class^="wwads-"]{
                       display: none !important;
                       }
-                      </style>`
+                      </style>`,
                         description: '注入CSS隐藏广告元素'
                     }
                 ]
