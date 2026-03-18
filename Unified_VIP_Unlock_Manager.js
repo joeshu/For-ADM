@@ -1,9 +1,9 @@
-/*
+/**
  * ==========================================
  * Unified VIP Unlock Manager
  * 统一 VIP 解锁管理器
- * @version 12.1.0
- * @description 插件化架构，支持 JSON对象/正则替换/游戏数值/混合/多路径/HTML替换 多模式，新增调试模式与日志分级
+ * @version 12.3.0
+ * @description 插件化架构，支持 JSON对象/正则替换/游戏数值/混合/多路径/HTML替换 多模式
  * ==========================================
  *
  * 【架构设计】
@@ -15,78 +15,85 @@
  * 5. 多路径模式（multipath）：根据 URL 路径执行不同处理逻辑，适合去广告场景
  * 6. HTML 替换模式（html）：直接操作 HTML 文本内容，适合网页去广告
  *
- * 【调试功能说明】
- * - DEBUG_MODE: 开启后输出详细执行流程，方便定位问题
- * - LOG_LEVEL: 控制日志输出级别 (0=关闭, 1=错误, 2=警告, 3=信息, 4=调试)
- * - 使用方式：修改下方 GLOBAL_CONFIG 中的配置即可
- *
- * 【新增 foday 说明】
- * 复游会是旅游类微信小程序，接口特点：
- * - 两个不同路径需要不同处理（页面组件/广告推荐）
- * - 使用数组过滤（filter）排除特定广告组件
- * - 使用 Set 数据结构提高查找效率
- * - 广告组件代码：TCMP_home_followingadvertising、TC_Interactive_Ad、TC_Member_Banner、TC_AIGO
- *
  * 【使用说明】
  * 1. 在 [rewrite_local] 中配置不同应用的规则，指向此统一文件
  * 2. 在 APP_CONFIGS 配置区添加新应用配置即可自动生效
  * 3. 脚本会自动根据 URL 识别当前请求对应的应用
- * 4. 如遇到问题，开启 DEBUG_MODE 查看执行日志
  *
  * 【配置示例】
-[rewrite_local]
-# iAppDaily - 余额查询接口（JSON模式-字段映射）
-^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
- # TopHub - 账户同步接口（JSON模式-字段映射+包装器）
-^https:\/\/api2\.tophub\.(today|app)\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# gps - GPS工具箱（JSON模式-字段映射）
-^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# kyxq - 口语星球（JSON模式-自定义处理器-多场景）
-^https?:\/\/mapi\.kouyuxingqiu\.com\/api\/v2 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# mhlz - 魔幻粒子（JSON模式-自定义处理器-嵌套遍历+条件逻辑）
-^https?:\/\/ss\.landintheair\.com\/storage\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
- # v2ex - V2EX去广告（HTML替换模式）
-^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf))))) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# foday - 复游会去广告（多路径模式-数组过滤）
-^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getAdAndRecommendedProduct url response-body "adComponent":.+, response-body "adComponent":null,
-# qiujingapp - 球竞APP去广告（多路径模式-数组清空）
-^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(3|6|8|11)(\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-^https?:\/\/gateway-api\.yizhilive\.com\/api\/v3\/index\/all\?.*position=2.*$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# Keep - 课程/会员接口（正则替换模式）
-^https?:\/\/(api|kit).gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# bqwz - 标枪王者游戏数据接口（游戏数值模式）
-^https?:\/\/javelin\.mandrillvr\.com\/api\/data\/get_game_data url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-# bxkt - 伴学课堂接口（混合模式）
-^https?:\/\/api\.banxueketang\.com\/api\/classpal\/app\/v1 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
- # tv - 影视去广告接口（多路径模式）
-^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
-
-[mitm]
-hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com, api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com
+ [rewrite_local]
+  # iAppDaily - 余额查询接口（JSON模式-字段映射）
+  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # TopHub - 账户同步接口（JSON模式-字段映射+包装器）
+  ^https?:\/\/(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # gps - GPS工具箱（JSON模式-字段映射）
+  ^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # kyxq - 口语星球（JSON模式-自定义处理器-多场景）
+  ^https?:\/\/mapi\.kouyuxingqiu\.com\/api\/v2 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # mhlz - 魔幻粒子（JSON模式-自定义处理器-嵌套遍历+条件逻辑）
+  ^https?:\/\/ss\.landintheair\.com\/storage\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # v2ex - V2EX去广告（HTML替换模式）
+  ^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf))))) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+ # foday - 复游会去广告（多路径模式-数组过滤）
+  ^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+ # qiujingapp - 球竞APP去广告（多路径模式-数组清空）
+  ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(3|6|8|11)(\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+ ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v3\/index\/all\?.*position=2.*$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # Keep - 课程/会员接口（正则替换模式）
+  ^https?:\/\/(api|kit).gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # bqwz - 标枪王者游戏数据接口（游戏数值模式）
+  ^https?:\/\/javelin\.mandrillvr\.com\/api\/data\/get_game_data url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # bxkt - 伴学课堂接口（混合模式）
+  ^https?:\/\/api\.banxueketang\.com\/api\/classpal\/app\/v1 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+  # tv - 影视去广告接口（多路径模式）
+  ^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager.js
+ 
+ [mitm]
+ hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com, service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com, api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com
  */
 
 'use strict';
 
 // ==========================================
-// 全局调试配置区 - 调整以下配置控制日志输出
+// 常量定义区 - 全局使用的常量值
 // ==========================================
 
 /**
- * 全局配置对象
- * DEBUG_MODE: 是否开启调试模式（true=输出详细执行流程，false=仅输出关键信息）
- * LOG_LEVEL: 日志级别（0=关闭所有日志, 1=仅错误, 2=警告+错误, 3=信息+警告+错误, 4=全部包含调试）
- * SHOW_BODY_PREVIEW: 是否在调试模式下显示响应体前200字符（方便检查数据结构）
+ * 常量对象
+ * 集中管理所有魔法数值，方便统一修改
  */
-const GLOBAL_CONFIG = {
-  DEBUG_MODE: false,           // 设置为 true 开启详细调试
-  LOG_LEVEL: 3,                // 默认级别：信息（生产环境建议设为 1 或 2）
-  SHOW_BODY_PREVIEW: true,     // 调试时显示响应体预览
-  MAX_BODY_PREVIEW_LENGTH: 200 // 响应体预览最大长度
-};
+const CONSTANTS = Object.freeze({
+  // 过期日期字符串格式（用于 TopHub 等需要字符串的场景）
+  EXPIRE_DATE: "2099-12-31 23:59:59",
+  // 过期时间戳（用于 iAppDaily 等需要数值的场景）
+  EXPIRE_TIMESTAMP: 4102444800,
+  // 过期时间戳（毫秒）
+  EXPIRE_TIMESTAMP_MS: 4102416000000,
+  // 大数值字符串（用于游戏货币）
+  BIG_NUMBER_STR: "9999999999999999999988888888",
+  // 默认金币/积分数量
+  DEFAULT_COINS: 9999,
+  // 默认 VIP 等级
+  DEFAULT_VIP_LEVEL: 99,
+  // 默认 VIP 类型标识
+  DEFAULT_VIP_TYPE: "lifetime"
+});
 
 // ==========================================
-// 配置区 - 新增应用只需在此添加配置，无需修改下方核心逻辑
+// 处理模式枚举
+// ==========================================
+
+const MODE = Object.freeze({
+  MULTIPATH: 'multipath', // 多路径：最特定，有明确的 pathHandlers
+  HTML: 'html',             // HTML：特定，有 htmlReplacements
+  HYBRID: 'hybrid',         // 混合：同时有 customProcessor 和 regexReplacements
+  GAME: 'game',             // 游戏：有 gameResources
+  REGEX: 'regex',           // 正则：有 regexReplacements
+  JSON: 'json'              // JSON：默认，最常见
+});
+
+// ==========================================
+// 应用配置区 - 新增应用只需在此添加配置
 // ==========================================
 
 /**
@@ -95,84 +102,62 @@ const GLOBAL_CONFIG = {
  * - id: 应用唯一标识（小写，无空格）
  * - name: 应用显示名称（用于日志）
  * - urlPattern: URL 正则表达式，用于自动识别当前请求对应的应用
- *
- * 【处理模式选择】
- * 模式一：JSON 对象模式（json）
- * - 使用 fields 配置简单字段映射
- * - 或使用 customProcessor 实现复杂逻辑
- * - 适合结构化的标准 JSON 接口
- *
- * 模式二：正则替换模式（regex）
- * - 使用 regexReplacements 配置正则规则数组
- * - 直接操作文本，不解析 JSON
- * - 适合数据结构复杂、字段不统一的接口
- *
- * 模式三：游戏数值模式（game）
- * - 使用 gameResources 配置游戏资源数值
- * - 专门针对转义 JSON 中的数值字段替换
- * - 适合游戏类应用修改金币/钻石/经验等
- *
- * 模式四：混合模式（hybrid）
- * - 优先使用 JSON 对象处理（含数组遍历逻辑）
- * - JSON 解析失败时自动回退到正则替换
- * - 适合需要容错处理的复杂接口
- *
- * 模式五：多路径模式（multipath）
- * - 根据 URL 路径执行不同处理逻辑
- * - 每个路径可配置不同操作（删除、置空、数组清空/过滤等）
- * - 适合去广告场景（foday、qiujingapp、tv等）
- *
- * 模式六：HTML 替换模式（html）
- * - 直接操作 HTML 文本内容
- * - 使用正则匹配替换特定标签或内容
- * - 适合网页去广告（V2EX等）
+ * - mode: 处理模式（json/regex/game/hybrid/multipath/html）
+ * - fields: 字段映射表（JSON模式），支持多级路径（如 data.user.vip）
+ * - responseWrapper: 响应包装器配置（可选），用于在原始响应为空时构造新响应
+ * - customProcessor: 自定义处理函数（可选），用于特殊逻辑处理
+ * - regexReplacements: 正则替换规则（REGEX/HYBRID模式）
+ * - gameResources: 游戏数值配置（GAME模式）
+ * - pathHandlers: 路径处理器（MULTIPATH模式）
+ * - htmlReplacements: HTML替换规则（HTML模式）
  */
-const APP_CONFIGS = {
+const APP_CONFIGS = Object.freeze({
+  
   /**
    * iAppDaily 应用配置
    * 原文件：iappdaily.js
-   * 处理模式：JSON 对象模式（简单字段映射）
    * 功能：修改余额查询接口，激活 VIP 并增加金币
    */
   iappdaily: {
     id: 'iappdaily',
     name: 'iAppDaily',
+    // URL 匹配：api.iappdaily.com/my/balance
     urlPattern: /api\.iappdaily\.com\/my\/balance/,
-
+    mode: MODE.JSON,
+    // VIP 字段映射
     fields: {
       isVip: { path: 'data.is_vip', value: 1, type: 'number' },
       isPaid: { path: 'data.is_paid', value: 1, type: 'number' },
-      vipExpired: { path: 'data.vip_expired', value: 4102444800, type: 'number' },
-      remainCoins: { path: 'data.remain_coins', value: 9999, type: 'number' },
-      totalCoins: { path: 'data.total_coins', value: 9999, type: 'number' }
+      vipExpired: { path: 'data.vip_expired', value: CONSTANTS.EXPIRE_TIMESTAMP, type: 'number' },
+      remainCoins: { path: 'data.remain_coins', value: CONSTANTS.DEFAULT_COINS, type: 'number' },
+      totalCoins: { path: 'data.total_coins', value: CONSTANTS.DEFAULT_COINS, type: 'number' }
     },
-
     responseWrapper: null,
-    customProcessor: null,
-    mode: 'json'
+    customProcessor: null
   },
 
   /**
    * TopHub 应用配置
    * 原文件：tophub.js
-   * 处理模式：JSON 对象模式（字段映射+响应包装器）
    * 功能：修改账户同步接口，强制返回永久 VIP 状态
+   * 特点：支持多域名匹配（tophub.today/app/xyz 等）
    */
   tophub: {
     id: 'tophub',
     name: 'TopHub',
-    urlPattern: /api2\.tophub\.(today|app)\/account\/sync/,
-
+    // URL 匹配：支持多域名（来自 unified-vip-unlock.js）
+    urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+    mode: MODE.JSON,
     fields: {
       error: { path: 'error', value: 0, type: 'number' },
       status: { path: 'status', value: 200, type: 'number' },
       isVip: { path: 'data.is_vip', value: "1", type: 'string' },
       isVipNow: { path: 'data.is_vip_now', value: 1, type: 'number' },
-      vipExpired: { path: 'data.vip_expired', value: "2099-12-31 23:59:59", type: 'string' },
-      vipType: { path: 'data.vip_type', value: "lifetime", type: 'string' },
-      vipLevel: { path: 'data.vip_level', value: 99, type: 'number' }
+      vipExpired: { path: 'data.vip_expired', value: CONSTANTS.EXPIRE_DATE, type: 'string' },
+      vipType: { path: 'data.vip_type', value: CONSTANTS.DEFAULT_VIP_TYPE, type: 'string' },
+      vipLevel: { path: 'data.vip_level', value: CONSTANTS.DEFAULT_VIP_LEVEL, type: 'number' }
     },
-
+    // TopHub 特殊需求：data为空时构造新响应
     responseWrapper: {
       enabled: true,
       template: {
@@ -181,29 +166,25 @@ const APP_CONFIGS = {
         data: {
           is_vip: "1",
           is_vip_now: 1,
-          vip_expired: "2099-12-31 23:59:59",
-          vip_type: "lifetime",
-          vip_level: 99
+          vip_expired: CONSTANTS.EXPIRE_DATE,
+          vip_type: CONSTANTS.DEFAULT_VIP_TYPE,
+          vip_level: CONSTANTS.DEFAULT_VIP_LEVEL
         }
       }
     },
-
-    customProcessor: null,
-    mode: 'json'
+    customProcessor: null
   },
 
   /**
-   * gps 应用配置
-   * 原文件：gps.js（作者：joeshu）
-   * 处理模式：JSON 对象模式（简单字段映射）
+   * GPS工具箱应用配置
+   * 原文件：gps.js
    * 功能：GPS工具箱 VIP 解锁（多种VIP类型）
    */
   gps: {
     id: 'gps',
     name: 'GPS工具箱',
     urlPattern: /^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo/,
-    mode: 'json',
-
+    mode: MODE.JSON,
     fields: {
       isVip: { path: 'data.is_vip', value: 1, type: 'number' },
       vipName: { path: 'data.vip_name', value: "VIP会员", type: 'string' },
@@ -212,269 +193,162 @@ const APP_CONFIGS = {
       isPowerVip: { path: 'data.is_power_vip', value: 1, type: 'number' },
       groupVip: { path: 'data.group_vip', value: 1, type: 'number' },
       groupVipExpireDate: { path: 'data.group_vip_expire_date', value: 2099999, type: 'number' }
-    },
-
-    responseWrapper: null,
-    customProcessor: null
+    }
   },
 
   /**
-   * kyxq 应用配置
-   * 原文件：kyxq.js（作者：WeiGiegie）
-   * 处理模式：JSON 对象模式（自定义处理器-多场景）
+   * 口语星球应用配置
+   * 原文件：kyxq.js
    * 功能：口语星球 VIP 解锁（多场景处理）
    */
   kyxq: {
     id: 'kyxq',
     name: '口语星球',
     urlPattern: /^https?:\/\/mapi\.kouyuxingqiu\.com\/api\/v2/,
-    mode: 'json',
+    mode: MODE.JSON,
+    customProcessor(obj, env) {
+      if (!obj.data) return obj;
 
-    customProcessor: function(obj, env) {
-      if (obj.data) {
-        if (typeof obj.data === 'object' && !Array.isArray(obj.data)) {
-          env.log('Processing permission interface (object type)');
-
-          obj.data.expireDate = CONSTANTS.EXPIRE_TIMESTAMP_MS;
-          obj.data.havePermission = true;
-          obj.data.type = 2;
-          obj.data.isVip = true;
-
-          if (obj.data.vipLevel !== undefined) {
-            obj.data.vipLevel = 10;
-            env.log('Set vipLevel: 10');
-          }
-
-          env.log('Permission interface processed: VIP activated');
-        }
-        else if (Array.isArray(obj.data)) {
-          env.log(`Processing course list interface (array type, ${obj.data.length} courses)`);
-
-          let modifiedCount = 0;
-          obj.data.forEach((course, index) => {
-            course.overTime = CONSTANTS.EXPIRE_TIMESTAMP_MS;
-
-            if (course.status !== undefined) {
-              course.status = 1;
-            }
-
-            if (course.isStudyIng !== undefined) {
-              course.isStudyIng = 1;
-            }
-
-            modifiedCount++;
-          });
-
-          env.log(`Course list processed: ${modifiedCount} courses unlocked`);
-        }
+      // 场景1：权限接口（对象类型）
+      if (typeof obj.data === 'object' && !Array.isArray(obj.data)) {
+        env.log('Processing permission interface');
+        Object.assign(obj.data, {
+          expireDate: CONSTANTS.EXPIRE_TIMESTAMP_MS,
+          havePermission: true,
+          type: 2,
+          isVip: true
+        });
+        if (obj.data.vipLevel !== undefined) obj.data.vipLevel = CONSTANTS.DEFAULT_VIP_LEVEL;
+      } 
+      // 场景2：课程列表（数组类型）
+      else if (Array.isArray(obj.data)) {
+        env.log(`Processing ${obj.data.length} courses`);
+        obj.data.forEach(course => {
+          if (!course) return;
+          course.overTime = CONSTANTS.EXPIRE_TIMESTAMP_MS;
+          if (course.status !== undefined) course.status = 1;
+          if (course.isStudyIng !== undefined) course.isStudyIng = 1;
+        });
       }
       return obj;
-    },
-
-    fields: null,
-    responseWrapper: null,
-    regexReplacements: null
+    }
   },
 
   /**
-   * mhlz 应用配置
-   * 原文件：mhlz.js（作者：WeiGiegie）
-   * 处理模式：JSON 对象模式（自定义处理器-嵌套遍历+条件逻辑）
+   * 魔幻粒子应用配置
+   * 原文件：mhlz.js
    * 功能：魔幻粒子游戏货币修改（任务进度/普通货币/事件货币区分处理）
    */
   mhlz: {
     id: 'mhlz',
     name: '魔幻粒子',
     urlPattern: /^https?:\/\/ss\.landintheair\.com\/storage\//,
-    mode: 'json',
-
-    customProcessor: function(obj, env) {
-      if (obj && obj.currencies && obj.currencies.list) {
-        let questCount = 0;
-        let currencyCount = 0;
-        let eventCount = 0;
-
-        for (let key in obj.currencies.list) {
-          let currency = obj.currencies.list[key];
-
-          if (key.startsWith("Quest_")) {
-            if (currency.amount !== undefined) {
-              currency.amount = "1";
-            }
-            if (currency.total_collected !== undefined) {
-              currency.total_collected = "1";
-            }
-            questCount++;
-          }
-          else if (key.startsWith("Event_")) {
-            eventCount++;
-          }
-          else {
-            if (currency.amount !== undefined) {
-              currency.amount = CONSTANTS.BIG_NUMBER_STR;
-            }
-            if (currency.total_collected !== undefined) {
-              currency.total_collected = CONSTANTS.BIG_NUMBER_STR;
-            }
-            currencyCount++;
-          }
-        }
-
-        env.log(`Currency processing completed: ${questCount} quests, ${currencyCount} currencies, ${eventCount} events (preserved)`);
-      } else {
-        env.log('Currency structure not found (obj.currencies.list)');
+    mode: MODE.JSON,
+    customProcessor(obj, env) {
+      const currencies = obj?.currencies?.list;
+      if (!currencies) {
+        env.log('Currency list not found');
+        return obj;
       }
-      return obj;
-    },
 
-    fields: null,
-    responseWrapper: null,
-    regexReplacements: null
+      let quest = 0, normal = 0, events = 0;
+
+      Object.entries(currencies).forEach(([key, currency]) => {
+        if (!currency) return;
+
+        if (key.startsWith("Quest_")) {
+          currency.amount = "1";
+          currency.total_collected = "1";
+          quest++;
+        } else if (key.startsWith("Event_")) {
+          events++;
+        } else {
+          currency.amount = CONSTANTS.BIG_NUMBER_STR;
+          currency.total_collected = CONSTANTS.BIG_NUMBER_STR;
+          normal++;
+        }
+      });
+
+      env.log(`Processed: ${quest} quests, ${normal} currencies, ${events} events`);
+      return obj;
+    }
   },
 
   /**
-   * v2ex 应用配置
-   * 原文件：v2ex.ads.js（作者：ddgksf2013）
-   * 处理模式：HTML 替换模式（网页去广告专用）
+   * V2EX去广告应用配置
+   * 原文件：v2ex.ads.js
    * 功能：V2EX 技术社区网站去广告（注入 CSS 隐藏广告元素）
    */
   v2ex: {
     id: 'v2ex',
     name: 'V2EX去广告',
     urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
-    mode: 'html',
-
+    mode: MODE.HTML,
     htmlReplacements: [
       {
         pattern: /<head>/i,
-        replacement: `<head><style>.ads, .advertisement, .sponsor, [class*="ad-"], [id*="ad-"], .sidebar .box:has(.ads), .sidebar .box:has(.sponsor) { display: none !important; }</style>`,
-        description: '注入CSS隐藏广告元素'
+        replacement: `<head><style>.topic-ads,.sidebar-ads,.adsbygoogle,[class*="ads"],[id*="ads"]{display:none!important;}</style>`,
+        description: '注入CSS隐藏广告'
       }
-    ],
-
-    fields: null,
-    responseWrapper: null,
-    customProcessor: null,
-    regexReplacements: null,
-    gameResources: null,
-    pathHandlers: null
+    ]
   },
 
   /**
-   * foday 应用配置
-   * 原文件：foday.js（作者：joeshu）
-   * 处理模式：多路径模式（去广告专用-数组过滤）
+   * 复游会应用配置
+   * 原文件：foday.js
    * 功能：复游会微信小程序去广告（页面组件过滤）
-   *
-   * 【foday 特殊说明】
-   * 复游会是旅游类微信小程序，接口特点：
-   * 1. 两个不同路径需要不同处理：
-   *    - /getPageComponents - 页面组件接口，过滤广告组件
-   *    - /getAdAndRecommendedProduct - 广告推荐接口（在 rewrite_local 中用正则替换处理）
-   * 2. 使用数组过滤（filter）排除特定广告组件
-   * 3. 使用 Set 数据结构提高查找效率
-   * 4. 广告组件代码：
-   *    - TCMP_home_followingadvertising（首页跟随广告）
-   *    - TC_Interactive_Ad（互动广告）
-   *    - TC_Member_Banner（会员横幅）
-   *    - TC_AIGO（AIGO广告）
    */
   foday: {
     id: 'foday',
     name: '复游会',
-    // 匹配 getPageComponents 接口（getAdAndRecommendedProduct 在 rewrite_local 中用正则替换处理）
     urlPattern: /^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents/,
-    mode: 'multipath',
-
-    /**
-     * 多路径处理配置
-     * 路径1：过滤 pageComponents 数组中的广告组件
-     */
+    mode: MODE.MULTIPATH,
     pathHandlers: [
       {
         path: '/getPageComponents',
-        description: '页面组件接口 - 过滤广告组件',
+        description: '过滤页面广告组件',
         actions: [
           {
-            type: 'custom',
-            description: '使用 Set 过滤广告组件',
-            processor: function(obj, env) {
-              // 原代码逻辑：
-              // const excludedSet = new Set(["TCMP_home_followingadvertising","TC_Interactive_Ad","TC_Member_Banner","TC_AIGO"]);
-              // if (obj?.data?.pageComponents?.length > 0) {
-              //   obj.data.pageComponents = obj.data.pageComponents.filter(item => !excludedSet.has(item.componentCode));
-              // }
-
-              // 使用 Set 存储需要排除的广告组件代码（提高查找效率）
-              const excludedSet = new Set([
-                "TCMP_home_followingadvertising", // 首页跟随广告
-                "TC_Interactive_Ad", // 互动广告
-                "TC_Member_Banner", // 会员横幅
-                "TC_AIGO" // AIGO广告
-              ]);
-
-              // 安全访问嵌套属性（可选链操作符效果）
-              if (obj && obj.data && obj.data.pageComponents &&
-                  Array.isArray(obj.data.pageComponents) &&
-                  obj.data.pageComponents.length > 0) {
-
-                let originalLength = obj.data.pageComponents.length;
-
-                // 过滤掉广告组件（保留非广告组件）
-                obj.data.pageComponents = obj.data.pageComponents.filter(
-                  item => !excludedSet.has(item.componentCode)
-                );
-
-                let filteredLength = obj.data.pageComponents.length;
-                let removedCount = originalLength - filteredLength;
-
-                env.log(`Filtered pageComponents: ${originalLength} -> ${filteredLength} (removed ${removedCount} ad components)`);
-              } else {
-                env.log('pageComponents not found or empty, skipping');
-              }
-
-              return obj;
-            }
+            type: 'arrayFilter',
+            field: 'data.pageComponents',
+            keyField: 'componentCode',
+            excludeSet: [
+              "TCMP_home_followingadvertising",
+              "TC_Interactive_Ad",
+              "TC_Member_Banner",
+              "TC_AIGO"
+            ],
+            description: '过滤广告组件'
           }
         ]
       }
-    ],
-
-    fields: null,
-    responseWrapper: null,
-    customProcessor: null,
-    regexReplacements: null,
-    gameResources: null
+    ]
   },
 
   /**
-   * qiujingapp 应用配置
-   * 原文件：qiujingapp.js（作者：joeshu）
-   * 处理模式：多路径模式（去广告专用-数组清空）
+   * 球竞APP应用配置
+   * 原文件：qiujingapp.js
    * 功能：球竞APP去广告（轮播广告/弹窗推广数组清空）
    */
   qiujingapp: {
     id: 'qiujingapp',
     name: '球竞APP',
     urlPattern: /^https?:\/\/gateway-api\.yizhilive\.com\/api\/(v2\/index\/carouses\/(3|6|8|11)|v3\/index\/all)/,
-    mode: 'multipath',
-
+    mode: MODE.MULTIPATH,
     pathHandlers: [
       {
         path: '/api/v2/index/carouses/',
-        description: '轮播广告接口 - 清空广告数组',
         pathRegex: /\/api\/v2\/index\/carouses\/(11|8|6|3)\b/,
+        description: '清空轮播广告',
         actions: [
           {
             type: 'custom',
-            description: '清空 obj.data 广告数组',
-            processor: function(obj, env) {
+            description: '清空广告数组',
+            processor(obj, env) {
               if (Array.isArray(obj.data)) {
-                let originalLength = obj.data.length;
+                const count = obj.data.length;
                 obj.data = [];
-                env.log(`Cleared carouses data array: ${originalLength} items -> 0 items`);
-              } else {
-                env.log('obj.data is not an array, skipping');
+                env.log(`Cleared ${count} carouses`);
               }
               return obj;
             }
@@ -483,188 +357,144 @@ const APP_CONFIGS = {
       },
       {
         path: '/api/v3/index/all',
-        description: '弹窗推广接口 - 清空 banners 数组',
         urlContains: 'position=2',
+        description: '清空弹窗广告',
         actions: [
           {
             type: 'custom',
-            description: '清空 obj.data.banners 广告数组',
-            processor: function(obj, env) {
-              if (obj.data && obj.data.banners) {
-                let originalLength = Array.isArray(obj.data.banners) ? obj.data.banners.length : 'non-array';
+            description: '清空banners',
+            processor(obj, env) {
+              if (obj.data?.banners) {
+                const count = obj.data.banners.length;
                 obj.data.banners = [];
-                env.log(`Cleared banners array: ${originalLength} items -> 0 items`);
-              } else {
-                env.log('obj.data.banners not found, skipping');
+                env.log(`Cleared ${count} banners`);
               }
               return obj;
             }
           }
         ]
       }
-    ],
-
-    fields: null,
-    responseWrapper: null,
-    customProcessor: null,
-    regexReplacements: null,
-    gameResources: null
+    ]
   },
 
   /**
-   * Keep 应用配置
-   * 原文件：keep.js（作者：WeiGiegie）
-   * 处理模式：正则替换模式（特殊）
+   * Keep应用配置
+   * 原文件：keep.js
    * 功能：解锁课程预览、直播课、会员付费课跟练、会员训练计划
    */
   keep: {
     id: 'keep',
     name: 'Keep',
     urlPattern: /^https?:\/\/(api|kit)\.gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\//,
-    mode: 'regex',
-
+    mode: MODE.REGEX,
     regexReplacements: [
       { pattern: /"memberStatus":\d+/g, replacement: '"memberStatus":1', description: '会员状态' },
-      { pattern: /"username":".*?"/g, replacement: '"username":"VIP"', description: '用户名' },
-      { pattern: /"buttonText":".*?"/g, replacement: '"buttonText":""', description: '按钮文本' },
       { pattern: /"hasPaid":\w+/g, replacement: '"hasPaid":true', description: '已付费标识' },
-      { pattern: /"downLoadAll":\w+/g, replacement: '"downLoadAll":true', description: '下载权限' },
-      { pattern: /"videoTime":\d+/g, replacement: '"videoTime":0', description: '视频时间限制' },
-      { pattern: /"startEnable":\w+/g, replacement: '"startEnable":true', description: '开始训练权限' },
-      { pattern: /"preview":\w+/g, replacement: '"preview":false', description: '预览模式' },
-      { pattern: /"errorCode":\d+/g, replacement: '"errorCode":0', description: '错误码' },
-      { pattern: /"status":\w+/g, replacement: '"status":1', description: '状态码' },
-      { pattern: /"member":\w+/g, replacement: '"member":true', description: '会员标识' },
-      { pattern: /"limitFree":\w+/g, replacement: '"limitFree":true', description: '限免标识' },
-      { pattern: /"limitCount":\d/g, replacement: '"limitCount":0', description: '限制次数' },
-      { pattern: /"limitFreeType":"\w+/g, replacement: '"limitFreeType":""', description: '限免类型' },
+      { pattern: /"isVip":\w+/g, replacement: '"isVip":true', description: 'VIP状态' },
+      { pattern: /"isLock":true/g, replacement: '"isLock":false', description: '锁定状态' },
       { pattern: /"free":\w+/g, replacement: '"free":true', description: '免费标识' },
-      { pattern: /"userLiveMemberStatus":\w+/g, replacement: '"userLiveMemberStatus":1', description: '直播会员状态' },
-      { pattern: /"canWatchLive":\w+/g, replacement: '"canWatchLive":true', description: '观看直播权限' },
-      { pattern: /"userMemberAutoRenew":\w+/g, replacement: '"userMemberAutoRenew":true', description: '自动续费标识' },
-      { pattern: /"userUseLiveMemberRights":\w+/g, replacement: '"userUseLiveMemberRights":true', description: '使用直播权益' },
-      { pattern: /"userLiveMemberExpireTime":\d/g, replacement: '"userLiveMemberExpireTime":0', description: '直播会员过期时间' },
+      { pattern: /"preview":\w+/g, replacement: '"preview":false', description: '预览模式' },
+      { pattern: /"limitFree":\w+/g, replacement: '"limitFree":true', description: '限免标识' },
+      { pattern: /"member":\w+/g, replacement: '"member":true', description: '会员标识' },
       { pattern: /"code":\d+/g, replacement: '"code":200', description: 'HTTP状态码' },
       { pattern: /":false/g, replacement: '":true', description: '全局false改true' }
-    ],
-
-    fields: null,
-    responseWrapper: null,
-    customProcessor: null
+    ]
   },
 
   /**
-   * bqwz 应用配置
-   * 原文件：bqwz.js（作者：WeiGiegie）
-   * 处理模式：游戏数值模式（转义 JSON 正则替换）
+   * 标枪王者应用配置
+   * 原文件：bqwz.js
    * 功能：标枪王者游戏数据修改（金币/钻石/经验/排位券/PVE体力）
    */
   bqwz: {
     id: 'bqwz',
     name: '标枪王者',
     urlPattern: /^https?:\/\/javelin\.mandrillvr\.com\/api\/data\/get_game_data/,
-    mode: 'game',
-
+    mode: MODE.GAME,
     gameResources: [
       { field: 'coin', value: 9999880, description: '金币' },
       { field: 'diamond', value: 9999880, description: '钻石' },
       { field: 'exp', value: 9999880, description: '经验' },
       { field: 'rank_ticket', value: 666, description: '排位券' },
       { field: 'pve_power', value: 888, description: 'PVE体力' }
-    ],
-
-    fields: null,
-    responseWrapper: null,
-    customProcessor: null,
-    regexReplacements: null
+    ]
   },
 
   /**
-   * bxkt 应用配置
-   * 原文件：bxkt.js（作者：WeiGiegie）
-   * 处理模式：混合模式（JSON为主，失败回退正则）
+   * 伴学课堂应用配置
+   * 原文件：bxkt.js
    * 功能：伴学课堂 VIP 解锁，遍历嵌套数组解锁所有视频
    */
   bxkt: {
     id: 'bxkt',
     name: '伴学课堂',
     urlPattern: /^https?:\/\/api\.banxueketang\.com\/api\/classpal\/app\/v1/,
-    mode: 'hybrid',
+    mode: MODE.HYBRID,
+    customProcessor(obj, env) {
+      if (!obj?.data) return obj;
+      
+      const d = obj.data;
+      d.isVip = true;
+      d.isHave = true;
+      d.isLock = false;
+      d.isSale = true;
+      d.originalPrice = 0;
+      d.salePrice = 0;
 
-    customProcessor: function(obj, env) {
-      if (obj && obj.data) {
-        let data = obj.data;
-
-        data.isVip = true;
-        data.isHave = true;
-        data.isLock = false;
-        data.isSale = true;
-        data.isVipExpire = false;
-        data.originalPrice = 0;
-        data.salePrice = 0;
-        data.trialTopNum = 999;
-
-        env.log('Modified top-level fields: isVip=true, isHave=true, isLock=false, etc.');
-
-        if (Array.isArray(data.refBusinessList)) {
-          let unlockCount = 0;
-          data.refBusinessList.forEach((item, index) => {
-            if (item && item.isLock === true) {
-              item.isLock = false;
-              unlockCount++;
-            }
-          });
-          env.log(`Unlocked ${unlockCount} items in refBusinessList`);
-        }
+      if (Array.isArray(d.refBusinessList)) {
+        d.refBusinessList.forEach(item => {
+          if (item?.isLock === true) item.isLock = false;
+        });
       }
       return obj;
     },
-
     regexReplacements: [
       { pattern: /"isVip":false/g, replacement: '"isVip":true', description: 'VIP状态回退' },
-      { pattern: /"isHave":false/g, replacement: '"isHave":true', description: '拥有状态回退' },
       { pattern: /"isLock":true/g, replacement: '"isLock":false', description: '锁定状态回退' }
-    ],
-
-    fields: null,
-    responseWrapper: null
+    ]
   },
 
   /**
-   * tv 应用配置
-   * 原文件：tv.js（作者：joeshu）
-   * 处理模式：多路径模式（去广告专用）
+   * 影视去广告应用配置
+   * 原文件：tv.js
    * 功能：影视应用去广告（开屏广告、焦点图广告、浮层广告、弹窗广告、列表广告）
    */
   tv: {
     id: 'tv',
     name: '影视去广告',
     urlPattern: /^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body)/,
-    mode: 'multipath',
-
+    mode: MODE.MULTIPATH,
     pathHandlers: [
       {
         path: '/basic/init',
-        description: '初始化接口 - 去除开屏广告',
+        description: '开屏广告',
         actions: [
-          { type: 'set', field: 'data.startAdShowTime', value: 0, description: '开屏广告显示时间置0' },
-          { type: 'set', field: 'data.startAd', value: null, description: '开屏广告对象置空' },
-          { type: 'set', field: 'data.startAdList', value: null, description: '开屏广告列表置空' }
+          {
+            type: 'custom',
+            description: '清除开屏广告',
+            processor(obj, env) {
+              if (!obj.data) return obj;
+              obj.data.startAdShowTime = 0;
+              obj.data.startAd = null;
+              obj.data.startAdList = null;
+              env.log('Cleared start ads');
+              return obj;
+            }
+          }
         ]
       },
       {
         path: '/home/firstScreen',
-        description: '首页首屏 - 去除焦点图广告、精简热门模块',
+        description: '焦点图+热门精简',
         actions: [
-          { type: 'delete', field: 'data.focusAdList', description: '删除焦点图广告列表' },
           {
             type: 'custom',
-            description: '热门模块列表保留前5个',
-            processor: function(obj, env) {
-              if (obj.data && obj.data.hotMudleList && Array.isArray(obj.data.hotMudleList)) {
-                let originalLength = obj.data.hotMudleList.length;
+            description: '删除焦点图并精简热门',
+            processor(obj, env) {
+              if (!obj.data) return obj;
+              delete obj.data.focusAdList;
+              if (Array.isArray(obj.data.hotMudleList)) {
                 obj.data.hotMudleList = obj.data.hotMudleList.slice(0, 5);
-                env.log(`Sliced hotMudleList: ${originalLength} -> ${obj.data.hotMudleList.length}`);
               }
               return obj;
             }
@@ -673,188 +503,69 @@ const APP_CONFIGS = {
       },
       {
         path: '/adInfo/getPageAd',
-        description: '页面广告接口 - 去除浮层和弹窗广告',
+        description: '浮层弹窗广告',
         actions: [
-          { type: 'delete', field: 'data.floatAd', description: '删除浮层广告' },
-          { type: 'delete', field: 'data.popupAd', description: '删除弹窗广告' }
+          {
+            type: 'custom',
+            description: '删除浮层和弹窗',
+            processor(obj, env) {
+              if (!obj.data) return obj;
+              delete obj.data.floatAd;
+              delete obj.data.popupAd;
+              return obj;
+            }
+          }
         ]
       },
       {
         path: '/home/body',
-        description: '首页主体 - 去除列表首个广告',
+        description: '列表首个广告',
         actions: [
           {
             type: 'custom',
-            description: '广告列表shift移除首个',
-            processor: function(obj, env) {
-              if (obj.data && obj.data.adList && Array.isArray(obj.data.adList) && obj.data.adList.length > 0) {
-                let removed = obj.data.adList.shift();
-                env.log(`Removed first ad from adList: ${removed?.title || 'item'}`);
+            description: '移除首个广告',
+            processor(obj, env) {
+              if (Array.isArray(obj?.data?.adList) && obj.data.adList.length > 0) {
+                obj.data.adList.shift();
               }
               return obj;
             }
           }
         ]
       }
-    ],
-
-    fields: null,
-    responseWrapper: null,
-    customProcessor: null,
-    regexReplacements: null,
-    gameResources: null
+    ]
   }
-
-  // ==========================================
-  // 新增应用配置示例：
-  // ==========================================
-
-  // 示例 1-7 省略（与之前版本相同）
-};
-
-// ==========================================
-// 常量定义区 - 全局使用的常量值
-// ==========================================
-
-const CONSTANTS = {
-  EXPIRE_DATE: "2099-12-31 23:59:59",
-  EXPIRE_TIMESTAMP: 4102444800,
-  EXPIRE_TIMESTAMP_MS: 4102416000000,
-  BIG_NUMBER_STR: "9999999999999999999988888888",
-  DEFAULT_COINS: 9999,
-  DEFAULT_VIP_LEVEL: 99,
-  DEFAULT_VIP_TYPE: "lifetime"
-};
-
-// ==========================================
-// 工具类 - Env 兼容层（增强版，支持日志分级）
-// ==========================================
-
-class Env {
-  constructor(name) {
-    this.name = name;
-    this.isQX = typeof $task !== 'undefined';
-    this.isSurge = typeof $httpClient !== 'undefined' && !this.isQX;
-    this.isLoon = typeof $loon !== 'undefined';
-    
-    // 日志级别定义
-    this.LOG_LEVELS = {
-      NONE: 0,
-      ERROR: 1,
-      WARN: 2,
-      INFO: 3,
-      DEBUG: 4
-    };
-  }
-
-  /**
-   * 检查是否允许输出指定级别的日志
-   */
-  _allowLog(level) {
-    return GLOBAL_CONFIG.LOG_LEVEL >= level;
-  }
-
-  /**
-   * 基础日志输出
-   */
-  _output(levelName, msg) {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(`[${timestamp}][${this.name}][${levelName}] ${msg}`);
-  }
-
-  /**
-   * 调试日志 - 仅在 DEBUG_MODE 开启且日志级别>=4时输出
-   */
-  debug(msg) {
-    if (GLOBAL_CONFIG.DEBUG_MODE && this._allowLog(this.LOG_LEVELS.DEBUG)) {
-      this._output('DEBUG', msg);
-    }
-  }
-
-  /**
-   * 信息日志 - 日志级别>=3时输出
-   */
-  info(msg) {
-    if (this._allowLog(this.LOG_LEVELS.INFO)) {
-      this._output('INFO', msg);
-    }
-  }
-
-  /**
-   * 警告日志 - 日志级别>=2时输出
-   */
-  warn(msg) {
-    if (this._allowLog(this.LOG_LEVELS.WARN)) {
-      this._output('WARN', msg);
-    }
-  }
-
-  /**
-   * 错误日志 - 日志级别>=1时输出
-   */
-  error(msg) {
-    if (this._allowLog(this.LOG_LEVELS.ERROR)) {
-      this._output('ERROR', msg);
-    }
-  }
-
-  /**
-   * 兼容旧版 log 方法（映射为 info 级别）
-   */
-  log(msg) {
-    this.info(msg);
-  }
-
-  /**
-   * 输出响应体预览（用于调试）
-   */
-  previewBody(body, label = 'Response Body') {
-    if (GLOBAL_CONFIG.DEBUG_MODE && GLOBAL_CONFIG.SHOW_BODY_PREVIEW && body) {
-      const preview = String(body).substring(0, GLOBAL_CONFIG.MAX_BODY_PREVIEW_LENGTH);
-      this.debug(`${label} Preview (${preview.length} chars):\n${preview}${body.length > GLOBAL_CONFIG.MAX_BODY_PREVIEW_LENGTH ? '...' : ''}`);
-    }
-  }
-
-  /**
-   * 输出对象结构（用于调试 JSON 数据）
-   */
-  previewObject(obj, label = 'Object') {
-    if (GLOBAL_CONFIG.DEBUG_MODE && this._allowLog(this.LOG_LEVELS.DEBUG)) {
-      try {
-        const keys = Object.keys(obj);
-        this.debug(`${label} Keys: [${keys.join(', ')}]`);
-        if (obj.data) {
-          const dataKeys = Object.keys(obj.data);
-          this.debug(`${label}.data Keys: [${dataKeys.join(', ')}]`);
-        }
-      } catch (e) {
-        this.debug(`Failed to preview object: ${e}`);
-      }
-    }
-  }
-
-  done(object) {
-    $done(object);
-  }
-
-  getResponse() {
-    return $response || {};
-  }
-}
+});
 
 // ==========================================
 // 工具函数库
 // ==========================================
 
+/**
+ * Utils 工具对象
+ * 提供 JSON 处理、对象操作、路径解析等通用功能
+ */
 const Utils = {
+  /**
+   * 安全解析 JSON 字符串
+   * @param {string} str - 要解析的 JSON 字符串
+   * @param {*} defaultVal - 解析失败时的默认值
+   * @returns {*} 解析后的对象，或默认值
+   */
   safeJsonParse(str, defaultVal = {}) {
     try {
       return JSON.parse(str);
     } catch (e) {
+      console.log(`JSON parse error: ${e}`);
       return defaultVal;
     }
   },
 
+  /**
+   * 安全序列化为 JSON 字符串
+   * @param {*} obj - 要序列化的对象
+   * @returns {string} JSON 字符串，失败时返回 '{}'
+   */
   safeJsonStringify(obj) {
     try {
       return JSON.stringify(obj);
@@ -864,442 +575,47 @@ const Utils = {
     }
   },
 
-  getValueByPath(obj, path) {
-    return path.split('.').reduce((acc, part) => {
-      return acc && acc[part] !== undefined ? acc[part] : undefined;
-    }, obj);
+  /**
+   * 根据路径获取对象值
+   * 支持多级路径，如 'data.user.vip.status'
+   * @param {Object} obj - 源对象
+   * @param {string} path - 路径字符串，使用点号分隔
+   * @returns {*} 路径对应的值，不存在则返回 undefined
+   */
+  getByPath(obj, path) {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj);
   },
 
-  setValueByPath(obj, path, value) {
+  /**
+   * 根据路径设置对象值
+   * 自动创建不存在的中间对象，支持多级路径
+   * @param {Object} obj - 目标对象
+   * @param {string} path - 路径字符串，使用点号分隔
+   * @param {*} value - 要设置的值
+   * @returns {Object} 修改后的对象
+   */
+  setByPath(obj, path, value) {
     const parts = path.split('.');
     let current = obj;
-
+    
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
-      if (!(part in current)) {
+      if (!(part in current) || typeof current[part] !== 'object') {
         current[part] = {};
       }
       current = current[part];
     }
-
+    
     current[parts[parts.length - 1]] = value;
     return obj;
   },
 
-  detectApp(url, configs) {
-    for (const key in configs) {
-      if (configs[key].urlPattern && configs[key].urlPattern.test(url)) {
-        return configs[key];
-      }
-    }
-    return null;
-  }
-};
-
-// ==========================================
-// VIP 解锁核心引擎（增强版，带完整调试追踪）
-// 支持 JSON对象/正则替换/游戏数值/混合/多路径/HTML替换 六种模式
-// ==========================================
-
-class VipUnlockEngine {
-  constructor(env) {
-    this.env = env;
-    this.config = null;
-  }
-
-  setConfig(config) {
-    this.config = config;
-    this.env.info(`Initialized for: ${config.name} [Mode: ${config.mode || 'auto'}]`);
-    this.env.debug(`Config details: id=${config.id}, urlPattern=${config.urlPattern}`);
-  }
-
   /**
-   * 主处理入口
-   * 根据配置的模式选择不同的处理方式
+   * 检查路径是否存在
+   * @param {Object} obj - 源对象
+   * @param {string} path - 路径字符串
+   * @returns {boolean} 路径是否存在
    */
-  process(response) {
-    this.env.debug('=== Starting Process ===');
-    
-    if (!response || !response.body) {
-      this.env.error('No response body found');
-      return {};
-    }
-
-    this.env.previewBody(response.body, 'Original');
-    this.env.debug(`Response URL: ${response.url || 'unknown'}`);
-
-    // 确定处理模式：显式配置 > 自动检测
-    const mode = this.config.mode || this.detectMode();
-    this.env.info(`Processing mode: ${mode}`);
-
-    // 根据模式分发到不同处理器
-    switch (mode) {
-      case 'html':
-        return this.processHtmlMode(response.body);
-      case 'multipath':
-        return this.processMultipathMode(response.body, response.url);
-      case 'hybrid':
-        return this.processHybridMode(response.body);
-      case 'game':
-        return this.processGameMode(response.body);
-      case 'regex':
-        return this.processRegexMode(response.body);
-      case 'json':
-      default:
-        return this.processJsonMode(response.body);
-    }
-  }
-
-  /**
-   * 自动检测处理模式
-   */
-  detectMode() {
-    this.env.debug('Auto-detecting mode...');
-    
-    if (this.config.htmlReplacements && Array.isArray(this.config.htmlReplacements)) {
-      this.env.debug('Detected: html mode');
-      return 'html';
-    }
-    if (this.config.pathHandlers && Array.isArray(this.config.pathHandlers)) {
-      this.env.debug('Detected: multipath mode');
-      return 'multipath';
-    }
-    if (this.config.customProcessor && this.config.regexReplacements) {
-      this.env.debug('Detected: hybrid mode');
-      return 'hybrid';
-    }
-    if (this.config.gameResources && Array.isArray(this.config.gameResources)) {
-      this.env.debug('Detected: game mode');
-      return 'game';
-    }
-    if (this.config.regexReplacements && Array.isArray(this.config.regexReplacements)) {
-      this.env.debug('Detected: regex mode');
-      return 'regex';
-    }
-    if (this.config.fields && typeof this.config.fields === 'object') {
-      this.env.debug('Detected: json mode (fields)');
-      return 'json';
-    }
-    
-    this.env.debug('Defaulting to: json mode');
-    return 'json';
-  }
-
-  /**
-   * HTML 替换处理模式（v2ex）
-   */
-  processHtmlMode(body) {
-    this.env.debug('>>> Entering HTML Mode <<<');
-    let modifiedBody = body;
-    const replacements = this.config.htmlReplacements || [];
-
-    if (replacements.length === 0) {
-      this.env.warn('No HTML replacements configured');
-      return { body };
-    }
-
-    this.env.info(`Starting HTML replacements (${replacements.length} rules)`);
-
-    for (let i = 0; i < replacements.length; i++) {
-      const rule = replacements[i];
-      try {
-        let pattern;
-        if (rule.pattern instanceof RegExp) {
-          pattern = rule.pattern;
-          this.env.debug(`Rule ${i}: Using RegExp pattern ${pattern}`);
-        } else if (typeof rule.pattern === 'string') {
-          pattern = new RegExp(rule.pattern, 'i');
-          this.env.debug(`Rule ${i}: Created RegExp from string: ${rule.pattern}`);
-        } else {
-          this.env.error(`Rule ${i}: Invalid pattern type`);
-          continue;
-        }
-        
-        const originalBody = modifiedBody;
-        modifiedBody = modifiedBody.replace(pattern, rule.replacement);
-
-        if (originalBody !== modifiedBody) {
-          this.env.info(`[✓] Applied: ${rule.description || `rule ${i}`}`);
-        } else {
-          this.env.debug(`[✗] Pattern not matched: ${rule.description || `rule ${i}`}`);
-        }
-      } catch (e) {
-        this.env.error(`HTML replacement error in rule ${i}: ${e}`);
-      }
-    }
-
-    this.env.info(`Completed ${this.config.name} (HTML mode)`);
-    this.env.previewBody(modifiedBody, 'Modified');
-    return { body: modifiedBody };
-  }
-
-  /**
-   * 多路径处理模式（tv/qiujingapp/foday）
-   */
-  processMultipathMode(body, url) {
-    this.env.debug('>>> Entering Multipath Mode <<<');
-    let obj = Utils.safeJsonParse(body);
-
-    if (!obj || Object.keys(obj).length === 0) {
-      this.env.error('Failed to parse response body as JSON');
-      return { body };
-    }
-
-    this.env.previewObject(obj, 'Parsed');
-
-    if (!obj.data) {
-      this.env.warn('No data field found in response');
-      return { body: Utils.safeJsonStringify(obj) };
-    }
-
-    const pathHandlers = this.config.pathHandlers || [];
-    this.env.debug(`Available path handlers: ${pathHandlers.length}`);
-
-    let matchedHandler = null;
-
-    // 遍历所有路径处理器
-    for (let i = 0; i < pathHandlers.length; i++) {
-      const handler = pathHandlers[i];
-      this.env.debug(`Checking handler ${i}: path="${handler.path}", description="${handler.description}"`);
-      
-      if (url.indexOf(handler.path) !== -1) {
-        this.env.debug(`  -> Basic path match success`);
-        
-        if (handler.pathRegex && !handler.pathRegex.test(url)) {
-          this.env.debug(`  -> pathRegex validation failed: ${handler.pathRegex}`);
-          continue;
-        }
-        
-        if (handler.urlContains && url.indexOf(handler.urlContains) === -1) {
-          this.env.debug(`  -> urlContains validation failed: ${handler.urlContains}`);
-          continue;
-        }
-
-        matchedHandler = handler;
-        this.env.info(`Matched handler: ${handler.description}`);
-        break;
-      } else {
-        this.env.debug(`  -> Path not match (url: ${url})`);
-      }
-    }
-
-    if (matchedHandler) {
-      this.env.info(`Executing ${matchedHandler.actions.length} actions`);
-      
-      for (let i = 0; i < matchedHandler.actions.length; i++) {
-        const action = matchedHandler.actions[i];
-        try {
-          this.env.debug(`Action ${i}: type=${action.type}, desc=${action.description}`);
-          
-          switch (action.type) {
-            case 'delete':
-              if (Utils.getValueByPath(obj, action.field) !== undefined) {
-                const parts = action.field.split('.');
-                let current = obj;
-                for (let j = 0; j < parts.length - 1; j++) {
-                  current = current[parts[j]];
-                }
-                delete current[parts[parts.length - 1]];
-                this.env.info(`[✓] Deleted: ${action.field}`);
-              } else {
-                this.env.debug(`Field not found: ${action.field}`);
-              }
-              break;
-
-            case 'set':
-              Utils.setValueByPath(obj, action.field, action.value);
-              this.env.info(`[✓] Set: ${action.field} = ${JSON.stringify(action.value)}`);
-              break;
-
-            case 'custom':
-              if (action.processor && typeof action.processor === 'function') {
-                this.env.debug('Executing custom processor...');
-                obj = action.processor(obj, this.env);
-                this.env.info(`[✓] Custom processor: ${action.description}`);
-              }
-              break;
-
-            default:
-              this.env.warn(`Unknown action type: ${action.type}`);
-          }
-        } catch (e) {
-          this.env.error(`Action ${i} failed: ${e}`);
-        }
-      }
-    } else {
-      this.env.warn('No matching path handler found');
-    }
-
-    const result = Utils.safeJsonStringify(obj);
-    this.env.previewBody(result, 'Output');
-    return { body: result };
-  }
-
-  /**
-   * 混合处理模式（bxkt）
-   */
-  processHybridMode(body) {
-    this.env.debug('>>> Entering Hybrid Mode <<<');
-    let obj = Utils.safeJsonParse(body, null);
-
-    if (obj !== null) {
-      this.env.info('JSON parsed successfully, trying custom processor');
-      this.env.previewObject(obj, 'Parsed');
-
-      if (this.config.customProcessor && typeof this.config.customProcessor === 'function') {
-        try {
-          obj = this.config.customProcessor(obj, this.env);
-          this.env.info('Custom processor executed successfully');
-          const result = Utils.safeJsonStringify(obj);
-          this.env.previewBody(result, 'Output');
-          return { body: result };
-        } catch (e) {
-          this.env.error(`Custom processor failed: ${e}, falling back to regex`);
-        }
-      }
-    } else {
-      this.env.warn('JSON parse failed, falling back to regex');
-    }
-
-    return this.processRegexMode(body);
-  }
-
-  /**
-   * JSON 对象处理模式
-   */
-  processJsonMode(body) {
-    this.env.debug('>>> Entering JSON Mode <<<');
-    let obj = Utils.safeJsonParse(body);
-
-    if (!obj || Object.keys(obj).length === 0) {
-      this.env.error('Failed to parse response body');
-      return { body };
-    }
-
-    this.env.previewObject(obj, 'Parsed');
-
-    if (this.config.responseWrapper && this.config.responseWrapper.enabled) {
-      const hasData = Utils.getValueByPath(obj, 'data');
-      if (!hasData || Object.keys(hasData).length === 0) {
-        this.env.info('Data empty, applying response wrapper template');
-        obj = JSON.parse(JSON.stringify(this.config.responseWrapper.template));
-        this.env.previewObject(obj, 'After Wrapper');
-      }
-    }
-
-    if (this.config.fields) {
-      const fieldCount = Object.keys(this.config.fields).length;
-      this.env.info(`Applying ${fieldCount} field mappings`);
-      this.applyFieldMapping(obj);
-    }
-
-    if (this.config.customProcessor && typeof this.config.customProcessor === 'function') {
-      this.env.debug('Executing custom processor...');
-      obj = this.config.customProcessor(obj, this.env);
-    }
-
-    const result = Utils.safeJsonStringify(obj);
-    this.env.info(`Completed ${this.config.name} (JSON mode)`);
-    this.env.previewBody(result, 'Output');
-    return { body: result };
-  }
-
-  /**
-   * 正则替换处理模式
-   */
-  processRegexMode(body) {
-    this.env.debug('>>> Entering Regex Mode <<<');
-    let modifiedBody = body;
-    const replacements = this.config.regexReplacements || [];
-
-    if (replacements.length === 0) {
-      this.env.warn('No regex replacements configured');
-      return { body };
-    }
-
-    this.env.info(`Starting regex replacements (${replacements.length} rules)`);
-
-    for (let i = 0; i < replacements.length; i++) {
-      const rule = replacements[i];
-      try {
-        let pattern;
-        if (rule.pattern instanceof RegExp) {
-          pattern = rule.pattern;
-        } else if (typeof rule.pattern === 'string') {
-          pattern = new RegExp(rule.pattern, 'g');
-        } else {
-          this.env.error(`Rule ${i}: Invalid pattern type`);
-          continue;
-        }
-        
-        const originalBody = modifiedBody;
-        modifiedBody = modifiedBody.replace(pattern, rule.replacement);
-
-        if (originalBody !== modifiedBody) {
-          this.env.info(`[✓] Applied: ${rule.description || `rule ${i}`}`);
-        } else {
-          this.env.debug(`[✗] No match: ${rule.description || `rule ${i}`}`);
-        }
-      } catch (e) {
-        this.env.error(`Regex error in rule ${i}: ${e}`);
-      }
-    }
-
-    this.env.info(`Completed ${this.config.name} (Regex mode)`);
-    this.env.previewBody(modifiedBody, 'Output');
-    return { body: modifiedBody };
-  }
-
-  /**
-   * 游戏数值处理模式（bqwz）
-   */
-  processGameMode(body) {
-    this.env.debug('>>> Entering Game Mode <<<');
-    let modifiedBody = body;
-    const resources = this.config.gameResources || [];
-
-    this.env.info(`Modifying ${resources.length} game resources`);
-
-    for (let i = 0; i < resources.length; i++) {
-      const resource = resources[i];
-      try {
-        const pattern = new RegExp(`\\\\"${resource.field}\\\\":\\\\d+`, 'g');
-        const replacement = `\\\\"${resource.field}\\\\":${resource.value}`;
-
-        const originalBody = modifiedBody;
-        modifiedBody = modifiedBody.replace(pattern, replacement);
-
-        if (originalBody !== modifiedBody) {
-          this.env.info(`[✓] ${resource.description} (${resource.field}): ${resource.value}`);
-        } else {
-          this.env.debug(`[✗] Field not found: ${resource.field}`);
-        }
-      } catch (e) {
-        this.env.error(`Resource ${i} error: ${e}`);
-      }
-    }
-
-    this.env.info(`Completed ${this.config.name} (Game mode)`);
-    return { body: modifiedBody };
-  }
-
-  applyFieldMapping(obj) {
-    const fields = this.config.fields;
-
-    for (const key in fields) {
-      const field = fields[key];
-      const currentValue = Utils.getValueByPath(obj, field.path);
-
-      if (currentValue !== undefined || this.pathExists(obj, field.path)) {
-        Utils.setValueByPath(obj, field.path, field.value);
-        this.env.debug(`[✓] Modified: ${field.path} = ${JSON.stringify(field.value)}`);
-      } else {
-        Utils.setValueByPath(obj, field.path, field.value);
-        this.env.debug(`[✓] Created: ${field.path} = ${JSON.stringify(field.value)}`);
-      }
-    }
-  }
-
   pathExists(obj, path) {
     const parts = path.split('.');
     let current = obj;
@@ -1311,81 +627,450 @@ class VipUnlockEngine {
       current = current[part];
     }
     return true;
-  }
-}
+  },
 
-// ==========================================
-// 插件管理器
-// ==========================================
-
-class PluginManager {
-  constructor(env) {
-    this.plugins = new Map();
-    this.env = env;
-  }
-
-  register(id, config) {
-    this.plugins.set(id, config);
-    this.env.debug(`Plugin registered: ${config.name} [${config.mode || 'auto'}]`);
-  }
-
-  getConfig(id) {
-    return this.plugins.get(id);
-  }
-
-  autoDetect(url) {
-    this.env.debug(`Auto-detecting app for URL: ${url}`);
-    const detected = Utils.detectApp(url, Object.fromEntries(this.plugins));
-    if (detected) {
-      this.env.info(`Auto-detected: ${detected.name}`);
-      return detected;
+  /**
+   * 动态检测应用配置（按需加载）
+   * @param {string} url - 当前请求的 URL
+   * @returns {Object|null} 匹配的应用配置
+   */
+  detectApp(url) {
+    for (const [id, config] of Object.entries(APP_CONFIGS)) {
+      if (config.urlPattern?.test(url)) {
+        console.log(`[UnifiedVIP] Loaded: ${config.name} [${config.mode}]`);
+        return { ...config, id };
+      }
     }
-    this.env.debug('No app matched by URL pattern');
-    return this.detectByResponseStructure();
-  }
-
-  detectByResponseStructure() {
     return null;
   }
+};
 
-  initConfigs(configs) {
-    this.env.info(`Initializing ${Object.keys(configs).length} app configs`);
-    for (const key in configs) {
-      this.register(key, configs[key]);
-    }
+// ==========================================
+// 环境兼容层 - 封装 Quantumult X / Surge / Loon 的 API 差异
+// ==========================================
+
+/**
+ * Env 环境类
+ * 提供跨平台（QX/Surge/Loon）的兼容封装
+ */
+class Env {
+  /**
+   * 构造函数
+   * @param {string} name - 脚本名称（用于日志标识）
+   */
+  constructor(name) {
+    this.name = name;
+    this.isQX = typeof $task !== 'undefined';
+    this.isSurge = typeof $httpClient !== 'undefined' && !this.isQX;
+    this.isLoon = typeof $loon !== 'undefined';
+  }
+
+  /**
+   * 输出日志
+   * 统一格式：[脚本名] 日志内容
+   * @param {string} msg - 日志消息
+   */
+  log(msg) {
+    console.log(`[${this.name}] ${msg}`);
+  }
+
+  /**
+   * 结束脚本执行
+   * 封装不同平台的 $done() 调用
+   * @param {Object} object - 返回给代理工具的对象
+   */
+  done(object) {
+    $done(object);
+  }
+
+  /**
+   * 获取响应对象
+   * @returns {Object} 响应对象，包含 body、url、headers 等
+   */
+  getResponse() {
+    return $response || {};
   }
 }
 
 // ==========================================
-// 主入口
+// VIP解锁引擎 - 核心处理类
 // ==========================================
 
+/**
+ * VipUnlockEngine VIP 解锁引擎
+ * 支持六种处理模式：JSON / REGEX / GAME / HYBRID / MULTIPATH / HTML
+ */
+class VipUnlockEngine {
+  /**
+   * 构造函数
+   * @param {Env} env - 环境对象
+   * @param {Object} config - 应用配置对象
+   */
+  constructor(env, config) {
+    this.env = env;
+    this.config = config;
+  }
+
+  /**
+   * 执行 VIP 解锁主流程
+   * 根据配置的模式分发到对应的处理器
+   * @param {string} responseBody - 响应体文本
+   * @param {string} requestUrl - 请求 URL（用于多路径模式）
+   * @returns {Object} 处理结果，包含修改后的 body
+   */
+  process(responseBody, requestUrl) {
+    const mode = this.config.mode || this.detectMode();
+    this.env.log(`Processing [${mode}]: ${this.config.name}`);
+
+    switch (mode) {
+      case MODE.MULTIPATH:
+        return this.processMultipath(responseBody, requestUrl);
+      case MODE.HTML:
+        return this.processHtml(responseBody);
+      case MODE.HYBRID:
+        return this.processHybrid(responseBody);
+      case MODE.GAME:
+        return this.processGame(responseBody);
+      case MODE.REGEX:
+        return this.processRegex(responseBody);
+      case MODE.JSON:
+        return this.processJson(responseBody);
+      default:
+        this.env.log(`Unknown mode: ${mode}, using JSON`);
+        return this.processJson(responseBody);
+    }
+  }
+
+  /**
+   * 自动检测处理模式（优先级：MULTIPATH > HTML > HYBRID > GAME > REGEX > JSON）
+   * @returns {string} 检测到的模式
+   */
+  detectMode() {
+    if (this.config.pathHandlers && Array.isArray(this.config.pathHandlers)) {
+      return MODE.MULTIPATH;
+    }
+    if (this.config.htmlReplacements && Array.isArray(this.config.htmlReplacements)) {
+      return MODE.HTML;
+    }
+    if (this.config.customProcessor && this.config.regexReplacements) {
+      return MODE.HYBRID;
+    }
+    if (this.config.gameResources && Array.isArray(this.config.gameResources)) {
+      return MODE.GAME;
+    }
+    if (this.config.regexReplacements && Array.isArray(this.config.regexReplacements)) {
+      return MODE.REGEX;
+    }
+    return MODE.JSON;
+  }
+
+  /**
+   * JSON模式：解析→修改→序列化
+   * 支持字段映射和自定义处理器
+   */
+  processJson(body) {
+    let data = Utils.safeJsonParse(body);
+    if (!data || Object.keys(data).length === 0) {
+      this.env.log('JSON parse failed');
+      return { body };
+    }
+
+    // 响应包装器：data为空时构造新响应
+    if (this.config.responseWrapper?.enabled) {
+      const hasData = Utils.getByPath(data, 'data');
+      if (!hasData || Object.keys(hasData).length === 0) {
+        this.env.log('Data empty, creating new VIP response from template');
+        data = JSON.parse(JSON.stringify(this.config.responseWrapper.template));
+      }
+    }
+
+    // 字段映射
+    if (this.config.fields) {
+      Object.entries(this.config.fields).forEach(([key, field]) => {
+        const currentValue = Utils.getByPath(data, field.path);
+        
+        if (currentValue !== undefined || Utils.pathExists(data, field.path)) {
+          Utils.setByPath(data, field.path, field.value);
+          this.env.log(`Modified ${field.path} = ${JSON.stringify(field.value)}`);
+        } else {
+          Utils.setByPath(data, field.path, field.value);
+          this.env.log(`Created ${field.path} = ${JSON.stringify(field.value)}`);
+        }
+      });
+    }
+
+    // 自定义处理器
+    if (typeof this.config.customProcessor === 'function') {
+      data = this.config.customProcessor(data, this.env) || data;
+    }
+
+    this.env.log(`VIP unlocked for ${this.config.name}`);
+    return { body: Utils.safeJsonStringify(data) };
+  }
+
+  /**
+   * 正则模式：纯文本替换，不解析JSON
+   */
+  processRegex(body) {
+    const rules = this.config.regexReplacements || [];
+    let result = body;
+
+    this.env.log(`Applying ${rules.length} regex rules`);
+
+    rules.forEach((rule, index) => {
+      const pattern = rule.pattern instanceof RegExp 
+        ? rule.pattern 
+        : new RegExp(rule.pattern, 'g');
+      
+      const before = result;
+      result = result.replace(pattern, rule.replacement);
+      
+      if (result !== before) {
+        this.env.log(`Applied: ${rule.description || `Rule ${index + 1}`}`);
+      }
+    });
+
+    this.env.log(`VIP unlocked for ${this.config.name} (Regex mode)`);
+    return { body: result };
+  }
+
+  /**
+   * 游戏数值模式：转义JSON字符串中的数值替换
+   * 匹配格式：\"field\":123 → \"field\":999
+   */
+  processGame(body) {
+    const resources = this.config.gameResources || [];
+    let result = body;
+
+    this.env.log(`Modifying ${resources.length} game resources`);
+
+    resources.forEach(res => {
+      const pattern = new RegExp(`\\\\"${res.field}\\\\":(\\d+)`, 'g');
+      const replacement = `\\\\"${res.field}\\\\":${res.value}`;
+      
+      const before = result;
+      result = result.replace(pattern, replacement);
+
+      this.env.log(
+        result !== before 
+          ? `✓ ${res.description}: ${res.value}` 
+          : `✗ ${res.description} not found`
+      );
+    });
+
+    this.env.log(`Game resources modified for ${this.config.name}`);
+    return { body: result };
+  }
+
+  /**
+   * 混合模式：先尝试JSON，失败回退REGEX
+   */
+  processHybrid(body) {
+    const data = Utils.safeJsonParse(body, null);
+    
+    if (data !== null && this.config.customProcessor) {
+      this.env.log('Hybrid: trying JSON mode');
+      try {
+        const processed = this.config.customProcessor(data, this.env);
+        this.env.log(`VIP unlocked for ${this.config.name} (Hybrid-JSON mode)`);
+        return { body: Utils.safeJsonStringify(processed) };
+      } catch (e) {
+        this.env.log(`JSON failed: ${e.message}, fallback to regex`);
+      }
+    } else {
+      this.env.log('Hybrid: JSON unavailable, using regex');
+    }
+
+    return this.processRegex(body);
+  }
+
+  /**
+   * 多路径模式：URL路由 + 操作分发
+   */
+  processMultipath(body, requestUrl) {
+    let data;
+    try {
+      data = JSON.parse(body);
+    } catch (e) {
+      this.env.log(`JSON parse error: ${e.message}`);
+      return { body };
+    }
+
+    if (!data) {
+      return { body };
+    }
+
+    const handlers = this.config.pathHandlers || [];
+    const matched = handlers.find(h => this.matchPath(requestUrl, h));
+
+    if (!matched) {
+      this.env.log('No path handler matched');
+      return { body: JSON.stringify(data) };
+    }
+
+    this.env.log(`Matched path: ${matched.path} (${matched.description})`);
+
+    for (const action of matched.actions) {
+      try {
+        this.executeAction(data, action);
+      } catch (e) {
+        this.env.log(`Action error [${action.type}]: ${e.message}`);
+      }
+    }
+
+    this.env.log(`Completed for path: ${matched.path}`);
+    return { body: JSON.stringify(data) };
+  }
+
+  /**
+   * 路径匹配检查
+   */
+  matchPath(url, handler) {
+    if (url.indexOf(handler.path) === -1) return false;
+    if (handler.pathRegex && !handler.pathRegex.test(url)) return false;
+    if (handler.urlContains && url.indexOf(handler.urlContains) === -1) return false;
+    if (handler.urlExcludeRegex && handler.urlExcludeRegex.test(url)) return false;
+    return true;
+  }
+
+  /**
+   * 执行多路径操作
+   */
+  executeAction(obj, action) {
+    switch (action.type) {
+      case 'delete':
+        this.handleDelete(obj, action);
+        break;
+      case 'set':
+        this.handleSet(obj, action);
+        break;
+      case 'arraySlice':
+        this.handleArraySlice(obj, action);
+        break;
+      case 'arrayShift':
+        this.handleArrayShift(obj, action);
+        break;
+      case 'arrayFilter':
+        this.handleArrayFilter(obj, action);
+        break;
+      case 'custom':
+        if (typeof action.processor === 'function') {
+          const result = action.processor(obj, this.env);
+          if (result !== undefined) Object.assign(obj, result);
+          this.env.log(`Executed custom: ${action.description}`);
+        }
+        break;
+      default:
+        this.env.log(`Unknown action type: ${action.type}`);
+    }
+  }
+
+  handleDelete(obj, action) {
+    if (Utils.getByPath(obj, action.field) !== undefined) {
+      const parts = action.field.split('.');
+      let current = obj;
+      for (let i = 0; i < parts.length - 1; i++) {
+        current = current[parts[i]];
+      }
+      delete current[parts[parts.length - 1]];
+      this.env.log(`Deleted: ${action.field} (${action.description})`);
+    }
+  }
+
+  handleSet(obj, action) {
+    Utils.setByPath(obj, action.field, action.value);
+    this.env.log(`Set: ${action.field} = ${JSON.stringify(action.value)} (${action.description})`);
+  }
+
+  handleArraySlice(obj, action) {
+    const arr = Utils.getByPath(obj, action.field);
+    if (Array.isArray(arr)) {
+      const originalLength = arr.length;
+      const newArr = arr.slice(0, action.keepCount);
+      Utils.setByPath(obj, action.field, newArr);
+      this.env.log(`Sliced: ${action.field} ${originalLength} -> ${newArr.length} (${action.description})`);
+    }
+  }
+
+  handleArrayShift(obj, action) {
+    const arr = Utils.getByPath(obj, action.field);
+    if (Array.isArray(arr) && arr.length > 0) {
+      const removed = arr.shift();
+      this.env.log(`Shifted: ${action.field}, removed: ${removed?.title || 'item'} (${action.description})`);
+    }
+  }
+
+  handleArrayFilter(obj, action) {
+    const arr = Utils.getByPath(obj, action.field);
+    if (Array.isArray(arr) && action.excludeSet && action.keyField) {
+      const originalLength = arr.length;
+      const excludeSet = new Set(action.excludeSet);
+      const newArr = arr.filter(item => !excludeSet.has(item[action.keyField]));
+      Utils.setByPath(obj, action.field, newArr);
+      this.env.log(`Filtered: ${action.field} ${originalLength} -> ${newArr.length} (${action.description})`);
+    }
+  }
+
+  /**
+   * HTML模式：HTML内容替换
+   */
+  processHtml(body) {
+    const rules = this.config.htmlReplacements || [];
+    let result = body;
+
+    this.env.log(`Applying ${rules.length} HTML rules`);
+
+    rules.forEach((rule, index) => {
+      try {
+        const pattern = rule.pattern instanceof RegExp 
+          ? rule.pattern 
+          : new RegExp(rule.pattern, 'i');
+        
+        result = result.replace(pattern, rule.replacement);
+        this.env.log(`Rule ${index + 1}: ${rule.description || 'applied'}`);
+      } catch (e) {
+        this.env.log(`Rule ${index + 1} error: ${e.message}`);
+      }
+    });
+
+    this.env.log(`Ad removal completed for ${this.config.name} (HTML mode)`);
+    return { body: result };
+  }
+}
+
+// ==========================================
+// 主入口函数
+// ==========================================
+
+/**
+ * main 主函数
+ * 脚本执行流程：
+ * 1. 初始化环境和配置
+ * 2. 检测当前请求对应的应用
+ * 3. 创建引擎并执行 VIP 解锁
+ * 4. 返回修改后的响应
+ */
 function main() {
   const env = new Env('UnifiedVIP');
-  
-  env.info('========================================');
-  env.info('Unified VIP Unlock Manager v12.1.0');
-  env.info(`Debug Mode: ${GLOBAL_CONFIG.DEBUG_MODE ? 'ON' : 'OFF'}`);
-  env.info(`Log Level: ${GLOBAL_CONFIG.LOG_LEVEL}`);
-  env.info('========================================');
 
-  const pluginManager = new PluginManager(env);
-  pluginManager.initConfigs(APP_CONFIGS);
+  // 获取请求URL
+  const requestUrl = (typeof $request !== 'undefined' && $request.url) 
+    ? $request.url 
+    : '';
 
-  const response = env.getResponse();
-  const requestUrl = response.url || (typeof $request !== 'undefined' ? $request.url : '');
+  if (!requestUrl) {
+    env.log('No request URL found');
+    env.done({});
+    return;
+  }
 
-  env.info(`Request URL: ${requestUrl || 'unknown'}`);
+  // 动态检测应用配置
+  let config = Utils.detectApp(requestUrl);
 
-  // 自动检测应用
-  let appConfig = pluginManager.autoDetect(requestUrl);
-
-  // 备用检测：通过脚本名称
-  if (!appConfig) {
+  // 备用：通过脚本名称检测
+  if (!config) {
     const scriptTag = (typeof $script !== 'undefined' && $script.name) ? $script.name : '';
-    env.debug(`Trying script tag detection: ${scriptTag}`);
-    
-    const tagMap = {
+    const scriptMappings = {
       'iappdaily': 'iappdaily',
       'tophub': 'tophub',
       'gps': 'gps',
@@ -1400,39 +1085,43 @@ function main() {
       'tv': 'tv'
     };
 
-    for (const [tag, configKey] of Object.entries(tagMap)) {
-      if (scriptTag.includes(tag)) {
-        appConfig = pluginManager.getConfig(configKey);
-        env.info(`Detected by script tag: ${appConfig.name}`);
+    for (const [keyword, configKey] of Object.entries(scriptMappings)) {
+      if (scriptTag.includes(keyword)) {
+        config = { ...APP_CONFIGS[configKey], id: configKey };
         break;
       }
     }
   }
 
   // 兜底：通用配置
-  if (!appConfig) {
-    env.warn('Could not detect app type, using generic VIP unlock');
-    appConfig = {
+  if (!config) {
+    env.log('Could not detect app type, using generic VIP unlock');
+    config = {
       name: 'Generic',
+      mode: MODE.JSON,
       fields: {
         isVip: { path: 'data.is_vip', value: 1, type: 'number' },
-        vipExpired: { path: 'data.vip_expire_date', value: CONSTANTS.EXPIRE_TIMESTAMP, type: 'number' }
+        vipExpired: { path: 'data.vip_expired', value: CONSTANTS.EXPIRE_TIMESTAMP, type: 'number' }
       },
       responseWrapper: null,
-      customProcessor: null,
-      mode: 'json'
+      customProcessor: null
     };
   }
 
-  // 创建引擎并执行
-  const engine = new VipUnlockEngine(env);
-  engine.setConfig(appConfig);
+  // 获取响应体
+  const response = env.getResponse();
+  if (!response.body) {
+    env.log('No response body found');
+    env.done({});
+    return;
+  }
 
-  const result = engine.process(response);
+  // 创建引擎并执行处理
+  const engine = new VipUnlockEngine(env, config);
+  const result = engine.process(response.body, requestUrl);
   
-  env.info('Processing completed');
   env.done(result);
 }
 
-// 执行主函数
+// 启动
 main();
