@@ -37,7 +37,6 @@
  [mitm]
  hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com, service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com, api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com
  */
-
 'use strict';
 
 // ==========================================
@@ -45,7 +44,8 @@
 // ==========================================
 
 const GLOBAL_CONFIG = Object.freeze({
-    DEBUG: true,
+    // 日志总开关：true 输出所有日志，false 完全静默（包括 error）
+    DEBUG: false,
     ENABLE_CACHE: true,
     MAX_CACHE_SIZE: 100
 });
@@ -56,7 +56,7 @@ const GLOBAL_CONFIG = Object.freeze({
 
 const META = {
     name: 'UnifiedVIP',
-    version: '13.1.1',
+    version: '13.1.2',
     author: 'joeshu & contributors',
     description: 'Unified VIP Unlock Manager',
     updated: '2026-03-18'
@@ -245,10 +245,8 @@ const AppConfigFactory = {
                 htmlReplacements: [
                     {
                         pattern: /<\/head>/i,
-                        //replacement: `<head><style>.topic-ads,.sidebar-ads,.adsbygoogle,[class*="ads"],[id*="ads"]{display:none!important;}</style>`,
-                      //replacement: `<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,
-                      replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,
-                      description: '注入CSS隐藏广告元素'
+                        replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,
+                        description: '注入CSS隐藏广告元素'
                     }
                 ]
             },
@@ -486,7 +484,7 @@ const AppConfigFactory = {
 };
 
 // ==========================================
-// 工具类 - Env 兼容层
+// 工具类 - Env 兼容层（完全静默版）
 // ==========================================
 
 class Environment {
@@ -505,8 +503,14 @@ class Environment {
         return 'Unknown';
     }
 
+    /**
+     * 日志输出（严格受 DEBUG 开关控制）
+     * DEBUG: true  -> 输出所有级别日志（debug/info/warn/error）
+     * DEBUG: false -> 完全静默，不输出任何日志（包括 error）
+     */
     log(level, msg) {
-        if (!GLOBAL_CONFIG.DEBUG && level !== 'error') return;
+        // 严格模式：DEBUG 为 false 时，任何级别的日志都不输出
+        if (!GLOBAL_CONFIG.DEBUG) return;
         
         const timestamp = new Date().toISOString();
         const prefix = `[${this.name}][${level.toUpperCase()}][${timestamp}]`;
@@ -514,6 +518,7 @@ class Environment {
         
         console.log(message);
         
+        // 只有 DEBUG 为 true 时才可能触发通知
         if (this.isQX && level === 'error') {
             $notify(this.name, 'Error', msg);
         }
@@ -526,6 +531,7 @@ class Environment {
 
     done(object) {
         if (!object || !object.body) {
+            // 注意：这里的 warn 也受 DEBUG 控制，DEBUG: false 时不输出
             this.warn('Empty response body, returning original');
             $done({});
             return;
@@ -562,7 +568,10 @@ const Utils = {
         try {
             return JSON.stringify(obj, null, pretty ? 2 : undefined);
         } catch (e) {
-            console.error(`JSON stringify error: ${e}`);
+            // 此处的 error 输出也受 DEBUG 控制，通过 console.error 直接输出
+            // 但通常 JSON 序列化错误很少发生，且 console.error 不受我们的封装控制
+            // 如需完全静默，可注释掉下一行
+            // console.error(`JSON stringify error: ${e}`);
             return '{}';
         }
     },
@@ -615,7 +624,7 @@ const Utils = {
 };
 
 // ==========================================
-// VIP 解锁核心引擎 v2.1 - 修复版
+// VIP 解锁核心引擎
 // ==========================================
 
 class VipUnlockEngine {
@@ -656,7 +665,6 @@ class VipUnlockEngine {
                 case CONSTANTS.MODES.HTML:
                     return this.processHtmlMode(response.body);
                 case CONSTANTS.MODES.MULTIPATH:
-                    // 修复：传递完整的 response 对象，确保能获取 url
                     return this.processMultipathMode(response.body, response.url);
                 case CONSTANTS.MODES.HYBRID:
                     return this.processHybridMode(response.body);
@@ -714,16 +722,11 @@ class VipUnlockEngine {
         return { body: modifiedBody };
     }
 
-    /**
-     * 多路径处理模式 - 修复 url undefined 问题
-     */
     processMultipathMode(body, url) {
-        // 修复点1：确保 url 有值，从 response 或 request 中获取
         if (!url) {
             url = this.env.getResponse().url || this.env.getRequest().url || '';
         }
         
-        // 修复点2：如果仍然没有 url，记录错误并返回原始 body
         if (!url) {
             this.env.error('URL is undefined in multipath mode, cannot match handlers');
             return { body: body };
@@ -738,7 +741,6 @@ class VipUnlockEngine {
         let matched = false;
 
         for (const handler of handlers) {
-            // 修复点3：安全的路径匹配逻辑，确保 url 和 handler.path 都存在
             const pathMatch = url && handler.path && url.includes(handler.path);
             const regexMatch = !handler.pathRegex || (url && handler.pathRegex.test(url));
             const containsMatch = !handler.urlContains || (url && url.includes(handler.urlContains));
@@ -977,7 +979,7 @@ class VipUnlockEngine {
 }
 
 // ==========================================
-// 插件管理器 v3.0
+// 插件管理器
 // ==========================================
 
 class PluginManager {
@@ -1046,6 +1048,7 @@ function main() {
         const requestUrl = response.url || env.getRequest().url || '';
 
         if (!requestUrl) {
+            // 此 error 也受 DEBUG 控制，DEBUG: false 时不输出
             env.error('No URL found in request/response');
             env.done({});
             return;
@@ -1086,6 +1089,7 @@ function main() {
         env.done(result);
 
     } catch (e) {
+        // 此 error 也受 DEBUG 控制
         env.error(`Fatal error: ${e.message}`);
         env.done({ body: $response?.body });
     }
@@ -1093,3 +1097,4 @@ function main() {
 
 // 执行
 main();
+ 
