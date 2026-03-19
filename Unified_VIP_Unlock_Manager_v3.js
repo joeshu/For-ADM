@@ -1,8 +1,8 @@
 /**
  * ==========================================
- * Unified VIP Unlock Manager v13.1.3 (Final Corrected)
+ * Unified VIP Unlock Manager v13.1.4 (Final Corrected)
  * 统一 VIP 解锁管理器 - 最终修正版
- * @version 13.1.3
+ * @version 13.1.4
  * @description 修正正则表达式，支持声明式处理器
  * ==========================================
 [rewrite_local]
@@ -41,7 +41,6 @@
  [mitm]
  hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com,service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com,api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn
  */
-
 'use strict';
 
 // ==========================================
@@ -50,7 +49,7 @@
 
 const META = {
   name: 'UnifiedVIP',
-  version: '13.1.3',
+  version: '13.1.4',
   author: 'joeshu & contributors',
   description: 'Unified VIP Unlock Manager',
   updated: '2026-03-19'
@@ -114,6 +113,16 @@ const CONFIG_SCHEMA = {
     }
   }
 };
+
+// ==========================================
+// 全局配置开关（之前遗漏，现已补上）
+// ==========================================
+
+const GLOBAL_CONFIG = Object.freeze({
+  DEBUG: false,
+  ENABLE_CACHE: true,
+  MAX_CACHE_SIZE: 100
+});
 
 // ==========================================
 // ProcessorUtils - 声明式处理器工具库（新增）
@@ -1283,6 +1292,7 @@ class VipUnlockEngine {
       } else {
         this.env.debug(`Created: ${field.path} = ${JSON.stringify(field.value)}`);
       }
+    }
     }
   }
 
