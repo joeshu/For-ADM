@@ -1026,7 +1026,7 @@ const APP_CONFIGS = Object.freeze({
         htmlReplacements: [
             {
                 pattern: /<head>/i,
-                replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,
+                replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,.Rightbar > .box,div[class="wwads-cn wwads-horizontal"],div[class="wwads-img"],div[class="wwads-content"]{display: none !important;}</style>`,
                 description: '注入CSS隐藏广告元素'
             }
         ]
