@@ -1027,7 +1027,7 @@ const APP_CONFIGS = Object.freeze({
         htmlReplacements: [
             {
                 pattern: /<\/head>/i,
-                replacement: ``,  // 可在此注入<style>标签隐藏广告
+                replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,  // 可在此注入<style>标签隐藏广告
                 description: '注入CSS隐藏广告元素'
             }
         ]
