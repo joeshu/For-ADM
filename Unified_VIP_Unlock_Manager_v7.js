@@ -1316,8 +1316,7 @@ const APP_CONFIGS = Object.freeze({
             { pattern: /"isHave":false/g, replacement: '"isHave":true', description: '拥有状态回退' },
             { pattern: /"isLock":true/g, replacement: '"isLock":false', description: '锁定状态回退' }
         ]
-    }
-},
+    },
         /**
              * wohome - 联通智家
              *
@@ -1342,7 +1341,8 @@ const APP_CONFIGS = Object.freeze({
                     // 执行：删除 configList 字段
                     ProcessorUtils.deleteFields('data.configList')
                 )
-            });
+            }
+  });
 
 
 // ==========================================
