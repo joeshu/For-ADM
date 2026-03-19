@@ -1832,7 +1832,7 @@ class VipUnlockEngine {
             // 检查响应体
             if (!response?.body) {
                 this.env.warn('No response body found');
-                return this.createErrorResponse('No response body');
+                //return this.createErrorResponse('No response body');
             }
 
             // 确定处理模式
