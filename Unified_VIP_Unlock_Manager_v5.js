@@ -1022,12 +1022,13 @@ const APP_CONFIGS = Object.freeze({
     v2ex: {
         id: 'v2ex',
         name: 'V2EX去广告',
-        urlPattern: /^https?:\/\/[^\/]*v2ex\.com\/(?!.*(?:api|login|cdn-cgi|verify|auth|captch|\.js|\.css|\.jpg|\.jpeg|\.png|\.webp|\.gif|\.zip|\.woff|\.woff2|\.m3u8|\.mp4|\.mov|\.m4v|\.avi|\.mkv|\.flv|\.rmvb|\.wmv|\.rm|\.asf|\.asx|\.mp3|\.json|\.ico|\.otf|\.ttf)).*$/,
+        //urlPattern: /^https?:\/\/[^\/]*v2ex\.com\/(?!.*(?:api|login|cdn-cgi|verify|auth|captch|\.js|\.css|\.jpg|\.jpeg|\.png|\.webp|\.gif|\.zip|\.woff|\.woff2|\.m3u8|\.mp4|\.mov|\.m4v|\.avi|\.mkv|\.flv|\.rmvb|\.wmv|\.rm|\.asf|\.asx|\.mp3|\.json|\.ico|\.otf|\.ttf)).*$/,
+        urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
         mode: 'html',
         htmlReplacements: [
             {
                 pattern: /<\/head>/i,
-                replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,  // 可在此注入<style>标签隐藏广告
+                replacement: ``, // 可在此注入<style>标签隐藏广告
                 description: '注入CSS隐藏广告元素'
             }
         ]
