@@ -1,9 +1,9 @@
 /**
  * ==========================================
- * Unified VIP Unlock Manager v13.3.1
- * 统一 VIP 解锁管理器 - 性能优化版（域名索引）
- * @version 13.3.1
- * @description 添加域名索引系统，O(n) 降为 O(1) 匹配
+ * Unified VIP Unlock Manager v9.1
+ * 统一 VIP 解锁管理器 - 异常修复版
+ * @version 9.1
+ * @description 修复域名索引构建异常，增强容错能力
  * ==========================================
  */
 
@@ -50,14 +50,14 @@
 'use strict';
 
 // ==========================================
-// 1. 元数据与全局配置（零依赖层）
+// 1. 元数据与全局配置
 // ==========================================
 
 const META = {
   name: 'UnifiedVIP',
-  version: '13.3.1', // 版本号更新
+  version: '9.1',
   author: 'joeshu & contributors',
-  description: 'Unified VIP Unlock Manager - Domain Index Optimized',
+  description: 'Unified VIP Unlock Manager - Bug Fixed',
   updated: '2026-03-19'
 };
 
@@ -90,7 +90,6 @@ const GLOBAL_CONFIG = Object.freeze({
   DEBUG: true,
   ENABLE_CACHE: true,
   MAX_CACHE_SIZE: 100,
-  // 新增：启用域名索引加速
   ENABLE_DOMAIN_INDEX: true
 });
 
@@ -107,12 +106,11 @@ const CONFIG_SCHEMA = {
 };
 
 // ==========================================
-// 2. 基础工具层（Utils - 零依赖）
+// 2. 基础工具层（增强健壮性）
 // ==========================================
 
 const Utils = {
   _regexCache: new Map(),
-  // 新增：URL解析缓存
   _urlParseCache: new Map(),
 
   safeJsonParse(str, defaultVal = null) {
@@ -229,27 +227,21 @@ const Utils = {
     return target;
   },
 
-  // ==========================================
-  // 新增：高性能域名提取工具
-  // ==========================================
-  
   /**
-   * 提取URL的hostname（带缓存）
+   * 安全提取URL hostname（增强版）
    */
   getHostname(url) {
-    if (!url) return null;
+    if (!url || typeof url !== 'string') return null;
     if (this._urlParseCache.has(url)) {
       return this._urlParseCache.get(url);
     }
     try {
-      // 处理无协议URL（如 example.com/path）
       let normalizedUrl = url;
       if (!url.match(/^https?:\/\//i)) {
         normalizedUrl = 'http://' + url;
       }
       const urlObj = new URL(normalizedUrl);
       const hostname = urlObj.hostname.toLowerCase();
-      // 缓存结果（LRU简单实现）
       if (this._urlParseCache.size > 1000) {
         this._urlParseCache.clear();
       }
@@ -261,49 +253,63 @@ const Utils = {
   },
 
   /**
-   * 从正则表达式中提取可能的域名模式
-   * 支持：example.com, *.example.com, api.example.com 等
+   * 从正则表达式中提取域名（健壮版）
    */
   extractDomainsFromPattern(pattern) {
     const domains = new Set();
-    const patternStr = pattern.source || pattern.toString();
-    
-    // 匹配域名模式（包括通配符）
-    // 支持：api.example.com, *.example.com, example.com, theater-api.example.xyz 等
-    const domainRegex = /(?:^|[^\\])(?:\(\?:)?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}/gi;
-    const matches = patternStr.match(domainRegex);
-    
-    if (matches) {
-      matches.forEach(match => {
-        // 清理前缀（如 (^|\.)
-        let domain = match.replace(/^\.*|\.*$/g, '').replace(/^\(\?:/, '');
-        if (domain && domain.includes('.')) {
-          domains.add(domain.toLowerCase());
-          // 同时添加父域名到索引（用于泛域名匹配）
-          const parts = domain.split('.');
-          if (parts.length > 2) {
-            // 如 api.v2ex.com -> 同时索引 v2ex.com
-            domains.add(parts.slice(-2).join('.'));
+    try {
+      // 确保是正则对象
+      if (!(pattern instanceof RegExp)) {
+        return [];
+      }
+      
+      const patternStr = pattern.source;
+      
+      // 策略1：匹配显式域名模式（如 api.example.com）
+      // 匹配：example.com, api.example.com, *.example.com 等
+      const domainRegex = /[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,}/gi;
+      const matches = patternStr.match(domainRegex);
+      
+      if (matches) {
+        matches.forEach(match => {
+          if (match && match.includes('.')) {
+            domains.add(match.toLowerCase());
           }
+        });
+      }
+
+      // 策略2：处理通配符模式 *\.example\.com
+      const wildcardMatches = patternStr.match(/\*\\.([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.[a-z]{2,})/gi);
+      if (wildcardMatches) {
+        wildcardMatches.forEach(m => {
+          // 将 \. 替换为 .，并移除前缀的 *\
+          const domain = m.replace(/\\\./g, '.').replace(/^\*\\/, '').toLowerCase();
+          if (domain && domain.includes('.')) {
+            domains.add(domain);
+          }
+        });
+      }
+
+      // 策略3：提取基础域名用于索引（如 api.example.com -> example.com）
+      const domainList = Array.from(domains);
+      domainList.forEach(domain => {
+        const parts = domain.split('.');
+        if (parts.length > 2) {
+          // 添加父域名到索引
+          domains.add(parts.slice(-2).join('.'));
         }
       });
-    }
 
-    // 特殊处理：如果正则以 ^https?:// 开头，提取该部分后的域名
-    const explicitDomainMatch = patternStr.match(/^https?\\?:\\?\/\\?\/(?:\(\?:)?([^\/\\]+)/i);
-    if (explicitDomainMatch) {
-      const domain = explicitDomainMatch[1].replace(/\$$/, '').toLowerCase();
-      if (domain && !domain.includes('*') && domain.includes('.')) {
-        domains.add(domain);
-      }
+    } catch (e) {
+      console.log(`[Utils] Domain extraction error: ${e.message}`);
     }
-
+    
     return Array.from(domains);
   }
 };
 
 // ==========================================
-// 3. 声明式处理器（依赖 Utils）
+// 3. 声明式处理器
 // ==========================================
 
 const ProcessorUtils = {
@@ -956,149 +962,132 @@ const APP_CONFIGS = Object.freeze({
 });
 
 // ==========================================
-// 5. 高性能域名索引系统（新增核心优化）
+// 5. 安全域名索引系统（带错误边界）
 // ==========================================
 
-/**
- * DomainIndex - 域名索引管理器
- * 
- * 【性能优化原理】
- * 传统方式：遍历所有配置，对每个配置执行正则匹配 URL（O(n) 复杂度）
- * 优化方式：通过域名快速定位候选配置，仅对候选配置执行正则（O(1)~O(k)，k通常=1）
- * 
- * 【实现细节】
- * 1. 预解析所有配置的 urlPattern，提取域名关键字
- * 2. 建立 域名 -> 配置ID数组 的映射表
- * 3. 请求到达时，提取 hostname，直接查表获取候选配置
- * 4. 回退机制：索引未命中时自动回退到全量遍历（兼容通配符配置）
- */
 const DomainIndex = (() => {
-  // 私有索引存储
   const _index = new Map();
   let _totalDomains = 0;
-  
-  /**
-   * 构建索引
-   * @param {Object} configs - APP_CONFIGS 配置对象
-   */
+  let _buildError = null;
+
   function build(configs) {
-    const startTime = Date.now();
-    let entryCount = 0;
-    
-    for (const [key, config] of Object.entries(configs)) {
-      // 从正则中提取可能的域名
-      const domains = Utils.extractDomainsFromPattern(config.urlPattern);
-      
-      // 为每个提取到的域名建立映射
-      for (const domain of domains) {
-        if (!_index.has(domain)) {
-          _index.set(domain, []);
+    try {
+      const startTime = Date.now();
+      let entryCount = 0;
+      
+      // 验证输入
+      if (!configs || typeof configs !== 'object') {
+        throw new Error('Invalid configs provided');
+      }
+
+      for (const [key, config] of Object.entries(configs)) {
+        // 安全验证配置
+        if (!config || !config.urlPattern) {
+          console.log(`[DomainIndex] Skip invalid config: ${key}`);
+          continue;
         }
-        // 避免重复添加同一配置到同一域名
-        const existing = _index.get(domain);
-        if (!existing.includes(key)) {
-          existing.push(key);
-          entryCount++;
+
+        // 确保是 RegExp 对象
+        if (!(config.urlPattern instanceof RegExp)) {
+          console.log(`[DomainIndex] Skip non-regexp pattern: ${key}`);
+          continue;
+        }
+
+        try {
+          const domains = Utils.extractDomainsFromPattern(config.urlPattern);
+          
+          for (const domain of domains) {
+            if (!domain || typeof domain !== 'string') continue;
+            
+            if (!_index.has(domain)) {
+              _index.set(domain, []);
+            }
+            const existing = _index.get(domain);
+            if (!existing.includes(key)) {
+              existing.push(key);
+              entryCount++;
+            }
+          }
+        } catch (extractError) {
+          console.log(`[DomainIndex] Extract error for ${key}: ${extractError.message}`);
+          // 继续处理其他配置，不中断
         }
       }
-      
-      // 特殊处理：对于泛域名模式（如 *.v2ex.com），同时索引主域名
-      if (config.urlPattern.source.includes('\\*\\.') || config.urlPattern.source.includes('.*')) {
-        const wildcardDomains = extractWildcardDomains(config.urlPattern);
-        for (const wd of wildcardDomains) {
-          if (!_index.has(wd)) {
-            _index.set(wd, []);
-          }
-          const existing = _index.get(wd);
-          if (!existing.includes(key)) {
-            existing.push(key);
-            entryCount++;
-          }
-        }
+      
+      _totalDomains = _index.size;
+      _buildError = null;
+      
+      if (GLOBAL_CONFIG.DEBUG) {
+        console.log(`[DomainIndex] Built in ${Date.now() - startTime}ms, ${_totalDomains} domains, ${entryCount} entries`);
       }
-    }
-    
-    _totalDomains = _index.size;
-    
-    if (GLOBAL_CONFIG.DEBUG) {
-      console.log(`[DomainIndex] Built in ${Date.now() - startTime}ms, ${_totalDomains} domains, ${entryCount} entries`);
+    } catch (e) {
+      _buildError = e;
+      console.error(`[DomainIndex] Build failed: ${e.message}`);
+      // 禁用索引，回退到线性遍历
+      _index.clear();
+      _totalDomains = 0;
     }
   }
-  
-  /**
-   * 从泛域名正则中提取主域名
-   */
-  function extractWildcardDomains(pattern) {
-    const domains = [];
-    const source = pattern.source;
-    // 匹配 *.example.com 或 .*\.example\.com 模式
-    const matches = source.match(/\*\.?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,})/gi);
-    if (matches) {
-      matches.forEach(m => {
-        const clean = m.replace(/^\*\./, '').replace(/\\./g, '.').toLowerCase();
-        if (clean && clean.includes('.')) domains.push(clean);
-      });
-    }
-    return domains;
-  }
-  
-  /**
-   * 查询候选配置
-   * @param {string} url - 完整URL
-   * @returns {string[]|null} - 配置ID数组，无候选返回null
-   */
+
   function lookup(url) {
-    const hostname = Utils.getHostname(url);
-    if (!hostname) return null;
-    
-    // 精确匹配
-    if (_index.has(hostname)) {
-      return _index.get(hostname);
-    }
-    
-    // 尝试父域名（处理子域名情况）
-    const parts = hostname.split('.');
-    if (parts.length > 2) {
-      // 如：api.sub.example.com -> 尝试 sub.example.com 和 example.com
-      for (let i = 1; i < parts.length - 1; i++) {
-        const parentDomain = parts.slice(i).join('.');
-        if (_index.has(parentDomain)) {
-          return _index.get(parentDomain);
+    try {
+      if (_buildError) return null;
+      
+      const hostname = Utils.getHostname(url);
+      if (!hostname) return null;
+      
+      // 精确匹配
+      if (_index.has(hostname)) {
+        return _index.get(hostname);
+      }
+      
+      // 尝试父域名
+      const parts = hostname.split('.');
+      if (parts.length > 2) {
+        for (let i = 1; i < parts.length - 1; i++) {
+          const parentDomain = parts.slice(i).join('.');
+          if (_index.has(parentDomain)) {
+            return _index.get(parentDomain);
+          }
         }
       }
+    } catch (e) {
+      console.error(`[DomainIndex] Lookup error: ${e.message}`);
     }
-    
+    
     return null;
   }
-  
-  /**
-   * 获取索引统计信息
-   */
+
   function getStats() {
     return {
       totalDomains: _totalDomains,
-      indexSize: _index.size
+      indexSize: _index.size,
+      hasError: !!_buildError,
+      errorMessage: _buildError?.message
     };
   }
-  
-  /**
-   * 清空索引（用于内存回收）
-   */
+
   function clear() {
     _index.clear();
     _totalDomains = 0;
+    _buildError = null;
   }
-  
-  // 自动构建索引
+
+  // 安全构建（带延迟和错误捕获）
   if (GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX) {
-    build(APP_CONFIGS);
+    try {
+      build(APP_CONFIGS);
+    } catch (e) {
+      console.error(`[DomainIndex] Initialization failed: ${e.message}`);
+    }
   }
-  
+
   return {
     build,
     lookup,
     getStats,
-    clear
+    clear,
+    isHealthy: () => !_buildError
   };
 })();
 
@@ -1200,7 +1189,7 @@ class ConfigValidator {
 }
 
 // ==========================================
-// 8. VIP 解锁核心引擎（集成索引优化）
+// 8. VIP 解锁核心引擎
 // ==========================================
 
 class VipUnlockEngine {
@@ -1499,117 +1488,119 @@ class VipUnlockEngine {
 }
 
 // ==========================================
-// 9. 高性能插件管理器（集成域名索引）
+// 9. 安全插件管理器（集成索引容错）
 // ==========================================
 
 class PluginManager {
   constructor() {
     this.plugins = new Map();
     this._totalAvailable = 0;
-    this._indexStats = DomainIndex.getStats();
+    this._useIndex = GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX && DomainIndex.isHealthy();
   }
 
-  /**
-   * 高性能加载 - 使用域名索引（O(1)~O(k) 复杂度）
-   */
   loadForUrl(url, configs) {
     if (!url) return null;
-    
     const startTime = Date.now();
-    
-    // 方案1：使用域名索引快速定位（推荐）
-    if (GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX) {
-      const candidateKeys = DomainIndex.lookup(url);
-      
-      if (candidateKeys && candidateKeys.length > 0) {
-        // 仅对候选配置进行精确正则匹配
-        for (const key of candidateKeys) {
-          const config = configs[key];
-          if (config && config.urlPattern?.test(url)) {
-            this.plugins.set(key, Object.freeze({ ...config }));
-            const duration = Date.now() - startTime;
-            if (GLOBAL_CONFIG.DEBUG) {
-              console.log(`[PluginManager] Index-loaded: ${config.name} (${duration}ms, checked ${candidateKeys.length} candidates)`);
+    
+    // 如果索引健康，优先使用索引
+    if (this._useIndex) {
+      try {
+        const candidateKeys = DomainIndex.lookup(url);
+        if (candidateKeys && candidateKeys.length > 0) {
+          for (const key of candidateKeys) {
+            const config = configs[key];
+            if (config && config.urlPattern?.test(url)) {
+              this.plugins.set(key, Object.freeze({ ...config }));
+              const duration = Date.now() - startTime;
+              if (GLOBAL_CONFIG.DEBUG) {
+                console.log(`[PluginManager] Index-loaded: ${config.name} (${duration}ms)`);
+              }
+              return config;
             }
-            return config;
           }
         }
-        // 候选均不匹配（如子域名未覆盖），回退到全量
-        if (GLOBAL_CONFIG.DEBUG) {
-          console.log(`[PluginManager] Index candidates mismatch, falling back to full scan`);
-        }
+      } catch (e) {
+        console.log(`[PluginManager] Index lookup failed: ${e.message}, falling back`);
+        this._useIndex = false; // 禁用索引，避免重复失败
       }
     }
-    
-    // 方案2：回退到传统线性遍历（兼容未索引配置）
+    
+    // 回退到线性遍历
     return this.fallbackLoad(url, configs, startTime);
   }
 
-  /**
-   * 传统线性遍历（回退方案）
-   */
   fallbackLoad(url, configs, startTime = Date.now()) {
-    const { valid, invalidCount } = ConfigValidator.filterValidConfigs(configs);
-    this._totalAvailable = Object.keys(valid).length;
-    
-    if (invalidCount > 0) {
-      console.log(`[PluginManager] Warning: ${invalidCount} invalid configs skipped`);
-    }
-    
-    for (const [key, config] of Object.entries(valid)) {
-      if (config.urlPattern?.test(url)) {
-        this.plugins.set(key, Object.freeze({ ...config }));
-        const duration = Date.now() - startTime;
-        console.log(`[PluginManager] Fallback-loaded: ${config.name} [${config.mode || 'auto'}] (${duration}ms, scanned ${this._totalAvailable})`);
-        return config;
+    try {
+      const { valid, invalidCount } = ConfigValidator.filterValidConfigs(configs);
+      this._totalAvailable = Object.keys(valid).length;
+      
+      if (invalidCount > 0) {
+        console.log(`[PluginManager] Warning: ${invalidCount} invalid configs skipped`);
       }
+      
+      for (const [key, config] of Object.entries(valid)) {
+        if (config.urlPattern?.test(url)) {
+          this.plugins.set(key, Object.freeze({ ...config }));
+          const duration = Date.now() - startTime;
+          console.log(`[PluginManager] Fallback-loaded: ${config.name} (${duration}ms, scanned ${this._totalAvailable})`);
+          return config;
+        }
+      }
+    } catch (e) {
+      console.error(`[PluginManager] Fallback loading error: ${e.message}`);
     }
-    
+    
     console.log(`[PluginManager] No match for URL: ${url.substring(0, 50)}...`);
     return null;
   }
 
   registerAll(configs) {
-    const { valid, invalidCount } = ConfigValidator.filterValidConfigs(configs);
-    this._totalAvailable = Object.keys(valid).length;
-    let successCount = 0;
-    for (const [key, config] of Object.entries(valid)) {
-      this.plugins.set(key, Object.freeze({ ...config }));
-      successCount++;
+    try {
+      const { valid, invalidCount } = ConfigValidator.filterValidConfigs(configs);
+      this._totalAvailable = Object.keys(valid).length;
+      let successCount = 0;
+      for (const [key, config] of Object.entries(valid)) {
+        this.plugins.set(key, Object.freeze({ ...config }));
+        successCount++;
+      }
+      console.log(`[PluginManager] Full-load: ${successCount} plugins registered (${invalidCount} invalid skipped)`);
+      return successCount;
+    } catch (e) {
+      console.error(`[PluginManager] Register all error: ${e.message}`);
+      return 0;
     }
-    console.log(`[PluginManager] Full-load: ${successCount} plugins registered (${invalidCount} invalid skipped)`);
-    return successCount;
   }
 
   get(id) { return this.plugins.get(id); }
   getLoadedCount() { return this.plugins.size; }
-  
-  /**
-   * 获取索引统计（用于性能监控）
-   */
+  
   getIndexStats() {
     return {
-      ...this._indexStats,
-      indexEnabled: GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX
+      ...DomainIndex.getStats(),
+      indexEnabled: this._useIndex
     };
   }
 }
 
 // ==========================================
-// 10. 主入口
+// 10. 主入口（带全局错误捕获）
 // ==========================================
 
 function main() {
   const env = new Environment(META.name);
   try {
     env.info(`Starting ${META.name} v${META.version} on ${env.platform}`);
-    
-    // 输出索引状态
-    if (GLOBAL_CONFIG.DEBUG && GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX) {
+    
+    // 检查索引状态
+    if (GLOBAL_CONFIG.DEBUG) {
       const indexStats = DomainIndex.getStats();
-      env.debug(`Domain index ready: ${indexStats.totalDomains} domains indexed`);
+      if (indexStats.hasError) {
+        env.warn(`Domain index error: ${indexStats.errorMessage}`);
+      } else {
+        env.debug(`Domain index ready: ${indexStats.totalDomains} domains`);
+      }
     }
-    
+    
     const requestUrl = env.getCurrentUrl();
     if (!requestUrl) {
       env.error('No URL found in request/response');
@@ -1617,17 +1608,17 @@ function main() {
       return;
     }
     env.debug(`Processing URL: ${requestUrl}`);
-    
+    
     const pluginManager = new PluginManager();
     let appConfig = pluginManager.loadForUrl(requestUrl, APP_CONFIGS);
-    
-    // 回退策略：如果动态加载失败，尝试全量加载
+    
+    // 回退策略
     if (!appConfig) {
       pluginManager.registerAll(APP_CONFIGS);
       appConfig = pluginManager.loadForUrl(requestUrl, APP_CONFIGS);
     }
-    
-    // 最终回退：使用默认配置
+    
+    // 最终回退
     if (!appConfig) {
       env.warn('App not detected, using generic config');
       appConfig = {
@@ -1641,7 +1632,7 @@ function main() {
     } else {
       env.info(`Matched app: ${appConfig.name}`);
     }
-    
+    
     const engine = new VipUnlockEngine(env);
     engine.setConfig(appConfig);
     const response = env.getResponse();
@@ -1649,10 +1640,16 @@ function main() {
     const stats = engine.getStats();
     env.info(`Completed in ${stats.duration}ms, ${stats.modifications} modifications`);
     env.done(result);
-    
+    
   } catch (e) {
     env.error(`Fatal error: ${e.message}`);
-    env.done({ body: $response?.body });
+    // 确保即使崩溃也返回原始响应
+    try {
+      env.done({ body: $response?.body });
+    } catch (doneError) {
+      console.error(`Failed to return response: ${doneError.message}`);
+      $done({});
+    }
   }
 }
 
