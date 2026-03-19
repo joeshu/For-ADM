@@ -80,11 +80,11 @@ const CONSTANTS = Object.freeze({
 });
 
 // ==========================================
-// 全局配置开关
+// 全局配置开关  true/false
 // ==========================================
 
 const GLOBAL_CONFIG = Object.freeze({
-  DEBUG: false,
+  DEBUG: true,
   ENABLE_CACHE: true,
   MAX_CACHE_SIZE: 100
 });
