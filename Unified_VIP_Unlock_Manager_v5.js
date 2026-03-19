@@ -125,7 +125,7 @@ const CONSTANTS = Object.freeze({
  * MAX_CACHE_SIZE: 最大缓存条目数
  */
 const GLOBAL_CONFIG = Object.freeze({
-    DEBUG: false,                                  // 生产环境建议设为false
+    DEBUG: true,                                  // 生产环境建议设为false
     ENABLE_CACHE: true,                            // 启用缓存提升性能
     MAX_CACHE_SIZE: 100                            // 缓存上限，防止内存泄漏
 });
