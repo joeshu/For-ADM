@@ -52,9 +52,10 @@
  ^https?:\/\/star\.jvplay\.cn\/v2\/storage url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v7.js
 # wohome - 联通智家去广告（条件删除模式）
  ^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v7.js
-
+# 思朗月影视 - 用户信息VIP解锁
+^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v7.js
  [mitm]
- hostname = api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com,service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com,api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn,iotpservice.smartont.net
+ hostname = theater-api.sylangyue.xyz, api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com,service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com,api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn,iotpservice.smartont.net
  */
 'use strict';
 
@@ -839,7 +840,25 @@ const APP_CONFIGS = Object.freeze({
             )
         )
     },
-
+/**
+ * sylangyue - 思朗月影视用户信息
+ *
+ * 【接口说明】获取用户账户信息和VIP状态
+ *
+ * 【处理策略】使用 setFields 直接设置VIP相关
+ */
+sylangyue: {
+  id: 'sylangyue',
+  name: '思朗月影视',
+  urlPattern: /^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info/,
+  mode: 'json',
+  customProcessor: ProcessorUtils.setFields({
+    'data.login_way: true,
+    'data.beans': 999881,
+    'data.vip.expired_date': CONSTANTS.EXPIRE_DATE,
+    'data.vip_expired_at': 9999999999999
+  })
+},
     /**
      * gps - GPS工具箱用户信息
      * 
