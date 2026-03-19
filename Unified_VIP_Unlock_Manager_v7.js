@@ -860,7 +860,7 @@ sylangyue: {
     'data.login_way': true,
     'data.beans': 999881 })
     */
-     customProcessor: ProcessorUtils.setFields({
+     ProcessorUtils.setFields({
     'code': 200,
     'msg': '发送成功',
     'data.vip.status': true,
