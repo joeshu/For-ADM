@@ -510,13 +510,13 @@ const APP_CONFIGS = Object.freeze({
   v2ex: {
     id: 'v2ex',
     name: 'V2EX去广告',
-    urlPattern: /^https?:\/\/[^\/]*v2ex\.com\/(?!.*(?:api|login|cdn-cgi|verify|auth|captch|\.js|\.css|\.jpg|\.jpeg|\.png|\.webp|\.gif|\.zip|\.woff|\.woff2|\.m3u8|\.mp4|\.mov|\.m4v|\.avi|\.mkv|\.flv|\.rmvb|\.wmv|\.rm|\.asf|\.asx|\.mp3|\.json|\.ico|\.otf|\.ttf)).*$/,
+    urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
     mode: 'html',
     htmlReplacements: [
       {
-        pattern: /<\/head>/i,
-        replacement: ``,
-        description: '注入CSS隐藏广告元素'
+      pattern: /<\/head>/i,
+      replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,div[class^="wwads-"]{display: none !important;}</style>`,
+      description: '注入CSS隐藏广告元素'
       }
     ]
   },
@@ -751,20 +751,19 @@ class Environment {
     return 'Unknown';
   }
 
-  log(level, msg) {
-    if (!GLOBAL_CONFIG.DEBUG && level === 'debug') return;
-
+log(level, msg) {
+    if (!GLOBAL_CONFIG.DEBUG) return;  // DEBUG 关闭时，不打印任何日志
+    
     const timestamp = new Date().toISOString();
     const prefix = `[${this.name}][${level.toUpperCase()}][${timestamp}]`;
     const message = `${prefix} ${msg}`;
-
     console.log(message);
-
+    
     if (this.isQX && level === 'error') {
-      $notify(this.name, 'Error', msg);
+        $notify(this.name, 'Error', msg);
     }
-  }
-
+}
+ 
   debug(msg) { this.log('debug', msg); }
   info(msg) { this.log('info', msg); }
   warn(msg) { this.log('warn', msg); }
