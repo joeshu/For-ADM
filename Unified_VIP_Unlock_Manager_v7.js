@@ -853,12 +853,15 @@ sylangyue: {
   name: '思朗月影视',
   urlPattern: /^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info/,
   mode: 'json',
-  customProcessor: ProcessorUtils.setFields({
-    'data.login_way': true,
+  customProcessor: 
+   ProcessorUtils.compose(ProcessorUtils.setFields({
+    'data.login_way: true,
     'data.beans': 999881
-    //'data.vip.expired_date': 2999-09-09,
-    //'data.vip.expired_at': 9999999999999
-  })
+  }),
+   ProcessorUtils.mapArray('data.vip', {
+    'data.vip.expired_date': "2999-09-09",
+    'data.vip.expired_at': 9999999999999
+    })
 },
 
     /**
