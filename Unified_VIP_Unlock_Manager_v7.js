@@ -854,10 +854,25 @@ sylangyue: {
   urlPattern: /^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info/,
   mode: 'json',
   customProcessor: 
+   
+   /*
    ProcessorUtils.setFields({
     'data.login_way': true,
     'data.beans': 999881 })
-   /*
+    */
+     customProcessor: ProcessorUtils.setFields({
+    'code': 200,
+    'msg': '发送成功',
+    'data.vip.status': true,
+    'data.vip.expired_date': '2999-09-09',
+    'data.vip.expired_at': 99999999999999,
+    'data.login_way': true,
+    'data.beans': 999880,
+    'data.mobile': ''
+  })
+ 
+ 
+ /*
    ProcessorUtils.compose(
     ProcessorUtils.setFields({
     'data.login_way': true,
