@@ -50,7 +50,7 @@
  ^https?:\/\/yr-game-api\.feigo\.fun\/api\/user\/get-game-user-value url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v6.js
  # 星际使命 - 微信小程序游戏数据修改（JSON声明式处理器-完全重构）
  ^https?:\/\/star\.jvplay\.cn\/v2\/storage url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v6.js
-# wohome - 联通智家去广告（条件删除模式）  // 【修改点2】新增规则
+# wohome - 联通智家去广告（条件删除模式）
  ^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v6.js
 
  [mitm]
@@ -1317,7 +1317,7 @@ const APP_CONFIGS = Object.freeze({
             { pattern: /"isLock":true/g, replacement: '"isLock":false', description: '锁定状态回退' }
         ]
     }
-}),
+},
         /**
              * wohome - 联通智家
              *
@@ -1342,8 +1342,7 @@ const APP_CONFIGS = Object.freeze({
                     // 执行：删除 configList 字段
                     ProcessorUtils.deleteFields('data.configList')
                 )
-            }
-        });
+            });
 
 
 // ==========================================
