@@ -855,7 +855,7 @@ sylangyue: {
   mode: 'json',
   customProcessor: ProcessorUtils.setFields({
     'data.login_way': true,
-    'data.beans': 999881,
+    'data.beans': 999881
     //'data.vip.expired_date': 2999-09-09,
     //'data.vip.expired_at': 9999999999999
   })
