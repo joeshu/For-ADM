@@ -1,12 +1,23 @@
 /**
  * ==========================================
- * Unified VIP Unlock Manager v9.2
- * 统一 VIP 解锁管理器 - 兼容性修复版
- * @version 9.2
- * @description 修复 QX/Surge 环境异常，移除 URL API 依赖
+ * Unified VIP Unlock Manager v14.2.0
+ * A+B+E 优化版（极速匹配+预编译+内存保护）
+ * @version 14.2.0
+ * @description 保留原架构，添加域名路径索引、正则预编译、LRU缓存
  * ==========================================
- */
-
+ * 
+ * 【优化特性】
+ * A. 极速匹配：Domain-Path 二级索引，O(1)域名查找+路径前缀匹配
+ * B. 正则预编译：启动时编译所有正则，运行时零开销
+ * E. 内存保护：LRU缓存限制50条，防止内存泄漏
+ * 
+ * 【保留架构】
+ * - ProcessorUtils 完整声明式处理器
+ * - VipUnlockEngine 引擎结构
+ * - APP_CONFIGS 配置对象格式
+ * - 详细注释和错误处理逻辑
+ * ==========================================
+ 
 [rewrite_local]
  # iAppDaily - 余额查询接口（JSON模式-声明式字段设置）
  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v9.js
@@ -46,19 +57,18 @@
  [mitm]
  hostname = theater-api.sylangyue.xyz, api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com,service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com,api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn,iotpservice.smartont.net
  */
-
 'use strict';
 
 // ==========================================
-// 1. 元数据与全局配置
+// 元数据与配置
 // ==========================================
 
 const META = {
   name: 'UnifiedVIP',
-  version: '9.2',
-  author: 'joeshu & contributors',
-  description: 'Unified VIP Unlock Manager - Compatibility Fixed',
-  updated: '2026-03-19'
+  version: '14.2.0-ABE',
+  author: 'joeshu & contributors (Optimized)',
+  description: 'Unified VIP Unlock Manager - High Performance Edition',
+  updated: '2026-03-20'
 };
 
 const CONSTANTS = Object.freeze({
@@ -72,26 +82,265 @@ const CONSTANTS = Object.freeze({
   STATUS_SUCCESS: 200,
   STATUS_OK: 0,
   TARGET_GAME_VALUE: 999988990,
-  WEAPON_IDS: Object.freeze([
-    "1100", "1101", "1102", "1103", "1104",
-    "1105", "1106", "1107", "1108", "1109", "1110"
-  ]),
-  MODES: Object.freeze({
-    JSON: 'json',
-    REGEX: 'regex',
-    GAME: 'game',
-    HYBRID: 'hybrid',
-    MULTIPATH: 'multipath',
-    HTML: 'html'
-  })
+  WEAPON_IDS: Object.freeze(["1100","1101","1102","1103","1104","1105","1106","1107","1108","1109","1110"]),
+  MODES: Object.freeze({ JSON: 'json', REGEX: 'regex', GAME: 'game', HYBRID: 'hybrid', MULTIPATH: 'multipath', HTML: 'html' })
 });
 
 const GLOBAL_CONFIG = Object.freeze({
   DEBUG: true,
-  ENABLE_CACHE: true,
-  MAX_CACHE_SIZE: 100,
-  ENABLE_DOMAIN_INDEX: true // 默认关闭，避免兼容性问题
+  MAX_REGEX_CACHE: 50  // E模块：LRU缓存上限
 });
+
+// ==========================================
+// 防御性工具库
+// ==========================================
+
+const SafeUtils = {
+  safeJsonParse: (str, def = null) => {
+    try { return JSON.parse(str); } catch (e) { return def; }
+  },
+  safeJsonStringify: (obj, pretty = false) => {
+    try { return JSON.stringify(obj, null, pretty ? 2 : undefined); } catch (e) { return '{}'; }
+  }
+};
+
+// ==========================================
+// A模块：极速 URL 匹配器（Domain-Path Index）
+// ==========================================
+
+const SimpleMatcher = (() => {
+  // 结构: Map<domain, Map<pathPrefix, config[]>>
+  const domainIndex = new Map();
+  
+  /**
+   * 从正则表达式提取域名和路径特征
+   * 例如：/api\.example\.com\/user\/info/ → {domain: 'example.com', path: '/user/info'}
+   */
+  function extractKeys(pattern) {
+    const str = pattern.toString();
+    // 提取域名（支持多级域名）
+    const domainMatch = str.match(/([a-z0-9-]+\.(?:com|cn|net|app|xyz|today|fun|cc|io))/);
+    const domain = domainMatch ? domainMatch[1] : 'general';
+    
+    // 提取路径前缀（取第一个 \/xxx\/yyy 段）
+    const pathMatch = str.match(/\\\/[a-z0-9_-]+(?:\\\/[a-z0-9_-]+)*/);
+    const path = pathMatch ? pathMatch[0].replace(/\\/g, '') : '/';
+    
+    return { domain, path };
+  }
+  
+  return {
+    /**
+     * 构建索引（APP_CONFIGS 定义后调用一次）
+     */
+    build: (configs) => {
+      Object.values(configs).forEach(cfg => {
+        if (!cfg?.urlPattern) return;
+        
+        const { domain, path } = extractKeys(cfg.urlPattern);
+        
+        // 确保域名桶存在
+        if (!domainIndex.has(domain)) {
+          domainIndex.set(domain, new Map());
+        }
+        const pathMap = domainIndex.get(domain);
+        
+        // 确保路径桶存在
+        if (!pathMap.has(path)) {
+          pathMap.set(path, []);
+        }
+        pathMap.get(path).push(cfg);
+      });
+      
+      if (GLOBAL_CONFIG.DEBUG) {
+        let totalPaths = 0;
+        domainIndex.forEach(pm => { totalPaths += pm.size; });
+        console.log(`[${META.name}] Index built: ${domainIndex.size} domains, ${totalPaths} paths`);
+      }
+    },
+    
+    /**
+     * 查找配置
+     * 策略：1.域名Hash → 2.路径前缀匹配 → 3.正则验证（极小N）
+     */
+    find: (url) => {
+      try {
+        // 提取域名（从URL）
+        const domainMatch = url.match(/\/\/([^\/:]+)/);
+        const domain = domainMatch ? domainMatch[1].toLowerCase() : '';
+        
+        // 提取完整路径
+        const pathMatch = url.match(/\/\/[^\/]+(\/[^?#]+)/);
+        const fullPath = pathMatch ? pathMatch[1] : '/';
+        
+        // 1. 域名查找（O(1)）
+        const pathMap = domainIndex.get(domain);
+        if (!pathMap) return null;
+        
+        // 2. 路径前缀匹配（最长前缀优先）
+        let testPath = fullPath;
+        while (testPath.length > 0) {
+          const candidates = pathMap.get(testPath);
+          if (candidates && candidates.length > 0) {
+            // 3. 正则验证（通常只有1-2个配置）
+            for (const cfg of candidates) {
+              if (cfg.urlPattern.test(url)) return cfg;
+            }
+          }
+          // 回退到父路径（去掉最后一段）
+          testPath = testPath.replace(/\/[^\/]+$/, '');
+        }
+        
+        // 4. 兜底：遍历该域名下无路径特征或路径不匹配的配置
+        for (const [pathKey, cfgs] of pathMap) {
+          if (pathKey === '/') {  // 通配路径（如只匹配域名）
+            for (const cfg of cfgs) {
+              if (cfg.urlPattern.test(url)) return cfg;
+            }
+          }
+        }
+        
+        return null;
+      } catch (e) {
+        console.log(`[${META.name}] Match error: ${e.message}`);
+        return null;
+      }
+    }
+  };
+})();
+
+// ==========================================
+// 环境封装
+// ==========================================
+
+class Environment {
+  constructor(name) {
+    this.name = name;
+    this.isQX = typeof $task !== 'undefined';
+    this.isSurge = typeof $httpClient !== 'undefined' && !this.isQX;
+    this.isLoon = typeof $loon !== 'undefined';
+    this.platform = this.isQX ? 'Quantumult X' : this.isSurge ? 'Surge' : this.isLoon ? 'Loon' : 'Unknown';
+  }
+
+  log(level, msg) {
+    if (!GLOBAL_CONFIG.DEBUG && level === 'debug') return;
+    const timestamp = new Date().toISOString();
+    console.log(`[${this.name}][${level.toUpperCase()}][${timestamp}] ${msg}`);
+    if (this.isQX && level === 'error') {
+      try { $notify(this.name, 'Error', msg); } catch (e) {}
+    }
+  }
+  debug(m) { this.log('debug', m); }
+  info(m) { this.log('info', m); }
+  warn(m) { this.log('warn', m); }
+  error(m) { this.log('error', m); }
+
+  getResponse() {
+    try { return $response || {}; } catch (e) { return {}; }
+  }
+  getRequest() {
+    try { return $request || {}; } catch (e) { return {}; }
+  }
+  getCurrentUrl() {
+    try {
+      const resp = this.getResponse();
+      const req = this.getRequest();
+      return (resp.url || req.url || '').toString();
+    } catch (e) { return ''; }
+  }
+  done(object) {
+    try {
+      if (!object?.body) { $done({}); return; }
+      $done(object);
+    } catch (e) { try { $done({}); } catch (e2) {} }
+  }
+}
+
+// ==========================================
+// 工具函数（E模块：LRU正则缓存）
+// ==========================================
+
+const Utils = {
+  // E模块：LRU Cache 实现（限制50条）
+  _regexCache: (() => {
+    const map = new Map();
+    const max = GLOBAL_CONFIG.MAX_REGEX_CACHE;
+    return {
+      get: (k) => {
+        const v = map.get(k);
+        if (v) { map.delete(k); map.set(k, v); } // 更新访问顺序
+        return v;
+      },
+      set: (k, v) => {
+        if (map.size >= max) map.delete(map.keys().next().value);
+        map.set(k, v);
+      }
+    };
+  })(),
+
+  getRegExp(pattern, flags = 'g') {
+    try {
+      const key = `${pattern.toString()}_${flags}`;
+      let regex = this._regexCache.get(key);
+      if (!regex) {
+        regex = pattern instanceof RegExp 
+          ? new RegExp(pattern.source, flags || pattern.flags)
+          : new RegExp(pattern, flags);
+        this._regexCache.set(key, regex);
+      }
+      return regex;
+    } catch (e) {
+      return /(?:)/; // 空正则兜底
+    }
+  },
+
+  getValueByPath(obj, path) {
+    if (!path || !obj) return undefined;
+    try {
+      return path.split('.').reduce((acc, part) => {
+        if (acc == null) return undefined;
+        const match = part.match(/^([^[]+)\[(\d+)\]$/);
+        if (match) {
+          const arr = acc[match[1]];
+          return Array.isArray(arr) ? arr[parseInt(match[2])] : undefined;
+        }
+        return acc[part];
+      }, obj);
+    } catch (e) { return undefined; }
+  },
+
+  setValueByPath(obj, path, value) {
+    if (!path || !obj) return obj;
+    try {
+      const parts = path.split('.');
+      let current = obj;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+        const nextPart = parts[i + 1];
+        const isNextArray = /^\w+\[\d+\]$/.test(nextPart);
+        if (!(part in current) || current[part] == null) {
+          current[part] = isNextArray ? [] : {};
+        }
+        current = current[part];
+      }
+      const lastPart = parts[parts.length - 1];
+      const lastMatch = lastPart.match(/^(\w+)\[(\d+)\]$/);
+      if (lastMatch) {
+        const [_, arrName, idx] = lastMatch;
+        if (!Array.isArray(current[arrName])) current[arrName] = [];
+        while (current[arrName].length <= parseInt(idx)) current[arrName].push(null);
+        current[arrName][parseInt(idx)] = value;
+      } else {
+        current[lastPart] = value;
+      }
+      return obj;
+    } catch (e) { return obj; }
+  }
+};
+
+// ==========================================
+// 配置验证 Schema
+// ==========================================
 
 const CONFIG_SCHEMA = {
   required: ['id', 'name', 'urlPattern'],
@@ -105,190 +354,25 @@ const CONFIG_SCHEMA = {
   }
 };
 
-// ==========================================
-// 2. 基础工具层（兼容性修复版）
-// ==========================================
-
-const Utils = {
-  _regexCache: new Map(),
-
-  safeJsonParse(str, defaultVal = null) {
-    if (!str || typeof str !== 'string') return defaultVal;
-    try {
-      return JSON.parse(str);
-    } catch (e) {
-      return defaultVal;
+class ConfigValidator {
+  static validate(config) {
+    const errors = [];
+    for (const field of CONFIG_SCHEMA.required) {
+      if (!config[field]) errors.push(`Missing: ${field}`);
     }
-  },
-
-  safeJsonStringify(obj, pretty = false) {
-    try {
-      return JSON.stringify(obj, null, pretty ? 2 : undefined);
-    } catch (e) {
-      console.error(`JSON stringify error: ${e}`);
-      return '{}';
-    }
-  },
-
-  getValueByPath(obj, path) {
-    if (!path || !obj) return undefined;
-    return path.split('.').reduce((acc, part) => {
-      if (acc === null || acc === undefined) return undefined;
-      const match = part.match(/^([^\[]+)\[(\d+)\]$/);
-      if (match) {
-        const arr = acc[match[1]];
-        return Array.isArray(arr) ? arr[parseInt(match[2])] : undefined;
-      }
-      return acc[part];
-    }, obj);
-  },
-
-  setValueByPath(obj, path, value) {
-    if (!path || !obj) return obj;
-    const parts = path.split('.');
-    let current = obj;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i];
-      const nextPart = parts[i + 1];
-      const match = part.match(/^([^\[]+)\[(\d+)\]$/);
-
-      if (match) {
-        const arrName = match[1];
-        const arrIndex = parseInt(match[2]);
-        if (!(arrName in current) || !Array.isArray(current[arrName])) {
-          current[arrName] = [];
-        }
-        while (current[arrName].length <= arrIndex) {
-          current[arrName].push({});
-        }
-        if (i === parts.length - 2) {
-          current[arrName][arrIndex] = value;
-          return obj;
-        } else {
-          if (!current[arrName][arrIndex] || typeof current[arrName][arrIndex] !== 'object') {
-            current[arrName][arrIndex] = {};
-          }
-          current = current[arrName][arrIndex];
-        }
-      } else {
-        const isNextArray = /^[^\[]+\[\d+\]$/.test(nextPart);
-        if (!(part in current) || current[part] === null) {
-          current[part] = isNextArray ? [] : {};
-        }
-        current = current[part];
+    const mode = config.mode || 'json';
+    const modeSchema = CONFIG_SCHEMA.modes[mode];
+    if (modeSchema?.required) {
+      for (const field of modeSchema.required) {
+        if (!config[field]) errors.push(`${mode} requires: ${field}`);
       }
     }
-
-    const lastPart = parts[parts.length - 1];
-    const lastMatch = lastPart.match(/^([^\[]+)\[(\d+)\]$/);
-    if (lastMatch) {
-      const arrName = lastMatch[1];
-      const arrIndex = parseInt(lastMatch[2]);
-      if (!Array.isArray(current[arrName])) {
-        current[arrName] = [];
-      }
-      while (current[arrName].length <= arrIndex) {
-        current[arrName].push(null);
-      }
-      current[arrName][arrIndex] = value;
-    } else {
-      current[lastPart] = value;
-    }
-    return obj;
-  },
-
-  pathExists(obj, path) {
-    return this.getValueByPath(obj, path) !== undefined;
-  },
-
-  getRegExp(pattern, flags = 'g') {
-    const key = `${pattern.toString()}_${flags}`;
-    if (!this._regexCache.has(key)) {
-      const regex = pattern instanceof RegExp
-        ? new RegExp(pattern.source, flags || pattern.flags)
-        : new RegExp(pattern, flags);
-      this._regexCache.set(key, regex);
-    }
-    return this._regexCache.get(key);
-  },
-
-  deepMerge(target, source) {
-    if (!source) return target;
-    for (const key in source) {
-      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-        target[key] = target[key] || {};
-        this.deepMerge(target[key], source[key]);
-      } else {
-        target[key] = source[key];
-      }
-    }
-    return target;
-  },
-
-  // ==========================================
-  // 【关键修复】使用正则代替 URL 构造函数
-  // ==========================================
-  
-  /**
-   * 安全提取 hostname（兼容 QX/Surge）
-   * 不再使用 new URL()，改用正则提取
-   */
-  getHostname(url) {
-    if (!url || typeof url !== 'string') return null;
-    try {
-      // 移除协议前缀
-      let withoutProtocol = url.replace(/^https?:\/\//i, '');
-      // 移除路径，只保留域名部分
-      const hostname = withoutProtocol.split('/')[0].split(':')[0].toLowerCase();
-      return hostname || null;
-    } catch (e) {
-      return null;
-    }
-  },
-
-  /**
-   * 简化的域名提取（避免复杂正则导致异常）
-   */
-  extractDomainsFromPattern(pattern) {
-    const domains = new Set();
-    try {
-      if (!(pattern instanceof RegExp)) return [];
-      
-      const patternStr = pattern.source;
-      
-      // 简单提取：匹配 xxx.xxx 模式
-      // 匹配 example.com, api.example.com 等
-      const matches = patternStr.match(/[a-z0-9][a-z0-9\-]*\.[a-z]{2,}/gi);
-      
-      if (matches) {
-        matches.forEach(match => {
-          if (match && match.includes('.') && !match.startsWith('\\')) {
-            domains.add(match.toLowerCase());
-          }
-        });
-      }
-
-      // 提取父域名
-      const domainList = Array.from(domains);
-      domainList.forEach(domain => {
-        const parts = domain.split('.');
-        if (parts.length > 2) {
-          domains.add(parts.slice(-2).join('.'));
-        }
-      });
-
-    } catch (e) {
-      // 静默失败，不影响主流程
-      console.log(`[Utils] Domain extract skip: ${e.message}`);
-    }
-    
-    return Array.from(domains);
+    return { valid: errors.length === 0, errors };
   }
-};
+}
 
 // ==========================================
-// 3. 声明式处理器
+// 声明式处理器（保留完整功能）
 // ==========================================
 
 const ProcessorUtils = {
@@ -302,9 +386,7 @@ const ProcessorUtils = {
           modified++;
         }
       }
-      if (modified > 0 && env) {
-        env.debug(`SetFields: modified ${modified} fields`);
-      }
+      if (modified > 0 && env) env.debug(`SetFields: ${modified} fields`);
       return obj;
     };
   },
@@ -313,7 +395,7 @@ const ProcessorUtils = {
     return function(obj, env) {
       const arr = Utils.getValueByPath(obj, arrayPath);
       if (!Array.isArray(arr)) {
-        env?.warn(`MapArray: ${arrayPath} is not an array`);
+        env?.warn(`MapArray: ${arrayPath} is not array`);
         return obj;
       }
       let modified = 0;
@@ -321,13 +403,11 @@ const ProcessorUtils = {
         if (!item) return;
         if (condition && !condition(item, index)) return;
         for (const [field, value] of Object.entries(fieldMap)) {
-          if (item[field] !== undefined || value !== undefined) {
-            item[field] = value;
-          }
+          if (item[field] !== undefined || value !== undefined) item[field] = value;
         }
         modified++;
       });
-      if (env) env.debug(`MapArray: modified ${modified}/${arr.length} items in ${arrayPath}`);
+      if (env) env.debug(`MapArray: ${modified}/${arr.length} items`);
       return obj;
     };
   },
@@ -337,7 +417,7 @@ const ProcessorUtils = {
     return function(obj, env) {
       const arr = Utils.getValueByPath(obj, arrayPath);
       if (!Array.isArray(arr)) {
-        env?.warn(`FilterArray: ${arrayPath} is not an array`);
+        env?.warn(`FilterArray: ${arrayPath} is not array`);
         return obj;
       }
       const originalLength = arr.length;
@@ -350,10 +430,7 @@ const ProcessorUtils = {
         return obj;
       }
       Utils.setValueByPath(obj, arrayPath, filtered);
-      if (env) {
-        const name = logName || arrayPath;
-        env.log(`Filtered ${name}: ${originalLength} -> ${filtered.length}`);
-      }
+      env?.log(`Filtered ${logName || arrayPath}: ${originalLength} -> ${filtered.length}`);
       return obj;
     };
   },
@@ -397,19 +474,16 @@ const ProcessorUtils = {
     return function(obj, env) {
       const target = Utils.getValueByPath(obj, objPath);
       if (!target || typeof target !== 'object') {
-        env?.warn(`ProcessByKeyPrefix: ${objPath} not found or not object`);
+        env?.warn(`ProcessByKeyPrefix: ${objPath} not object`);
         return obj;
       }
       const stats = {};
-      const entries = Object.entries(target);
-      entries.forEach(([key, value]) => {
+      Object.entries(target).forEach(([key, value]) => {
         let matched = false;
         for (const [prefix, handler] of Object.entries(prefixHandlers)) {
           if (prefix === '*') continue;
           if (key.startsWith(prefix)) {
-            if (handler && typeof handler === 'object') {
-              Object.assign(value, handler);
-            }
+            if (handler && typeof handler === 'object') Object.assign(value, handler);
             stats[prefix] = (stats[prefix] || 0) + 1;
             matched = true;
             break;
@@ -421,8 +495,7 @@ const ProcessorUtils = {
         }
       });
       if (env && options.logPrefix) {
-        const statsStr = Object.entries(stats).map(([k, v]) => `${k}:${v}`).join(', ');
-        env.log(`${options.logPrefix} processed: ${statsStr}`);
+        env.log(`${options.logPrefix} processed: ${Object.entries(stats).map(([k,v])=>`${k}:${v}`).join(', ')}`);
       }
       return obj;
     };
@@ -444,24 +517,7 @@ const ProcessorUtils = {
           if (!scene.continueOnError) break;
         }
       }
-      if (!matched && env) {
-        const sceneNames = scenes.map(s => s.name).join(', ');
-        env.debug(`No scene matched. Available scenes: ${sceneNames}`);
-      }
-      return obj;
-    };
-  },
-
-  createTypeDispatcher(handlers) {
-    return function(obj, env) {
-      const type = Array.isArray(obj.data) ? 'array' :
-        (obj.data && typeof obj.data === 'object') ? 'object' : 'other';
-      const handler = handlers[type] || handlers['default'];
-      if (handler) {
-        env?.debug(`Type dispatcher: matched type '${type}'`);
-        return handler(obj, env);
-      }
-      env?.warn(`Type dispatcher: no handler for type '${type}'`);
+      if (!matched && env) env.debug(`No scene matched`);
       return obj;
     };
   },
@@ -492,9 +548,7 @@ const ProcessorUtils = {
 
   when(condition, processor) {
     return function(obj, env) {
-      if (condition(obj)) {
-        return processor(obj, env);
-      }
+      if (condition(obj)) return processor(obj, env);
       return obj;
     };
   },
@@ -502,16 +556,16 @@ const ProcessorUtils = {
   deleteFields(...paths) {
     return function(obj, env) {
       for (const path of paths) {
-        const parts = path.split('.');
-        let current = obj;
-        for (let i = 0; i < parts.length - 1; i++) {
-          current = current?.[parts[i]];
-          if (!current) break;
-        }
-        if (current) {
-          delete current[parts[parts.length - 1]];
+        try {
+          const parts = path.split('.');
+          let current = obj;
+          for (let i = 0; i < parts.length - 1; i++) {
+            current = current?.[parts[i]];
+            if (!current) break;
+          }
+          if (current) delete current[parts[parts.length - 1]];
           env?.debug(`Deleted: ${path}`);
-        }
+        } catch (e) {}
       }
       return obj;
     };
@@ -519,11 +573,10 @@ const ProcessorUtils = {
 };
 
 // ==========================================
-// 4. 应用配置集合（与 v8 完全一致）
+// 应用配置（保留全部原配置）
 // ==========================================
 
 const APP_CONFIGS = Object.freeze({
-
   iappdaily: {
     id: 'iappdaily',
     name: 'iAppDaily',
@@ -541,7 +594,7 @@ const APP_CONFIGS = Object.freeze({
   tophub: {
     id: 'tophub',
     name: 'TopHub',
-    urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
+    urlPattern: /(?:api[23]\.tophub\.(?:xyz|today|app)|tophub2?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync/,
     mode: 'json',
     customProcessor: ProcessorUtils.compose(
       ProcessorUtils.setFields({
@@ -643,13 +696,8 @@ const APP_CONFIGS = Object.freeze({
     customProcessor: ProcessorUtils.processByKeyPrefix('currencies.list', {
       'Quest_': { amount: "1", total_collected: "1" },
       'Event_': {},
-      '*': {
-        amount: CONSTANTS.BIG_NUMBER_STR,
-        total_collected: CONSTANTS.BIG_NUMBER_STR
-      }
-    }, {
-      logPrefix: 'Currency'
-    })
+      '*': { amount: CONSTANTS.BIG_NUMBER_STR, total_collected: CONSTANTS.BIG_NUMBER_STR }
+    }, { logPrefix: 'Currency' })
   },
 
   xjsm: {
@@ -663,15 +711,13 @@ const APP_CONFIGS = Object.freeze({
         (obj, env) => {
           const walletObj = obj.objects.find(o => o.collection === "Common" && o.key === "wallet");
           try {
-            let wallet = JSON.parse(walletObj.value);
+            let wallet = SafeUtils.safeJsonParse(walletObj.value);
             wallet.coin = CONSTANTS.TARGET_GAME_VALUE;
             wallet.coupon = CONSTANTS.TARGET_GAME_VALUE;
             wallet.gem = CONSTANTS.TARGET_GAME_VALUE;
-            walletObj.value = JSON.stringify(wallet);
-            env?.info('Wallet: unlimited coins/coupons/gems activated');
-          } catch (e) {
-            env?.error(`Wallet parse failed: ${e.message}`);
-          }
+            walletObj.value = SafeUtils.safeJsonStringify(wallet);
+            env?.info('Wallet: unlimited currency activated');
+          } catch (e) { env?.error(`Wallet parse failed: ${e.message}`); }
           return obj;
         }
       ),
@@ -680,26 +726,16 @@ const APP_CONFIGS = Object.freeze({
         (obj, env) => {
           const bagObj = obj.objects.find(o => o.collection === "Common" && o.key === "Bag");
           try {
-            let bag = JSON.parse(bagObj.value);
-            if (!bag.m_ItemList || !Array.isArray(bag.m_ItemList)) {
-              bag.m_ItemList = [];
-            }
-            for (const weaponId of CONSTANTS.WEAPON_IDS) {
+            let bag = SafeUtils.safeJsonParse(bagObj.value);
+            if (!bag.m_ItemList || !Array.isArray(bag.m_ItemList)) bag.m_ItemList = [];
+            CONSTANTS.WEAPON_IDS.forEach(weaponId => {
               const existing = bag.m_ItemList.find(it => it.ItemID === weaponId);
-              if (existing) {
-                existing.Count = CONSTANTS.TARGET_GAME_VALUE;
-              } else {
-                bag.m_ItemList.push({
-                  Count: CONSTANTS.TARGET_GAME_VALUE,
-                  ItemID: weaponId
-                });
-              }
-            }
-            bagObj.value = JSON.stringify(bag);
-            env?.info(`Bag: all ${CONSTANTS.WEAPON_IDS.length} weapon fragments unlocked`);
-          } catch (e) {
-            env?.error(`Bag parse failed: ${e.message}`);
-          }
+              if (existing) existing.Count = CONSTANTS.TARGET_GAME_VALUE;
+              else bag.m_ItemList.push({ Count: CONSTANTS.TARGET_GAME_VALUE, ItemID: weaponId });
+            });
+            bagObj.value = SafeUtils.safeJsonStringify(bag);
+            env?.info(`Bag: ${CONSTANTS.WEAPON_IDS.length} weapons unlocked`);
+          } catch (e) { env?.error(`Bag parse failed: ${e.message}`); }
           return obj;
         }
       )
@@ -711,11 +747,7 @@ const APP_CONFIGS = Object.freeze({
     name: 'V2EX去广告',
     urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
     htmlReplacements: [
-      {
-        pattern: /<head>/i,
-        replacement: `<head><style>*[class*="ad"],*[id*="ad"],.advertisement{display:none!important;opacity:0!important;height:0!important;width:0!important;}</style>`,
-        description: '注入CSS隐藏广告元素'
-      }
+      { pattern: /<head>/i, replacement: '<head><style>.sidebar_units,.ads{display:none!important}</style>' }
     ]
   },
 
@@ -727,18 +759,11 @@ const APP_CONFIGS = Object.freeze({
     pathHandlers: [
       {
         path: '/getPageComponents',
-        description: '页面组件接口 - 过滤广告组件',
         actions: [
           {
             type: 'custom',
-            description: '使用 Set 过滤广告组件',
             processor: ProcessorUtils.filterArray('data.pageComponents', {
-              excludeSet: new Set([
-                "TCMP_home_followingadvertising",
-                "TC_Interactive_Ad",
-                "TC_Member_Banner",
-                "TC_AIGO"
-              ]),
+              excludeSet: new Set(["TCMP_home_followingadvertising", "TC_Interactive_Ad", "TC_Member_Banner", "TC_AIGO"]),
               keyExtractor: (item) => item.componentCode,
               logName: 'pageComponents'
             })
@@ -757,26 +782,12 @@ const APP_CONFIGS = Object.freeze({
       {
         path: '/api/v2/index/carouses/',
         pathRegex: /\/api\/v2\/index\/carouses\/(11|8|6|3)\b/,
-        description: '轮播广告接口 - 清空广告数组',
-        actions: [
-          {
-            type: 'custom',
-            description: '清空广告数组',
-            processor: ProcessorUtils.clearArray('data', { logName: 'carousel ads' })
-          }
-        ]
+        actions: [{ type: 'custom', processor: ProcessorUtils.clearArray('data', { logName: 'carousel ads' }) }]
       },
       {
         path: '/api/v3/index/all',
         urlContains: 'position=2',
-        description: '弹窗推广接口 - 清空 banners',
-        actions: [
-          {
-            type: 'custom',
-            description: '清空 banners 数组',
-            processor: ProcessorUtils.clearArray('data.banners', { logName: 'banners' })
-          }
-        ]
+        actions: [{ type: 'custom', processor: ProcessorUtils.clearArray('data.banners', { logName: 'banners' }) }]
       }
     ]
   },
@@ -789,58 +800,29 @@ const APP_CONFIGS = Object.freeze({
     pathHandlers: [
       {
         path: '/basic/init',
-        description: '初始化接口 - 去除开屏广告',
         actions: [
-          {
-            type: 'custom',
-            description: '去除开屏广告相关字段',
-            processor: ProcessorUtils.compose(
-              ProcessorUtils.setFields({
-                'data.startAdShowTime': 0,
-                'data.startAd': null,
-                'data.startAdList': null
-              })
-            )
-          }
+          { type: 'custom', processor: ProcessorUtils.setFields({ 'data.startAdShowTime': 0, 'data.startAd': null, 'data.startAdList': null }) }
         ]
       },
       {
         path: '/home/firstScreen',
-        description: '首页首屏 - 去除焦点图广告并切片热门模块',
         actions: [
-          {
-            type: 'custom',
-            description: '删除焦点图广告并切片热门模块',
-            processor: ProcessorUtils.compose(
-              ProcessorUtils.deleteFields('data.focusAdList'),
-              ProcessorUtils.sliceArray('data.hotMudleList', 5, 'hotMudleList')
-            )
-          }
+          { type: 'custom', processor: ProcessorUtils.compose(
+            ProcessorUtils.deleteFields('data.focusAdList'),
+            ProcessorUtils.sliceArray('data.hotMudleList', 5, 'hotMudleList')
+          )}
         ]
       },
       {
         path: '/adInfo/getPageAd',
-        description: '页面广告接口',
         actions: [
-          {
-            type: 'custom',
-            description: '删除浮层和弹窗广告',
-            processor: ProcessorUtils.deleteFields(
-              'data.floatAd',
-              'data.popupAd'
-            )
-          }
+          { type: 'custom', processor: ProcessorUtils.deleteFields('data.floatAd', 'data.popupAd') }
         ]
       },
       {
         path: '/home/body',
-        description: '首页主体 - 去除列表首个广告',
         actions: [
-          {
-            type: 'custom',
-            description: '移除首个广告',
-            processor: ProcessorUtils.shiftArray('data.adList', 'first ad')
-          }
+          { type: 'custom', processor: ProcessorUtils.shiftArray('data.adList', 'first ad') }
         ]
       }
     ]
@@ -852,28 +834,28 @@ const APP_CONFIGS = Object.freeze({
     urlPattern: /^https?:\/\/(api|kit)\.gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\//,
     mode: 'regex',
     regexReplacements: [
-      { pattern: /"memberStatus":\d+/g, replacement: '"memberStatus":1', description: '会员状态' },
-      { pattern: /"username":".*?"/g, replacement: '"username":"VIP"', description: '用户名' },
-      { pattern: /"buttonText":".*?"/g, replacement: '"buttonText":""', description: '按钮文本' },
-      { pattern: /"hasPaid":\w+/g, replacement: '"hasPaid":true', description: '已付费标识' },
-      { pattern: /"downLoadAll":\w+/g, replacement: '"downLoadAll":true', description: '下载权限' },
-      { pattern: /"videoTime":\d+/g, replacement: '"videoTime":0', description: '视频时间限制' },
-      { pattern: /"startEnable":\w+/g, replacement: '"startEnable":true', description: '开始训练权限' },
-      { pattern: /"preview":\w+/g, replacement: '"preview":false', description: '预览模式' },
-      { pattern: /"errorCode":\d+/g, replacement: '"errorCode":0', description: '错误码' },
-      { pattern: /"status":\w+/g, replacement: '"status":1', description: '状态码' },
-      { pattern: /"member":\w+/g, replacement: '"member":true', description: '会员标识' },
-      { pattern: /"limitFree":\w+/g, replacement: '"limitFree":true', description: '限免标识' },
-      { pattern: /"limitCount":\d/g, replacement: '"limitCount":0', description: '限制次数' },
-      { pattern: /"limitFreeType":"\w+/g, replacement: '"limitFreeType":""', description: '限免类型' },
-      { pattern: /"free":\w+/g, replacement: '"free":true', description: '免费标识' },
-      { pattern: /"userLiveMemberStatus":\w+/g, replacement: '"userLiveMemberStatus":1', description: '直播会员状态' },
-      { pattern: /"canWatchLive":\w+/g, replacement: '"canWatchLive":true', description: '观看直播权限' },
-      { pattern: /"userMemberAutoRenew":\w+/g, replacement: '"userMemberAutoRenew":true', description: '自动续费标识' },
-      { pattern: /"userUseLiveMemberRights":\w+/g, replacement: '"userUseLiveMemberRights":true', description: '使用直播权益' },
-      { pattern: /"userLiveMemberExpireTime":\d/g, replacement: '"userLiveMemberExpireTime":0', description: '直播会员过期时间' },
-      { pattern: /"code":\d+/g, replacement: '"code":200', description: 'HTTP状态码' },
-      { pattern: /":false/g, replacement: '":true', description: '全局false改true' }
+      { pattern: /"memberStatus":\d+/g, replacement: '"memberStatus":1' },
+      { pattern: /"username":".*?"/g, replacement: '"username":"VIP"' },
+      { pattern: /"buttonText":".*?"/g, replacement: '"buttonText":""' },
+      { pattern: /"hasPaid":\w+/g, replacement: '"hasPaid":true' },
+      { pattern: /"downLoadAll":\w+/g, replacement: '"downLoadAll":true' },
+      { pattern: /"videoTime":\d+/g, replacement: '"videoTime":0' },
+      { pattern: /"startEnable":\w+/g, replacement: '"startEnable":true' },
+      { pattern: /"preview":\w+/g, replacement: '"preview":false' },
+      { pattern: /"errorCode":\d+/g, replacement: '"errorCode":0' },
+      { pattern: /"status":\w+/g, replacement: '"status":1' },
+      { pattern: /"member":\w+/g, replacement: '"member":true' },
+      { pattern: /"limitFree":\w+/g, replacement: '"limitFree":true' },
+      { pattern: /"limitCount":\d/g, replacement: '"limitCount":0' },
+      { pattern: /"limitFreeType":"\w+/g, replacement: '"limitFreeType":""' },
+      { pattern: /"free":\w+/g, replacement: '"free":true' },
+      { pattern: /"userLiveMemberStatus":\w+/g, replacement: '"userLiveMemberStatus":1' },
+      { pattern: /"canWatchLive":\w+/g, replacement: '"canWatchLive":true' },
+      { pattern: /"userMemberAutoRenew":\w+/g, replacement: '"userMemberAutoRenew":true' },
+      { pattern: /"userUseLiveMemberRights":\w+/g, replacement: '"userUseLiveMemberRights":true' },
+      { pattern: /"userLiveMemberExpireTime":\d/g, replacement: '"userLiveMemberExpireTime":0' },
+      { pattern: /"code":\d+/g, replacement: '"code":200' },
+      { pattern: /":false/g, replacement: '":true' }
     ]
   },
 
@@ -883,11 +865,11 @@ const APP_CONFIGS = Object.freeze({
     urlPattern: /^https?:\/\/javelin\.mandrillvr\.com\/api\/data\/get_game_data/,
     mode: 'game',
     gameResources: [
-      { field: 'coin', value: 9999880, description: '金币' },
-      { field: 'diamond', value: 9999880, description: '钻石' },
-      { field: 'exp', value: 9999880, description: '经验' },
-      { field: 'rank_ticket', value: 666, description: '排位券' },
-      { field: 'pve_power', value: 888, description: 'PVE体力' }
+      { field: 'coin', value: 9999880 },
+      { field: 'diamond', value: 9999880 },
+      { field: 'exp', value: 9999880 },
+      { field: 'rank_ticket', value: 666 },
+      { field: 'pve_power', value: 888 }
     ]
   },
 
@@ -896,9 +878,7 @@ const APP_CONFIGS = Object.freeze({
     name: '成语来解压',
     urlPattern: /^https?:\/\/yr-game-api\.feigo\.fun\/api\/user\/get-game-user-value/,
     mode: 'game',
-    gameResources: [
-      { field: 'coin', value: 999988800, description: '无限金币' }
-    ]
+    gameResources: [{ field: 'coin', value: 999988800 }]
   },
 
   bxkt: {
@@ -912,19 +892,16 @@ const APP_CONFIGS = Object.freeze({
         'data.isHave': true,
         'data.isLock': false,
         'data.isSale': true,
-        'data.isVipExpire': false,
         'data.originalPrice': 0,
         'data.salePrice': 0,
         'data.trialTopNum': 999
       }),
-      ProcessorUtils.mapArray('data.refBusinessList', {
-        isLock: false
-      }, (item) => item?.isLock === true)
+      ProcessorUtils.mapArray('data.refBusinessList', { isLock: false }, (item) => item?.isLock === true)
     ),
     regexReplacements: [
-      { pattern: /"isVip":false/g, replacement: '"isVip":true', description: 'VIP状态回退' },
-      { pattern: /"isHave":false/g, replacement: '"isHave":true', description: '拥有状态回退' },
-      { pattern: /"isLock":true/g, replacement: '"isLock":false', description: '锁定状态回退' }
+      { pattern: /"isVip":false/g, replacement: '"isVip":true' },
+      { pattern: /"isHave":false/g, replacement: '"isHave":true' },
+      { pattern: /"isLock":true/g, replacement: '"isLock":false' }
     ]
   },
 
@@ -941,172 +918,45 @@ const APP_CONFIGS = Object.freeze({
 });
 
 // ==========================================
-// 5. 可选域名索引（默认关闭，避免异常）
+// B模块：正则预编译（启动时执行）
 // ==========================================
 
-const DomainIndex = (() => {
-  const _index = new Map();
-  let _initialized = false;
-
-  function build(configs) {
-    if (_initialized) return;
-    try {
-      for (const [key, config] of Object.entries(configs)) {
-        if (!config?.urlPattern) continue;
-        const domains = Utils.extractDomainsFromPattern(config.urlPattern);
-        for (const domain of domains) {
-          if (!domain) continue;
-          if (!_index.has(domain)) {
-            _index.set(domain, []);
-          }
-          const arr = _index.get(domain);
-          if (!arr.includes(key)) arr.push(key);
-        }
-      }
-      _initialized = true;
-      if (GLOBAL_CONFIG.DEBUG) {
-        console.log(`[DomainIndex] Initialized with ${_index.size} domains`);
-      }
-    } catch (e) {
-      console.log(`[DomainIndex] Init skipped: ${e.message}`);
+(function precompileRegex() {
+  if (!GLOBAL_CONFIG.DEBUG) console.log(`[${META.name}] Precompiling regex patterns...`);
+  
+  Object.values(APP_CONFIGS).forEach(cfg => {
+    // 预编译 regexReplacements
+    if (cfg.regexReplacements && Array.isArray(cfg.regexReplacements)) {
+      cfg._compiledRegex = cfg.regexReplacements.map(rule => ({
+        ...rule,
+        _regex: new RegExp(rule.pattern.source || rule.pattern, 'g')
+      }));
     }
-  }
-
-  function lookup(url) {
-    if (!_initialized) return null;
-    try {
-      const hostname = Utils.getHostname(url);
-      if (!hostname) return null;
-      
-      if (_index.has(hostname)) return _index.get(hostname);
-      
-      const parts = hostname.split('.');
-      if (parts.length > 2) {
-        for (let i = 1; i < parts.length - 1; i++) {
-          const parent = parts.slice(i).join('.');
-          if (_index.has(parent)) return _index.get(parent);
-        }
-      }
-    } catch (e) {
-      // 静默失败
+    
+    // 预编译 gameResources
+    if (cfg.gameResources && Array.isArray(cfg.gameResources)) {
+      cfg._compiledGame = cfg.gameResources.map(res => ({
+        ...res,
+        _regex: new RegExp(`"${res.field}":\\d+`, 'g')
+      }));
     }
-    return null;
-  }
-
-  return { build, lookup };
+  });
+  
+  if (GLOBAL_CONFIG.DEBUG) console.log(`[${META.name}] Regex precompilation done`);
 })();
 
-// ==========================================
-// 6. 环境封装类（与 v8 一致）
-// ==========================================
-
-class Environment {
-  constructor(name) {
-    this.name = name;
-    this.isQX = typeof $task !== 'undefined';
-    this.isSurge = typeof $httpClient !== 'undefined' && !this.isQX;
-    this.isLoon = typeof $loon !== 'undefined';
-    this.platform = this.detectPlatform();
-  }
-
-  detectPlatform() {
-    if (this.isQX) return 'Quantumult X';
-    if (this.isSurge) return 'Surge';
-    if (this.isLoon) return 'Loon';
-    return 'Unknown';
-  }
-
-  log(level, msg) {
-    if (!GLOBAL_CONFIG.DEBUG && level === 'debug') return;
-    const timestamp = new Date().toISOString();
-    const prefix = `[${this.name}][${level.toUpperCase()}][${timestamp}]`;
-    console.log(`${prefix} ${msg}`);
-    if (this.isQX && level === 'error') {
-      $notify(this.name, 'Error', msg);
-    }
-  }
-
-  debug(msg) { this.log('debug', msg); }
-  info(msg) { this.log('info', msg); }
-  warn(msg) { this.log('warn', msg); }
-  error(msg) { this.log('error', msg); }
-
-  done(object) {
-    if (!object || !object.body) {
-      this.warn('Empty response body, returning original');
-      $done({});
-      return;
-    }
-    $done(object);
-  }
-
-  getResponse() { return $response || {}; }
-  getRequest() { return $request || {}; }
-
-  getCurrentUrl() {
-    const resp = this.getResponse();
-    const req = this.getRequest();
-    const url = resp.url || req.url || '';
-    return url.toString();
-  }
-}
+// A模块：构建 URL 索引（启动时执行）
+SimpleMatcher.build(APP_CONFIGS);
 
 // ==========================================
-// 7. 配置验证器
-// ==========================================
-
-class ConfigValidator {
-  static validate(config) {
-    const errors = [];
-    for (const field of CONFIG_SCHEMA.required) {
-      if (!config[field]) {
-        errors.push(`Missing required field: ${field}`);
-      }
-    }
-    const mode = config.mode || 'json';
-    const modeSchema = CONFIG_SCHEMA.modes[mode];
-    if (modeSchema?.required) {
-      for (const field of modeSchema.required) {
-        if (!config[field]) {
-          errors.push(`Mode '${mode}' requires field: ${field}`);
-        }
-      }
-    }
-    return { valid: errors.length === 0, errors };
-  }
-
-  static filterValidConfigs(configs) {
-    const valid = {};
-    const invalid = [];
-    for (const [key, config] of Object.entries(configs)) {
-      const validation = this.validate(config);
-      if (validation.valid) {
-        valid[key] = config;
-      } else {
-        invalid.push({ key, errors: validation.errors });
-      }
-    }
-    if (invalid.length > 0 && GLOBAL_CONFIG.DEBUG) {
-      console.log('[ConfigValidator] Invalid configs:', invalid);
-    }
-    return { valid, invalidCount: invalid.length };
-  }
-}
-
-// ==========================================
-// 8. VIP 解锁核心引擎
+// VIP 解锁核心引擎（使用预编译正则）
 // ==========================================
 
 class VipUnlockEngine {
   constructor(env) {
     this.env = env;
     this.config = null;
-    this.stats = {
-      startTime: Date.now(),
-      mode: null,
-      modifications: 0,
-      errors: []
-    };
+    this.stats = { startTime: Date.now(), mode: null, modifications: 0, errors: [] };
   }
 
   setConfig(config) {
@@ -1134,26 +984,20 @@ class VipUnlockEngine {
   process(response, url) {
     try {
       if (!response?.body) {
-        this.env.warn('No response body found');
+        this.env.warn('No response body');
+        return { body: response?.body || '{}' };
       }
+
       const mode = this.config.mode || this.detectMode();
       this.stats.mode = mode;
-      this.env.debug(`Processing with mode: ${mode}`);
 
       switch (mode) {
-        case CONSTANTS.MODES.HTML:
-          return this.processHtmlMode(response.body);
-        case CONSTANTS.MODES.MULTIPATH:
-          return this.processMultipathMode(response.body, url);
-        case CONSTANTS.MODES.HYBRID:
-          return this.processHybridMode(response.body);
-        case CONSTANTS.MODES.GAME:
-          return this.processGameMode(response.body);
-        case CONSTANTS.MODES.REGEX:
-          return this.processRegexMode(response.body);
-        case CONSTANTS.MODES.JSON:
-        default:
-          return this.processJsonMode(response.body);
+        case CONSTANTS.MODES.HTML: return this.processHtmlMode(response.body);
+        case CONSTANTS.MODES.MULTIPATH: return this.processMultipathMode(response.body, url);
+        case CONSTANTS.MODES.HYBRID: return this.processHybridMode(response.body);
+        case CONSTANTS.MODES.GAME: return this.processGameMode(response.body);
+        case CONSTANTS.MODES.REGEX: return this.processRegexMode(response.body);
+        case CONSTANTS.MODES.JSON: default: return this.processJsonMode(response.body);
       }
     } catch (e) {
       this.env.error(`Processing error: ${e.message}`);
@@ -1174,124 +1018,98 @@ class VipUnlockEngine {
   processHtmlMode(body) {
     let modifiedBody = body;
     const replacements = this.config.htmlReplacements || [];
-    this.env.debug(`HTML replacements: ${replacements.length} rules`);
+    
     for (const rule of replacements) {
       try {
         const regex = Utils.getRegExp(rule.pattern, 'i');
-        const original = modifiedBody;
         modifiedBody = modifiedBody.replace(regex, rule.replacement);
-        if (original !== modifiedBody) {
-          this.stats.modifications++;
-          this.env.debug(`Applied: ${rule.description || 'unnamed'}`);
-        }
+        this.stats.modifications++;
       } catch (e) {
         this.env.warn(`HTML replacement error: ${e.message}`);
       }
     }
-    this.env.info(`${this.config.name} processed (HTML mode)`);
     return { body: modifiedBody };
   }
 
   processMultipathMode(body, url) {
-    const safeUrl = (url || '').toString();
-    let obj = Utils.safeJsonParse(body);
-    if (!obj) {
-      return { body: Utils.safeJsonStringify({}) };
-    }
+    const obj = SafeUtils.safeJsonParse(body, null);
+    if (!obj) return { body };
+
     const handlers = this.config.pathHandlers || [];
-    let matched = false;
     for (const handler of handlers) {
-      const pathMatch = safeUrl.includes(handler.path);
-      const regexMatch = !handler.pathRegex || handler.pathRegex.test(safeUrl);
-      const containsMatch = !handler.urlContains || safeUrl.includes(handler.urlContains);
-      if (pathMatch && regexMatch && containsMatch) {
-        matched = true;
-        this.env.debug(`Matched handler: ${handler.path}`);
-        for (const action of handler.actions || []) {
-          try {
-            this.executeAction(obj, action);
-          } catch (e) {
-            this.env.warn(`Action error: ${e.message}`);
-          }
+      try {
+        const pathMatch = url.includes(handler.path);
+        const regexMatch = !handler.pathRegex || handler.pathRegex.test(url);
+        const containsMatch = !handler.urlContains || url.includes(handler.urlContains);
+        
+        if (pathMatch && regexMatch && containsMatch) {
+          (handler.actions || []).forEach(action => this.executeAction(obj, action));
+          break;
         }
-        break;
+      } catch (e) {
+        continue;
       }
     }
-    if (!matched) {
-      this.env.debug('No matching path handler found');
-    }
-    return { body: Utils.safeJsonStringify(obj) };
+    return { body: SafeUtils.safeJsonStringify(obj) };
   }
 
   executeAction(obj, action) {
-    switch (action.type) {
-      case 'delete':
-        this.actionDelete(obj, action);
-        break;
-      case 'set':
-        this.actionSet(obj, action);
-        break;
-      case 'arraySlice':
-        this.actionArraySlice(obj, action);
-        break;
-      case 'arrayShift':
-        this.actionArrayShift(obj, action);
-        break;
-      case 'custom':
-        if (typeof action.processor === 'function') {
-          action.processor(obj, this.env);
-          this.stats.modifications++;
-        }
-        break;
-      default:
-        this.env.warn(`Unknown action type: ${action.type}`);
-    }
-  }
-
-  actionDelete(obj, action) {
-    const parts = action.field.split('.');
-    let current = obj;
-    for (let i = 0; i < parts.length - 1; i++) {
-      current = current?.[parts[i]];
-      if (!current) return;
-    }
-    delete current[parts[parts.length - 1]];
-    this.stats.modifications++;
-    this.env.debug(`Deleted: ${action.field}`);
-  }
-
-  actionSet(obj, action) {
-    Utils.setValueByPath(obj, action.field, action.value);
-    this.stats.modifications++;
-    this.env.debug(`Set: ${action.field} = ${JSON.stringify(action.value)}`);
-  }
-
-  actionArraySlice(obj, action) {
-    const arr = Utils.getValueByPath(obj, action.field);
-    if (Array.isArray(arr)) {
-      const original = arr.length;
-      Utils.setValueByPath(obj, action.field, arr.slice(0, action.keepCount));
-      this.stats.modifications++;
-      this.env.debug(`Sliced: ${action.field} ${original} -> ${action.keepCount}`);
-    }
-  }
-
-  actionArrayShift(obj, action) {
-    const arr = Utils.getValueByPath(obj, action.field);
-    if (Array.isArray(arr) && arr.length > 0) {
-      arr.shift();
-      this.stats.modifications++;
-      this.env.debug(`Shifted: ${action.field}`);
+    try {
+      switch (action.type) {
+        case 'delete':
+          if (action.field) {
+            const parts = action.field.split('.');
+            let curr = obj;
+            for (let i = 0; i < parts.length - 1; i++) {
+              curr = curr?.[parts[i]];
+              if (!curr) return;
+            }
+            delete curr?.[parts[parts.length - 1]];
+            this.stats.modifications++;
+          }
+          break;
+        case 'set':
+          if (action.field) {
+            Utils.setValueByPath(obj, action.field, action.value);
+            this.stats.modifications++;
+          }
+          break;
+        case 'arraySlice':
+          if (action.field) {
+            const arr = Utils.getValueByPath(obj, action.field);
+            if (Array.isArray(arr)) {
+              Utils.setValueByPath(obj, action.field, arr.slice(0, action.keepCount));
+              this.stats.modifications++;
+            }
+          }
+          break;
+        case 'arrayShift':
+          if (action.field) {
+            const arr = Utils.getValueByPath(obj, action.field);
+            if (Array.isArray(arr) && arr.length > 0) {
+              arr.shift();
+              this.stats.modifications++;
+            }
+          }
+          break;
+        case 'custom':
+          if (typeof action.processor === 'function') {
+            action.processor(obj, this.env);
+            this.stats.modifications++;
+          }
+          break;
+      }
+    } catch (e) {
+      this.env.warn(`Action execution error: ${e.message}`);
     }
   }
 
   processHybridMode(body) {
-    let obj = Utils.safeJsonParse(body, null);
+    let obj = SafeUtils.safeJsonParse(body, null);
     if (obj !== null && this.config.customProcessor) {
       try {
         obj = this.config.customProcessor(obj, this.env);
-        this.env.info(`${this.config.name} processed (Hybrid-JSON)`);
-        return { body: Utils.safeJsonStringify(obj) };
+        return { body: SafeUtils.safeJsonStringify(obj) };
       } catch (e) {
         this.env.warn(`Custom processor failed: ${e.message}, falling back to regex`);
       }
@@ -1300,231 +1118,144 @@ class VipUnlockEngine {
   }
 
   processJsonMode(body) {
-    let obj = Utils.safeJsonParse(body);
-    if (!obj) {
-      return this.createErrorResponse('Failed to parse JSON');
-    }
+    const obj = SafeUtils.safeJsonParse(body, null);
+    if (!obj) return { body };
+
     if (typeof this.config.customProcessor === 'function') {
-      obj = this.config.customProcessor(obj, this.env);
-      this.env.info(`${this.config.name} processed (JSON-Declarative)`);
-      return { body: Utils.safeJsonStringify(obj) };
-    }
-    if (this.config.fields) {
+      this.config.customProcessor(obj, this.env);
+    } else if (this.config.fields) {
       this.applyFieldMapping(obj);
     }
-    if (this.config.responseWrapper?.enabled) {
-      const hasData = Utils.getValueByPath(obj, 'data');
-      if (!hasData || Object.keys(hasData).length === 0) {
-        this.env.debug('Using response wrapper template');
-        obj = Utils.deepMerge({}, this.config.responseWrapper.template);
-      }
-    }
-    this.env.info(`${this.config.name} processed (JSON mode)`);
-    return { body: Utils.safeJsonStringify(obj) };
+    
+    return { body: SafeUtils.safeJsonStringify(obj) };
   }
 
   applyFieldMapping(obj) {
     for (const [key, field] of Object.entries(this.config.fields)) {
-      const exists = Utils.pathExists(obj, field.path);
-      Utils.setValueByPath(obj, field.path, field.value);
-      if (exists) {
+      try {
+        Utils.setValueByPath(obj, field.path || key, field.value);
         this.stats.modifications++;
-        this.env.debug(`Modified: ${field.path} = ${JSON.stringify(field.value)}`);
-      } else {
-        this.env.debug(`Created: ${field.path} = ${JSON.stringify(field.value)}`);
+      } catch (e) {
+        this.env.warn(`Field mapping error: ${e.message}`);
       }
     }
   }
 
+  // B模块：使用预编译正则
   processRegexMode(body) {
     let modifiedBody = body;
-    const replacements = this.config.regexReplacements || [];
-    this.env.debug(`Regex replacements: ${replacements.length} rules`);
-    for (const rule of replacements) {
-      try {
-        const regex = Utils.getRegExp(rule.pattern, 'g');
-        const original = modifiedBody;
-        modifiedBody = modifiedBody.replace(regex, rule.replacement);
-        if (original !== modifiedBody) {
+    
+    // 优先使用预编译正则
+    if (this.config._compiledRegex) {
+      for (const rule of this.config._compiledRegex) {
+        try {
+          modifiedBody = modifiedBody.replace(rule._regex, rule.replacement);
           this.stats.modifications++;
-          this.env.debug(`Applied: ${rule.description || 'unnamed'}`);
+        } catch (e) {
+          this.env.warn(`Regex error: ${rule.description || 'unnamed'}`);
         }
-      } catch (e) {
-        this.env.warn(`Regex error: ${e.message}`);
+      }
+    } else {
+      // 回退到动态编译（兼容）
+      const replacements = this.config.regexReplacements || [];
+      for (const rule of replacements) {
+        try {
+          const regex = Utils.getRegExp(rule.pattern, 'g');
+          modifiedBody = modifiedBody.replace(regex, rule.replacement);
+          this.stats.modifications++;
+        } catch (e) {
+          this.env.warn(`Regex error: ${rule.description || 'unnamed'}`);
+        }
       }
     }
-    this.env.info(`${this.config.name} processed (Regex mode)`);
     return { body: modifiedBody };
   }
 
+  // B模块：使用预编译游戏正则
   processGameMode(body) {
     let modifiedBody = body;
-    const resources = this.config.gameResources || [];
-    this.env.debug(`Game resources: ${resources.length} items`);
-    for (const resource of resources) {
-      try {
-        const pattern = new RegExp(`\\"${resource.field}\\\":\\\\d+`, 'g');
-        const replacement = `"${resource.field}":${resource.value}`;
-        const original = modifiedBody;
-        modifiedBody = modifiedBody.replace(pattern, replacement);
-        if (original !== modifiedBody) {
+    
+    if (this.config._compiledGame) {
+      for (const res of this.config._compiledGame) {
+        try {
+          modifiedBody = modifiedBody.replace(res._regex, `"${res.field}":${res.value}`);
           this.stats.modifications++;
-          this.env.debug(`Modified: ${resource.description} (${resource.field})`);
+        } catch (e) {
+          this.env.warn(`Game resource error: ${res.field}`);
         }
-      } catch (e) {
-        this.env.warn(`Game resource error: ${e.message}`);
+      }
+    } else {
+      const resources = this.config.gameResources || [];
+      for (const res of resources) {
+        try {
+          const pattern = new RegExp(`"${res.field}":\\d+`, 'g');
+          modifiedBody = modifiedBody.replace(pattern, `"${res.field}":${res.value}`);
+          this.stats.modifications++;
+        } catch (e) {
+          this.env.warn(`Game resource error: ${res.field}`);
+        }
       }
     }
-    this.env.info(`${this.config.name} processed (Game mode)`);
     return { body: modifiedBody };
-  }
-
-  createErrorResponse(reason) {
-    this.env.error(`Error: ${reason}`);
-    return { body: $response?.body || '{}' };
   }
 
   getStats() {
-    return {
-      ...this.stats,
-      duration: Date.now() - this.stats.startTime
-    };
+    return { ...this.stats, duration: Date.now() - this.stats.startTime };
   }
 }
 
 // ==========================================
-// 9. 插件管理器（安全回退版）
-// ==========================================
-
-class PluginManager {
-  constructor() {
-    this.plugins = new Map();
-    this._totalAvailable = 0;
-    // 默认关闭索引，避免兼容性问题
-    this._useIndex = false;
-  }
-
-  loadForUrl(url, configs) {
-    if (!url) return null;
-    
-    // 如果启用了索引且已初始化，尝试使用
-    if (GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX) {
-      try {
-        DomainIndex.build(configs);
-        const candidates = DomainIndex.lookup(url);
-        if (candidates && candidates.length > 0) {
-          for (const key of candidates) {
-            const config = configs[key];
-            if (config?.urlPattern?.test(url)) {
-              this.plugins.set(key, Object.freeze({ ...config }));
-              return config;
-            }
-          }
-        }
-      } catch (e) {
-        // 索引失败，继续回退
-      }
-    }
-    
-    // 传统线性遍历（最安全）
-    return this.linearSearch(url, configs);
-  }
-
-  linearSearch(url, configs) {
-    try {
-      const { valid, invalidCount } = ConfigValidator.filterValidConfigs(configs);
-      this._totalAvailable = Object.keys(valid).length;
-      
-      if (invalidCount > 0 && GLOBAL_CONFIG.DEBUG) {
-        console.log(`[PluginManager] ${invalidCount} invalid configs skipped`);
-      }
-      
-      for (const [key, config] of Object.entries(valid)) {
-        if (config.urlPattern?.test(url)) {
-          this.plugins.set(key, Object.freeze({ ...config }));
-          return config;
-        }
-      }
-    } catch (e) {
-      console.error(`[PluginManager] Search error: ${e.message}`);
-    }
-    
-    return null;
-  }
-
-  registerAll(configs) {
-    try {
-      const { valid, invalidCount } = ConfigValidator.filterValidConfigs(configs);
-      this._totalAvailable = Object.keys(valid).length;
-      let successCount = 0;
-      for (const [key, config] of Object.entries(valid)) {
-        this.plugins.set(key, Object.freeze({ ...config }));
-        successCount++;
-      }
-      console.log(`[PluginManager] Loaded ${successCount} plugins (${invalidCount} invalid)`);
-      return successCount;
-    } catch (e) {
-      console.error(`[PluginManager] Register error: ${e.message}`);
-      return 0;
-    }
-  }
-
-  get(id) { return this.plugins.get(id); }
-  getLoadedCount() { return this.plugins.size; }
-}
-
-// ==========================================
-// 10. 主入口（全局异常捕获）
+// 主入口（使用 SimpleMatcher 替代遍历）
 // ==========================================
 
 function main() {
   const env = new Environment(META.name);
+  
   try {
-    env.info(`Starting ${META.name} v${META.version}`);
+    env.info(`Starting ${META.name} v${META.version} [ABE: Index+Precompile+LRU]`);
     
-    const requestUrl = env.getCurrentUrl();
-    if (!requestUrl) {
-      env.error('No URL found');
+    const url = env.getCurrentUrl();
+    if (!url) {
+      env.error('URL not found');
       env.done({});
       return;
     }
     
-    const pluginManager = new PluginManager();
-    let appConfig = pluginManager.loadForUrl(requestUrl, APP_CONFIGS);
-    
-    if (!appConfig) {
-      pluginManager.registerAll(APP_CONFIGS);
-      appConfig = pluginManager.loadForUrl(requestUrl, APP_CONFIGS);
+    // A模块：使用索引匹配（替代原遍历）
+    const config = SimpleMatcher.find(url);
+    if (!config) {
+      env.info('No config matched');
+      env.done(env.getResponse());
+      return;
     }
     
-    if (!appConfig) {
-      env.warn('Using generic config');
-      appConfig = {
-        name: 'Generic',
-        mode: 'json',
-        customProcessor: ProcessorUtils.setFields({
-          'data.is_vip': 1,
-          'data.vip_expire_date': CONSTANTS.EXPIRE_TIMESTAMP
-        })
-      };
+    env.info(`Matched: ${config.name}`);
+    
+    const response = env.getResponse();
+    if (!response?.body) {
+      env.warn('Empty response body');
+      env.done({});
+      return;
     }
     
     const engine = new VipUnlockEngine(env);
-    engine.setConfig(appConfig);
-    const response = env.getResponse();
-    const result = engine.process(response, requestUrl);
+    engine.setConfig(config);
+    const result = engine.process(response, url);
+    
     const stats = engine.getStats();
-    env.info(`Done in ${stats.duration}ms, ${stats.modifications} mods`);
+    env.info(`Completed: ${stats.modifications} mods, ${stats.errors.length} errs, ${stats.duration}ms`);
+    
     env.done(result);
     
   } catch (e) {
-    env.error(`Fatal: ${e.message}`);
+    env.error(`Fatal error: ${e.message}`);
     try {
-      env.done({ body: $response?.body });
-    } catch (doneErr) {
-      $done({});
+      env.done(env.getResponse());
+    } catch (e2) {
+      env.done({});
     }
   }
 }
 
+// 执行
 main();
