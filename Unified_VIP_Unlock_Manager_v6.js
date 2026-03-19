@@ -103,7 +103,7 @@ const CONSTANTS = Object.freeze({
         "1105", "1106", "1107", "1108", "1109", "1110"
     ]),
     MODES: Object.freeze({                         // 处理器模式枚举
-        : '',                              // 数据处理模式
+        JSON: 'json',                              // 数据处理模式
         REGEX: 'regex',                            // 正则替换模式
         GAME: 'game',                              // 游戏数值修改模式
         HYBRID: 'hybrid',                          // 混合模式（JSON+正则）
