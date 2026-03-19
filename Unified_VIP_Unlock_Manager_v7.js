@@ -853,10 +853,10 @@ sylangyue: {
   urlPattern: /^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info/,
   mode: 'json',
   customProcessor: ProcessorUtils.setFields({
-    'data.login_way: true,
+    'data.login_way': true,
     'data.beans': 999881
-    //'data.vip.expired_date': CONSTANTS.EXPIRE_DATE,
-    //'data.vip.expired_at': 9999999999999
+    'data.vip.expired_date': 2999-09-09,
+    'data.vip.expired_at': 9999999999999
   })
 },
     /**
