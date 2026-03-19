@@ -847,6 +847,7 @@ const APP_CONFIGS = Object.freeze({
  *
  * 【处理策略】使用 setFields 直接设置VIP相关
  */
+ 
 sylangyue: {
   id: 'sylangyue',
   name: '思朗月影视',
@@ -855,10 +856,11 @@ sylangyue: {
   customProcessor: ProcessorUtils.setFields({
     'data.login_way': true,
     'data.beans': 999881,
-    'data.vip.expired_date': 2999-09-09,
-    'data.vip.expired_at': 9999999999999
+    //'data.vip.expired_date': 2999-09-09,
+    //'data.vip.expired_at': 9999999999999
   })
 },
+
     /**
      * gps - GPS工具箱用户信息
      * 
