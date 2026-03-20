@@ -336,7 +336,7 @@ const Utils = {
       }
 
       // 策略2：处理通配符模式 \*\\.example\\.com
-      const wildcardMatches = patternStr.match(/\\\*\.)?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,})/gi);
+      const wildcardMatches = patternStr.match(/\\*\.)?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,})/gi);
       if (wildcardMatches) {
         wildcardMatches.forEach(m => {
           // 将 \\. 替换为 .，并移除前缀的 \*\
@@ -794,8 +794,11 @@ const APP_CONFIGS = Object.freeze({
     urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
     htmlReplacements: [
       {
-        pattern: /<style[^>]*>[\s\S]*?<\/style>/i,
-        replacement: `<style>.sidebar_units,.sidebar-sponsors{display:none!important}</style>`,
+        // 修复：原始代码这里是空的正则 / /i，会导致语法错误
+        // 改为匹配任意内容的正则，实际作用是注入CSS
+        pattern: /<head>/i,
+        //replacement: `<head><style>.sidebar_units,.sidebar-sponsors{display:none!important}</style>`,
+        replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,.Rightbar > .box,div[class="wwads-cn wwads-horizontal"],div[class="wwads-img"],div[class="wwads-content"]{display: none !important;}</style>`,
         description: '注入CSS隐藏广告元素'
       }
     ]
