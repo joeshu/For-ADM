@@ -785,7 +785,7 @@ const APP_CONFIGS = Object.freeze({
       )
     )
   },
-/*
+
   v2ex: {
     id: 'v2ex',
     name: 'V2EX去广告',
@@ -801,7 +801,7 @@ const APP_CONFIGS = Object.freeze({
       }
     ]
   },
-*/
+
   foday: {
     id: 'foday',
     name: '复游会',
