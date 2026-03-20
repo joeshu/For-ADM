@@ -5,8 +5,6 @@
  * @version 9.1
  * @description 修复域名索引构建异常，增强容错能力
  * ==========================================
- */
-
 [rewrite_local]
  # iAppDaily - 余额查询接口（JSON模式-声明式字段设置）
  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v9.js
