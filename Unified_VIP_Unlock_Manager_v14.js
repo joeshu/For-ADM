@@ -1,49 +1,51 @@
 /**
  * ==========================================
- * Unified VIP Unlock Manager v9.1.1
- * 统一 VIP 解锁管理器 - 性能优化与稳定性修复版
- * @version 9.1.1
- * @description 修复复游会过滤不稳定，添加请求缓存，增强联通智家调试
+ * Unified VIP Unlock Manager v14.0
+ * 统一 VIP 解锁管理器 - 手动映射表版
+ * @version 14.0
+ * @description 基于 hostname 手动映射表的域名索引系统，更稳定且可维护
  * ==========================================
+
 [rewrite_local]
- # iAppDaily - 余额查询接口（JSON模式-声明式字段设置）
- ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # TopHub - 账户同步接口（JSON模式-声明式组合）
- ^https?:\/\/(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # gps - GPS工具箱（JSON模式-声明式字段设置）
- ^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # kyxq - 口语星球（JSON模式-声明式场景分发）
- ^https?:\/\/mapi\.kouyuxingqiu\.com\/api\/v2 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # mhlz - 魔幻粒子（JSON模式-声明式前缀处理）
- ^https?:\/\/ss\.landintheair\.com\/storage\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # v2ex - V2EX去广告（HTML替换模式）
- ^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf))))) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # foday - 复游会去广告（多路径模式-声明式过滤）
- ^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # qiujingapp - 球竞APP去广告（多路径模式-声明式清空）
- ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(3|6|8|11)(\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- ^https?:\/\/gateway-api\.yizhilive\.com\/api\/v3\/index\/all\?.*position=2.*$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # Keep - 课程/会员接口（正则替换模式）
- ^https?:\/\/(api|kit).gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # bqwz - 标枪王者游戏数据接口（游戏数值模式）
- ^https?:\/\/javelin\.mandrillvr\.com\/api\/data\/get_game_data url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # bxkt - 伴学课堂接口（混合模式-声明式组合）
- ^https?:\/\/api\.banxueketang\.com\/api\/classpal\/app\/v1 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # tv - 影视去广告接口（多路径模式-完全声明式）
- ^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getSearchAd|getVodBodyAd|getVodPauseAd|getUserCenterAd) url reject-dict
- ^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(home\/notice|gameCenter\/gameDetailList) url reject-dict
- # 成语来解压 - 微信小程序无限金币（游戏数值模式）
- ^https?:\/\/yr-game-api\.feigo\.fun\/api\/user\/get-game-user-value url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- # 星际使命 - 微信小程序游戏数据修改（JSON声明式处理器-完全重构）
- ^https?:\/\/star\.jvplay\.cn\/v2\/storage url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
+# iAppDaily - 余额查询接口（JSON模式-声明式字段设置）
+^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# TopHub - 账户同步接口（JSON模式-声明式组合）
+^https?:\/\/(?:api[23]\.tophub\.(?:xyz|today|app)|tophub(?:2)?\.(?:tophubdata\.com|idaily\.today|remai\.today|iappdaiy\.com|ipadown\.com))\/account\/sync url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# gps - GPS工具箱（JSON模式-声明式字段设置）
+^https:\/\/service\.gpstool\.com\/app\/index\/getUserInfo url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# kyxq - 口语星球（JSON模式-声明式场景分发）
+^https?:\/\/mapi\.kouyuxingqiu\.com\/api\/v2 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# mhlz - 魔幻粒子（JSON模式-声明式前缀处理）
+^https?:\/\/ss\.landintheair\.com\/storage\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# v2ex - V2EX去广告（HTML替换模式）
+^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf))))) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# foday - 复游会去广告（多路径模式-声明式过滤）
+^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# qiujingapp - 球竞APP去广告（多路径模式-声明式清空）
+^https?:\/\/gateway-api\.yizhilive\.com\/api\/v2\/index\/carouses\/(3|6|8|11)(\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+^https?:\/\/gateway-api\.yizhilive\.com\/api\/v3\/index\/all\?.*position=2.*$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# Keep - 课程/会员接口（正则替换模式）
+^https?:\/\/(api|kit)\.gotokeep\.com\/(nuocha|gerudo|athena|nuocha\/plans|suit\/v5\/smart|kprime\/v4\/suit\/sales)\/ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# bqwz - 标枪王者游戏数据接口（游戏数值模式）
+^https?:\/\/javelin\.mandrillvr\.com\/api\/data\/get_game_data url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# bxkt - 伴学课堂接口（混合模式-声明式组合）
+^https?:\/\/api\.banxueketang\.com\/api\/classpal\/app\/v1 url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# tv - 影视去广告接口（多路径模式-完全声明式）
+^https?:\/\/(yzy0916|yz1018|yz250907|yz0320|cfvip)\..+\.com\/(v2|v1)\/api\/(basic\/init|home\/firstScreen|adInfo\/getPageAd|home\/body) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(adInfo|vodInfo)\/(getPageAd|getTextAd|getSearchAd|getVodBodyAd|getVodPauseAd|getUserCenterAd) url reject-dict
+^https?:\/\/(yz\w{4,6}|cfvip)\..+\.com\/(v2|v1)\/api\/(home\/notice|gameCenter\/gameDetailList) url reject-dict
+# 成语来解压 - 微信小程序无限金币（游戏数值模式）
+^https?:\/\/yr-game-api\.feigo\.fun\/api\/user\/get-game-user-value url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+# 星际使命 - 微信小程序游戏数据修改（JSON声明式处理器-完全重构）
+^https?:\/\/star\.jvplay\.cn\/v2\/storage url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
 # wohome - 联通智家去广告（条件删除模式）
- ^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
+^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
 # 思朗月影视 - 用户信息VIP解锁
-^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/14.js
- [mitm]
- hostname = theater-api.sylangyue.xyz, api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com,service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com,api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn,iotpservice.smartont.net
+^https?:\/\/theater-api\.sylangyue\.xyz\/api\/user\/info url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v14.js
+[mitm]
+hostname = theater-api.sylangyue.xyz, api.iappdaily.com, api2.tophub.today, api2.tophub.app, api3.tophub.xyz, api3.tophub.today, api3.tophub.app, tophub.tophubdata.com, tophub2.tophubdata.com, tophub.idaily.today, tophub2.idaily.today, tophub.remai.today, tophub.iappdaiy.com, tophub.ipadown.com,service.gpstool.com, mapi.kouyuxingqiu.com, ss.landintheair.com, *.v2ex.com, apis.folidaymall.com, gateway-api.yizhilive.com, pagead*.googlesyndication.com, api.gotokeep.com, kit.gotokeep.com, *.gotokeep.*, 120.53.74.*, 162.14.5.*, 42.187.199.*, 101.42.124.*, javelin.mandrillvr.com,api.banxueketang.com, yzy0916.*.com, yz1018.*.com, yz250907.*.com, yz0320.*.com, cfvip.*.com,yr-game-api.feigo.fun,star.jvplay.cn,iotpservice.smartont.net
  */
+
 'use strict';
 
 // ==========================================
@@ -52,9 +54,9 @@
 
 const META = {
   name: 'UnifiedVIP',
-  version: '9.1.1',
+  version: '14.0',
   author: 'joeshu & contributors',
-  description: 'Unified VIP Unlock Manager - Performance & Stability Fixed',
+  description: 'Unified VIP Unlock Manager - Manual Hostname Mapping',
   updated: '2026-03-20'
 };
 
@@ -87,66 +89,9 @@ const GLOBAL_CONFIG = Object.freeze({
   DEBUG: true,
   ENABLE_CACHE: true,
   MAX_CACHE_SIZE: 100,
-  ENABLE_DOMAIN_INDEX: true
+  ENABLE_DOMAIN_INDEX: true,
+  INDEX_LOOKUP_TIMEOUT: 50 // ms
 });
-
-// ==========================================
-// 1.1 请求缓存系统（性能优化 - 防止同一URL重复处理）
-// ==========================================
-const REQUEST_CACHE = {
-  _cache: new Map(),
-  _maxSize: 50,  // 最多缓存50条
-  
-  /**
-   * 获取缓存结果
-   * @param {string} url - 请求URL
-   * @returns {object|null} 缓存的结果或null
-   */
-  get(url) {
-    const entry = this._cache.get(url);
-    if (!entry) return null;
-    
-    // 检查是否过期（5秒）
-    if (Date.now() - entry.timestamp > 5000) {
-      this._cache.delete(url);
-      return null;
-    }
-    return entry.data;
-  },
-  
-  /**
-   * 存储缓存结果
-   * @param {string} url - 请求URL
-   * @param {object} data - 要缓存的结果
-   */
-  set(url, data) {
-    // LRU淘汰：如果超过最大大小，删除最旧的
-    if (this._cache.size >= this._maxSize) {
-      const firstKey = this._cache.keys().next().value;
-      this._cache.delete(firstKey);
-    }
-    
-    this._cache.set(url, {
-      data: data,
-      timestamp: Date.now()
-    });
-  },
-  
-  /**
-   * 获取当前缓存大小
-   * @returns {number}
-   */
-  get size() {
-    return this._cache.size;
-  },
-  
-  /**
-   * 清空缓存
-   */
-  clear() {
-    this._cache.clear();
-  }
-};
 
 const CONFIG_SCHEMA = {
   required: ['id', 'name', 'urlPattern'],
@@ -308,58 +253,15 @@ const Utils = {
   },
 
   /**
-   * 从正则表达式中提取域名（健壮版）
+   * 从hostname提取基础域名（用于模糊匹配）
    */
-  extractDomainsFromPattern(pattern) {
-    const domains = new Set();
-    try {
-      // 确保是正则对象
-      if (!(pattern instanceof RegExp)) {
-        return [];
-      }
-
-      const patternStr = pattern.source;
-
-      // 策略1：匹配显式域名模式（如 api.example.com）
-      // 匹配：example.com, api.example.com, *.example.com 等
-      const domainRegex = /[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,}/gi;
-      const matches = patternStr.match(domainRegex);
-
-      if (matches) {
-        matches.forEach(match => {
-          if (match && match.includes('.')) {
-            domains.add(match.toLowerCase());
-          }
-        });
-      }
-
-      // 策略2：处理通配符模式 \*\\.example\\.com
-      const wildcardMatches = patternStr.match(/\\*\.)?([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.[a-z]{2,})/gi);
-      if (wildcardMatches) {
-        wildcardMatches.forEach(m => {
-          // 将 \\. 替换为 .，并移除前缀的 \*\
-          const domain = m.replace(/\\\./g, '.').replace(/^\\\*\./, '').toLowerCase();
-          if (domain && domain.includes('.')) {
-            domains.add(domain);
-          }
-        });
-      }
-
-      // 策略3：提取基础域名用于索引（如 api.example.com -> example.com）
-      const domainList = Array.from(domains);
-      domainList.forEach(domain => {
-        const parts = domain.split('.');
-        if (parts.length > 2) {
-          // 添加父域名到索引
-          domains.add(parts.slice(-2).join('.'));
-        }
-      });
-
-    } catch (e) {
-      console.log(`[Utils] Domain extraction error: ${e.message}`);
+  getBaseDomain(hostname) {
+    if (!hostname) return null;
+    const parts = hostname.split('.');
+    if (parts.length >= 2) {
+      return parts.slice(-2).join('.');
     }
-
-    return Array.from(domains);
+    return hostname;
   }
 };
 
@@ -419,11 +321,7 @@ const ProcessorUtils = {
       const originalLength = arr.length;
       let filtered;
       if (excludeSet && keyExtractor) {
-        // 修复：增强 keyExtractor 的健壮性，处理空值情况
-        filtered = arr.filter(item => {
-          const key = keyExtractor(item);
-          return !excludeSet.has(key);
-        });
+        filtered = arr.filter(item => !excludeSet.has(keyExtractor(item)));
       } else if (keepPredicate) {
         filtered = arr.filter(keepPredicate);
       } else {
@@ -785,23 +683,20 @@ const APP_CONFIGS = Object.freeze({
       )
     )
   },
-/*
+
   v2ex: {
     id: 'v2ex',
     name: 'V2EX去广告',
-    urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
+    urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))$/,
     htmlReplacements: [
       {
-        // 修复：原始代码这里是空的正则 / /i，会导致语法错误
-        // 改为匹配任意内容的正则，实际作用是注入CSS
         pattern: /<head>/i,
-        //replacement: `<head><style>.sidebar_units,.sidebar-sponsors{display:none!important}</style>`,
-        replacement:`<head><style>.sidebar_units,.sidebar_compliance,ins.adsbygoogle,.Rightbar > .box,div[class="wwads-cn wwads-horizontal"],div[class="wwads-img"],div[class="wwads-content"]{display: none !important;}</style>`,
+        replacement: `<head><style>.ads, .banner, .sidebar .box:has(.ads), #Top .content:has(.ads) { display: none !important; }</style>`,
         description: '注入CSS隐藏广告元素'
       }
     ]
   },
-*/
+
   foday: {
     id: 'foday',
     name: '复游会',
@@ -822,8 +717,7 @@ const APP_CONFIGS = Object.freeze({
                 "TC_Member_Banner",
                 "TC_AIGO"
               ]),
-              // 修复：增强 keyExtractor 健壮性，处理 item 或 componentCode 为空的情况
-              keyExtractor: (item) => item?.componentCode || 'unknown',
+              keyExtractor: (item) => item.componentCode,
               logName: 'pageComponents'
             })
           }
@@ -1012,104 +906,134 @@ const APP_CONFIGS = Object.freeze({
     ]
   },
 
-  // 修复：联通智家 - 增强调试日志，区分"无广告"和"条件不满足"
   wohome: {
     id: 'wohome',
     name: '联通智家',
     urlPattern: /^https:\/\/iotpservice\.smartont\.net\/wohome\/dispatcher/,
     mode: 'json',
-    customProcessor: (obj, env) => {
-      const posCode = obj?.data?.posCode;
-      
-      // 增强调试日志：详细显示 posCode 状态
-      if (env) {
-        if (!posCode) {
-          env.log(`[wohome] Skip: posCode is empty/undefined`);
-        } else if (!posCode.includes("APP_START_PAGE")) {
-          env.log(`[wohome] Skip: posCode="${posCode}" (not APP_START_PAGE)`);
-        } else {
-          env.log(`[wohome] Match: posCode="${posCode}" → removing configList`);
-        }
-      }
-      
-      // 执行过滤逻辑
-      if (posCode?.includes("APP_START_PAGE")) {
-        const originalLength = obj?.data?.configList?.length || 0;
-        const result = ProcessorUtils.deleteFields('data.configList')(obj, env);
-        if (env && originalLength > 0) {
-          env.log(`[wohome] Removed ${originalLength} config items`);
-        }
-        return result;
-      }
-      return obj;
-    }
+    customProcessor: ProcessorUtils.when(
+      (obj) => obj?.data?.posCode?.includes("APP_START_PAGE"),
+      ProcessorUtils.deleteFields('data.configList')
+    )
   }
 });
 
 // ==========================================
-// 5. 安全域名索引系统（带错误边界）
+// 5. 手动 Hostname 映射表系统（核心改进）
 // ==========================================
+
+/**
+ * 手动维护的 hostname -> appKey 映射表
+ * 优势：
+ * 1. 精确控制：避免正则自动提取的误判
+ * 2. 易于维护：新增应用只需添加映射条目
+ * 3. 性能稳定：无需运行时解析正则表达式
+ * 4. 可读性强：映射关系一目了然
+ */
+const HOSTNAME_MAP = Object.freeze({
+  // iAppDaily
+  'api.iappdaily.com': ['iappdaily'],
+  
+  // TopHub 多域名集群
+  'api2.tophub.today': ['tophub'],
+  'api2.tophub.app': ['tophub'],
+  'api3.tophub.xyz': ['tophub'],
+  'api3.tophub.today': ['tophub'],
+  'api3.tophub.app': ['tophub'],
+  'tophub.tophubdata.com': ['tophub'],
+  'tophub2.tophubdata.com': ['tophub'],
+  'tophub.idaily.today': ['tophub'],
+  'tophub2.idaily.today': ['tophub'],
+  'tophub.remai.today': ['tophub'],
+  'tophub.iappdaiy.com': ['tophub'],
+  'tophub.ipadown.com': ['tophub'],
+  
+  // 思朗月影视
+  'theater-api.sylangyue.xyz': ['sylangyue'],
+  
+  // GPS工具箱
+  'service.gpstool.com': ['gps'],
+  
+  // 口语星球
+  'mapi.kouyuxingqiu.com': ['kyxq'],
+  
+  // 魔幻粒子
+  'ss.landintheair.com': ['mhlz'],
+  
+  // 星际使命
+  'star.jvplay.cn': ['xjsm'],
+  
+  // V2EX（通配符处理）
+  'v2ex.com': ['v2ex'],
+  'www.v2ex.com': ['v2ex'],
+  
+  // 复游会
+  'apis.folidaymall.com': ['foday'],
+  
+  // 球竞APP
+  'gateway-api.yizhilive.com': ['qiujingapp'],
+  
+  // Keep
+  'api.gotokeep.com': ['keep'],
+  'kit.gotokeep.com': ['keep'],
+  
+  // 标枪王者
+  'javelin.mandrillvr.com': ['bqwz'],
+  
+  // 成语来解压
+  'yr-game-api.feigo.fun': ['cyljy'],
+  
+  // 伴学课堂
+  'api.banxueketang.com': ['bxkt'],
+  
+  // 联通智家
+  'iotpservice.smartont.net': ['wohome'],
+  
+  // 影视去广告（动态子域名模式）
+  // 这些使用通配符匹配，在代码中特殊处理
+  'yzy0916': ['tv'],  // 前缀匹配
+  'yz1018': ['tv'],
+  'yz250907': ['tv'],
+  'yz0320': ['tv'],
+  'cfvip': ['tv']
+});
 
 const DomainIndex = (() => {
   const _index = new Map();
+  const _prefixIndex = new Map(); // 用于前缀匹配（如 yz0916.*）
   let _totalDomains = 0;
   let _buildError = null;
 
-  function build(configs) {
+  function build() {
     try {
       const startTime = Date.now();
       let entryCount = 0;
 
-      // 验证输入
-      if (!configs || typeof configs !== 'object') {
-        throw new Error('Invalid configs provided');
+      // 构建精确匹配索引
+      for (const [hostname, appKeys] of Object.entries(HOSTNAME_MAP)) {
+        if (!hostname || !Array.isArray(appKeys)) continue;
+
+        // 检查是否是前缀模式（不含点的hostname视为前缀）
+        if (!hostname.includes('.') || hostname.startsWith('yz') || hostname === 'cfvip') {
+          _prefixIndex.set(hostname, appKeys);
+        } else {
+          _index.set(hostname.toLowerCase(), appKeys);
+        }
+        
+        entryCount += appKeys.length;
       }
 
-      for (const [key, config] of Object.entries(configs)) {
-        // 安全验证配置
-        if (!config || !config.urlPattern) {
-          console.log(`[DomainIndex] Skip invalid config: ${key}`);
-          continue;
-        }
-
-        // 确保是 RegExp 对象
-        if (!(config.urlPattern instanceof RegExp)) {
-          console.log(`[DomainIndex] Skip non-regexp pattern: ${key}`);
-          continue;
-        }
-
-        try {
-          const domains = Utils.extractDomainsFromPattern(config.urlPattern);
-
-          for (const domain of domains) {
-            if (!domain || typeof domain !== 'string') continue;
-
-            if (!_index.has(domain)) {
-              _index.set(domain, []);
-            }
-            const existing = _index.get(domain);
-            if (!existing.includes(key)) {
-              existing.push(key);
-              entryCount++;
-            }
-          }
-        } catch (extractError) {
-          console.log(`[DomainIndex] Extract error for ${key}: ${extractError.message}`);
-          // 继续处理其他配置，不中断
-        }
-      }
-
-      _totalDomains = _index.size;
+      _totalDomains = _index.size + _prefixIndex.size;
       _buildError = null;
 
       if (GLOBAL_CONFIG.DEBUG) {
-        console.log(`[DomainIndex] Built in ${Date.now() - startTime}ms, ${_totalDomains} domains, ${entryCount} entries`);
+        console.log(`[DomainIndex] Built in ${Date.now() - startTime}ms, ${_index.size} exact domains, ${_prefixIndex.size} prefix patterns, ${entryCount} entries`);
       }
     } catch (e) {
       _buildError = e;
       console.error(`[DomainIndex] Build failed: ${e.message}`);
-      // 禁用索引，回退到线性遍历
       _index.clear();
+      _prefixIndex.clear();
       _totalDomains = 0;
     }
   }
@@ -1121,21 +1045,29 @@ const DomainIndex = (() => {
       const hostname = Utils.getHostname(url);
       if (!hostname) return null;
 
-      // 精确匹配
-      if (_index.has(hostname)) {
-        return _index.get(hostname);
+      const lowerHostname = hostname.toLowerCase();
+
+      // 1. 精确匹配
+      if (_index.has(lowerHostname)) {
+        return _index.get(lowerHostname);
       }
 
-      // 尝试父域名
-      const parts = hostname.split('.');
-      if (parts.length > 2) {
-        for (let i = 1; i < parts.length - 1; i++) {
-          const parentDomain = parts.slice(i).join('.');
-          if (_index.has(parentDomain)) {
-            return _index.get(parentDomain);
-          }
+      // 2. 父域名匹配（逐级向上）
+      const parts = lowerHostname.split('.');
+      for (let i = 1; i < parts.length; i++) {
+        const parentDomain = parts.slice(i).join('.');
+        if (_index.has(parentDomain)) {
+          return _index.get(parentDomain);
         }
       }
+
+      // 3. 前缀匹配（用于动态子域名如 yzy0916.xxx.com）
+      for (const [prefix, appKeys] of _prefixIndex.entries()) {
+        if (lowerHostname.includes(prefix)) {
+          return appKeys;
+        }
+      }
+
     } catch (e) {
       console.error(`[DomainIndex] Lookup error: ${e.message}`);
     }
@@ -1146,7 +1078,8 @@ const DomainIndex = (() => {
   function getStats() {
     return {
       totalDomains: _totalDomains,
-      indexSize: _index.size,
+      exactDomains: _index.size,
+      prefixPatterns: _prefixIndex.size,
       hasError: !!_buildError,
       errorMessage: _buildError?.message
     };
@@ -1154,14 +1087,15 @@ const DomainIndex = (() => {
 
   function clear() {
     _index.clear();
+    _prefixIndex.clear();
     _totalDomains = 0;
     _buildError = null;
   }
 
-  // 安全构建（带延迟和错误捕获）
+  // 初始化构建
   if (GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX) {
     try {
-      build(APP_CONFIGS);
+      build();
     } catch (e) {
       console.error(`[DomainIndex] Initialization failed: ${e.message}`);
     }
@@ -1573,7 +1507,7 @@ class VipUnlockEngine {
 }
 
 // ==========================================
-// 9. 安全插件管理器（集成索引容错）
+// 9. 安全插件管理器（集成手动映射表）
 // ==========================================
 
 class PluginManager {
@@ -1581,36 +1515,40 @@ class PluginManager {
     this.plugins = new Map();
     this._totalAvailable = 0;
     this._useIndex = GLOBAL_CONFIG.ENABLE_DOMAIN_INDEX && DomainIndex.isHealthy();
+    this._indexStats = { hits: 0, misses: 0, fallbackScans: 0 };
   }
 
   loadForUrl(url, configs) {
     if (!url) return null;
     const startTime = Date.now();
 
-    // 如果索引健康，优先使用索引
+    // 如果索引健康，优先使用手动映射表
     if (this._useIndex) {
       try {
         const candidateKeys = DomainIndex.lookup(url);
         if (candidateKeys && candidateKeys.length > 0) {
+          this._indexStats.hits++;
           for (const key of candidateKeys) {
             const config = configs[key];
             if (config && config.urlPattern?.test(url)) {
               this.plugins.set(key, Object.freeze({ ...config }));
               const duration = Date.now() - startTime;
               if (GLOBAL_CONFIG.DEBUG) {
-                console.log(`[PluginManager] Index-loaded: ${config.name} (${duration}ms)`);
+                console.log(`[PluginManager] Index-loaded: ${config.name} (${duration}ms via hostname map)`);
               }
               return config;
             }
           }
         }
+        this._indexStats.misses++;
       } catch (e) {
         console.log(`[PluginManager] Index lookup failed: ${e.message}, falling back`);
-        this._useIndex = false; // 禁用索引，避免重复失败
+        this._useIndex = false;
       }
     }
 
     // 回退到线性遍历
+    this._indexStats.fallbackScans++;
     return this.fallbackLoad(url, configs, startTime);
   }
 
@@ -1662,13 +1600,14 @@ class PluginManager {
   getIndexStats() {
     return {
       ...DomainIndex.getStats(),
-      indexEnabled: this._useIndex
+      indexEnabled: this._useIndex,
+      lookupStats: { ...this._indexStats }
     };
   }
 }
 
 // ==========================================
-// 10. 主入口（带全局错误捕获 + 请求缓存）
+// 10. 主入口（带全局错误捕获）
 // ==========================================
 
 function main() {
@@ -1682,7 +1621,7 @@ function main() {
       if (indexStats.hasError) {
         env.warn(`Domain index error: ${indexStats.errorMessage}`);
       } else {
-        env.debug(`Domain index ready: ${indexStats.totalDomains} domains`);
+        env.debug(`Domain index ready: ${indexStats.exactDomains} exact domains, ${indexStats.prefixPatterns} prefix patterns`);
       }
     }
 
@@ -1692,15 +1631,6 @@ function main() {
       env.done({});
       return;
     }
-    
-    // 性能优化：检查请求缓存（防止同一URL重复处理，如联通智家每秒触发多次）
-    const cachedResult = REQUEST_CACHE.get(requestUrl);
-    if (cachedResult) {
-      env.debug(`[Cache] Hit for ${requestUrl.substring(0, 50)}...`);
-      env.done(cachedResult);
-      return;
-    }
-    
     env.debug(`Processing URL: ${requestUrl}`);
 
     const pluginManager = new PluginManager();
@@ -1731,20 +1661,19 @@ function main() {
     engine.setConfig(appConfig);
     const response = env.getResponse();
     const result = engine.process(response, requestUrl);
+    const stats = engine.getStats();
     
-    // 性能优化：存储结果到缓存
-    if (result?.body) {
-      REQUEST_CACHE.set(requestUrl, result);
-      env.debug(`[Cache] Stored result for ${requestUrl.substring(0, 50)}..., cacheSize=${REQUEST_CACHE.size}`);
+    // 输出索引统计（调试用）
+    if (GLOBAL_CONFIG.DEBUG) {
+      const pmStats = pluginManager.getIndexStats();
+      env.debug(`Index stats: hits=${pmStats.lookupStats.hits}, misses=${pmStats.lookupStats.misses}, fallbacks=${pmStats.lookupStats.fallbackScans}`);
     }
     
-    const stats = engine.getStats();
     env.info(`Completed in ${stats.duration}ms, ${stats.modifications} modifications`);
     env.done(result);
 
   } catch (e) {
     env.error(`Fatal error: ${e.message}`);
-    // 确保即使崩溃也返回原始响应
     try {
       env.done({ body: $response?.body });
     } catch (doneError) {
