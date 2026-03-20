@@ -5,13 +5,11 @@
  * @version 14.0.0
  * @description 采用配置工厂模式，单个配置错误完全隔离
  * ==========================================
- * 
- * 【架构特性】
+  * 【架构特性】
  * 1. SafeConfigLoader: 配置工厂模式，延迟执行 + 独立验证
  * 2. RobustPluginManager: 试运行验证（dry-run），自动隔离故障配置
  * 3. CrossPlatformEnv: 统一封装 QX/Surge/Loon API 差异
  * 4. 单个配置语法错误不影响其他配置加载
-
 [rewrite_local]
  # iAppDaily - 余额查询接口（JSON模式-声明式字段设置）
  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v15.js
@@ -54,14 +52,58 @@
 'use strict';
 
 // ==========================================
+// QX 环境兼容层 - 必须在最前面执行
+// ==========================================
+
+/**
+ * 修复 QX 环境 console 方法缺失问题
+ * QX 只支持 console.log，不支持 console.error/warn/debug/info
+ */
+(function fixQXConsole() {
+  // 如果 console 不存在，创建一个基本的
+  if (typeof console === 'undefined') {
+    globalThis.console = { log: function() {} };
+  }
+  
+  // 保存原始的 console.log
+  const _originalLog = console.log.bind(console);
+  
+  // 为 QX 环境添加缺失的方法
+  if (typeof console.error !== 'function') {
+    console.error = function(...args) {
+      _originalLog('[ERROR]', ...args);
+    };
+  }
+  
+  if (typeof console.warn !== 'function') {
+    console.warn = function(...args) {
+      _originalLog('[WARN]', ...args);
+    };
+  }
+  
+  if (typeof console.debug !== 'function') {
+    console.debug = function(...args) {
+      // 静默处理，避免污染日志
+      _originalLog('[DEBUG]', ...args);
+    };
+  }
+  
+  if (typeof console.info !== 'function') {
+    console.info = function(...args) {
+      _originalLog('[INFO]', ...args);
+    };
+  }
+})();
+
+// ==========================================
 // 元数据
 // ==========================================
 
 const META = {
   name: 'UnifiedVIP',
-  version: '14.0.0',
+  version: '15.1.0',
   author: 'joeshu & contributors',
-  description: 'Unified VIP Unlock Manager - Fault-Tolerant Architecture',
+  description: 'Unified VIP Unlock Manager - QX Compatible',
   updated: '2026-03-20'
 };
 
@@ -98,22 +140,13 @@ const GLOBAL_CONFIG = Object.freeze({
   DEBUG: true,
   ENABLE_CACHE: true,
   MAX_CACHE_SIZE: 100,
-  STRICT_MODE: false  // true=发现错误配置立即抛出，false=跳过错误继续
+  STRICT_MODE: false
 });
 
 // ==========================================
 // 跨平台环境封装（QX/Surge/Loon 兼容层）
 // ==========================================
 
-/**
- * CrossPlatformEnv - 跨平台环境封装类
- * 
- * 【平台差异处理】
- * - QX: $task 存在，$response/$request 为对象
- * - Surge: $httpClient 存在，$response/$request 为对象  
- * - Loon: $loon 存在，$response/$request 为对象
- * - 统一通过 $done() 返回结果
- */
 class CrossPlatformEnv {
   constructor(name) {
     this.name = name;
@@ -122,8 +155,6 @@ class CrossPlatformEnv {
     this.isSurge = typeof $httpClient !== 'undefined' && !this.isQX;
     this.isLoon = typeof $loon !== 'undefined';
     this.isNode = typeof module !== 'undefined' && module.exports;
-    
-    // 预获取请求/响应对象（各平台略有不同）
     this._initRequestResponse();
   }
 
@@ -136,75 +167,44 @@ class CrossPlatformEnv {
   }
 
   _initRequestResponse() {
-    // QX: $request 和 $response 直接可用
-    // Surge: $request 和 $response 直接可用
-    // Loon: $request 和 $response 直接可用
     this.request = typeof $request !== 'undefined' ? $request : {};
     this.response = typeof $response !== 'undefined' ? $response : {};
-    
-    // 某些平台可能只有 request 没有 response（或反之）
     if (!this.request.url && this.response.request?.url) {
       this.request = this.response.request;
     }
   }
 
-  /**
-   * 统一获取当前 URL（关键方法，处理各平台差异）
-   * 优先级: response.url > request.url > ''
-   */
   getCurrentUrl() {
     let url = '';
-    
-    // 尝试从 response 获取
     if (this.response?.url) {
       url = this.response.url;
-    } 
-    // 尝试从 request 获取
-    else if (this.request?.url) {
+    } else if (this.request?.url) {
       url = this.request.url;
-    }
-    // QX 特殊处理：有时 URL 在 $request.path 或 $request 字符串
-    else if (this.isQX && typeof $request === 'string') {
+    } else if (this.isQX && typeof $request === 'string') {
       url = $request;
     }
-    
     return url.toString();
   }
 
-  /**
-   * 获取响应体
-   */
   getResponseBody() {
     return this.response?.body || '';
   }
 
   /**
-   * 获取请求头
-   */
-  getRequestHeaders() {
-    return this.request?.headers || {};
-  }
-
-  /**
-   * 分级日志
+   * 分级日志 - 使用统一的 console.log 避免 QX 兼容问题
    */
   log(level, msg) {
     if (!GLOBAL_CONFIG.DEBUG && level === 'debug') return;
-    
+
     const timestamp = new Date().toISOString();
     const prefix = `[${this.name}][${level.toUpperCase()}][${timestamp}]`;
     
-    // 各平台日志输出
-    if (this.isQX) {
-      console.log(`${prefix} ${msg}`);
-      if (level === 'error') $notify(this.name, 'Error', msg);
-    } else if (this.isSurge) {
-      $notification.post(this.name, level, msg);
-      console.log(`${prefix} ${msg}`);
-    } else if (this.isLoon) {
-      console.log(`${prefix} ${msg}`);
-    } else {
-      console.log(`${prefix} ${msg}`);
+    // 统一使用 console.log，通过前缀区分级别
+    console.log(`${prefix} ${msg}`);
+
+    // QX 错误通知
+    if (this.isQX && level === 'error' && typeof $notify === 'function') {
+      $notify(this.name, 'Error', msg);
     }
   }
 
@@ -213,16 +213,10 @@ class CrossPlatformEnv {
   warn(msg) { this.log('warn', msg); }
   error(msg) { this.log('error', msg); }
 
-  /**
-   * 统一返回结果
-   */
   done(result) {
-    if (this.isQX) {
-      $done(result);
-    } else if (this.isSurge || this.isLoon) {
+    if (this.isQX || this.isSurge || this.isLoon) {
       $done(result);
     } else if (this.isNode) {
-      // Node.js 测试环境
       console.log('[DONE]', result);
     }
   }
@@ -255,12 +249,12 @@ const ProcessorUtils = {
         env?.warn(`MapArray: ${arrayPath} is not an array`);
         return obj;
       }
-      
+
       let modified = 0;
       arr.forEach((item, index) => {
         if (!item) return;
         if (condition && !condition(item, index)) return;
-        
+
         for (const [field, value] of Object.entries(fieldMap)) {
           if (item[field] !== undefined || value !== undefined) {
             item[field] = value;
@@ -268,7 +262,7 @@ const ProcessorUtils = {
         }
         modified++;
       });
-      
+
       if (env) env.debug(`MapArray: modified ${modified}/${arr.length} items in ${arrayPath}`);
       return obj;
     };
@@ -276,17 +270,17 @@ const ProcessorUtils = {
 
   filterArray(arrayPath, options = {}) {
     const { excludeSet, keyExtractor, keepPredicate, logName } = options;
-    
+
     return function(obj, env) {
       const arr = Utils.getValueByPath(obj, arrayPath);
       if (!Array.isArray(arr)) {
         env?.warn(`FilterArray: ${arrayPath} is not an array`);
         return obj;
       }
-      
+
       const originalLength = arr.length;
       let filtered;
-      
+
       if (excludeSet && keyExtractor) {
         filtered = arr.filter(item => !excludeSet.has(keyExtractor(item)));
       } else if (keepPredicate) {
@@ -294,7 +288,7 @@ const ProcessorUtils = {
       } else {
         return obj;
       }
-      
+
       Utils.setValueByPath(obj, arrayPath, filtered);
       if (env) env.log(`Filtered ${logName || arrayPath}: ${originalLength} -> ${filtered.length}`);
       return obj;
@@ -343,16 +337,16 @@ const ProcessorUtils = {
         env?.warn(`ProcessByKeyPrefix: ${objPath} not found or not object`);
         return obj;
       }
-      
+
       const stats = {};
       const entries = Object.entries(target);
-      
+
       entries.forEach(([key, value]) => {
         let matched = false;
-        
+
         for (const [prefix, handler] of Object.entries(prefixHandlers)) {
           if (prefix === '*') continue;
-          
+
           if (key.startsWith(prefix)) {
             if (handler && typeof handler === 'object') {
               Object.assign(value, handler);
@@ -362,13 +356,13 @@ const ProcessorUtils = {
             break;
           }
         }
-        
+
         if (!matched && prefixHandlers['*']) {
           Object.assign(value, prefixHandlers['*']);
           stats['*'] = (stats['*'] || 0) + 1;
         }
       });
-      
+
       if (env && options.logPrefix) {
         const statsStr = Object.entries(stats).map(([k, v]) => `${k}:${v}`).join(', ');
         env.log(`${options.logPrefix} processed: ${statsStr}`);
@@ -380,7 +374,7 @@ const ProcessorUtils = {
   createSceneDispatcher(scenes) {
     return function(obj, env) {
       let matched = false;
-      
+
       for (const scene of scenes) {
         try {
           if (scene.when(obj)) {
@@ -394,7 +388,7 @@ const ProcessorUtils = {
           if (!scene.continueOnError) break;
         }
       }
-      
+
       if (!matched && env) {
         const sceneNames = scenes.map(s => s.name).join(', ');
         env.debug(`No scene matched. Available scenes: ${sceneNames}`);
@@ -444,7 +438,7 @@ const ProcessorUtils = {
 
 const Utils = {
   _regexCache: new Map(),
-  
+
   safeJsonParse(str, defaultVal = null) {
     if (!str || typeof str !== 'string') return defaultVal;
     try {
@@ -453,7 +447,7 @@ const Utils = {
       return defaultVal;
     }
   },
-  
+
   safeJsonStringify(obj, pretty = false) {
     try {
       return JSON.stringify(obj, null, pretty ? 2 : undefined);
@@ -461,7 +455,7 @@ const Utils = {
       return '{}';
     }
   },
-  
+
   getValueByPath(obj, path) {
     if (!path || !obj) return undefined;
     return path.split('.').reduce((acc, part) => {
@@ -474,17 +468,17 @@ const Utils = {
       return acc[part];
     }, obj);
   },
-  
+
   setValueByPath(obj, path, value) {
     if (!path || !obj) return obj;
     const parts = path.split('.');
     let current = obj;
-    
+
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
       const nextPart = parts[i + 1];
       const match = part.match(/^([^\[]+)\[(\d+)\]$/);
-      
+
       if (match) {
         const arrName = match[1];
         const arrIndex = parseInt(match[2]);
@@ -511,10 +505,10 @@ const Utils = {
         current = current[part];
       }
     }
-    
+
     const lastPart = parts[parts.length - 1];
     const lastMatch = lastPart.match(/^([^\[]+)\[(\d+)\]$/);
-    
+
     if (lastMatch) {
       const arrName = lastMatch[1];
       const arrIndex = parseInt(lastMatch[2]);
@@ -526,7 +520,7 @@ const Utils = {
     }
     return obj;
   },
-  
+
   getRegExp(pattern, flags = 'g') {
     const key = `${pattern.toString()}_${flags}`;
     if (!this._regexCache.has(key)) {
@@ -543,27 +537,10 @@ const Utils = {
 // SafeConfigLoader - 核心容错配置加载器
 // ==========================================
 
-/**
- * SafeConfigLoader - 安全配置加载器（方案1核心实现）
- * 
- * 【设计理念】
- * 1. 工厂函数模式：每个配置用函数包裹，延迟执行，错误隔离
- * 2. 独立验证：每个配置独立解析、验证，失败不影响其他配置
- * 3. 安全包装：处理器自动包装错误捕获，运行时故障降级
- * 4. 详细日志：记录每个配置的加载状态，便于调试
- */
 const SafeConfigLoader = {
-  
-  /**
-   * 配置工厂注册表
-   * 所有应用配置都在这里定义，使用工厂函数模式
-   */
+
   _factories: {
-    
-    // ==========================================
-    // 现有配置（迁移自原 APP_CONFIGS）
-    // ==========================================
-    
+
     iappdaily: () => ({
       id: 'iappdaily',
       name: 'iAppDaily',
@@ -720,7 +697,7 @@ const SafeConfigLoader = {
             try {
               let bag = JSON.parse(bagObj.value);
               if (!bag.m_ItemList || !Array.isArray(bag.m_ItemList)) bag.m_ItemList = [];
-              
+
               for (const weaponId of CONSTANTS.WEAPON_IDS) {
                 const existing = bag.m_ItemList.find(it => it.ItemID === weaponId);
                 if (existing) {
@@ -729,7 +706,7 @@ const SafeConfigLoader = {
                   bag.m_ItemList.push({ Count: CONSTANTS.TARGET_GAME_VALUE, ItemID: weaponId });
                 }
               }
-              
+
               bagObj.value = JSON.stringify(bag);
               env?.info(`Bag: all ${CONSTANTS.WEAPON_IDS.length} weapon fragments unlocked`);
             } catch (e) {
@@ -744,11 +721,12 @@ const SafeConfigLoader = {
     v2ex: () => ({
       id: 'v2ex',
       name: 'V2EX去广告',
-      urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/,
+      urlPattern: /^https?:\/\/.*v2ex\.com\/(?!(.*(api|login|cdn-cgi|verify|auth|captch|(\.(js|css|jpg|jpeg|png|webp|gif|zip|woff|woff2|m3u8|mp4|mov|m4v|avi|mkv|flv|rmvb|wmv|rm|asf|asx|mp3|json|ico|otf|ttf)))))/
+,
       htmlReplacements: [
         {
           pattern: /<head>/i,
-          replacement: `<head><style>.ads, .advertisement, .banner-ads{display:none !important}</style>`,
+          replacement: `<head><style>.ads,.advertisement,.banner-ads{display:none!important}</style>`,
           description: '注入CSS隐藏广告元素'
         }
       ]
@@ -939,77 +917,9 @@ const SafeConfigLoader = {
         (obj) => obj?.data?.posCode?.includes("APP_START_PAGE"),
         ProcessorUtils.deleteFields('data.configList')
       )
-    }),
-
-    // ==========================================
-    // 新增应用配置模板（安全添加新应用）
-    // ==========================================
-    
-    /**
-     * 新增应用示例：newapp
-     * 复制此模板，修改以下内容：
-     * 1. 键名（newapp）
-     * 2. id（唯一标识）
-     * 3. name（显示名称）
-     * 4. urlPattern（URL匹配正则）
-     * 5. 处理器配置
-     */
-    newapp: () => {
-      try {
-        // 配置元数据
-        const CONFIG_ID = 'newapp';
-        const CONFIG_NAME = '新应用示例';
-        
-        // 如果配置有误，这里可以抛出错误并被捕获
-        return {
-          id: CONFIG_ID,
-          name: CONFIG_NAME,
-          urlPattern: /^https?:\/\/api\.example\.com\/user\/info/,
-          mode: 'json',
-          // 使用安全包装器包裹处理器，防止运行时错误
-          customProcessor: SafeConfigLoader._wrapProcessor(
-            ProcessorUtils.setFields({
-              'data.is_vip': 1,
-              'data.vip_expire': CONSTANTS.EXPIRE_DATE,
-              'data.coins': CONSTANTS.DEFAULT_COINS
-            }),
-            { id: CONFIG_ID, name: CONFIG_NAME }
-          )
-        };
-      } catch (configError) {
-        // 工厂函数内部错误，返回 null 表示配置无效
-        console.error(`[SafeConfigLoader] Factory error for 'newapp': ${configError.message}`);
-        return null;
-      }
-    },
-
-    // 故意错误的配置演示（会被隔离，不影响其他配置）
-    _bad_config_demo: () => {
-      // 模拟用户写错配置：如果直接写在对象里会导致整个脚本崩溃
-      // 但用工厂函数包裹后，错误被限制在此函数内
-      try {
-        // 故意制造语法错误（取消注释测试）
-        // return {
-        //   id: 'bad',
-        //   name: 'Bad App',
-        //   urlPattern: /test/,
-        //   mode: 'json',
-        //   customProcessor: ProcessorUtils.setFields({
-        //     'data.test': 1  // 缺少闭合括号！
-        //   })  // 如果这里写错，只会影响这一个配置
-        // };
-        
-        return null; // 返回 null 表示配置被禁用
-      } catch (e) {
-        return null;
-      }
-    }
+    })
   },
 
-  /**
-   * 处理器安全包装器
-   * 为处理器添加运行时错误捕获
-   */
   _wrapProcessor(processor, meta) {
     return function(obj, env) {
       try {
@@ -1019,36 +929,29 @@ const SafeConfigLoader = {
         return processor(obj, env);
       } catch (e) {
         env?.error(`[${meta.name}] Processor runtime error: ${e.message}`);
-        // 降级：返回原始对象，不破坏响应
         return obj;
       }
     };
   },
 
-  /**
-   * 验证单个配置对象
-   */
   _validateConfig(config, key) {
     const errors = [];
-    
+
     if (!config) {
       return { valid: false, error: 'Config is null or undefined' };
     }
-    
-    // 检查必填字段
+
     const required = ['id', 'name', 'urlPattern', 'mode'];
     for (const field of required) {
       if (!config[field]) {
         errors.push(`Missing required field: ${field}`);
       }
     }
-    
-    // 检查 urlPattern 是否为有效的 RegExp
+
     if (config.urlPattern && !(config.urlPattern instanceof RegExp)) {
       errors.push('urlPattern must be a RegExp');
     }
-    
-    // 检查模式特定字段
+
     const modeRequirements = {
       'json': () => config.customProcessor || config.fields,
       'regex': () => config.regexReplacements?.length > 0,
@@ -1057,48 +960,38 @@ const SafeConfigLoader = {
       'multipath': () => config.pathHandlers?.length > 0,
       'html': () => config.htmlReplacements?.length > 0
     };
-    
+
     const checker = modeRequirements[config.mode];
     if (checker && !checker()) {
       errors.push(`Mode '${config.mode}' missing required fields`);
     }
-    
-    // 验证处理器类型
+
     if (config.customProcessor && typeof config.customProcessor !== 'function') {
       errors.push('customProcessor must be a function');
     }
-    
+
     return {
       valid: errors.length === 0,
       error: errors.join('; ')
     };
   },
 
-  /**
-   * 加载所有有效配置
-   * 核心方法：遍历工厂函数，逐个执行、验证、收集有效配置
-   */
   loadAll() {
     const validConfigs = {};
     const errors = [];
     let loaded = 0;
     let failed = 0;
-    
+
     console.log('[SafeConfigLoader] Starting configuration loading...');
-    
+
     for (const [key, factory] of Object.entries(this._factories)) {
-      // 跳过内部方法（以下划线开头）
       if (key.startsWith('_')) continue;
-      
+
       try {
-        // 执行工厂函数获取配置
         const config = factory();
-        
-        // 验证配置
         const validation = this._validateConfig(config, key);
-        
+
         if (validation.valid && config !== null) {
-          // 冻结配置，防止运行时修改
           validConfigs[key] = Object.freeze(config);
           loaded++;
           if (GLOBAL_CONFIG.DEBUG) {
@@ -1110,35 +1003,28 @@ const SafeConfigLoader = {
           console.warn(`[SafeConfigLoader] ✗ [${key}] Invalid: ${validation.error}`);
         }
       } catch (e) {
-        // 捕获工厂函数执行错误（如语法错误）
         errors.push({ key, error: e.message });
         failed++;
         console.error(`[SafeConfigLoader] ✗ [${key}] Factory execution failed: ${e.message}`);
-        
-        // 严格模式：立即抛出（调试用）
+
         if (GLOBAL_CONFIG.STRICT_MODE) {
           throw e;
         }
-        // 非严格模式：继续加载其他配置
       }
     }
-    
-    // 输出加载摘要
+
     console.log(`[SafeConfigLoader] Loading complete: ${loaded} loaded, ${failed} failed, ${errors.length} errors`);
     if (errors.length > 0 && GLOBAL_CONFIG.DEBUG) {
       console.log('[SafeConfigLoader] Error details:', errors);
     }
-    
+
     return Object.freeze(validConfigs);
   },
 
-  /**
-   * 动态加载单个配置
-   */
   loadOne(key) {
     const factory = this._factories[key];
     if (!factory) return null;
-    
+
     try {
       const config = factory();
       const validation = this._validateConfig(config, key);
@@ -1149,9 +1035,6 @@ const SafeConfigLoader = {
     }
   },
 
-  /**
-   * 获取配置加载统计
-   */
   getStats() {
     const total = Object.keys(this._factories).filter(k => !k.startsWith('_')).length;
     return {
@@ -1172,31 +1055,24 @@ class RobustPluginManager {
     this._stats = { loaded: 0, failed: 0 };
   }
 
-  /**
-   * 试运行验证 - 提前发现运行时错误
-   */
   _dryRun(config) {
     try {
-      // 模拟测试数据
       const mockObj = { data: { test: 1, items: [{ id: 1, name: 'test' }] } };
-      const mockEnv = { 
-        debug: () => {}, info: () => {}, warn: () => {}, error: () => {} 
+      const mockEnv = {
+        debug: () => {}, info: () => {}, warn: () => {}, error: () => {}
       };
 
-      // 测试 JSON 处理器
       if (config.customProcessor && (config.mode === 'json' || config.mode === 'hybrid')) {
         const testObj = JSON.parse(JSON.stringify(mockObj));
         config.customProcessor(testObj, mockEnv);
       }
 
-      // 测试正则表达式有效性
       if (config.regexReplacements) {
         for (const rule of config.regexReplacements) {
           new RegExp(rule.pattern.source || rule.pattern, 'g');
         }
       }
 
-      // 测试 URL 模式有效性
       if (config.urlPattern) {
         "https://test.com".match(config.urlPattern);
       }
@@ -1207,38 +1083,29 @@ class RobustPluginManager {
     }
   }
 
-  /**
-   * 注册配置（带试运行验证）
-   */
   register(key, config) {
-    // 基础验证
     if (!config || !config.id || !config.urlPattern) {
       this.disabledPlugins.set(key, { reason: 'Invalid structure', time: new Date() });
       return false;
     }
 
-    // 试运行验证
     const dryRun = this._dryRun(config);
     if (!dryRun.success) {
-      this.disabledPlugins.set(key, { 
-        reason: `Dry-run failed: ${dryRun.error}`, 
+      this.disabledPlugins.set(key, {
+        reason: `Dry-run failed: ${dryRun.error}`,
         config: config.name || key,
-        time: new Date() 
+        time: new Date()
       });
       console.error(`[PluginManager] Disabled "${key}": ${dryRun.error}`);
       this._stats.failed++;
       return false;
     }
 
-    // 冻结并存储
     this.plugins.set(key, Object.freeze({ ...config }));
     this._stats.loaded++;
     return true;
   }
 
-  /**
-   * 批量注册（容错模式）
-   */
   registerAll(configs) {
     for (const [key, config] of Object.entries(configs)) {
       this.register(key, config);
@@ -1246,16 +1113,12 @@ class RobustPluginManager {
     console.log(`[PluginManager] Registered: ${this._stats.loaded}, Failed: ${this._stats.failed}`);
   }
 
-  /**
-   * 根据 URL 动态加载匹配的插件
-   */
   loadForUrl(url, configs) {
     if (!url) return null;
-    
+
     for (const [key, config] of Object.entries(configs)) {
       try {
         if (config.urlPattern?.test(url)) {
-          // 找到匹配，执行试运行确保可用
           if (!this.plugins.has(key)) {
             this.register(key, config);
           }
@@ -1463,13 +1326,11 @@ class VipUnlockEngine {
 // ==========================================
 
 function main() {
-  // 初始化跨平台环境
   const env = new CrossPlatformEnv(META.name);
-  
+
   try {
     env.info(`Starting ${META.name} v${META.version} on ${env.platform}`);
-    
-    // 获取当前 URL（关键步骤，处理各平台差异）
+
     const requestUrl = env.getCurrentUrl();
     if (!requestUrl) {
       env.error('No URL found in request/response');
@@ -1478,13 +1339,11 @@ function main() {
     }
     env.debug(`Processing URL: ${requestUrl}`);
 
-    // 使用 SafeConfigLoader 加载所有配置（容错模式）
     let appConfigs;
     try {
       appConfigs = SafeConfigLoader.loadAll();
     } catch (loaderError) {
       env.error(`ConfigLoader failed: ${loaderError.message}`);
-      // 紧急回退：最小化配置
       appConfigs = {
         fallback: {
           id: 'fallback',
@@ -1496,11 +1355,9 @@ function main() {
       };
     }
 
-    // 动态加载匹配的插件
     const pluginManager = new RobustPluginManager();
     let appConfig = pluginManager.loadForUrl(requestUrl, appConfigs);
-    
-    // 回退策略
+
     if (!appConfig) {
       env.warn('App not detected, using generic config');
       appConfig = {
@@ -1515,17 +1372,15 @@ function main() {
       env.info(`Matched app: ${appConfig.name}`);
     }
 
-    // 执行处理
     const engine = new VipUnlockEngine(env);
     engine.setConfig(appConfig);
-    
+
     const response = env.getResponseBody();
     const result = engine.process({ body: response }, requestUrl);
-    
-    // 输出统计
+
     const stats = engine.getStats();
     env.info(`Completed in ${stats.duration}ms, ${stats.modifications} modifications`);
-    
+
     env.done(result);
 
   } catch (e) {
