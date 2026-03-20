@@ -11,7 +11,7 @@
  * 2. RobustPluginManager: 试运行验证（dry-run），自动隔离故障配置
  * 3. CrossPlatformEnv: 统一封装 QX/Surge/Loon API 差异
  * 4. 单个配置语法错误不影响其他配置加载
- */
+
 [rewrite_local]
  # iAppDaily - 余额查询接口（JSON模式-声明式字段设置）
  ^https:\/\/api\.iappdaily\.com\/my\/balance url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/Unified_VIP_Unlock_Manager_v15.js
