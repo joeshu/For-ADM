@@ -605,7 +605,7 @@ const LazyConfigLoader = {
           'data.vip.expired_at': 99999999999999,
           'data.login_way': true,
           //'data.mobile': '',
-          'data.beans': 999880,
+          'data.beans': 999880
         })
       }),
 
