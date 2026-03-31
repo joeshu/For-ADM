@@ -576,8 +576,11 @@ function findByUA(ua) {
 }
 
 function getConfigByRequest(bundleId, ua) {
-  const key = (bundleId || '') + '|' + (ua || '');
-  const cached = MATCH_CACHE[key];
+  const cacheKey = bundleId
+    ? ('b:' + bundleId)
+    : ('u:' + (ua ? ua.slice(0, 120) : ''));
+
+  const cached = MATCH_CACHE[cacheKey];
   if (cached) {
     return cached === NO_MATCH ? null : cached;
   }
@@ -592,7 +595,7 @@ function getConfigByRequest(bundleId, ua) {
     MATCH_CACHE_SIZE = 0;
   }
 
-  MATCH_CACHE[key] = config || NO_MATCH;
+  MATCH_CACHE[cacheKey] = config || NO_MATCH;
   MATCH_CACHE_SIZE++;
 
   return config;
@@ -634,48 +637,7 @@ const BASE_PURCHASE_NOEXP = {
   store: "app_store"
 };
 
-/**
- * 构建订阅数据对象
- *
- * 功能: 创建 subscriptions 字段所需的完整数据结构
- *
- * @returns {object} 订阅数据对象
- */
-function buildSubscriptionData(cm) {
-  return cm === 'sja' ? { ...BASE_SUB_DATA_SJA } : { ...BASE_SUB_DATA_NOEXP };
-}
 
-/**
- * 构建购买记录对象
- *
- * 功能: 创建 non_subscriptions 字段所需的购买记录
- *
- * @returns {object} 购买记录对象
- */
-function buildPurchaseRecord(cm) {
-  return cm === 'sja' ? { ...BASE_PURCHASE_SJA } : { ...BASE_PURCHASE_NOEXP };
-}
-
-/**
- * 构建 entitlement 数据对象
- *
- * 功能: 创建 entitlements 字段所需的数据结构
- *
- * @param {string} productId - 产品标识符
- * @returns {object} entitlement 数据对象
- */
-function buildEntitlementData(productId, cm) {
-  const data = {
-    purchase_date: PURCHASE_DATE,
-    product_identifier: productId
-  };
-
-  if (cm === 'sja') {
-    data.expires_date = EXPIRES_DATE;
-  }
-
-  return data;
-}
 
 /**
  * 配置表自检（轻量）
@@ -846,8 +808,12 @@ function processSubscription(data, config) {
 
   // 预先构建重复使用的数据对象
   const normalizedCm = (cm === 'sja' || cm === 'sjb' || cm === 'sjc') ? cm : 'sja';
-  const subData = buildSubscriptionData(normalizedCm);
-  const purchaseRecord = buildPurchaseRecord(normalizedCm);
+  const withExpire = normalizedCm === 'sja';
+  const entitlementBase = withExpire
+    ? { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
+    : { purchase_date: PURCHASE_DATE };
+  const subDataBase = withExpire ? BASE_SUB_DATA_SJA : BASE_SUB_DATA_NOEXP;
+  const purchaseDataBase = withExpire ? BASE_PURCHASE_SJA : BASE_PURCHASE_NOEXP;
 
   // ===== 核心逻辑: Entitlements 处理 =====
   // ========================================
@@ -893,42 +859,30 @@ function processSubscription(data, config) {
 
   // 2. 统一执行 entitlements 注入
   // 使用循环处理所有目标，避免重复代码
-  entitlementTargets.forEach(target => {
-    subscriber.entitlements[target.name] = buildEntitlementData(target.id, normalizedCm);
-  });
-
-  // ===== 处理 subscriptions =====
-  // ================================
-  const allProductIds = [...idsArray];
-  if (idb) {
-    allProductIds.push(idb);
+  for (let i = 0; i < entitlementTargets.length; i++) {
+    const target = entitlementTargets[i];
+    subscriber.entitlements[target.name] = {
+      ...entitlementBase,
+      product_identifier: target.id
+    };
   }
 
-  // 去重，避免重复产品 ID
-  const uniqueProductIds = Array.from(new Set(allProductIds));
+  const productSet = new Set(idsArray);
+  if (idb) {
+    productSet.add(idb);
+  }
+
+  const uniqueProductIds = Array.from(productSet);
 
   // 为每个产品 ID 创建订阅记录（使用独立对象，避免引用共享）
-  uniqueProductIds.forEach(productId => {
-    subscriber.subscriptions[productId] = { ...subData };
-  });
-
-  // ===== 处理 non_subscriptions =====
-  // ================================
-  uniqueProductIds.forEach(productId => {
-    subscriber.non_subscriptions[productId] = [ { ...purchaseRecord } ];
-  });
-
-  // ===== 处理 other_purchases =====
-  // ==============================
-  uniqueProductIds.forEach(productId => {
-    const otherPurchase = {
-      purchase_date: PURCHASE_DATE
-    };
-    if (normalizedCm === 'sja') {
-      otherPurchase.expires_date = EXPIRES_DATE;
-    }
-    subscriber.other_purchases[productId] = otherPurchase;
-  });
+  for (let i = 0; i < uniqueProductIds.length; i++) {
+    const productId = uniqueProductIds[i];
+    subscriber.subscriptions[productId] = { ...subDataBase };
+    subscriber.non_subscriptions[productId] = [{ ...purchaseDataBase }];
+    subscriber.other_purchases[productId] = withExpire
+      ? { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
+      : { purchase_date: PURCHASE_DATE };
+  }
 
   // ===== 输出日志 =====
   // 生成详细的处理结果日志
