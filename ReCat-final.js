@@ -19,6 +19,9 @@ const USE_DYNAMIC_DATES = false;
 const PURCHASE_DATE = USE_DYNAMIC_DATES
   ? new Date().toISOString()
   : "2024-09-09T09:09:09Z";
+const EXPIRES_DATE = USE_DYNAMIC_DATES
+  ? new Date(Date.now() + 50 * 365 * 24 * 60 * 60 * 1000).toISOString() // +50年
+  : "2099-09-09T09:09:09Z";
 // 配置自检只执行一次，避免重复日志
 let CONFIG_VALIDATED = false;
 
