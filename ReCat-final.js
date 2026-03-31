@@ -442,6 +442,15 @@ let API_CACHE = {
   config: null,
   ts: 0
 };
+const MAX_MATCH_CACHE_SIZE = 500;
+let MATCH_CACHE_SIZE = 0;
+const NO_MATCH = '__NO_MATCH__';
+const UA_KEYS = Object.keys(UA_MAP);
+const DEBUG_LOG = false;
+
+function debugLog(msg) {
+  if (DEBUG_LOG) console.log(msg);
+}
 
 // ==================== 工具函数 ====================
 
@@ -519,15 +528,17 @@ function findByUA(ua) {
     return null;
   }
 
-  // 先做前缀匹配
-  for (const key in UA_MAP) {
+  // 先做前缀匹配（数组循环比 for...in 更快更稳）
+  for (let i = 0; i < UA_KEYS.length; i++) {
+    const key = UA_KEYS[i];
     if (ua.startsWith(key)) {
       return UA_MAP[key];
     }
   }
 
-  // 再做包含匹配，提升命中率
-  for (const key in UA_MAP) {
+  // 再做包含匹配
+  for (let i = 0; i < UA_KEYS.length; i++) {
+    const key = UA_KEYS[i];
     if (ua.includes(key)) {
       return UA_MAP[key];
     }
@@ -538,14 +549,24 @@ function findByUA(ua) {
 
 function getConfigByRequest(bundleId, ua) {
   const key = (bundleId || '') + '|' + (ua || '');
-  if (MATCH_CACHE[key]) {
-    return MATCH_CACHE[key];
+  const cached = MATCH_CACHE[key];
+  if (cached) {
+    return cached === NO_MATCH ? null : cached;
   }
 
   const config = findByBundleId(bundleId) || findByUA(ua) || null;
-  if (config) {
-    MATCH_CACHE[key] = config;
+
+  // 控制缓存规模，避免长期运行无限增长
+  if (MATCH_CACHE_SIZE >= MAX_MATCH_CACHE_SIZE) {
+    for (const k in MATCH_CACHE) {
+      delete MATCH_CACHE[k];
+    }
+    MATCH_CACHE_SIZE = 0;
   }
+
+  MATCH_CACHE[key] = config || NO_MATCH;
+  MATCH_CACHE_SIZE++;
+
   return config;
 }
 
@@ -721,7 +742,7 @@ function main() {
   // 优先从 Bundle ID 查找，其次从 UA 查找（带缓存）
   let config = getConfigByRequest(bundleId, ua);
   if (!config) {
-    console.log('🔍 本地未命中: bundle=' + (bundleId || 'none') + ', ua=' + (ua ? ua.slice(0, 60) : 'none'));
+    debugLog('🔍 本地未命中: bundle=' + (bundleId || 'none') + ', ua=' + (ua ? ua.slice(0, 60) : 'none'));
   }
 
   // ===== 步骤 6: 处理订阅 =====
@@ -732,7 +753,7 @@ function main() {
   }
 
   // 本地未匹配，尝试从 RevenueCat API 获取后统一返回
-  console.log('本地未匹配，尝试从 RevenueCat API 获取... bundle=' + (bundleId || 'none'));
+  debugLog('本地未匹配，尝试从 RevenueCat API 获取... bundle=' + (bundleId || 'none'));
   return fetchFromAPI(headers)
     .then(apiConfig => {
       processSubscription(responseBody, apiConfig || DEFAULT_CONFIG);
@@ -894,7 +915,7 @@ function processSubscription(data, config) {
 function fetchFromAPI(headers) {
   const now = Date.now();
   if (API_CACHE.config && (now - API_CACHE.ts) < API_CACHE_TTL_MS) {
-    console.log('🧠 使用 API 缓存配置');
+    debugLog('🧠 使用 API 缓存配置');
     return Promise.resolve(API_CACHE.config);
   }
 
@@ -910,13 +931,13 @@ function fetchFromAPI(headers) {
     if (mappingData && mappingData.product_entitlement_mapping) {
       const apiConfig = extractFromMapping(mappingData);
       if (apiConfig && apiConfig.name && apiConfig.id) {
-        console.log('API 获取成功: ' + apiConfig.name);
+        debugLog('API 获取成功: ' + apiConfig.name);
         API_CACHE = { config: apiConfig, ts: Date.now() };
         return apiConfig;
       }
     }
 
-    console.log('API 映射无效，回退默认配置');
+    debugLog('API 映射无效，回退默认配置');
     API_CACHE = { config: DEFAULT_CONFIG, ts: Date.now() };
     return DEFAULT_CONFIG;
   });
