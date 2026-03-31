@@ -643,13 +643,13 @@ const BASE_PURCHASE_NOEXP = {
  * 配置表自检（轻量）
  */
 function validateConfigMaps() {
-  const seen = {};
+  const seen = new Set();
   const duplicates = [];
 
   Object.keys(UA_MAP).forEach(key => {
     const low = key.toLowerCase();
-    if (seen[low]) duplicates.push(key);
-    seen[low] = true;
+    if (seen.has(low)) duplicates.push(key);
+    else seen.add(low);
   });
 
   if (duplicates.length) {
@@ -816,87 +816,57 @@ function processSubscription(data, config) {
   const purchaseDataBase = withExpire ? BASE_PURCHASE_SJA : BASE_PURCHASE_NOEXP;
 
   // ===== 核心逻辑: Entitlements 处理 =====
-  // ========================================
-  // 修复说明: 统一处理所有来源的 entitlements
-  // 避免之前的覆盖问题和逻辑错误
+  // 缓存子对象到局部变量，减少属性查找链
+  const entRef = subscriber.entitlements;
+  const subsRef = subscriber.subscriptions;
+  const nonSubsRef = subscriber.non_subscriptions;
+  const otherRef = subscriber.other_purchases;
 
-  // 1. 收集所有 entitlement 目标到统一队列
-  const entitlementTargets = [];
-
-  // 1.1 添加主 entitlement (本地配置中的 name + id)
+  // 内联 entitlement 注入（消除中间数组 allocation）
+  let logCount = 0;
   if (name && id) {
-    entitlementTargets.push({
-      name: name,
-      id: id
-    });
+    entRef[name] = Object.assign({}, entitlementBase, { product_identifier: id });
+    logCount++;
   }
-
-  // 1.2 添加从 API 获取的额外 entitlements
-  // 这些来自 RevenueCat API 的 product_entitlement_mapping
   if (extraEntitlements && Array.isArray(extraEntitlements)) {
-    extraEntitlements.forEach(extra => {
-      // 确保数据有效
+    for (let j = 0; j < extraEntitlements.length; j++) {
+      const extra = extraEntitlements[j];
       if (extra.name && extra.ids && extra.ids.length > 0) {
-        // 为该 entitlement 取第一个产品 ID 作为绑定产品
-        entitlementTargets.push({
-          name: extra.name,
-          id: extra.ids[0]
-        });
+        entRef[extra.name] = Object.assign({}, entitlementBase, { product_identifier: extra.ids[0] });
+        logCount++;
       }
-    });
+    }
   }
-
-  // 1.3 添加第二个 entitlement (本地配置的 nameb + idb)
-  // 注意: nameb 放在最后处理
-  // 如果发生名称冲突，后面的会覆盖前面的
-  // 这是合理的设计: 本地配置优先级高于 API 获取的配置
   if (nameb && idb) {
-    entitlementTargets.push({
-      name: nameb,
-      id: idb
-    });
+    entRef[nameb] = Object.assign({}, entitlementBase, { product_identifier: idb });
+    logCount++;
   }
 
-  // 2. 统一执行 entitlements 注入
-  // 使用循环处理所有目标，避免重复代码
-  for (let i = 0; i < entitlementTargets.length; i++) {
-    const target = entitlementTargets[i];
-    subscriber.entitlements[target.name] = {
-      ...entitlementBase,
-      product_identifier: target.id
-    };
-  }
-
-  // 单次去重插入: 用 plain object 做 seen 查找(O(1))，
-  // 避免 Set→Array.from 两次分配 + 额外遍历
+  // 单次去重插入 + Object.assign 替代 spread
   const seen = {};
   for (let i = 0; i < idsArray.length; i++) {
     const pid = idsArray[i];
     if (seen[pid]) continue;
     seen[pid] = 1;
-    subscriber.subscriptions[pid] = { ...subDataBase };
-    subscriber.non_subscriptions[pid] = [{ ...purchaseDataBase }];
-    subscriber.other_purchases[pid] = withExpire
+    subsRef[pid] = Object.assign({}, subDataBase);
+    nonSubsRef[pid] = [Object.assign({}, purchaseDataBase)];
+    otherRef[pid] = withExpire
       ? { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
       : { purchase_date: PURCHASE_DATE };
   }
   if (idb && !seen[idb]) {
-    subscriber.subscriptions[idb] = { ...subDataBase };
-    subscriber.non_subscriptions[idb] = [{ ...purchaseDataBase }];
-    subscriber.other_purchases[idb] = withExpire
+    subsRef[idb] = Object.assign({}, subDataBase);
+    nonSubsRef[idb] = [Object.assign({}, purchaseDataBase)];
+    otherRef[idb] = withExpire
       ? { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
       : { purchase_date: PURCHASE_DATE };
   }
 
   // ===== 输出日志 =====
-  // 生成详细的处理结果日志
-  const entitlementCount = entitlementTargets.length;
   const logName = name || nameb || 'unknown';
-  const logMessage = entitlementCount > 1
-    ? `✅ 订阅处理完成: ${logName} (共${entitlementCount}个entitlements)`
-    : `✅ 订阅处理完成: ${logName}`;
-
-  console.log(logMessage);
+  console.log(logCount > 1
+    ? `✅ 订阅处理完成: ${logName} (共${logCount}个entitlements)`
+    : `✅ 订阅处理完成: ${logName}`);
 }
 
 /**
@@ -951,21 +921,20 @@ function extractFromMapping(mappingData) {
 
   // 用于存储 entitlement -> 产品ID 的映射
   const entitlementMap = {};
+  const entitlementSets = {};
 
   // ===== 遍历 mapping 构建映射 =====
-  // 格式: { product_id: { entitlements: ['entitlement_name', ...] } }
   Object.keys(mapping).forEach(productId => {
     const item = mapping[productId];
-
-    // 检查 entitlements 字段
     if (item.entitlements && Array.isArray(item.entitlements)) {
       item.entitlements.forEach(ent => {
-        // 初始化 entitlement 数组
-        if (!entitlementMap[ent]) {
+        if (!entitlementSets[ent]) {
+          entitlementSets[ent] = {};
           entitlementMap[ent] = [];
         }
-        // 添加产品 ID (去重)
-        if (!entitlementMap[ent].includes(productId)) {
+        // O(1) 去重替代 Array.includes
+        if (!entitlementSets[ent][productId]) {
+          entitlementSets[ent][productId] = 1;
           entitlementMap[ent].push(productId);
         }
       });
