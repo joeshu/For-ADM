@@ -13,12 +13,14 @@ hostname = api.revenuecat.com, api.rc-backup.com
 ******************************************/
 // ==================== 全局常量定义 ====================
 
-/**
- * 订阅日期常量
- * 统一管理，避免多处修改
- */
-const PURCHASE_DATE = "2024-09-09T09:09:09Z";
-const EXPIRES_DATE = "2099-09-09T09:09:09Z";
+// 动态日期开关：如需规避固定时间戳，可改为 true
+const USE_DYNAMIC_DATES = false;
+// 订阅日期常量（可动态）
+const PURCHASE_DATE = USE_DYNAMIC_DATES
+  ? new Date().toISOString()
+  : "2024-09-09T09:09:09Z";
+// 配置自检只执行一次，避免重复日志
+let CONFIG_VALIDATED = false;
 
 /**
  * 禁止 MITM 的应用列表
@@ -464,12 +466,16 @@ function safeJSONParse(str) {
  * @param {string} body - 请求体
  * @returns {boolean} true 表示是禁止的应用
  */
-function isForbiddenApp(ua, body) {
-  // 使用 some() 短路求值，找到第一个匹配就返回 true
-  return FORBIDDEN_APPS.some(app =>
+function isForbiddenApp(ua, body, bundleId) {
+  const hit = FORBIDDEN_APPS.some(app =>
     (ua && ua.includes(app)) ||
-    (body && body.includes(app))
+    (body && body.includes(app)) ||
+    (bundleId && bundleId.includes(app))
   );
+  if (hit) {
+    console.log('⛔️ 禁止 APP 命中: ' + (bundleId || ua || 'unknown'));
+  }
+  return hit;
 }
 
 /**
@@ -502,12 +508,20 @@ function findByUA(ua) {
     return null;
   }
 
-  // 遍历 UA_MAP 查找匹配
+  // 先做前缀匹配
   for (const key in UA_MAP) {
     if (ua.startsWith(key)) {
       return UA_MAP[key];
     }
   }
+
+  // 再做包含匹配，提升命中率
+  for (const key in UA_MAP) {
+    if (ua.includes(key)) {
+      return UA_MAP[key];
+    }
+  }
+
   return null;
 }
 
@@ -518,15 +532,21 @@ function findByUA(ua) {
  *
  * @returns {object} 订阅数据对象
  */
-function buildSubscriptionData() {
-  return {
+function buildSubscriptionData(cm) {
+  const data = {
     purchase_date: PURCHASE_DATE,
-    expires_date: EXPIRES_DATE,
     is_sandbox: false,              // 非沙盒环境
     ownership_type: "PURCHASED",    // 已购买
     store_transaction_id: "490001314520000",  // 模拟交易ID
     store: "app_store"              // App Store
   };
+
+  // sja: 带 expires_date；sjb/sjc: 不带 expires_date
+  if (cm === 'sja') {
+    data.expires_date = EXPIRES_DATE;
+  }
+
+  return data;
 }
 
 /**
@@ -536,17 +556,22 @@ function buildSubscriptionData() {
  *
  * @returns {object} 购买记录对象
  */
-function buildPurchaseRecord() {
-  return {
+function buildPurchaseRecord(cm) {
+  const data = {
     is_sandbox: false,
     ownership_type: "PURCHASED",
     id: "888888888",               // 模拟购买ID
-    expires_date: EXPIRES_DATE,
     original_purchase_date: PURCHASE_DATE,
     store_transaction_id: "490001314520000",
     purchase_date: PURCHASE_DATE,
     store: "app_store"
   };
+
+  if (cm === 'sja') {
+    data.expires_date = EXPIRES_DATE;
+  }
+
+  return data;
 }
 
 /**
@@ -557,12 +582,49 @@ function buildPurchaseRecord() {
  * @param {string} productId - 产品标识符
  * @returns {object} entitlement 数据对象
  */
-function buildEntitlementData(productId) {
-  return {
+function buildEntitlementData(productId, cm) {
+  const data = {
     purchase_date: PURCHASE_DATE,
-    expires_date: EXPIRES_DATE,
     product_identifier: productId
   };
+
+  if (cm === 'sja') {
+    data.expires_date = EXPIRES_DATE;
+  }
+
+  return data;
+}
+
+/**
+ * 配置表自检（轻量）
+ */
+function validateConfigMaps() {
+  const seen = {};
+  const duplicates = [];
+
+  Object.keys(UA_MAP).forEach(key => {
+    const low = key.toLowerCase();
+    if (seen[low]) duplicates.push(key);
+    seen[low] = true;
+  });
+
+  if (duplicates.length) {
+    console.log('⚠️ UA_MAP 可能存在重复键: ' + duplicates.join(', '));
+  }
+
+  // cm 合法性抽样检查
+  const cmInvalid = [];
+  Object.keys(BUNDLE_MAP).forEach(key => {
+    const cm = BUNDLE_MAP[key] && BUNDLE_MAP[key].cm;
+    if (cm && !['sja', 'sjb', 'sjc'].includes(cm)) cmInvalid.push('B:' + key + ':' + cm);
+  });
+  Object.keys(UA_MAP).forEach(key => {
+    const cm = UA_MAP[key] && UA_MAP[key].cm;
+    if (cm && !['sja', 'sjb', 'sjc'].includes(cm)) cmInvalid.push('U:' + key + ':' + cm);
+  });
+  if (cmInvalid.length) {
+    console.log('⚠️ 检测到非法 cm 配置: ' + cmInvalid.slice(0, 8).join(', ') + (cmInvalid.length > 8 ? ' ...' : ''));
+  }
 }
 
 // ==================== 核心逻辑 ====================
@@ -580,15 +642,25 @@ function buildEntitlementData(productId) {
  * 7. 返回修改后的响应
  */
 function main() {
+  if (typeof $request === 'undefined') {
+    console.log('❓ $request 不存在，跳过处理');
+    return $done({});
+  }
+
+  // 启动时进行轻量配置自检（仅一次）
+  if (!CONFIG_VALIDATED) {
+    validateConfigMaps();
+    CONFIG_VALIDATED = true;
+  }
+
   // ===== 步骤 1: 获取请求头信息 =====
-  const headers = $request.headers;
-  // 兼容大小写头
+  const headers = ($request && $request.headers) || {};
   const ua = headers['User-Agent'] || headers['user-agent'] || '';
   const bundleId = headers['X-Client-Bundle-ID'] || headers['x-client-bundle-id'] || '';
-  const body = $request.body || '';
+  const body = ($request && $request.body) || '';
 
   // ===== 步骤 2: 检查禁止的应用 =====
-  if (isForbiddenApp(ua, body)) {
+  if (isForbiddenApp(ua, body, bundleId)) {
     console.log('⛔️ 检测到禁止 MITM 的 APP，脚本停止运行！');
     return $done({});
   }
@@ -613,22 +685,29 @@ function main() {
   // ===== 步骤 5: 查找匹配配置 =====
   // 优先从 Bundle ID 查找，其次从 UA 查找
   let config = findByBundleId(bundleId) || findByUA(ua);
+  if (!config) {
+    console.log('🔍 本地未命中: bundle=' + (bundleId || 'none') + ', ua=' + (ua ? ua.slice(0, 60) : 'none'));
+  }
 
   // ===== 步骤 6: 处理订阅 =====
   if (config) {
     // 本地配置存在，直接处理
     processSubscription(responseBody, config);
-  } else {
-    // 本地未匹配，尝试从 RevenueCat API 获取
-    console.log('本地未匹配，尝试从 RevenueCat API 获取...');
-    fetchFromAPI(headers, responseBody);
-    return;  // 异步处理，提前返回
+    return $done({ body: JSON.stringify(responseBody) });
   }
 
-  // ===== 步骤 7: 返回修改后的响应 =====
-  return $done({
-    body: JSON.stringify(responseBody)
-  });
+  // 本地未匹配，尝试从 RevenueCat API 获取后统一返回
+  console.log('本地未匹配，尝试从 RevenueCat API 获取... bundle=' + (bundleId || 'none'));
+  return fetchFromAPI(headers)
+    .then(apiConfig => {
+      processSubscription(responseBody, apiConfig || DEFAULT_CONFIG);
+      return $done({ body: JSON.stringify(responseBody) });
+    })
+    .catch(reason => {
+      console.log('API 请求失败: ' + (reason && (reason.error || reason.message) || '未知错误'));
+      processSubscription(responseBody, DEFAULT_CONFIG);
+      return $done({ body: JSON.stringify(responseBody) });
+    });
 }
 
 /**
@@ -673,8 +752,9 @@ function processSubscription(data, config) {
   }
 
   // 预先构建重复使用的数据对象
-  const subData = buildSubscriptionData();
-  const purchaseRecord = buildPurchaseRecord();
+  const normalizedCm = (cm === 'sja' || cm === 'sjb' || cm === 'sjc') ? cm : 'sja';
+  const subData = buildSubscriptionData(normalizedCm);
+  const purchaseRecord = buildPurchaseRecord(normalizedCm);
 
   // ===== 核心逻辑: Entitlements 处理 =====
   // ========================================
@@ -698,9 +778,10 @@ function processSubscription(data, config) {
     extraEntitlements.forEach(extra => {
       // 确保数据有效
       if (extra.name && extra.ids && extra.ids.length > 0) {
+        // 为该 entitlement 取第一个产品 ID 作为绑定产品
         entitlementTargets.push({
           name: extra.name,
-          id: extra.ids[0]  // 只取第一个产品 ID
+          id: extra.ids[0]
         });
       }
     });
@@ -720,48 +801,49 @@ function processSubscription(data, config) {
   // 2. 统一执行 entitlements 注入
   // 使用循环处理所有目标，避免重复代码
   entitlementTargets.forEach(target => {
-    subscriber.entitlements[target.name] = buildEntitlementData(target.id);
+    subscriber.entitlements[target.name] = buildEntitlementData(target.id, normalizedCm);
   });
 
   // ===== 处理 subscriptions =====
   // ================================
-  // 构建所有产品 ID 列表
   const allProductIds = [...idsArray];
   if (idb) {
     allProductIds.push(idb);
   }
 
-  // 为每个产品 ID 创建订阅记录
-  allProductIds.forEach(productId => {
-    subscriber.subscriptions[productId] = subData;
+  // 去重，避免重复产品 ID
+  const uniqueProductIds = Array.from(new Set(allProductIds));
+
+  // 为每个产品 ID 创建订阅记录（使用独立对象，避免引用共享）
+  uniqueProductIds.forEach(productId => {
+    subscriber.subscriptions[productId] = { ...subData };
   });
 
   // ===== 处理 non_subscriptions =====
   // ================================
-  allProductIds.forEach(productId => {
-    // 确保数组存在
-    if (!subscriber.non_subscriptions[productId]) {
-      subscriber.non_subscriptions[productId] = [];
-    }
-    // 添加购买记录
-    subscriber.non_subscriptions[productId].push(purchaseRecord);
+  uniqueProductIds.forEach(productId => {
+    subscriber.non_subscriptions[productId] = [ { ...purchaseRecord } ];
   });
 
   // ===== 处理 other_purchases =====
   // ==============================
-  allProductIds.forEach(productId => {
-    subscriber.other_purchases[productId] = {
-      expires_date: EXPIRES_DATE,
+  uniqueProductIds.forEach(productId => {
+    const otherPurchase = {
       purchase_date: PURCHASE_DATE
     };
+    if (normalizedCm === 'sja') {
+      otherPurchase.expires_date = EXPIRES_DATE;
+    }
+    subscriber.other_purchases[productId] = otherPurchase;
   });
 
   // ===== 输出日志 =====
   // 生成详细的处理结果日志
   const entitlementCount = entitlementTargets.length;
+  const logName = name || nameb || 'unknown';
   const logMessage = entitlementCount > 1
-    ? `✅ 订阅处理完成: ${name || 'unknown'} (共${entitlementCount}个entitlements)`
-    : `✅ 订阅处理完成: ${name || 'unknown'}`;
+    ? `✅ 订阅处理完成: ${logName} (共${entitlementCount}个entitlements)`
+    : `✅ 订阅处理完成: ${logName}`;
 
   console.log(logMessage);
 }
@@ -772,47 +854,28 @@ function processSubscription(data, config) {
  * 功能: 当本地配置无法匹配时，尝试从 API 获取 entitlement mapping
  *
  * @param {object} headers - 请求头 (用于 API 认证)
- * @param {object} data - 响应体数据 (会被修改)
+ * @returns {Promise<object>} 标准化配置
  */
-function fetchFromAPI(headers, data) {
+function fetchFromAPI(headers) {
   const apiUrl = 'https://api.revenuecat.com/v1/product_entitlement_mapping';
 
-  // 发起 API 请求
-  $task.fetch({
+  return $task.fetch({
     url: apiUrl,
     headers: headers,
-    timeout: 10  // 10秒超时
+    timeout: 10
   }).then(response => {
-    // ===== 请求成功 =====
     const mappingData = safeJSONParse(response.body);
 
-    // 检查数据有效性
     if (mappingData && mappingData.product_entitlement_mapping) {
-      // 从 mapping 数据提取配置
       const apiConfig = extractFromMapping(mappingData);
-
-      // 检查提取结果
-      if (apiConfig.name && apiConfig.id) {
+      if (apiConfig && apiConfig.name && apiConfig.id) {
         console.log('API 获取成功: ' + apiConfig.name);
-        processSubscription(data, apiConfig);
-      } else {
-        // API 数据无效，使用默认配置
-        processSubscription(data, DEFAULT_CONFIG);
+        return apiConfig;
       }
-    } else {
-      // mapping 数据不存在，使用默认配置
-      processSubscription(data, DEFAULT_CONFIG);
     }
 
-    // 返回修改后的响应
-    $done({ body: JSON.stringify(data) });
-
-  }).catch(reason => {
-    // ===== 请求失败 =====
-    console.log('API 请求失败: ' + (reason.error || reason.message || '未知错误'));
-    // API 失败时使用默认配置
-    processSubscription(data, DEFAULT_CONFIG);
-    $done({ body: JSON.stringify(data) });
+    console.log('API 映射无效，回退默认配置');
+    return DEFAULT_CONFIG;
   });
 }
 
