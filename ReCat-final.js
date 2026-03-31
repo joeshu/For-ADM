@@ -435,6 +435,14 @@ const DEFAULT_CONFIG = {
   }
 };
 
+// ===== P1 优化: 命中缓存 + API 缓存 =====
+const MATCH_CACHE = Object.create(null);
+const API_CACHE_TTL_MS = 10 * 60 * 1000; // 10分钟
+let API_CACHE = {
+  config: null,
+  ts: 0
+};
+
 // ==================== 工具函数 ====================
 
 /**
@@ -526,6 +534,19 @@ function findByUA(ua) {
   }
 
   return null;
+}
+
+function getConfigByRequest(bundleId, ua) {
+  const key = (bundleId || '') + '|' + (ua || '');
+  if (MATCH_CACHE[key]) {
+    return MATCH_CACHE[key];
+  }
+
+  const config = findByBundleId(bundleId) || findByUA(ua) || null;
+  if (config) {
+    MATCH_CACHE[key] = config;
+  }
+  return config;
 }
 
 /**
@@ -632,6 +653,12 @@ function validateConfigMaps() {
 
 // ==================== 核心逻辑 ====================
 
+function validateRuntimeConstants() {
+  if (typeof PURCHASE_DATE === 'undefined' || typeof EXPIRES_DATE === 'undefined') {
+    console.log('❌ 关键常量缺失: PURCHASE_DATE/EXPIRES_DATE');
+  }
+}
+
 /**
  * 主入口函数
  *
@@ -653,6 +680,7 @@ function main() {
   // 启动时进行轻量配置自检（仅一次）
   if (!CONFIG_VALIDATED) {
     validateConfigMaps();
+    validateRuntimeConstants();
     CONFIG_VALIDATED = true;
   }
 
@@ -674,6 +702,10 @@ function main() {
     // 清理 RevenueCat 的缓存头，避免响应被缓存
     delete headers['x-revenuecat-etag'];
     delete headers['X-RevenueCat-ETag'];
+    delete headers['if-none-match'];
+    delete headers['If-None-Match'];
+    delete headers['if-modified-since'];
+    delete headers['If-Modified-Since'];
     return $done({ headers });
   }
 
@@ -686,8 +718,8 @@ function main() {
   }
 
   // ===== 步骤 5: 查找匹配配置 =====
-  // 优先从 Bundle ID 查找，其次从 UA 查找
-  let config = findByBundleId(bundleId) || findByUA(ua);
+  // 优先从 Bundle ID 查找，其次从 UA 查找（带缓存）
+  let config = getConfigByRequest(bundleId, ua);
   if (!config) {
     console.log('🔍 本地未命中: bundle=' + (bundleId || 'none') + ', ua=' + (ua ? ua.slice(0, 60) : 'none'));
   }
@@ -860,6 +892,12 @@ function processSubscription(data, config) {
  * @returns {Promise<object>} 标准化配置
  */
 function fetchFromAPI(headers) {
+  const now = Date.now();
+  if (API_CACHE.config && (now - API_CACHE.ts) < API_CACHE_TTL_MS) {
+    console.log('🧠 使用 API 缓存配置');
+    return Promise.resolve(API_CACHE.config);
+  }
+
   const apiUrl = 'https://api.revenuecat.com/v1/product_entitlement_mapping';
 
   return $task.fetch({
@@ -873,11 +911,13 @@ function fetchFromAPI(headers) {
       const apiConfig = extractFromMapping(mappingData);
       if (apiConfig && apiConfig.name && apiConfig.id) {
         console.log('API 获取成功: ' + apiConfig.name);
+        API_CACHE = { config: apiConfig, ts: Date.now() };
         return apiConfig;
       }
     }
 
     console.log('API 映射无效，回退默认配置');
+    API_CACHE = { config: DEFAULT_CONFIG, ts: Date.now() };
     return DEFAULT_CONFIG;
   });
 }
