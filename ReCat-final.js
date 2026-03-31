@@ -446,6 +446,13 @@ const MAX_MATCH_CACHE_SIZE = 500;
 let MATCH_CACHE_SIZE = 0;
 const NO_MATCH = '__NO_MATCH__';
 const UA_KEYS = Object.keys(UA_MAP);
+const UA_PREFIX_BUCKETS = Object.create(null);
+for (let i = 0; i < UA_KEYS.length; i++) {
+  const k = UA_KEYS[i];
+  const p = (k[0] || '').toLowerCase();
+  if (!UA_PREFIX_BUCKETS[p]) UA_PREFIX_BUCKETS[p] = [];
+  UA_PREFIX_BUCKETS[p].push(k);
+}
 const DEBUG_LOG = false;
 
 function debugLog(msg) {
@@ -486,16 +493,25 @@ function safeJSONParse(str) {
  * @param {string} body - 请求体
  * @returns {boolean} true 表示是禁止的应用
  */
+const FORBIDDEN_SET = new Set(FORBIDDEN_APPS);
+
 function isForbiddenApp(ua, body, bundleId) {
-  const hit = FORBIDDEN_APPS.some(app =>
-    (ua && ua.includes(app)) ||
-    (body && body.includes(app)) ||
-    (bundleId && bundleId.includes(app))
-  );
-  if (hit) {
+  // 先做精确匹配（极快）
+  if (FORBIDDEN_SET.has(bundleId) || FORBIDDEN_SET.has(ua)) {
     console.log('⛔️ 禁止 APP 命中: ' + (bundleId || ua || 'unknown'));
+    return true;
   }
-  return hit;
+
+  // 再做模糊匹配
+  for (let i = 0; i < FORBIDDEN_APPS.length; i++) {
+    const app = FORBIDDEN_APPS[i];
+    if ((ua && ua.includes(app)) || (body && body.includes(app)) || (bundleId && bundleId.includes(app))) {
+      console.log('⛔️ 禁止 APP 命中: ' + (bundleId || ua || 'unknown'));
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -528,19 +544,31 @@ function findByUA(ua) {
     return null;
   }
 
-  // 先做前缀匹配（数组循环比 for...in 更快更稳）
-  for (let i = 0; i < UA_KEYS.length; i++) {
-    const key = UA_KEYS[i];
+  const first = (ua[0] || '').toLowerCase();
+  const bucket = UA_PREFIX_BUCKETS[first] || UA_KEYS;
+
+  // 先做前缀匹配
+  for (let i = 0; i < bucket.length; i++) {
+    const key = bucket[i];
     if (ua.startsWith(key)) {
       return UA_MAP[key];
     }
   }
 
-  // 再做包含匹配
-  for (let i = 0; i < UA_KEYS.length; i++) {
-    const key = UA_KEYS[i];
+  // 再做包含匹配（优先当前桶，后全量兜底）
+  for (let i = 0; i < bucket.length; i++) {
+    const key = bucket[i];
     if (ua.includes(key)) {
       return UA_MAP[key];
+    }
+  }
+
+  if (bucket !== UA_KEYS) {
+    for (let i = 0; i < UA_KEYS.length; i++) {
+      const key = UA_KEYS[i];
+      if (ua.includes(key)) {
+        return UA_MAP[key];
+      }
     }
   }
 
@@ -570,6 +598,42 @@ function getConfigByRequest(bundleId, ua) {
   return config;
 }
 
+// 预构建 payload 模板，减少每请求对象创建
+const BASE_SUB_DATA_SJA = {
+  purchase_date: PURCHASE_DATE,
+  expires_date: EXPIRES_DATE,
+  is_sandbox: false,
+  ownership_type: "PURCHASED",
+  store_transaction_id: "490001314520000",
+  store: "app_store"
+};
+const BASE_SUB_DATA_NOEXP = {
+  purchase_date: PURCHASE_DATE,
+  is_sandbox: false,
+  ownership_type: "PURCHASED",
+  store_transaction_id: "490001314520000",
+  store: "app_store"
+};
+const BASE_PURCHASE_SJA = {
+  is_sandbox: false,
+  ownership_type: "PURCHASED",
+  id: "888888888",
+  expires_date: EXPIRES_DATE,
+  original_purchase_date: PURCHASE_DATE,
+  store_transaction_id: "490001314520000",
+  purchase_date: PURCHASE_DATE,
+  store: "app_store"
+};
+const BASE_PURCHASE_NOEXP = {
+  is_sandbox: false,
+  ownership_type: "PURCHASED",
+  id: "888888888",
+  original_purchase_date: PURCHASE_DATE,
+  store_transaction_id: "490001314520000",
+  purchase_date: PURCHASE_DATE,
+  store: "app_store"
+};
+
 /**
  * 构建订阅数据对象
  *
@@ -578,20 +642,7 @@ function getConfigByRequest(bundleId, ua) {
  * @returns {object} 订阅数据对象
  */
 function buildSubscriptionData(cm) {
-  const data = {
-    purchase_date: PURCHASE_DATE,
-    is_sandbox: false,              // 非沙盒环境
-    ownership_type: "PURCHASED",    // 已购买
-    store_transaction_id: "490001314520000",  // 模拟交易ID
-    store: "app_store"              // App Store
-  };
-
-  // sja: 带 expires_date；sjb/sjc: 不带 expires_date
-  if (cm === 'sja') {
-    data.expires_date = EXPIRES_DATE;
-  }
-
-  return data;
+  return cm === 'sja' ? { ...BASE_SUB_DATA_SJA } : { ...BASE_SUB_DATA_NOEXP };
 }
 
 /**
@@ -602,21 +653,7 @@ function buildSubscriptionData(cm) {
  * @returns {object} 购买记录对象
  */
 function buildPurchaseRecord(cm) {
-  const data = {
-    is_sandbox: false,
-    ownership_type: "PURCHASED",
-    id: "888888888",               // 模拟购买ID
-    original_purchase_date: PURCHASE_DATE,
-    store_transaction_id: "490001314520000",
-    purchase_date: PURCHASE_DATE,
-    store: "app_store"
-  };
-
-  if (cm === 'sja') {
-    data.expires_date = EXPIRES_DATE;
-  }
-
-  return data;
+  return cm === 'sja' ? { ...BASE_PURCHASE_SJA } : { ...BASE_PURCHASE_NOEXP };
 }
 
 /**
