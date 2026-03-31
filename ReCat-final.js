@@ -867,19 +867,23 @@ function processSubscription(data, config) {
     };
   }
 
-  const productSet = new Set(idsArray);
-  if (idb) {
-    productSet.add(idb);
+  // 单次去重插入: 用 plain object 做 seen 查找(O(1))，
+  // 避免 Set→Array.from 两次分配 + 额外遍历
+  const seen = {};
+  for (let i = 0; i < idsArray.length; i++) {
+    const pid = idsArray[i];
+    if (seen[pid]) continue;
+    seen[pid] = 1;
+    subscriber.subscriptions[pid] = { ...subDataBase };
+    subscriber.non_subscriptions[pid] = [{ ...purchaseDataBase }];
+    subscriber.other_purchases[pid] = withExpire
+      ? { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
+      : { purchase_date: PURCHASE_DATE };
   }
-
-  const uniqueProductIds = Array.from(productSet);
-
-  // 为每个产品 ID 创建订阅记录（使用独立对象，避免引用共享）
-  for (let i = 0; i < uniqueProductIds.length; i++) {
-    const productId = uniqueProductIds[i];
-    subscriber.subscriptions[productId] = { ...subDataBase };
-    subscriber.non_subscriptions[productId] = [{ ...purchaseDataBase }];
-    subscriber.other_purchases[productId] = withExpire
+  if (idb && !seen[idb]) {
+    subscriber.subscriptions[idb] = { ...subDataBase };
+    subscriber.non_subscriptions[idb] = [{ ...purchaseDataBase }];
+    subscriber.other_purchases[idb] = withExpire
       ? { purchase_date: PURCHASE_DATE, expires_date: EXPIRES_DATE }
       : { purchase_date: PURCHASE_DATE };
   }
