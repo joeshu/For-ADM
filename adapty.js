@@ -5,23 +5,20 @@
 脚本作者：@ddm1023
 电报频道：https://t.me/ddm1023
 使用声明：⚠️仅供参考，🈲转载与售卖！
-
-**************************************
-
 [rewrite_local]
-^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/Mikephie/Script/main/qx/adapty.js
 
 [mitm]
 hostname = api.adapty.io
 
-*************************************/
+*/
 
 
-let ddm = JSON.parse($response.body);
-const headers = $request?.headers || {};
-const ua = headers['User-Agent'] || headers['user-agent'] || "";
-const profileid = headers['adapty-sdk-profile-id'] || headers['ADAPTY-SDK-PROFILE-ID'] || "";
-const time = Date.now();
+let mikephie = JSON.parse($response.body);
+const headers = $request.headers;
+const ua = headers['User-Agent'] || headers['user-agent'];
+const profileid = headers['adapty-sdk-profile-id'] || headers['ADAPTY-SDK-PROFILE-ID'];
+const time = Date.now(); // 当前时间戳
 
 const list = {
   'Logo%20Maker': { dy: 'dypda', id: "com.limepresso.lm.paid.subscription.pro_yearly_high", bundle_id: "com.limepresso.logomaker" },  //LogoShop-logo设计软件
@@ -39,147 +36,40 @@ const list = {
   'FacePlus': { dy: 'dypda', id: "faceplus_yearly_subs_3dft_ios", bundle_id: "com.scaleup.faceplus" },  //Retouch: Al FaceEditor
   'Batched': { dy: 'dypdba', id: "com.advasoft.batched.premium_year", bundle_id: "com.advasoft.batched" }  //Batched-多量图片编辑器
 };
-var obj = JSON.parse($response.body);
-   
-    obj = {
-   "data" : {
-     "type" : "adapty_inapps_apple_receipt_validation_result",
-     "id" : "c0fd67d9-1578-4c58-b24b-d744ce4a2bdf",
-     "attributes" : {
-       "app_id" : "de891419-be85-43e4-a3b8-6aa08efb23f1",
-       "total_revenue_usd" : 0,
-       "customer_user_id" : null,
-       "subscriptions" : {
-         "com.watch.faces.subs2" : {
-           "vendor_transaction_id" : "310001397531700",
-           "billing_issue_detected_at" : null,
-           "is_lifetime" : false,
-           "store" : "app_store",
-           "vendor_product_id" : "com.watch.faces.subs2",
-           "vendor_original_transaction_id" : "310001397531700",
-           "will_renew" : true,
-           "renewed_at" : "2023-04-11T08:39:54.000000+0000",
-           "cancellation_reason" : null,
-           "active_promotional_offer_id" : null,
-           "active_promotional_offer_type" : null,
-           "unsubscribed_at" : null,
-           "is_active" : true,
-           "activated_at" : "2023-04-11T08:39:56.000000+0000",
-           "is_refund" : false,
-           "is_in_grace_period" : false,
-           "active_introductory_offer_type" : "free_trial",
-           "expires_at" : "2276-10-17T06:53:14.000000+0000",
-           "starts_at" : null,
-           "is_sandbox" : false
-         }
-       },
-       "promotional_offer_eligibility" : false,
-       "custom_attributes" : {
- 
-       },
-       "profile_id" : "c0fd67d9-1578-4c58-b24b-d744ce4a2bdf",
-       "paid_access_levels" : {
-         "premium_watch_widgets" : {
-           "id" : "premium_watch_widgets",
-           "is_lifetime" : false,
-           "vendor_product_id" : "com.watch.faces.subs2",
-           "active_promotional_offer_type" : null,
-           "cancellation_reason" : null,
-           "billing_issue_detected_at" : null,
-           "unsubscribed_at" : null,
-           "expires_at" : "2276-10-17T06:53:14.000000+0000",
-           "will_renew" : true,
-           "is_active" : true,
-           "active_promotional_offer_id" : null,
-           "is_in_grace_period" : false,
-           "activated_at" : "2023-04-11T08:39:56.000000+0000",
-           "renewed_at" : "2023-04-11T08:39:54.000000+0000",
-           "is_refund" : false,
-           "active_introductory_offer_type" : "free_trial",
-           "store" : "app_store",
-           "starts_at" : null
-         }
-       },
-       "introductory_offer_eligibility" : false,
-       "apple_validation_result" : {
-         "environment" : "Production",
-         "receipt" : {
-           "receipt_type" : "Production",
-           "app_item_id" : 1577752071,
-           "receipt_creation_date" : "2023-04-11 08:39:56 Etc/GMT",
-           "bundle_id" : "com.watch.faces.app",
-           "original_purchase_date" : "2023-04-11 08:36:32 Etc/GMT",
-           "in_app" : [
-             {
-               "quantity" : "1",
-               "purchase_date_ms" : "1681202394000",
-               "expires_date" : "2276-10-17 06:53:14 Etc/GMT",
-               "expires_date_pst" : "2276-10-17 06:53:14 America/Los_Angeles",
-               "is_in_intro_offer_period" : "false",
-               "transaction_id" : "310001397531700",
-               "is_trial_period" : "true",
-               "original_transaction_id" : "310001397531700",
-               "purchase_date" : "2023-04-11 08:39:54 Etc/GMT",
-               "product_id" : "com.watch.faces.subs2",
-               "original_purchase_date_pst" : "2023-04-11 01:39:56 America/Los_Angeles",
-               "in_app_ownership_type" : "PURCHASED",
-               "original_purchase_date_ms" : "1681202396000",
-               "web_order_line_item_id" : "310000650605036",
-               "expires_date_ms" : "9681461594000",
-               "purchase_date_pst" : "2023-04-11 01:39:54 America/Los_Angeles",
-               "original_purchase_date" : "2023-04-11 08:39:56 Etc/GMT"
-             }
-           ],
-           "adam_id" : 1577752071,
-           "receipt_creation_date_pst" : "2023-04-11 01:39:56 America/Los_Angeles",
-           "request_date" : "2023-04-11 08:39:58 Etc/GMT",
-           "request_date_pst" : "2023-04-11 01:39:58 America/Los_Angeles",
-           "version_external_identifier" : 856171850,
-           "request_date_ms" : "1681202398648",
-           "original_purchase_date_pst" : "2023-04-11 01:36:32 America/Los_Angeles",
-           "application_version" : "1",
-           "original_purchase_date_ms" : "1681202192000",
-           "receipt_creation_date_ms" : "1681202396000",
-           "original_application_version" : "1",
-           "download_id" : 502338957716873322
-         },
-         "pending_renewal_info" : [
-           {
-             "product_id" : "com.watch.faces.subs2",
-             "original_transaction_id" : "310001397531700",
-             "auto_renew_product_id" : "com.watch.faces.subs2",
-             "auto_renew_status" : "1"
-           }
-         ],
-         "status" : 0,
-         "latest_receipt_info" : [
-           {
-             "quantity" : "1",
-             "purchase_date_ms" : "1681202394000",
-             "expires_date" : "2276-10-17 06:53:14 Etc/GMT",
-             "expires_date_pst" : "2276-10-17 06:53:14 America/Los_Angeles",
-             "is_in_intro_offer_period" : "false",
-             "transaction_id" : "310001397531700",
-             "is_trial_period" : "true",
-             "original_transaction_id" : "310001397531700",
-             "purchase_date" : "2023-04-11 08:39:54 Etc/GMT",
-             "product_id" : "com.watch.faces.subs2",
-             "original_purchase_date_pst" : "2023-04-11 01:39:56 America/Los_Angeles",
-             "in_app_ownership_type" : "PURCHASED",
-             "subscription_group_identifier" : "20857042",
-             "original_purchase_date_ms" : "1681202396000",
-             "web_order_line_item_id" : "310000650605036",
-             "expires_date_ms" : "9681461594000",
-             "purchase_date_pst" : "2023-04-11 01:39:54 America/Los_Angeles",
-             "original_purchase_date" : "2023-04-11 08:39:56 Etc/GMT"
-           }
-         ],
-         "latest_receipt" : "*"
-       },
-       "non_subscriptions" : null
-     }
-   }
- }
 
-$done({body : JSON.stringify(obj)});
-;var encode_version = 'jsjiami.com.v5', ndywl = '__0x1250cb',  __0x1250cb=['wqk5w6U9Ew==','YRDCjXoYwrXDrMOqBQ==','w6QSCl7ChA==','wr8CXT8=','dcKCYTbCtg==','VmjDpA==','w4LCq8KLw4dn','wqJNPRLCgcOVw5ptwqTDumE=','OMOrXsO8CEYwwrk=','w6jDhFvDs8ODw7vDssKIHV/Dqw==','WsKDwo4=','8LuGksKt5oqp5Ymb6K+Y5Y+kw57CnMKmw5AKw53DmOWCp++/kSDCkhFSworDiu+8ou+9mQ==','wr7CmBc=','JE7CuA==','G8Kzw64Leg==','ek0/wo4taMOQYMOkwq0I','wqjDpXg=','8YmXvlPmiqHliaDor77ljqY+w4g2wpYkEMOo5YOJ7764JlUTPMKcP+++su+8mw==','w7vDsHk=','woxlw6nCh2U=','w6l7wpfClMOvw5XCig==','K3c2JGnDmCnDsMOvw6x2wq9gRg==','ZMKnchk=','I3w8','wrvCicKjS8K9w6XphqrnvK7orL3ljYfvvoTCnRTCksKzPcK2VzXCmAAowrsJwqh6Rzk=','wrvDrMOX','4puY77i3XB9dLcOLd8Oq6YeN572v56Wb55WQ6Ie35py077+K6IWw5pyJ5YOA5qyT6L6M6KGt','RsKDwppa','4pmZ77upw7vohJvmn4Llv4flu5/ltrLnuI7mr7PovY7oorU=','5qGp5reQ5Ym66IeQ5p2F5b6u5YSm5p2Z5b2i5ZG9','8YqzucKj44OASC9Mw4HDnGjphqbnvJLmjLrljL7jgYbCgGXvuJLigb/DqemFjOe8s+Wcv+Wfku+9kUjDtUPCmsOnw70nLXDDt2zDqcO7fMO3wpJFwpARw6PCs8KsSE/Dn3HCj8Oyw4DClVHDrMKeCR52w7dDccOQ77qM4oCeRuiurumblemRv+aOke++uMKTE8ONw5JKw63Dk8KLc8ONOkhaG0LChBdKJ8KWw4J0ScOlZCh+VsOBwqp3SxNmQAwZwrXDlSPCsxknw6zCscKbw6TDpcOMHcOJwrDDiXVTwqrCg8KOwoZuwqPDhAPDlyIjFBwuw6XDinVBw6bCuHbCpV7wkKCRwp3jgobkvYbnlbLorq3mmrbjgph6Zu+6ouKDnlrmtJvli6vorZTpmrHpk4XmjYzlia3ChFTDpCE3w7o7woLvuarigala5ZOf55eBw75B6Ia75p6l5b+55Ye4w63DpeW4leS8o+Wtvuiunue9hRg84pij77mSwqHjg7rmsKbmhrHku57poLbjgq83woVe5b+T5YSM55ac5LuV6ZqR5qyf6Z6Y5rOb5ZSc5Y6P6IeG5p+GUsOdw53ku4jkvI7lrbjkuLTkvZPpqYPvv7zorq/liITkv7bmkZbmibDmuqPnl6zCjFQB5bm66K2ww67CnsOWwrHls7zmloXlh53liaHpmp/vv4DpgaHlhrrkuYLlvpvop4jplrTpo5/CrlHwrLi+w4Tmh7ros6DnkJropYDku5vmlInmjJLvvpM=','w5hbJiNMEsOu','w4AlHnHCnUt0wqEc','IGjDtMO/UsOmOHAqwobDtsKTRsKlw6RvRSvChsOpw4N6VMOZwr7CmsK8KjPCqC0=','w5TDpcOid8K+wpzDlMKkw4N7w4lDP8KEw7TCgGVadiIxw4ljVWrCohcQSQjCjw==','OBVjw4t4H8KNJcKew7BJBTXDqcOk','w4LCj8Kpw7Ny','fiRrPDjCmGnClsKowqIvw6sz','w6rDg0rCiMOSNUkzwrpgw45eesOyw4XCiTgVWHnCvzjDmC7ChMOpOA==','w5XClsKNwpXDrw==','wqXCpsK9wonDtBIAw4nDr8OxwpBxwrvDgMKi','bcKmE8OEwr0RCsKMExjCoypow5Ru','P8OPw7RKccK/fhvDiVrCjwnCjMKVw6vDjGzDtU1ZSTtBwrMMw6LCkw==','DsOLYsOcNG4MwpIP','wo3ClsKbJE7CscKhWWTDkyvCh8Kr','E0l5w5bCpDjDokoHw6U7XH4=','wrl1wolLw43DhsKu','fcO7w78=','wqBJIhM=','w6ZjwroPYsKy','QMKswqpyHnM=','w43DojrCrgs=','bMOWwrF5BFE=','YMKgdBQ=','wrTClMKywo0=','w4/DvMOgwoxNFw==','wq7CvzU=','PFjCkMOlw6Z/MULCp8OZw4N8d8OxSsK3wr0Uw4p5GsKMw5DCpG50woscDkjCrT9Ow5nCtcOqL2w0U8OOw7xnw7Bpw5XDvsKeG8K3wr1wWy7Dvn/DiWDDhB/CsMKww4fCuFkfIw==','e8Ovwo9tUT9KOEAiw5LDmk3DgXHCsA==','wq1MXsKYw4XCm8O4w6FSwp4=','w7onw4sRwp/CncO8w7HDp8KRw7jDoQgIOsKzwrDCs8KNZ8OWKWsLfcKAD2HDjm9t','aQXDgcKlwqI3XAHDpsKewpYjLsK7Hw==','P8KVw7spTg8Hd2gCwp4wwoHDmMKUwpzCkCFkw5o=','PcOvWRYOw6Bxdg==','wqPCr8K/wo3DqRMDw5PDrMO6wohwwrfDgsKrw6A+w5JabQ==','w7leDGsQNg7DtVlqw4HCnxUswrY=','w5tUw7Y=','w64ALhLCgVHCg2PDjg==','wpjClcKoaMKJwqs=','w4bChcKN','czzCp8K7C8KvVjR2w5TDksOTDMOAwrUmD3fDmsKYwoEvB8KMw6fDmsOjRXXDuXHDkMOJE0rChcKzw65Zw4XDhsKEaS4R','woRePgPCkcOww4F2woDDsQ==','wqzClQXCssKLwo3CrMOXZAnCssOyNcKsdMOpw6rDpMKAw4RZfGxeKsK1Rg==','E8Ovw6svVC1XOMKCwrJ9MkfDqsONYiTDicOzbyXDqsKBw4TCpizCnA==','w7DDmMOxw5V5N1bDs8OMw6Fdwr3DoMOODA==','w4rDq8O+','5bSU5pCY5L6H5ome5YiM8LSNpPC9nbrwr6yUeeWPqOW/reePr+ODl+WJmeS7gemjnumBnzvDmTsRLsOiTxpWF8OLGCnDn8OzwoPCm8Kvw5TCrsKvHw==','wqvChwHDmMKRYhl4w7M=','NMOtWsO2HUI2w7kow73Csy5lwrM=','54mH5p+z5Y6a77yvXcKn5L2b5a+Z5p2k5by756mx772O6L2K6K6x5pWG5o2V5oqG5Lib55qA5bSm5L+Q','5YqB6Zix54im5pyC5YyZ77yzccKg5L2j5a2T5p245b+B56u2','wphMRQ==','wrDCuR/DpMKv','w7NtTcOoBw==','wqnCssKRacK5','wrkibB9N','wrjDm8OqwoXClQ==','eVYYOFQ8w69Bwq4=','dC3CqMKoC8K/ZjM=','KXDDlMKdwqt+GcKUwqI=','RcKlwpo='];(function(_0x2d4e9c,_0x325eac){var _0x42ad4e=function(_0x3bae48){while(--_0x3bae48){_0x2d4e9c['push'](_0x2d4e9c['shift']());}};_0x42ad4e(++_0x325eac);}(__0x1250cb,0x168));var _0x2470=function(_0x358ec0,_0x33f13c){_0x358ec0=_0x358ec0-0x0;var _0x3702c6=__0x1250cb[_0x358ec0];if(_0x2470['initialized']===undefined){(function(){var _0x422fe3=typeof window!=='undefined'?window:typeof process==='object'&&typeof require==='function'&&typeof global==='object'?global:this;var _0x1ca6c9='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';_0x422fe3['atob']||(_0x422fe3['atob']=function(_0xb626ca){var _0x4945ab=String(_0xb626ca)['replace'](/=+$/,'');for(var _0xa6a71=0x0,_0xc9a7c4,_0x503a22,_0x5b091c=0x0,_0x465c22='';_0x503a22=_0x4945ab['charAt'](_0x5b091c++);~_0x503a22&&(_0xc9a7c4=_0xa6a71%0x4?_0xc9a7c4*0x40+_0x503a22:_0x503a22,_0xa6a71++%0x4)?_0x465c22+=String['fromCharCode'](0xff&_0xc9a7c4>>(-0x2*_0xa6a71&0x6)):0x0){_0x503a22=_0x1ca6c9['indexOf'](_0x503a22);}return _0x465c22;});}());var _0x1a0188=function(_0x120195,_0x12b831){var _0x4c3c2e=[],_0x11c533=0x0,_0x2b5ccb,_0x15dc58='',_0x526205='';_0x120195=atob(_0x120195);for(var _0x4a49d9=0x0,_0x206abf=_0x120195['length'];_0x4a49d9<_0x206abf;_0x4a49d9++){_0x526205+='%'+('00'+_0x120195['charCodeAt'](_0x4a49d9)['toString'](0x10))['slice'](-0x2);}_0x120195=decodeURIComponent(_0x526205);for(var _0x12480d=0x0;_0x12480d<0x100;_0x12480d++){_0x4c3c2e[_0x12480d]=_0x12480d;}for(_0x12480d=0x0;_0x12480d<0x100;_0x12480d++){_0x11c533=(_0x11c533+_0x4c3c2e[_0x12480d]+_0x12b831['charCodeAt'](_0x12480d%_0x12b831['length']))%0x100;_0x2b5ccb=_0x4c3c2e[_0x12480d];_0x4c3c2e[_0x12480d]=_0x4c3c2e[_0x11c533];_0x4c3c2e[_0x11c533]=_0x2b5ccb;}_0x12480d=0x0;_0x11c533=0x0;for(var _0x4ad13d=0x0;_0x4ad13d<_0x120195['length'];_0x4ad13d++){_0x12480d=(_0x12480d+0x1)%0x100;_0x11c533=(_0x11c533+_0x4c3c2e[_0x12480d])%0x100;_0x2b5ccb=_0x4c3c2e[_0x12480d];_0x4c3c2e[_0x12480d]=_0x4c3c2e[_0x11c533];_0x4c3c2e[_0x11c533]=_0x2b5ccb;_0x15dc58+=String['fromCharCode'](_0x120195['charCodeAt'](_0x4ad13d)^_0x4c3c2e[(_0x4c3c2e[_0x12480d]+_0x4c3c2e[_0x11c533])%0x100]);}return _0x15dc58;};_0x2470['rc4']=_0x1a0188;_0x2470['data']={};_0x2470['initialized']=!![];}var _0x539c41=_0x2470['data'][_0x358ec0];if(_0x539c41===undefined){if(_0x2470['once']===undefined){_0x2470['once']=!![];}_0x3702c6=_0x2470['rc4'](_0x3702c6,_0x33f13c);_0x2470['data'][_0x358ec0]=_0x3702c6;}else{_0x3702c6=_0x539c41;}return _0x3702c6;};if(typeof $rocket!==_0x2470('0x0','j@5Z')){function getBoxJSValue(_0x5ea269){var _0x382088={'eqwOs':function _0x9e4e65(_0x403057,_0x2b904c){return _0x403057!==_0x2b904c;},'EGdpj':function _0xb30ea(_0x468b7b,_0x2bb3b2){return _0x468b7b===_0x2bb3b2;},'eWfJI':_0x2470('0x1','vRVG'),'zuIrL':_0x2470('0x2','l8Hh'),'tVKUy':function _0x21146c(_0x2293c2,_0x11c3e7){return _0x2293c2===_0x11c3e7;},'XnUSM':_0x2470('0x3','mBKL'),'ZPjWo':'⚠️\x20无法检测到可用的\x20BoxJS\x20环境！'};try{if(_0x382088[_0x2470('0x4',')KxD')](typeof $persistentStore,_0x2470('0x5','82qz'))&&_0x382088[_0x2470('0x6','cR57')](typeof $persistentStore[_0x2470('0x7','d[j)')],_0x382088[_0x2470('0x8','h270')])){const _0x3a43b4=$persistentStore['read'](_0x5ea269);console['log']('🔍\x20成功读取\x20BoxJS\x20值（$persistentStore）：'+_0x5ea269+_0x2470('0x9','8yC#')+_0x3a43b4);return _0x3a43b4;}else if(_0x382088['eqwOs'](typeof $prefs,_0x382088['zuIrL'])&&_0x382088[_0x2470('0xa','e(IG')](typeof $prefs[_0x2470('0xb','ZUxz')],_0x2470('0xc','%zEX'))){const _0x5e0bbf=$prefs[_0x2470('0xd','@$nS')](_0x5ea269);console[_0x2470('0xe','l&^h')](_0x2470('0xf',')Xmh')+_0x5ea269+_0x2470('0x10','@$nS')+_0x5e0bbf);return _0x5e0bbf;}else{if(_0x2470('0x11','L50E')===_0x382088[_0x2470('0x12','G#dq')]){const _0x25bf3c=$prefs[_0x2470('0x13','2k](')](_0x5ea269);console[_0x2470('0x14','$SP0')](_0x2470('0x15','dtaB')+_0x5ea269+_0x2470('0x16','8*#f')+_0x25bf3c);return _0x25bf3c;}else{console[_0x2470('0x14','$SP0')](_0x382088[_0x2470('0x17','E^3X')]);}}}catch(_0x17880a){console['log']('⚠️\x20读取\x20BoxJS\x20配置失败：'+_0x17880a[_0x2470('0x18','pIZi')]);}return null;}const scriptSwitch=getBoxJSValue(_0x2470('0x19','g5^r'));const isScriptEnabled=scriptSwitch===_0x2470('0x1a','h270')||scriptSwitch===!![];console[_0x2470('0x1b','g5^r')](_0x2470('0x1c','h4vT')+scriptSwitch);if(!isScriptEnabled){console[_0x2470('0x1d','jC2r')](_0x2470('0x1e','j@5Z'));$notification[_0x2470('0x1f','l&^h')](_0x2470('0x20','h4vT'),_0x2470('0x21','Ewyh'),_0x2470('0x22','E^3X'));$done();}};const premiumTemplate={'id':_0x2470('0x23','#aK3'),'is_lifetime':![],'store':_0x2470('0x24','cR57'),'starts_at':_0x2470('0x25','vRVG'),'expires_at':_0x2470('0x26','etQb'),'will_renew':!![],'is_active':!![],'is_in_grace_period':![],'activated_at':'2024-01-23T09:09:09.000000+0000','renewed_at':'2024-01-23T09:09:09.000000+0000','is_refund':![],'vendor_transaction_id':_0x2470('0x27','2k]('),'vendor_original_transaction_id':'490001271881589','is_sandbox':![],'active_introductory_offer_type':_0x2470('0x28','e(IG')};const receiptTemplate={'quantity':'1','purchase_date_ms':_0x2470('0x29','g5^r'),'expires_date':_0x2470('0x2a','dtaB'),'is_in_intro_offer_period':_0x2470('0x2b','wJ9q'),'transaction_id':_0x2470('0x2c',')Xmh'),'is_trial_period':'true','original_transaction_id':_0x2470('0x2d','$]TY'),'purchase_date':_0x2470('0x2e','frOR'),'in_app_ownership_type':_0x2470('0x2f','%zEX'),'original_purchase_date_ms':_0x2470('0x30','eYU@'),'expires_date_ms':_0x2470('0x31','E1pI')};for(const key in list){const safeKey=key[_0x2470('0x32','SVr[')](/[.*+?^${}()|[\]\\]/g,_0x2470('0x33','mBKL'));if(new RegExp('^'+safeKey,'i')[_0x2470('0x34','ZUxz')](ua)){const {dy,id,ids,bundle_id}=list[key];let subscriptions={};let receiptdata=[];switch(dy){case'dypda':subscriptions[id]=Object[_0x2470('0x35','dZ9Y')]({},premiumTemplate,{'vendor_product_id':id});receiptdata['push'](Object[_0x2470('0x36','mBKL')]({},receiptTemplate,{'product_id':id}));break;case _0x2470('0x37','Ewyh'):subscriptions[id]=Object[_0x2470('0x38','d$5z')]({},premiumTemplate,{'vendor_product_id':id});if(ids){subscriptions[ids]=Object['assign']({},premiumTemplate,{'vendor_product_id':ids});receiptdata[_0x2470('0x39','h270')](Object['assign']({},receiptTemplate,{'product_id':ids}));}receiptdata[_0x2470('0x3a',']NT]')](Object[_0x2470('0x3b','IkYL')]({},receiptTemplate,{'product_id':id}));break;}if(/(analytics\/profiles|purchase\/app-store)/['test']($request[_0x2470('0x3c','8*#f')])){ddm={'data':{'type':_0x2470('0x3d','L50E'),'id':profileid,'attributes':{'profile_id':profileid,'is_test_user':![],'segment_hash':_0x2470('0x3e','G#dq'),'timestamp':time,'apple_validation_result':{'environment':_0x2470('0x3f','TDNn'),'revision':_0x2470('0x40','SVr['),'appAppleId':0x5d08046e,'transactions':[{'productId':id,'storefront':'CHN','originalTransactionId':_0x2470('0x41','L50E'),'expiresDate':_0x2470('0x42','d$5z'),'subscriptionGroupIdentifier':_0x2470('0x43','KKqb'),'purchaseDate':_0x2470('0x44',')Xmh'),'price':0x0,'transactionId':_0x2470('0x45','d[j)'),'currency':_0x2470('0x46','Vxvy'),'inAppOwnershipType':_0x2470('0x47',')PN(')}],'hasMore':![],'bundleId':bundle_id},'subscriptions':subscriptions,'paid_access_levels':{'premium':Object[_0x2470('0x48','h4vT')]({},premiumTemplate,{'vendor_product_id':id})}}}};}if(/(receipt\/validate|purchase-containers)/['test']($request[_0x2470('0x49','wJ9q')])){ddm={'data':{'type':_0x2470('0x4a','vRVG'),'id':profileid,'attributes':{'profile_id':profileid,'apple_validation_result':{'environment':_0x2470('0x4b','ZUxz'),'receipt':{'receipt_type':'Production','bundle_id':bundle_id,'in_app':receiptdata,'original_purchase_date':_0x2470('0x4c','@$nS'),'adam_id':0x5d08046e,'request_date':_0x2470('0x4d','mBKL'),'request_date_ms':'1706000949000','application_version':'1','original_application_version':'1'},'status':0x0,'pending_renewal_info':[{'expiration_intent':'1','product_id':id,'is_in_billing_retry_period':'0','auto_renew_product_id':id,'original_transaction_id':_0x2470('0x4e',']NT]'),'auto_renew_status':'0'}],'latest_receipt_info':receiptdata,'latest_receipt':_0x2470('0x4f','IkYL')},'subscriptions':subscriptions,'paid_access_levels':{'premium':Object[_0x2470('0x38','d$5z')]({},premiumTemplate,{'vendor_product_id':id})}}}};}console['log'](_0x2470('0x50','etQb'));break;}}$done({'body':JSON[_0x2470('0x51','dtaB')](ddm)});;(function(_0x13a141,_0x2c2753,_0x35c450){var _0x19821a={'hJlUP':function _0x1c18d4(_0x2c05d3,_0x27457d){return _0x2c05d3!==_0x27457d;},'dqEKI':_0x2470('0x5','82qz'),'PTJhW':_0x2470('0x52','%zEX'),'tEPDm':_0x2470('0x53','KKqb'),'oXZwb':_0x2470('0x54','cR57')};_0x35c450='al';try{_0x35c450+=_0x2470('0x55','TDNn');_0x2c2753=encode_version;if(!(_0x19821a[_0x2470('0x56','dtaB')](typeof _0x2c2753,_0x19821a[_0x2470('0x57','meZN')])&&_0x2c2753===_0x19821a[_0x2470('0x58','h4vT')])){_0x13a141[_0x35c450]('删除'+_0x19821a[_0x2470('0x59','d[j)')]);}}catch(_0x88cffb){_0x13a141[_0x35c450](_0x19821a[_0x2470('0x5a','jC2r')]);}}(window));;encode_version = 'jsjiami.com.v5';
+const premiumTemplate = {"id":"premium","is_lifetime":false,"store":"app_store","starts_at":"2024-04-04T04:04:04.000000+0000","expires_at":"2088-08-08T08:08:08.000000+0000","will_renew":true,"is_active":true,"is_in_grace_period":false,"activated_at":"2024-04-04T04:04:04.000000+0000","renewed_at":"2024-04-04T04:04:04.000000+0000","is_refund":false,"vendor_transaction_id":"300002087810351","vendor_original_transaction_id":"300002087810351","is_sandbox":false,"active_introductory_offer_type":"trial"};
+
+const receiptTemplate = {"quantity":"1","purchase_date_ms":"1712174644000","expires_date":"2088-08-08 08:08:08 Etc/GMT","expires_date_pst":"2088-08-08 08:08:08 America/Los_Angeles","is_in_intro_offer_period":"false","transaction_id":"300002087810351","is_trial_period":"true","original_transaction_id":"300002087810351","purchase_date":"2024-04-04 04:04:04 Etc/GMT","original_purchase_date_pst":"2024-04-04 04:04:04 America/Los_Angeles","in_app_ownership_type":"PURCHASED","original_purchase_date_ms":"1712174644000","web_order_line_item_id":"300002087810351","expires_date_ms":"3742762088000","purchase_date_pst":"2024-04-04T04:04:04Z America/Los_Angeles","original_purchase_date":"2024-04-04T04:04:04Z Etc/GMT"};
+ 
+const buildSubscriptionData = function(appConfig) {
+  const subscriptions = {};
+  const receiptData = [];
+  subscriptions[appConfig.id] = Object.assign({}, premiumTemplate, { "vendor_product_id": appConfig.id });
+  receiptData.push(Object.assign({}, receiptTemplate, { "product_id": appConfig.id }));
+  if (appConfig.dy === "dypdb" && appConfig.ids) {
+    subscriptions[appConfig.ids] = Object.assign({}, premiumTemplate, { "vendor_product_id": appConfig.ids });
+    receiptData.push(Object.assign({}, receiptTemplate, { "product_id": appConfig.ids }));
+  }
+  return { subscriptions, receiptData };
+}
+
+const buildResponseData = function(appConfig) {
+  const { subscriptions, receiptData } = buildSubscriptionData(appConfig);
+  const appleValidationResult = {"environment":"Production","receipt":{"receipt_type":"Production","app_item_id":6446992925,"bundle_id":appConfig.bundle_id,"in_app":receiptData,"original_purchase_date":"2024-04-04 04:04:04 Etc/GMT"},"status":0,"pending_renewal_info":[{"expiration_intent":"1","product_id":appConfig.id,"is_in_billing_retry_period":"0","auto_renew_product_id":appConfig.id,"auto_renew_status":"0"}],"latest_receipt_info":receiptData,"latest_receipt":"mikephie"};
+  return {"data":{"type":"adapty_inapps_apple_receipt_validation_result","id":profileid,"attributes":{"app_id":"dde4cae7-fdd9-4837-92fb-70c0432b0011","profile_id":profileid,"segment_hash":"ef46db3751d8e999","subscriptions":subscriptions,"total_revenue_usd":0,"paid_access_levels":{"premium":Object.assign({},premiumTemplate,{"vendor_product_id":appConfig.id})},"apple_validation_result":appleValidationResult}}};
+}
+
+for (const appName in list) {
+  if (new RegExp(`^${appName}`, 'i').test(ua)) {
+    const appConfig = list[appName];
+    if (/receipt\/validate|purchase-containers/.test($request.url)) {
+      mikephie = buildResponseData(appConfig);
+    } else if (/analytics\/profiles|purchase\/app-store/.test($request.url)) {
+      mikephie.data = Object.assign({}, mikephie.data,{"type":"adapty_purchase_app_store_original_transaction_id_validation_result","id":profileid,"attributes":{"app_id":"dde4cae7-fdd9-4837-92fb-70c0432b0011","profile_id":profileid,"is_test_user":false,"segment_hash":"ef46db3751d8e999","timestamp":time,"apple_validation_result":{"environment":"Production","revision":"1731137627000_300002087810351_4","appAppleId":6446992925,"transactions":[{"productId":appConfig.id,"storefront":"US","transactionId":"300002087810351","originalTransactionId":"300002087810351","expiresDate":"2088-08-08T08:08:08Z","purchaseDate":"2024-04-04 04:04:04Z"}],"bundleId":appConfig.bundle_id},"subscriptions":buildSubscriptionData(appConfig).subscriptions,"paid_access_levels":{"premium":Object.assign({},premiumTemplate,{"vendor_product_id":appConfig.id})}}});
+    }
+    console.log("操作成功 🎉\nMIKEPHIE频道: https://t.me/mikephie");
+    break;
+  }
+}
+
+$done({ body: JSON.stringify(mikephie) });
