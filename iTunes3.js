@@ -19,9 +19,19 @@ hostname = buy.itunes.apple.com,api.adapty.io,api.adaptytech.com
 *************************************/
 
 
-const ddm = JSON.parse($response.body);
-const ua = $request.headers["User-Agent"] || $request.headers["user-agent"];
-const bundle_id = ddm.receipt["bundle_id"] || ddm.receipt["Bundle_Id"];
+let ddm;
+try {
+  ddm = JSON.parse($response.body || "{}");
+} catch (e) {
+  ddm = {};
+}
+
+if (!ddm || typeof ddm !== "object") ddm = {};
+if (!ddm.receipt || typeof ddm.receipt !== "object") ddm.receipt = {};
+
+const reqHeaders = ($request && $request.headers) ? $request.headers : {};
+const ua = reqHeaders["User-Agent"] || reqHeaders["user-agent"] || "";
+const bundle_id = ddm.receipt["bundle_id"] || ddm.receipt["Bundle_Id"] || "unknown.bundle";
 const yearid = `${bundle_id}.year`;
 const yearlyid = `${bundle_id}.yearly`;
 const yearlysubscription = `${bundle_id}.yearlysubscription`;
