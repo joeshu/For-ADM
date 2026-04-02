@@ -36,6 +36,7 @@ const list = {
   'Lingvist': { dy: 'dypda', id: "com.lingvist.unlimited_12_months.v11.full_1md_ft", bundle_id: "ee.keel24.Lingvist" },  //Lingvist-学习英语
   'ChatAI': { dy: 'dypda', id: "chatai_yearly_ios", bundle_id: "com.scaleup.chatai" },  //Nova-chat机器人
   'FacePlus': { dy: 'dypda', id: "faceplus_yearly_subs_3dft_ios", bundle_id: "com.scaleup.faceplus" },  //Retouch: Al FaceEditor
+  'Overdrop': { dy: 'dypda', id: "com.weather.overdrop.forever", bundle_id: "com.weather.overdrop" },  //com.weather.overdrop
   'Batched': { dy: 'dypdba', id: "com.advasoft.batched.premium_year", bundle_id: "com.advasoft.batched" }  //Batched-多量图片编辑器
 };
 
