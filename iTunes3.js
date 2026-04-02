@@ -457,17 +457,26 @@ for (const i in list) {
 }
 
 if (!anchor) {
-  data = [Object.assign({}, receipt, expirestime)];
-  ddm["receipt"]["in_app"] = data;
-  ddm["latest_receipt_info"] = data;
+  const defaultProductId = "com.default.premium.yearly";
+  const defaultReceipt = Object.assign({}, receipt, expirestime, { "product_id": defaultProductId });
+
+  ddm["receipt"]["in_app"] = [defaultReceipt];
+  ddm["latest_receipt_info"] = [defaultReceipt];
   ddm["pending_renewal_info"] = [{
-    "product_id": yearlyid,
+    "product_id": defaultProductId,
     "original_transaction_id": "490001314520000",
-    "auto_renew_product_id": yearlyid,
+    "auto_renew_product_id": defaultProductId,
     "auto_renew_status": "1"
   }];
   ddm["latest_receipt"] = "ddm1023";
-  console.log('很遗憾未能识别出UA或bundle_id\n但已使用备用方案操作成功🎉🎉🎉\n叮当猫の分享频道: https://t.me/ddm1023');
+  ddm["default_template_applied"] = true;
+  ddm["default_template"] = {
+    "name": "fallback_yearly_template",
+    "product_id": defaultProductId,
+    "expires_date_ms": "4092599349000"
+  };
+
+  console.log('未匹配到UA或bundle_id，已套用默认模版✅\n默认product_id: ' + defaultProductId + '\n叮当猫の分享频道: https://t.me/ddm1023');
 }
 
 ddm["Telegram"] = "https://t.me/ddm1023";
