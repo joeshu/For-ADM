@@ -1,3 +1,13 @@
+/*************************************
+[rewrite_local]
+^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
+
+[mitm]
+hostname = api.adapty.io,api.adaptytech.com
+*************************************/
+
+
 (() => {
   const safeParse = (body) => { try { return JSON.parse(body || '{}'); } catch (e) { return { data: {} }; } };
   const log = (msg) => { try { console.log('[adapty-enhanced] ' + msg); } catch (_) {} };
