@@ -1,7 +1,7 @@
 /*************************************
 [rewrite_local]
-^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js requires-body=true, max-size=0
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js requires-body=true, max-size=0
 
 [mitm]
 hostname = api.adapty.io,api.adaptytech.com
@@ -22,9 +22,12 @@ hostname = api.adapty.io,api.adaptytech.com
   const bodyJson = safeParse($req.body || '{}');
   const profileFromBody = bodyJson?.data?.attributes?.profile_id;
   const profileid = headers['adapty-sdk-profile-id'] || headers['ADAPTY-SDK-PROFILE-ID'] || profileFromBody || 'profile';
+  const originalTxFromBody = bodyJson?.data?.attributes?.original_transaction_id;
+  const originalTx = headers['original-transaction-id'] || headers['Original-Transaction-Id'] || originalTxFromBody || '30003219514509';
   const time = Date.now();
   log(`url=${$req.url || ''}`);
   log(`ua=${ua}`);
+  log(`body_tx=${originalTxFromBody || ''} profile_body=${profileFromBody || ''}`);
 
   const list = {
     'Logo Maker': { dy: 'dypda', id: "com.limepresso.lm.paid.subscription.pro_yearly_high", bundle_id: "com.limepresso.logomaker", appAppleId: 1111111111 },
@@ -46,7 +49,7 @@ hostname = api.adapty.io,api.adaptytech.com
 
   const premiumTemplate = {"id":"premium","is_lifetime":false,"store":"app_store","starts_at":"2024-04-04T04:04:04.000000+0000","expires_at":"2088-08-08T08:08:08.000000+0000","will_renew":false,"is_active":true,"is_in_grace_period":false,"activated_at":"2024-04-04T04:04:04.000000+0000","renewed_at":"2024-04-04T04:04:04.000000+0000","is_refund":false,"vendor_transaction_id":"30003219514509","vendor_original_transaction_id":"30003219514509","is_sandbox":false,"vendor_product_id" : "plantapp_lifetime_special_ios_2499","product_type" : "lifetime","access_level_id" : "premium","active_introductory_offer_type":"free_trial"};
 
-  const receiptTemplate = {"quantity":"1","vendor_product_id" : "plantapp_lifetime_special_ios_2499", "product_type" : "lifetime","access_level_id" : "premium","purchase_date_ms":"1712174644000","expires_date":"2088-08-08 08:08:08 Etc/GMT","expires_date_pst":"2088-08-08 08:08:08 America/Los_Angeles","is_in_intro_offer_period":"false","transaction_id":"30003219514509","is_trial_period":"true","original_transaction_id":"30003219514509","purchase_date":"2024-04-04 04:04:04 Etc/GMT","original_purchase_date_pst":"2024-04-04 04:04:04 America/Los_Angeles","in_app_ownership_type":"PURCHASED","original_purchase_date_ms":"1712174644000","web_order_line_item_id":"30003219514509","expires_date_ms":"3742762088000","purchase_date_pst":"2024-04-04T04:04:04Z America/Los_Angeles","original_purchase_date":"2024-04-04T04:04:04Z Etc/GMT"};
+  const receiptTemplate = {"quantity":"1","vendor_product_id" : "plantapp_lifetime_special_ios_2499", "product_type" : "lifetime","access_level_id" : "premium","purchase_date_ms":"1712174644000","expires_date":"2088-08-08 08:08:08 Etc\/GMT","expires_date_pst":"2088-08-08 08:08:08 America\/Los_Angeles","is_in_intro_offer_period":"false","transaction_id":"30003219514509","is_trial_period":"true","original_transaction_id":"30003219514509","purchase_date":"2024-04-04 04:04:04 Etc\/GMT","original_purchase_date_pst":"2024-04-04 04:04:04 America\/Los_Angeles","in_app_ownership_type":"PURCHASED","original_purchase_date_ms":"1712174644000","web_order_line_item_id":"30003219514509","expires_date_ms":"3742762088000","purchase_date_pst":"2024-04-04T04:04:04Z America\/Los_Angeles","original_purchase_date":"2024-04-04T04:04:04Z Etc\/GMT"};
 
   const matchApp = () => {
     const names = Object.keys(list);
@@ -97,7 +100,7 @@ hostname = api.adapty.io,api.adaptytech.com
     const access_levels = buildAccessLevels(appConfig, tx);
     const appleValidationResult = {
       "environment":"Production",
-      "receipt":{"receipt_type":"Production","app_item_id":appConfig.appAppleId || 6446992925,"bundle_id":appConfig.bundle_id,"in_app":receiptData,"original_purchase_date":"2024-04-04 04:04:04 Etc/GMT"},
+      "receipt":{"receipt_type":"Production","app_item_id":appConfig.appAppleId || 6446992925,"bundle_id":appConfig.bundle_id,"in_app":receiptData,"original_purchase_date":"2024-04-04 04:04:04 Etc\/GMT"},
       "status":0,
       "pending_renewal_info":[{"expiration_intent":"1","product_id":appConfig.id,"is_in_billing_retry_period":"0","auto_renew_product_id":appConfig.id,"auto_renew_status":"0"}],
       "latest_receipt_info":receiptData,
@@ -153,14 +156,11 @@ hostname = api.adapty.io,api.adaptytech.com
   try {
     const appConfig = matchApp();
     const url = $req.url || '';
-    const hitReceipt = /receipt\/?\.??validate|purchase-containers/i.test(url);
-    const hitPurchase = /purchase\/?\.??app-store$/i.test(url);
-    const hitPurchaseOTI = /purchase\/?\.??app-store\/original-transaction-id\/validate/i.test(url);
-    const hitProfiles = /analytics\/?\.??profiles|\Wprofiles\W|customers\/.+\/profile/i.test(url);
+    const hitReceipt = /receipt\/validate|purchase-containers/i.test(url);
+    const hitPurchase = /purchase\/app-store$/i.test(url);
+    const hitPurchaseOTI = /purchase\/app-store\/original-transaction-id\/validate/i.test(url);
+    const hitProfiles = /analytics\/profiles|\Wprofiles\W|customers\/.+\/profile/i.test(url);
     const hitIntegration = /integration\/profile\/set\/integration-identifiers/i.test(url);
-
-    const originalTxFromBody = bodyJson?.data?.attributes?.original_transaction_id;
-    const originalTx = headers['original-transaction-id'] || headers['Original-Transaction-Id'] || originalTxFromBody || '30003219514509';
 
     if (hitReceipt) {
       log('hit receipt/validate or purchase-containers');
