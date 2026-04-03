@@ -1,7 +1,7 @@
 /*************************************
 [rewrite_local]
-^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body requires-body=true,max-size=0 https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body requires-body=true,max-size=0 https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store|purchase\/app-store\/original-transaction-id\/validate|integration\/profile\/set\/integration-identifiers) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
 
 [mitm]
 hostname = api.adapty.io, api.adaptytech.com
