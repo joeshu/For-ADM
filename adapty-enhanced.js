@@ -138,6 +138,7 @@ hostname = api.adapty.io,api.adaptytech.com
           "customer_user_id": null,
           "introductory_offer_eligibility": true,
           "subscriptions": subscriptions,
+          "access_levels": access_levels,
           "total_revenue_usd": 0,
           "paid_access_levels": access_levels
         }
@@ -151,3 +152,6 @@ hostname = api.adapty.io,api.adaptytech.com
 
   $done({ body: JSON.stringify(mikephie) });
 })();
+
+  // Fallback: ensure subscriptions exists at top-level too
+  if (!mikephie.subscriptions) mikephie.subscriptions = buildSubscriptionData(matchApp()).subscriptions;
