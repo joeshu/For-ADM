@@ -22,30 +22,27 @@ hostname = api.adapty.io,api.adaptytech.com
   const bodyJson = safeParse($req.body || '{}');
   const profileFromBody = bodyJson?.data?.attributes?.profile_id;
   const profileid = headers['adapty-sdk-profile-id'] || headers['ADAPTY-SDK-PROFILE-ID'] || profileFromBody || 'profile';
-  const originalTxFromBody = bodyJson?.data?.attributes?.original_transaction_id;
-  const originalTx = headers['original-transaction-id'] || headers['Original-Transaction-Id'] || originalTxFromBody || '30003219514509';
   const time = Date.now();
   log(`url=${$req.url || ''}`);
   log(`ua=${ua}`);
-  log(`body_tx=${originalTxFromBody || ''} profile_body=${profileFromBody || ''}`);
 
   const list = {
-    'Logo Maker': { dy: 'dypda', id: "com.limepresso.lm.paid.subscription.pro_yearly_high", bundle_id: "com.limepresso.logomaker", appAppleId: 1111111111 },
-    'Luminar': { dy: 'dypda', id: "com.skylum.luminaripad.lifetime", bundle_id: "com.skylum.luminaripad", appAppleId: 1111111111 },
-    'Genie': { dy: 'dypda', id: "yearly_advanced_pro", bundle_id: "co.appnation.geniechat", appAppleId: 1111111111 },
-    'Flight Tracker': { dy: 'dypda', id: "com.iaftt.flightplusfree.49.99year", bundle_id: "com.iaftt.flightplusfree", appAppleId: 1111111111 },
-    'AvA': { dy: 'dypda', id: "momo_yearly_subs_pro", bundle_id: "com.scaleup.dreame", appAppleId: 1111111111 },
-    'PlantApp': { dy: 'dypda', id: "plantapp.lifetime.promoted.sub", bundle_id: "com.scaleup.plantid", appAppleId: 1111111111 },
-    'KeyboardGPT': { dy: 'dypda', id: "smart.keyboard.yearly.01", bundle_id: "com.smart.keyboard", appAppleId: 1111111111 },
-    'SketchAR': { dy: 'dypda', id: "tech.sketchar.subscription.yearly", bundle_id: "tech.sketchar.ios", appAppleId: 1111111111 },
-    'universal': { dy: 'dypda', id: "remotetv.yearly.01", bundle_id: "com.universal.remotetv", appAppleId: 1111111111 },
-    'Lingvist': { dy: 'dypda', id: "com.lingvist.unlimited_12_months.v11.full_1md_ft", bundle_id: "ee.keel24.Lingvist", appAppleId: 1111111111 },
-    'ChatAI': { dy: 'dypda', id: "chatai_yearly_ios", bundle_id: "com.scaleup.chatai", appAppleId: 1111111111 },
-    'FacePlus': { dy: 'dypda', id: "faceplus_yearly_subs_3dft_ios", bundle_id: "com.scaleup.faceplus", appAppleId: 1111111111 },
+    'Logo Maker': { dy: 'dypda', id: "com.limepresso.lm.paid.subscription.pro_yearly_high", bundle_id: "com.limepresso.logomaker", appAppleId: 1459855011 },
+    'Luminar': { dy: 'dypda', id: "com.skylum.luminaripad.lifetime", bundle_id: "com.skylum.luminaripad" },
+    'Genie': { dy: 'dypda', id: "yearly_advanced_pro", bundle_id: "co.appnation.geniechat" },
+    'Flight Tracker': { dy: 'dypda', id: "com.iaftt.flightplusfree.49.99year", bundle_id: "com.iaftt.flightplusfree" },
+    'AvA': { dy: 'dypda', id: "momo_yearly_subs_pro", bundle_id: "com.scaleup.dreame" },
+    'PlantApp': { dy: 'dypda', id: "plantapp.lifetime.promoted.sub", bundle_id: "com.scaleup.plantid" },
+    'KeyboardGPT': { dy: 'dypda', id: "smart.keyboard.yearly.01", bundle_id: "com.smart.keyboard" },
+    'SketchAR': { dy: 'dypda', id: "tech.sketchar.subscription.yearly", bundle_id: "tech.sketchar.ios" },
+    'universal': { dy: 'dypda', id: "remotetv.yearly.01", bundle_id: "com.universal.remotetv" },
+    'Lingvist': { dy: 'dypda', id: "com.lingvist.unlimited_12_months.v11.full_1md_ft", bundle_id: "ee.keel24.Lingvist" },
+    'ChatAI': { dy: 'dypda', id: "chatai_yearly_ios", bundle_id: "com.scaleup.chatai" },
+    'FacePlus': { dy: 'dypda', id: "faceplus_yearly_subs_3dft_ios", bundle_id: "com.scaleup.faceplus" },
     'Overdrop': { dy: 'dypda', id: "app.overdrop.one_month_2", bundle_id: "com.weather.overdrop", appAppleId: 1459855011 },
-    'Batched': { dy: 'dypdba', id: "com.advasoft.batched.premium_year", bundle_id: "com.advasoft.batched", appAppleId: 1111111111 }
+    'Batched': { dy: 'dypdba', id: "com.advasoft.batched.premium_year", bundle_id: "com.advasoft.batched" }
   };
-  const fallbackApp = { dy: 'dypda', id: "plantapp.lifetime.promoted.sub", bundle_id: "com.scaleup.plantid", appAppleId: 1111111111 };
+  const fallbackApp = { dy: 'dypda', id: "plantapp.lifetime.promoted.sub", bundle_id: "com.scaleup.plantid", appAppleId: 6446992925 };
 
   const premiumTemplate = {"id":"premium","is_lifetime":false,"store":"app_store","starts_at":"2024-04-04T04:04:04.000000+0000","expires_at":"2088-08-08T08:08:08.000000+0000","will_renew":false,"is_active":true,"is_in_grace_period":false,"activated_at":"2024-04-04T04:04:04.000000+0000","renewed_at":"2024-04-04T04:04:04.000000+0000","is_refund":false,"vendor_transaction_id":"30003219514509","vendor_original_transaction_id":"30003219514509","is_sandbox":false,"vendor_product_id" : "plantapp_lifetime_special_ios_2499","product_type" : "lifetime","access_level_id" : "premium","active_introductory_offer_type":"free_trial"};
 
@@ -109,7 +106,7 @@ hostname = api.adapty.io,api.adaptytech.com
     return {"data":{"type":"adapty_inapps_apple_receipt_validation_result","id":profileid,"attributes":{"app_id":"dde4cae7-fdd9-4837-92fb-70c0432b0011","profile_id":profileid,"segment_hash":"ef46db3751d8e999","subscriptions":subscriptions,"total_revenue_usd":0,"paid_access_levels":access_levels,"access_levels":access_levels,"apple_validation_result":appleValidationResult}}};
   };
 
-  const buildOTIResponse = function(appConfig, tx) {
+  const buildOTIResponse = function(appConfig, tx, requestSource) {
     const { subscriptions } = buildSubscriptionData(appConfig, tx);
     const access_levels = buildAccessLevels(appConfig, tx);
     const transaction = {
@@ -118,14 +115,27 @@ hostname = api.adapty.io,api.adaptytech.com
       "transactionId": tx,
       "originalTransactionId": tx,
       "expiresDate": "2088-08-08T08:08:08Z",
-      "purchaseDate": "2024-04-04 04:04:04Z"
+      "purchaseDate": "2024-04-04 04:04:04Z",
+      "offerType": 1,
+      "offerDiscountType": "FREE_TRIAL",
+      "type": "Auto-Renewable Subscription",
+      "subscriptionGroupIdentifier": "20576718",
+      "price": 0,
+      "currency": "CNY",
+      "appAccountToken": null,
+      "isUpgraded": false,
+      "offerIdentifier": null,
+      "revocationDate": null,
+      "revocationReason": null,
+      "inAppOwnershipType": "PURCHASED",
+      "originalPurchaseDate": "2024-04-04T04:04:04Z"
     };
     return {
       "data": {
         "type": "adapty_purchase_app_store_original_transaction_id_validation_result",
         "id": profileid,
         "attributes": {
-          "app_id": "b6bbb868-d9a7-4abb-8e9e-0c806e7945c2",
+          "app_id": appConfig.appId || "b6bbb868-d9a7-4abb-8e9e-0c806e7945c2",
           "profile_id": profileid,
           "is_test_user": false,
           "segment_hash": "fa60e57287863a71",
@@ -147,7 +157,8 @@ hostname = api.adapty.io,api.adaptytech.com
           "subscriptions": subscriptions,
           "total_revenue_usd": 0,
           "paid_access_levels": access_levels,
-          "access_levels": access_levels
+          "access_levels": access_levels,
+          "request_source": requestSource
         }
       }
     };
@@ -162,12 +173,16 @@ hostname = api.adapty.io,api.adaptytech.com
     const hitProfiles = /analytics\/profiles|\Wprofiles\W|customers\/.+\/profile/i.test(url);
     const hitIntegration = /integration\/profile\/set\/integration-identifiers/i.test(url);
 
+    const originalTxFromBody = bodyJson?.data?.attributes?.original_transaction_id;
+    const originalTx = headers['original-transaction-id'] || headers['Original-Transaction-Id'] || originalTxFromBody || '30003219514509';
+    const requestSource = bodyJson?.data?.attributes?.request_source || 'restore';
+
     if (hitReceipt) {
       log('hit receipt/validate or purchase-containers');
       mikephie = buildReceiptResponse(appConfig, originalTx);
     } else if (hitPurchase || hitProfiles || hitPurchaseOTI || hitIntegration) {
       log('hit purchase/profiles/OTI/integration');
-      mikephie = buildOTIResponse(appConfig, originalTx);
+      mikephie = buildOTIResponse(appConfig, originalTx, requestSource);
     } else {
       log('pass-through (no match)');
     }
