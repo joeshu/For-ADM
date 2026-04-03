@@ -1,22 +1,3 @@
-/*************************************
-项目名称：adapty-合集（修复 & 增强版 v2 + 日志）
-更新日期：2026-04-03
-改动：
-- 语法修复 & try/catch 防崩溃
-- UA 兼容（含未编码空格），未匹配用 fallback
-- 路径匹配更广：receipt/validate、purchase-containers、purchase/app-store、analytics/profiles、profiles、customers/*/profile
-- 保证返回 subscriptions、paid_access_levels、access_levels 均为 active，避免“restore succeed but no subscription found”
-- 增加日志：命中路径、UA、URL、透传提示
-- 未命中路径透传原响应
-
-[rewrite_local]
-^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|profiles|customers\/.+\/profile|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty-enhanced.js
-
-[mitm]
-hostname = api.adapty.io,api.adaptytech.com
-*************************************/
-
 (() => {
   const safeParse = (body) => { try { return JSON.parse(body || '{}'); } catch (e) { return { data: {} }; } };
   const log = (msg) => { try { console.log('[adapty-enhanced] ' + msg); } catch (_) {} };
