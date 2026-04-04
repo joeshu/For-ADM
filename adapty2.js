@@ -5,9 +5,9 @@
 
 [rewrite_local]
 ^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty2.js
- 
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adapty2.js
 [mitm]
-hostname = api.adapty.io
+hostname = api.adapty.io,api.adaptytech.com
 */
 
 // ================ 配置区域 ================
