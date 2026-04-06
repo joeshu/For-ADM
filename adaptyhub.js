@@ -546,20 +546,39 @@ class AdaptyHandler extends BaseHandler {
             return null;
         }
         
-        const scoreProduct = (id) => {
+        const detectTier = (id) => {
             const lower = id.toLowerCase();
-            let score = 999;
-            for (const [keyword, priority] of Object.entries(AdaptyHandler.PRODUCT_PRIORITY)) {
-                if (lower.includes(keyword)) {
-                    score = Math.min(score, priority);
-                }
-            }
-            return score;
+            
+            // lifetime / forever
+            if (/lifetime|forever|permanent|永久/.test(lower)) return 1;
+            
+            // yearly / annual
+            if (/yearly|annual|one_year|1_year|year_sub|year\b/.test(lower)) return 2;
+            
+            // monthly / 3 months
+            if (/monthly|one_month|1_month|three_month|month\b/.test(lower)) return 3;
+            
+            // weekly
+            if (/weekly|one_week|1_week|week\b/.test(lower)) return 4;
+            
+            // daily
+            if (/daily|one_day|1_day|day\b/.test(lower)) return 5;
+            
+            return 999;
         };
         
         const sorted = validEntries.slice().sort((a, b) => {
-            const diff = scoreProduct(a.productId) - scoreProduct(b.productId);
-            if (diff !== 0) return diff;
+            const tierDiff = detectTier(a.productId) - detectTier(b.productId);
+            if (tierDiff !== 0) return tierDiff;
+            
+            // 同优先级下，优先选择更明确的关键词命中
+            const aLower = a.productId.toLowerCase();
+            const bLower = b.productId.toLowerCase();
+            const aExplicit = /(lifetime|forever|yearly|annual|monthly|weekly|daily)/.test(aLower) ? 0 : 1;
+            const bExplicit = /(lifetime|forever|yearly|annual|monthly|weekly|daily)/.test(bLower) ? 0 : 1;
+            if (aExplicit !== bExplicit) return aExplicit - bExplicit;
+            
+            // 再按长度短的优先
             return a.productId.length - b.productId.length;
         });
         
