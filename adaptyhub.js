@@ -10,8 +10,8 @@
 
 [rewrite_local]
 # Adapty解锁
-^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
 # Apphud解锁
 ^https?:\/\/.*\.apphud\.com\/v\d\/(subscriptions|customers)$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
 
@@ -359,18 +359,18 @@ class AdaptyHandler extends BaseHandler {
     
     // 从各种可能的来源提取 Bundle ID
     extractBundleId() {
-        // 优先级 1: 从 products-ids 接口响应中提取（指定真实来源）
-        const isProductsIdsEndpoint = /\/products-ids\/(app_store|google_play)\/?$/.test(this.url);
-        if (isProductsIdsEndpoint && Array.isArray(this.response?.data)) {
-            const bundleId = this.extractBundleIdFromProductsIds(this.response.data);
+        // 优先级 1: 从 products-ids / products 接口响应中提取（指定真实来源）
+        const isProductEndpoint = /\/(products-ids|products)\/(app_store|google_play)\/?$/.test(this.url);
+        if (isProductEndpoint && Array.isArray(this.response?.data)) {
+            const bundleId = this.extractBundleIdFromProductsData(this.response.data);
             if (bundleId) {
-                env.log(`从 products-ids 响应提取 Bundle ID: ${bundleId}`);
+                env.log(`从 products/products-ids 响应提取 Bundle ID: ${bundleId}`);
                 this.setBundleId(bundleId);
                 return bundleId;
             }
         }
         
-        // 优先级 2: 从 products-ids 已缓存结果读取
+        // 优先级 2: 从 products/products-ids 已缓存结果读取
         const storedBundleId = this.getStoredBundleId();
         if (storedBundleId) {
             return storedBundleId;
@@ -397,19 +397,51 @@ class AdaptyHandler extends BaseHandler {
         return "com.adapty.app";
     }
     
-    // 从 products-ids 数组提取 Bundle ID
-    // 规则：寻找产品 ID 的最长公共前缀；如果不存在，则回退为首个 productId 去掉最后一段
-    extractBundleIdFromProductsIds(productIds) {
-        if (!Array.isArray(productIds) || productIds.length === 0) {
+    // 统一提取 products / products-ids 接口中的产品 ID 列表
+    extractBundleIdFromProductsData(data) {
+        if (!Array.isArray(data) || data.length === 0) {
             return null;
         }
         
+        const productIds = [];
+        
+        for (const item of data) {
+            if (typeof item === 'string') {
+                productIds.push(item);
+                continue;
+            }
+            
+            if (item && typeof item === 'object') {
+                if (typeof item.vendor_product_id === 'string' && item.vendor_product_id) {
+                    productIds.push(item.vendor_product_id);
+                    continue;
+                }
+                if (typeof item.product_id === 'string' && item.product_id) {
+                    productIds.push(item.product_id);
+                    continue;
+                }
+                if (typeof item.id === 'string' && item.id.includes('.')) {
+                    productIds.push(item.id);
+                    continue;
+                }
+            }
+        }
+        
+        if (productIds.length === 0) {
+            env.log('products/products-ids 响应中未找到可用 product id');
+            return null;
+        }
+        
+        env.log(`提取到 ${productIds.length} 个产品 ID，首个示例: ${productIds[0]}`);
+        return this.extractBundleIdFromProductIds(productIds);
+    }
+    
+    // 从纯 productId 数组提取 Bundle ID
+    extractBundleIdFromProductIds(productIds) {
         const validIds = productIds.filter(id => typeof id === 'string' && id.includes('.'));
         if (validIds.length === 0) {
             return null;
         }
-        
-        env.log(`开始从 ${validIds.length} 个 products-ids 提取 Bundle ID`);
         
         const splitIds = validIds.map(id => id.split('.'));
         const minLength = Math.min(...splitIds.map(parts => parts.length));
@@ -426,14 +458,14 @@ class AdaptyHandler extends BaseHandler {
         
         if (commonLength >= 2) {
             const bundleId = splitIds[0].slice(0, commonLength).join('.');
-            env.log(`products-ids 最长公共前缀 Bundle ID: ${bundleId}`);
+            env.log(`products 公共前缀 Bundle ID: ${bundleId}`);
             return bundleId;
         }
         
         const fallbackParts = splitIds[0];
         if (fallbackParts.length >= 2) {
             const fallback = fallbackParts.slice(0, -1).join('.');
-            env.log(`products-ids 回退 Bundle ID: ${fallback}`);
+            env.log(`products 回退 Bundle ID: ${fallback}`);
             return fallback;
         }
         
