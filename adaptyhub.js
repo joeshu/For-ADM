@@ -306,6 +306,30 @@ class AdaptyHandler extends BaseHandler {
         super(response, request, template);
     }
     
+    // 已知应用前缀到真实 Bundle ID 的映射
+    static get BUNDLE_ID_MAPPINGS() {
+        return {
+            plantapp: 'com.scaleup.plantapp'
+        };
+    }
+    
+    // 产品优先级：越小越优先
+    static get PRODUCT_PRIORITY() {
+        return {
+            lifetime: 1,
+            forever: 1,
+            annual: 2,
+            yearly: 2,
+            year: 2,
+            monthly: 3,
+            month: 3,
+            weekly: 4,
+            week: 4,
+            daily: 5,
+            day: 5
+        };
+    }
+    
     // 提取 public_live_* key
     extractPublicLiveKey() {
         const match = this.url.match(/\/in-apps\/(public_live_[^\/]+)\//);
@@ -322,15 +346,41 @@ class AdaptyHandler extends BaseHandler {
         const domain = this.getCurrentDomain();
         const publicLiveKey = this.extractPublicLiveKey();
         
-        // 1. 按 public_live_* 精确缓存
         if (publicLiveKey) {
             env.setdata(`adapty_bundle_id_${publicLiveKey}`, bundleId);
             env.log(`Bundle ID 已保存到 public_live 缓存: ${bundleId} (${publicLiveKey})`);
         }
         
-        // 2. 按域名做兜底缓存
         env.setdata(`adapty_bundle_id_${domain}`, bundleId);
         env.log(`Bundle ID 已保存到域名缓存: ${bundleId} (${domain})`);
+    }
+    
+    // 保存 Product ID 到持久化存储
+    setProductId(productId) {
+        const domain = this.getCurrentDomain();
+        const publicLiveKey = this.extractPublicLiveKey();
+        
+        if (publicLiveKey) {
+            env.setdata(`adapty_product_id_${publicLiveKey}`, productId);
+            env.log(`Product ID 已保存到 public_live 缓存: ${productId} (${publicLiveKey})`);
+        }
+        
+        env.setdata(`adapty_product_id_${domain}`, productId);
+        env.log(`Product ID 已保存到域名缓存: ${productId} (${domain})`);
+    }
+    
+    // 保存 Access Level ID 到持久化存储
+    setAccessLevelId(accessLevelId) {
+        const domain = this.getCurrentDomain();
+        const publicLiveKey = this.extractPublicLiveKey();
+        
+        if (publicLiveKey) {
+            env.setdata(`adapty_access_level_id_${publicLiveKey}`, accessLevelId);
+            env.log(`Access Level ID 已保存到 public_live 缓存: ${accessLevelId} (${publicLiveKey})`);
+        }
+        
+        env.setdata(`adapty_access_level_id_${domain}`, accessLevelId);
+        env.log(`Access Level ID 已保存到域名缓存: ${accessLevelId} (${domain})`);
     }
     
     // 从持久化存储获取 Bundle ID
@@ -338,7 +388,6 @@ class AdaptyHandler extends BaseHandler {
         const domain = this.getCurrentDomain();
         const publicLiveKey = this.extractPublicLiveKey();
         
-        // 1. 优先按 public_live_* 精确读取
         if (publicLiveKey) {
             const exact = env.getdata(`adapty_bundle_id_${publicLiveKey}`);
             if (exact) {
@@ -347,7 +396,6 @@ class AdaptyHandler extends BaseHandler {
             }
         }
         
-        // 2. 再按域名读取
         const byDomain = env.getdata(`adapty_bundle_id_${domain}`);
         if (byDomain) {
             env.log(`从域名缓存读取 Bundle ID: ${byDomain} (${domain})`);
@@ -357,9 +405,52 @@ class AdaptyHandler extends BaseHandler {
         return null;
     }
     
+    // 从持久化存储获取 Product ID
+    getStoredProductId() {
+        const domain = this.getCurrentDomain();
+        const publicLiveKey = this.extractPublicLiveKey();
+        
+        if (publicLiveKey) {
+            const exact = env.getdata(`adapty_product_id_${publicLiveKey}`);
+            if (exact) {
+                env.log(`从 public_live 缓存读取 Product ID: ${exact} (${publicLiveKey})`);
+                return exact;
+            }
+        }
+        
+        const byDomain = env.getdata(`adapty_product_id_${domain}`);
+        if (byDomain) {
+            env.log(`从域名缓存读取 Product ID: ${byDomain} (${domain})`);
+            return byDomain;
+        }
+        
+        return null;
+    }
+    
+    // 从持久化存储获取 Access Level ID
+    getStoredAccessLevelId() {
+        const domain = this.getCurrentDomain();
+        const publicLiveKey = this.extractPublicLiveKey();
+        
+        if (publicLiveKey) {
+            const exact = env.getdata(`adapty_access_level_id_${publicLiveKey}`);
+            if (exact) {
+                env.log(`从 public_live 缓存读取 Access Level ID: ${exact} (${publicLiveKey})`);
+                return exact;
+            }
+        }
+        
+        const byDomain = env.getdata(`adapty_access_level_id_${domain}`);
+        if (byDomain) {
+            env.log(`从域名缓存读取 Access Level ID: ${byDomain} (${domain})`);
+            return byDomain;
+        }
+        
+        return null;
+    }
+    
     // 从各种可能的来源提取 Bundle ID
     extractBundleId() {
-        // 优先级 1: 从 products-ids / products 接口响应中提取（指定真实来源）
         const isProductEndpoint = /\/(products-ids|products)\/(app_store|google_play)\/?$/.test(this.url);
         if (isProductEndpoint && Array.isArray(this.response?.data)) {
             const bundleId = this.extractBundleIdFromProductsData(this.response.data);
@@ -370,13 +461,11 @@ class AdaptyHandler extends BaseHandler {
             }
         }
         
-        // 优先级 2: 从 products/products-ids 已缓存结果读取
         const storedBundleId = this.getStoredBundleId();
         if (storedBundleId) {
             return storedBundleId;
         }
         
-        // 优先级 3: 从当前验证响应直接提取
         if (this.response?.data?.attributes?.apple_validation_result?.bundleId) {
             return this.response.data.attributes.apple_validation_result.bundleId;
         }
@@ -385,7 +474,6 @@ class AdaptyHandler extends BaseHandler {
             return this.response.data.attributes.apple_validation_result.receipt.bundle_id;
         }
         
-        // 优先级 4: 从 SDK Profile ID 提取
         if (this.headers["adapty-sdk-profile-id"]) {
             const parts = this.headers["adapty-sdk-profile-id"].split('$');
             if (parts.length > 1) {
@@ -393,40 +481,55 @@ class AdaptyHandler extends BaseHandler {
             }
         }
         
-        // 最后的兜底值
         return "com.adapty.app";
     }
     
-    // 统一提取 products / products-ids 接口中的产品 ID 列表
-    extractBundleIdFromProductsData(data) {
+    // 统一提取 products / products-ids 接口中的产品项
+    extractProductEntriesFromProductsData(data) {
         if (!Array.isArray(data) || data.length === 0) {
-            return null;
+            return [];
         }
         
-        const productIds = [];
+        const entries = [];
         
         for (const item of data) {
             if (typeof item === 'string') {
-                productIds.push(item);
+                entries.push({
+                    productId: item,
+                    accessLevelId: null
+                });
                 continue;
             }
             
             if (item && typeof item === 'object') {
-                if (typeof item.vendor_product_id === 'string' && item.vendor_product_id) {
-                    productIds.push(item.vendor_product_id);
-                    continue;
-                }
-                if (typeof item.product_id === 'string' && item.product_id) {
-                    productIds.push(item.product_id);
-                    continue;
-                }
-                if (typeof item.id === 'string' && item.id.includes('.')) {
-                    productIds.push(item.id);
-                    continue;
+                const productId =
+                    (typeof item.vendor_product_id === 'string' && item.vendor_product_id) ||
+                    (typeof item.product_id === 'string' && item.product_id) ||
+                    (typeof item.id === 'string' && item.id.includes('.') && item.id) ||
+                    null;
+                
+                const accessLevelId =
+                    (typeof item.access_level_id === 'string' && item.access_level_id) ||
+                    (typeof item.access_level === 'string' && item.access_level) ||
+                    null;
+                
+                if (productId) {
+                    entries.push({ productId, accessLevelId });
                 }
             }
         }
         
+        return entries;
+    }
+    
+    // 统一提取 products / products-ids 接口中的产品 ID 列表
+    extractProductIdsFromProductsData(data) {
+        return this.extractProductEntriesFromProductsData(data).map(item => item.productId);
+    }
+    
+    // 统一提取 products / products-ids 接口中的 bundle id
+    extractBundleIdFromProductsData(data) {
+        const productIds = this.extractProductIdsFromProductsData(data);
         if (productIds.length === 0) {
             env.log('products/products-ids 响应中未找到可用 product id');
             return null;
@@ -436,11 +539,54 @@ class AdaptyHandler extends BaseHandler {
         return this.extractBundleIdFromProductIds(productIds);
     }
     
+    // 按优先级选择一个产品项
+    selectBestProductEntry(entries) {
+        const validEntries = entries.filter(item => item && typeof item.productId === 'string' && item.productId.length > 0);
+        if (validEntries.length === 0) {
+            return null;
+        }
+        
+        const scoreProduct = (id) => {
+            const lower = id.toLowerCase();
+            let score = 999;
+            for (const [keyword, priority] of Object.entries(AdaptyHandler.PRODUCT_PRIORITY)) {
+                if (lower.includes(keyword)) {
+                    score = Math.min(score, priority);
+                }
+            }
+            return score;
+        };
+        
+        const sorted = validEntries.slice().sort((a, b) => {
+            const diff = scoreProduct(a.productId) - scoreProduct(b.productId);
+            if (diff !== 0) return diff;
+            return a.productId.length - b.productId.length;
+        });
+        
+        env.log(`按优先级选中的 Product Entry: ${sorted[0].productId} / access_level_id=${sorted[0].accessLevelId || 'null'}`);
+        return sorted[0];
+    }
+    
+    // 按优先级选择一个 product id
+    selectBestProductId(productIds) {
+        const best = this.selectBestProductEntry(productIds.map(id => ({ productId: id, accessLevelId: null })));
+        return best ? best.productId : null;
+    }
+    
     // 从纯 productId 数组提取 Bundle ID
     extractBundleIdFromProductIds(productIds) {
         const validIds = productIds.filter(id => typeof id === 'string' && id.includes('.'));
         if (validIds.length === 0) {
             return null;
+        }
+        
+        for (const id of validIds) {
+            const firstSegment = id.split('.')[0];
+            const mapped = AdaptyHandler.BUNDLE_ID_MAPPINGS[firstSegment];
+            if (mapped) {
+                env.log(`命中 Bundle ID 映射: ${firstSegment} -> ${mapped}`);
+                return mapped;
+            }
         }
         
         const splitIds = validIds.map(id => id.split('.'));
@@ -456,20 +602,39 @@ class AdaptyHandler extends BaseHandler {
             }
         }
         
-        if (commonLength >= 2) {
-            const bundleId = splitIds[0].slice(0, commonLength).join('.');
-            env.log(`products 公共前缀 Bundle ID: ${bundleId}`);
-            return bundleId;
+        if (commonLength >= 3) {
+            const candidate = splitIds[0].slice(0, commonLength).join('.');
+            const prefix = splitIds[0][0].toLowerCase();
+            const validPrefixes = ['com', 'net', 'org', 'io', 'co', 'me', 'app'];
+            if (validPrefixes.includes(prefix)) {
+                env.log(`products 公共前缀 Bundle ID: ${candidate}`);
+                return candidate;
+            }
         }
         
-        const fallbackParts = splitIds[0];
-        if (fallbackParts.length >= 2) {
-            const fallback = fallbackParts.slice(0, -1).join('.');
-            env.log(`products 回退 Bundle ID: ${fallback}`);
-            return fallback;
-        }
-        
+        env.log(`未能从 product ids 中可靠提取 Bundle ID，已拒绝不可信候选: ${validIds[0]}`);
         return null;
+    }
+    
+    // 提取 access_level_id
+    extractAccessLevelId() {
+        const isProductEndpoint = /\/(products-ids|products)\/(app_store|google_play)\/?$/.test(this.url);
+        if (isProductEndpoint && Array.isArray(this.response?.data)) {
+            const entries = this.extractProductEntriesFromProductsData(this.response.data);
+            const best = this.selectBestProductEntry(entries);
+            if (best && best.accessLevelId) {
+                this.setAccessLevelId(best.accessLevelId);
+                env.log(`从 products/products-ids 响应提取 Access Level ID: ${best.accessLevelId}`);
+                return best.accessLevelId;
+            }
+        }
+        
+        const storedAccessLevelId = this.getStoredAccessLevelId();
+        if (storedAccessLevelId) {
+            return storedAccessLevelId;
+        }
+        
+        return 'premium';
     }
     
     // 获取应用信息
@@ -479,19 +644,39 @@ class AdaptyHandler extends BaseHandler {
         
         // 从请求头获取 SDK Profile ID
         const profileId = this.headers["adapty-sdk-profile-id"] || this.headers["ADAPTY-SDK-PROFILE-ID"] || "";
+        const accessLevelId = this.extractAccessLevelId();
         
         env.log(`应用名称: ${baseInfo.appName}`);
         env.log(`Profile ID: ${profileId}`);
         env.log(`Bundle ID: ${baseInfo.bundleId}`);
+        env.log(`Access Level ID: ${accessLevelId}`);
         
         return {
             ...baseInfo,
-            profileId
+            profileId,
+            accessLevelId
         };
     }
     
     // 提取或生成产品 ID
     extractProductId() {
+        // 优先级 1: 从 products-ids / products 接口缓存中获取
+        const isProductEndpoint = /\/(products-ids|products)\/(app_store|google_play)\/?$/.test(this.url);
+        if (isProductEndpoint && Array.isArray(this.response?.data)) {
+            const productIds = this.extractProductIdsFromProductsData(this.response.data);
+            const bestProductId = this.selectBestProductId(productIds);
+            if (bestProductId) {
+                this.setProductId(bestProductId);
+                env.log(`从 products/products-ids 响应提取优先 Product ID: ${bestProductId}`);
+                return bestProductId;
+            }
+        }
+        
+        const storedProductId = this.getStoredProductId();
+        if (storedProductId) {
+            return storedProductId;
+        }
+        
         // 尝试从响应数据中获取产品 ID
         if (this.response?.data?.attributes?.subscriptions) {
             const subs = this.response.data.attributes.subscriptions;
@@ -865,9 +1050,9 @@ const TEMPLATES = {
     // Adapty模板 - 精简版
     ADAPTY: {
         // 创建会员信息
-        createPremiumInfo: function(productId) {
+        createPremiumInfo: function(productId, accessLevelId = 'premium') {
             return {
-                id: "premium",
+                id: accessLevelId,
                 is_lifetime: false,
                 store: "app_store",
                 starts_at: SETTINGS.INJECT.DATES.CURRENT,
@@ -896,7 +1081,9 @@ const TEMPLATES = {
         // 创建分析/购买响应
         createAnalyticsResponse: function(appInfo, productId) {
             const subscriptions = {};
-            subscriptions[productId] = this.createPremiumInfo(productId);
+            subscriptions[productId] = this.createPremiumInfo(productId, appInfo.accessLevelId);
+            const paidAccessLevels = {};
+            paidAccessLevels[appInfo.accessLevelId || 'premium'] = this.createPremiumInfo(productId, appInfo.accessLevelId);
             
             return {
                 data: {
@@ -916,9 +1103,7 @@ const TEMPLATES = {
                             bundleId: appInfo.bundleId
                         },
                         subscriptions: subscriptions,
-                        paid_access_levels: {
-                            premium: this.createPremiumInfo(productId)
-                        }
+                        paid_access_levels: paidAccessLevels
                     }
                 }
             };
@@ -927,8 +1112,10 @@ const TEMPLATES = {
         // 创建收据验证响应
         createReceiptResponse: function(appInfo, productId) {
             const subscriptions = {};
-            subscriptions[productId] = this.createPremiumInfo(productId);
+            subscriptions[productId] = this.createPremiumInfo(productId, appInfo.accessLevelId);
             const receiptData = [this.createReceiptInfo(productId)];
+            const paidAccessLevels = {};
+            paidAccessLevels[appInfo.accessLevelId || 'premium'] = this.createPremiumInfo(productId, appInfo.accessLevelId);
             
             return {
                 data: {
@@ -947,9 +1134,7 @@ const TEMPLATES = {
                             latest_receipt_info: receiptData
                         },
                         subscriptions: subscriptions,
-                        paid_access_levels: {
-                            premium: this.createPremiumInfo(productId)
-                        }
+                        paid_access_levels: paidAccessLevels
                     }
                 }
             };
