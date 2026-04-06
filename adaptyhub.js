@@ -3,15 +3,20 @@
 📅 更新时间：2025-04-03
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
+目前支持服务：
+- Adapty (adapty.io)
+- Apphud (apphud.com)
+- SNOW (snow.me)
+
 [rewrite_local]
 # Adapty解锁
-^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/Script/main/qx/adaptyhub.js
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/Script/main/qx/adaptyhub.js
 # Apphud解锁
-^https?:\/\/.*\.apphud\.com\/v\d\/(subscriptions|customers)$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/.*\.apphud\.com\/v\d\/(subscriptions|customers)$ url script-response-body https://raw.githubusercontent.com/joeshu/Script/main/qx/adaptyhub.js
 
 # SNOW系列解锁
-^https?:\/\/.*\.snow\.me\/v\d\/purchase\/subscription\/subscriber\/status url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/.*\.snow\.me\/v\d\/purchase\/subscription\/subscriber\/status url script-response-body https://raw.githubusercontent.com/joeshu/Script/main/qx/adaptyhub.js
 
 [mitm]
 hostname = api.adapty.io, *.apphud.com, *.snow.me, api.adaptytech.com
@@ -185,11 +190,11 @@ class ServiceDetector {
     
     // 检测服务类型
     detect() {
-        // 检测 Adapty
-        if (this.url.includes('adapty.io')) {
+        // 检测 Adapty (包括 adapty.io 和 adaptytech.com)
+        if (this.url.includes('adapty.io') || this.url.includes('adaptytech.com')) {
             return {
                 type: 'adapty',
-                domain: 'adapty.io',
+                domain: this.url.includes('adaptytech.com') ? 'adaptytech.com' : 'adapty.io',
                 name: 'Adapty'
             };
         }
@@ -200,13 +205,6 @@ class ServiceDetector {
                 type: 'apphud',
                 domain: 'apphud.com',
                 name: 'Apphud'
-            };
-        }
-        if (this.url.includes('.adaptytech.com')) {
-            return {
-                type: 'apphud',
-                domain: 'adaptytech.com',
-                name: 'Adapty'
             };
         }
         
@@ -308,9 +306,77 @@ class AdaptyHandler extends BaseHandler {
         super(response, request, template);
     }
     
+    // 提取 public_live_* key
+    extractPublicLiveKey() {
+        const match = this.url.match(/\/in-apps\/(public_live_[^\/]+)\//);
+        return match ? match[1] : null;
+    }
+    
+    // 当前域名
+    getCurrentDomain() {
+        return this.url.includes('adaptytech.com') ? 'adaptytech.com' : 'adapty.io';
+    }
+    
+    // 保存 Bundle ID 到持久化存储
+    setBundleId(bundleId) {
+        const domain = this.getCurrentDomain();
+        const publicLiveKey = this.extractPublicLiveKey();
+        
+        // 1. 按 public_live_* 精确缓存
+        if (publicLiveKey) {
+            env.setdata(`adapty_bundle_id_${publicLiveKey}`, bundleId);
+            env.log(`Bundle ID 已保存到 public_live 缓存: ${bundleId} (${publicLiveKey})`);
+        }
+        
+        // 2. 按域名做兜底缓存
+        env.setdata(`adapty_bundle_id_${domain}`, bundleId);
+        env.log(`Bundle ID 已保存到域名缓存: ${bundleId} (${domain})`);
+    }
+    
+    // 从持久化存储获取 Bundle ID
+    getStoredBundleId() {
+        const domain = this.getCurrentDomain();
+        const publicLiveKey = this.extractPublicLiveKey();
+        
+        // 1. 优先按 public_live_* 精确读取
+        if (publicLiveKey) {
+            const exact = env.getdata(`adapty_bundle_id_${publicLiveKey}`);
+            if (exact) {
+                env.log(`从 public_live 缓存读取 Bundle ID: ${exact} (${publicLiveKey})`);
+                return exact;
+            }
+        }
+        
+        // 2. 再按域名读取
+        const byDomain = env.getdata(`adapty_bundle_id_${domain}`);
+        if (byDomain) {
+            env.log(`从域名缓存读取 Bundle ID: ${byDomain} (${domain})`);
+            return byDomain;
+        }
+        
+        return null;
+    }
+    
     // 从各种可能的来源提取 Bundle ID
     extractBundleId() {
-        // 1. 尝试从响应数据中提取（原有的几种方式）
+        // 优先级 1: 从 products-ids 接口响应中提取（指定真实来源）
+        const isProductsIdsEndpoint = /\/products-ids\/(app_store|google_play)\/?$/.test(this.url);
+        if (isProductsIdsEndpoint && Array.isArray(this.response?.data)) {
+            const bundleId = this.extractBundleIdFromProductsIds(this.response.data);
+            if (bundleId) {
+                env.log(`从 products-ids 响应提取 Bundle ID: ${bundleId}`);
+                this.setBundleId(bundleId);
+                return bundleId;
+            }
+        }
+        
+        // 优先级 2: 从 products-ids 已缓存结果读取
+        const storedBundleId = this.getStoredBundleId();
+        if (storedBundleId) {
+            return storedBundleId;
+        }
+        
+        // 优先级 3: 从当前验证响应直接提取
         if (this.response?.data?.attributes?.apple_validation_result?.bundleId) {
             return this.response.data.attributes.apple_validation_result.bundleId;
         }
@@ -319,121 +385,56 @@ class AdaptyHandler extends BaseHandler {
             return this.response.data.attributes.apple_validation_result.receipt.bundle_id;
         }
         
-        // 2. 特殊处理 products-ids 接口
-        // 检查 URL 是否匹配 products-ids 模式
-        const productsIdsMatch = this.url.match(/\/products-ids\/(app_store|google_play)\/?$/);
-        if (productsIdsMatch && Array.isArray(this.response?.data)) {
-            // 从产品 ID 数组中提取 Bundle ID
-            // 产品 ID 格式示例: com.weather.overdrop.one_year, app.overdrop.lifetime
-            const platform = productsIdsMatch[1]; // app_store 或 google_play
-            const bundleId = this.extractBundleIdFromProductsIds(this.response.data, platform);
-            if (bundleId) {
-                env.log(`从 products-ids 响应中提取 Bundle ID: ${bundleId}`);
-                return bundleId;
-            }
-        }
-        
-        // 3. 从 SDK Profile ID 提取
+        // 优先级 4: 从 SDK Profile ID 提取
         if (this.headers["adapty-sdk-profile-id"]) {
             const parts = this.headers["adapty-sdk-profile-id"].split('$');
             if (parts.length > 1) {
-                return parts[0]; // 通常 ProfileID 的前部分是 Bundle ID
+                return parts[0];
             }
         }
         
-        // 最后的备选项
+        // 最后的兜底值
         return "com.adapty.app";
     }
     
     // 从 products-ids 数组提取 Bundle ID
-    extractBundleIdFromProductsIds(productIds, platform) {
-        if (!productIds || productIds.length === 0) {
+    // 规则：寻找产品 ID 的最长公共前缀；如果不存在，则回退为首个 productId 去掉最后一段
+    extractBundleIdFromProductsIds(productIds) {
+        if (!Array.isArray(productIds) || productIds.length === 0) {
             return null;
         }
         
-        env.log(`从 products-ids 提取 Bundle ID，产品数量: ${productIds.length}`);
+        const validIds = productIds.filter(id => typeof id === 'string' && id.includes('.'));
+        if (validIds.length === 0) {
+            return null;
+        }
         
-        // 过滤出符合平台特征的产品 ID
-        // iOS App Store: 通常以 com. 或 net. 开头
-        // Google Play: 通常以 app. 或无限级包名
-        const candidates = [];
+        env.log(`开始从 ${validIds.length} 个 products-ids 提取 Bundle ID`);
         
-        for (const productId of productIds) {
-            // 跳过明显不是 bundle ID 前缀的条目
-            if (!productId || typeof productId !== 'string') {
-                continue;
-            }
-            
-            // 分割产品 ID（格式：bundle_id.product_name 或 bundle_id.product_name.duration）
-            const parts = productId.split('.');
-            if (parts.length < 2) {
-                continue;
-            }
-            
-            // iOS App Store 常见的前缀：com、net、org、io、co 等
-            // Google Play 常见的前缀：app 或包名开头通常是小写字母
-            if (platform === 'app_store') {
-                // 检查第一段是否是常见的 iOS 包名前缀
-                const commonIosPrefixes = ['com', 'net', 'org', 'io', 'co', 'app'];
-                if (commonIosPrefixes.includes(parts[0].toLowerCase())) {
-                    // 提取前两段作为 Bundle ID（如 com.weather、com.app）
-                    const candidate = parts.slice(0, 2).join('.');
-                    candidates.push(candidate);
-                }
-            } else if (platform === 'google_play') {
-                // Google Play 包名通常以 app. 或直接以小写字母开始
-                // 如果第一段是 'app'，则取前两段；否则取第一段
-                if (parts[0].toLowerCase() === 'app' && parts.length >= 2) {
-                    const candidate = parts.slice(0, 2).join('.');
-                    candidates.push(candidate);
-                } else {
-                    const candidate = parts[0];
-                    candidates.push(candidate);
-                }
+        const splitIds = validIds.map(id => id.split('.'));
+        const minLength = Math.min(...splitIds.map(parts => parts.length));
+        
+        let commonLength = 0;
+        for (let i = 0; i < minLength; i++) {
+            const seg = splitIds[0][i];
+            if (splitIds.every(parts => parts[i] === seg)) {
+                commonLength++;
             } else {
-                // 通用处理：取前两段（如果存在）
-                if (parts.length >= 2) {
-                    const candidate = parts.slice(0, 2).join('.');
-                    candidates.push(candidate);
-                } else {
-                    candidates.push(parts[0]);
-                }
+                break;
             }
         }
         
-        // 如果有候选，返回出现频率最高的（多数票）
-        if (candidates.length > 0) {
-            // 统计出现次数
-            const counts = {};
-            for (const c of candidates) {
-                counts[c] = (counts[c] || 0) + 1;
-            }
-            
-            // 找到最高票
-            let maxCount = 0;
-            let bundleId = null;
-            for (const [candidate, count] of Object.entries(counts)) {
-                if (count > maxCount) {
-                    maxCount = count;
-                    bundleId = candidate;
-                }
-            }
-            
-            if (bundleId && maxCount >= Math.ceil(candidates.length / 2)) {
-                // 如果最高票超过半数，认为可靠
-                env.log(`products-ids 候选 Bundle ID: ${bundleId} (出现 ${maxCount}/${candidates.length} 次)`);
-                return bundleId;
-            }
+        if (commonLength >= 2) {
+            const bundleId = splitIds[0].slice(0, commonLength).join('.');
+            env.log(`products-ids 最长公共前缀 Bundle ID: ${bundleId}`);
+            return bundleId;
         }
         
-        // 作为最后手段，取第一个看起来合理的产品 ID 的前两段
-        for (const productId of productIds) {
-            const parts = productId.split('.');
-            if (parts.length >= 2) {
-                const candidate = parts.slice(0, 2).join('.');
-                env.log(`products-ids 回退方案，使用第一个产品 ID 提取: ${candidate}`);
-                return candidate;
-            }
+        const fallbackParts = splitIds[0];
+        if (fallbackParts.length >= 2) {
+            const fallback = fallbackParts.slice(0, -1).join('.');
+            env.log(`products-ids 回退 Bundle ID: ${fallback}`);
+            return fallback;
         }
         
         return null;
