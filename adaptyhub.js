@@ -3,11 +3,6 @@
 📅 更新时间：2025-04-03
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
-目前支持服务：
-- Adapty (adapty.io)
-- Apphud (apphud.com)
-- SNOW (snow.me)
-
 [rewrite_local]
 # Adapty解锁
 ^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/products-ids\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/Script/main/qx/adaptyhub.js
