@@ -26,8 +26,10 @@ hostname = api.adapty.io, *.apphud.com, *.snow.me, api.adaptytech.com
 const SETTINGS = {
     // 调试日志开关（QX 生产环境建议关闭）
     DEBUG_LOG: true,
-    // QX 持久化键统一前缀
-    KEY_PREFIX: "UnifiedVIP",
+    // 是否持久化捕获信息（仅调试时建议开启）
+    CAPTURE_ENABLED: false,
+    // 通知记录重置开关键（在 QX BoxJS/脚本管理里手动写入 1 可触发一次重置）
+    RESET_SUCCESS_NOTIFY_KEY: "UnifiedVIP_reset_success_notify",
 
     // 通知设置
     NOTIFICATION: {
@@ -40,7 +42,7 @@ const SETTINGS = {
     INJECT: {
         // 日期配置
         DATES: {
-            CURRENT: () => new Date().toISOString(),
+            CURRENT: new Date().toISOString(),
             FUTURE: "2088-08-08T08:08:08.000Z"
         },
         // 交易ID配置（末尾数字可随机化）
@@ -85,11 +87,6 @@ class Env {
         }
     }
     
-    // 统一生成持久化键
-    buildKey(...parts) {
-        return `${SETTINGS.KEY_PREFIX}_${parts.filter(Boolean).join("_")}`;
-    }
-
     // 发送通知
     notify(title, subtitle = "", message = "", appId = "") {
         // 如果通知已关闭，仅记录日志
@@ -100,7 +97,7 @@ class Env {
         
         // 检查通知间隔
         if (appId && !title.includes("错误")) {
-            const notificationKey = this.buildKey(appId, "lastNotify");
+            const notificationKey = `${this.name}_${appId}_lastNotify`;
             const lastNotifyTime = this.getdata(notificationKey);
             
             // 如果存在上次通知时间且未超过间隔，不发送通知
@@ -116,10 +113,13 @@ class Env {
             this.setdata(notificationKey, Date.now().toString());
         }
         
-        // 发送通知（QX）
+        // 发送通知
         if (typeof $notify !== 'undefined') {
             $notify(title, subtitle, message);
+        } else if (typeof $notification !== 'undefined') {
+            $notification.post(title, subtitle, message);
         } else {
+            // 如果不支持通知，则输出到日志
             this.log(`${title}\n${subtitle}\n${message}`);
         }
     }
@@ -137,6 +137,26 @@ class Env {
         this.log(`错误通知: ${context} - ${errorMsg}`);
     }
     
+    // 清理成功通知记录（通过 prefs 开关触发）
+    resetSuccessNotifyIfNeeded(bundleId = "") {
+        try {
+            const resetFlag = this.getdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY);
+            if (resetFlag !== "1") return;
+
+            if (bundleId) {
+                const successNotifyKey = `${this.name}_${bundleId}_success_notified`;
+                this.setdata(successNotifyKey, "0");
+                this.log(`已重置成功通知记录: ${successNotifyKey}`);
+            }
+
+            // 一次性开关，执行后自动关闭
+            this.setdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY, "0");
+            this.log("通知重置开关已自动关闭");
+        } catch (e) {
+            this.log(`重置通知记录失败: ${e.message}`);
+        }
+    }
+
     // 获取模板
     getTemplate(templateName) {
         try {
@@ -170,33 +190,6 @@ class ServiceDetector {
         this.url = request?.url || "";
         this.headers = request?.headers || {};
     }
-
-    static get ENDPOINT_PATTERNS() {
-        return {
-            adapty: [
-                /\/api\/v\d\/sdk\/analytics\/profiles(?:\?|$)/,
-                /\/api\/v\d\/sdk\/in-apps\/[^\/]+\/(?:products-ids|products)\/(?:app_store|google_play)(?:\?|$)/,
-                /\/api\/v\d\/sdk\/in-apps\/apple\/receipt\/validate(?:\?|$)/,
-                /\/api\/v\d\/sdk\/in-apps\/purchase-containers(?:\?|$)/,
-                /\/api\/v\d\/purchase\/app-store(?:\?|$)/
-            ],
-            apphud: [
-                /\/v\d\/(?:subscriptions|customers)(?:\?|$)/
-            ],
-            snow: [
-                /\/v\d\/purchase\/subscription\/subscriber\/status(?:\?|$)/
-            ]
-        };
-    }
-
-    // 是否命中当前脚本关注的 endpoint（性能短路）
-    isTargetEndpoint(serviceType) {
-        const patterns = ServiceDetector.ENDPOINT_PATTERNS[serviceType] || [];
-        for (const pattern of patterns) {
-            if (pattern.test(this.url)) return true;
-        }
-        return false;
-    }
     
     // 检测服务类型
     detect() {
@@ -228,13 +221,9 @@ class ServiceDetector {
         }
         
         // 未识别的服务
-        let unknownDomain = "unknown.host";
-        try {
-            unknownDomain = new URL(this.url).hostname || unknownDomain;
-        } catch (_) {}
         return {
             type: 'unknown',
-            domain: unknownDomain,
+            domain: new URL(this.url).hostname,
             name: '未知服务'
         };
     }
@@ -245,35 +234,24 @@ class BaseHandler {
     constructor(response, request, template = {}) {
         this.rawResponse = response;
         this.rawBody = response?.body || "";
-        this.response = {};
-        this.parsed = false;
-        this.parseOk = false;
-        this.request = request;
-        this.headers = request?.headers || {};
-        this.url = request?.url || "";
-        this.template = template;
-    }
-
-    ensureParsedResponse() {
-        if (this.parsed) return;
-        this.parsed = true;
         try {
             const trimmed = (typeof this.rawBody === 'string') ? this.rawBody.trim() : "";
             const firstChar = trimmed.charAt(0);
             if (firstChar === "{" || firstChar === "[") {
                 this.response = JSON.parse(this.rawBody);
-                this.parseOk = true;
             } else {
                 this.response = {};
-                this.parseOk = false;
                 env.log("响应体非 JSON，跳过解析并走保底流程");
             }
         } catch (e) {
             env.log(`解析响应失败: ${e.message}`);
             env.notifyError(e, "解析响应");
             this.response = {};
-            this.parseOk = false;
         }
+        this.request = request;
+        this.headers = request?.headers || {};
+        this.url = request?.url || "";
+        this.template = template;
     }
     
     // 通用应用信息提取方法
@@ -290,6 +268,42 @@ class BaseHandler {
             appName,
             bundleId
         };
+    }
+    
+    // 捕获请求和响应的关键信息，用于调试或增强功能
+    captureInfo() {
+        try {
+            // 基本信息收集
+            const info = {
+                url: this.url,
+                method: this.request.method || "GET",
+                headers: {},
+                responseStatus: this.rawResponse.status || 200,
+                timestamp: new Date().toISOString()
+            };
+            
+            // 选择性收集关键请求头 (避免收集敏感信息)
+            const safeHeaders = [
+                "user-agent", "content-type", "accept", 
+                "accept-language", "accept-encoding", "connection",
+                "host", "origin", "referer"
+            ];
+            
+            for (const key of Object.keys(this.headers)) {
+                const lowerKey = key.toLowerCase();
+                if (safeHeaders.includes(lowerKey)) {
+                    info.headers[lowerKey] = this.headers[key];
+                }
+            }
+            
+            // 获取应用信息
+            info.appInfo = this.getAppInfo();
+            
+            return info;
+        } catch (e) {
+            env.log(`捕获信息失败: ${e.message}`);
+            return null;
+        }
     }
     
     // 需要由子类实现的方法
@@ -969,6 +983,21 @@ class SnowHandler extends BaseHandler {
         return this.getAppInfo().bundleId;
     }
     
+    // 捕获SNOW特定信息
+    captureInfo() {
+        const baseInfo = super.captureInfo();
+        
+        // 添加SNOW特定信息
+        const snowInfo = {
+            ...baseInfo,
+            snow: {
+                productId: this.getAppInfo().productId
+            }
+        };
+        
+        return snowInfo;
+    }
+    
     // 注入订阅信息
     injectSubscription() {
         try {
@@ -1027,57 +1056,50 @@ function main() {
         // 1. 检测服务类型
         const detector = new ServiceDetector($request);
         const serviceInfo = detector.detect();
-
-        // 性能短路：仅处理目标 endpoint，其他请求直接透传
-        if (serviceInfo.type === "unknown" || !detector.isTargetEndpoint(serviceInfo.type)) {
-            env.log(`非目标请求，跳过处理: ${serviceInfo.type}`);
-            return env.done({ body: $response.body });
-        }
         
         env.log(`检测到服务: ${serviceInfo.name} (${serviceInfo.domain})`);
         
         // 2. 创建对应的处理器
         const handler = HandlerFactory.createHandler(serviceInfo, $response, $request);
-        // 懒解析触发点：仅目标请求才解析响应体
-        handler.ensureParsedResponse();
-        if (!handler.parseOk) {
-            env.log("目标请求响应不可解析，透传原始响应");
-            return env.done({ body: $response.body });
-        }
         
         // 3. 获取应用信息
         const appInfo = handler.getAppInfo();
         
-        // 4. 调试捕获逻辑已移除（方案1精简）
+        // 4. 捕获关键信息（默认关闭，避免 prefs 键膨胀）
+        if (SETTINGS.CAPTURE_ENABLED) {
+            const capturedInfo = handler.captureInfo();
+            if (capturedInfo) {
+                const captureKey = `${env.name}_last_capture`;
+                env.setdata(captureKey, JSON.stringify(capturedInfo));
+                env.log(`已捕获请求信息: ${captureKey}`);
+            }
+        }
         
         // 5. 注入订阅信息
-        const beforeInjectSnapshot = JSON.stringify(handler.response || {});
         const modifiedResponse = handler.injectSubscription();
         if (modifiedResponse === null || typeof modifiedResponse !== 'object') {
             env.log("注入结果异常，透传原始响应");
             return env.done({ body: $response.body });
         }
-        const afterInjectSnapshot = JSON.stringify(modifiedResponse);
-        const injectionApplied = beforeInjectSnapshot !== afterInjectSnapshot;
         
         // 6. 发送通知（成功仅首次发送，错误仍按原逻辑）
-        if (injectionApplied && (appInfo.appName || appInfo.bundleId)) {
-            const notifyIdentity = appInfo.bundleId || appInfo.appName || "unknown.app";
-            const successNotifyKey = env.buildKey(notifyIdentity, "success", "notified");
+        if (appInfo.appName && appInfo.bundleId) {
+            // 如手动触发重置开关，先清除该 bundle 的成功通知记录
+            env.resetSuccessNotifyIfNeeded(appInfo.bundleId);
+
+            const successNotifyKey = `${env.name}_${appInfo.bundleId}_success_notified`;
             const hasNotified = env.getdata(successNotifyKey) === "1";
             if (!hasNotified) {
                 env.notify(
                     "✨ VIP 已激活 ✨", 
-                    appInfo.appName || "Unknown App", 
-                    `已成功注入 ${serviceInfo.name} 订阅数据 (${appInfo.bundleId || "unknown.bundle"})`,
-                    notifyIdentity
+                    appInfo.appName, 
+                    `已成功注入 ${serviceInfo.name} 订阅数据 (${appInfo.bundleId})`,
+                    appInfo.bundleId
                 );
                 env.setdata(successNotifyKey, "1");
             } else {
-                env.log(`成功通知已发送过，跳过: ${notifyIdentity}`);
+                env.log(`成功通知已发送过，跳过: ${appInfo.bundleId}`);
             }
-        } else {
-            env.log("未检测到有效注入变更，跳过成功通知");
         }
         
         env.log("订阅注入成功");
@@ -1138,7 +1160,7 @@ const TEMPLATES = {
                 id: accessLevelId,
                 is_lifetime: isLifetime,
                 store: "app_store",
-                starts_at: SETTINGS.INJECT.DATES.CURRENT(),
+                starts_at: SETTINGS.INJECT.DATES.CURRENT,
                 expires_at: isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
                 will_renew: !isLifetime,
                 is_active: true,
@@ -1173,7 +1195,7 @@ const TEMPLATES = {
             const tx = {
                 productId: productId,
                 originalTransactionId: SETTINGS.INJECT.TRANSACTION.ID,
-                purchaseDate: SETTINGS.INJECT.DATES.CURRENT(),
+                purchaseDate: SETTINGS.INJECT.DATES.CURRENT,
                 transactionId: SETTINGS.INJECT.TRANSACTION.ID
             };
             
@@ -1278,7 +1300,7 @@ const TEMPLATES = {
                 "product_id": productId,
                 "platform": "ios",
                 "environment": "production",
-                "started_at": SETTINGS.INJECT.DATES.CURRENT(),
+                "started_at": SETTINGS.INJECT.DATES.CURRENT,
                 "original_transaction_id": SETTINGS.INJECT.TRANSACTION.ID,
                 "expires_at": SETTINGS.INJECT.DATES.FUTURE
             };
