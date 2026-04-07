@@ -1,7 +1,7 @@
 /*
 📜 统一订阅解锁框架
-📅 更新时间：2026-04-07 13:05:01 LCL
-🕒 本地修改版本：2026-04-07-130501
+📅 更新时间：2026-04-07 13:25:22 LCL
+🕒 本地修改版本：2026-04-07-132522
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
 目前支持服务：
@@ -29,7 +29,7 @@ const SETTINGS = {
     DEBUG_LOG: true,
     
     // 本地版本标记（用于确认是否加载到最新脚本）
-    SCRIPT_VERSION: "2026-04-07-130501",
+    SCRIPT_VERSION: "2026-04-07-132522",
     
     // 通知设置
     NOTIFICATION: {
@@ -313,7 +313,7 @@ class AdaptyHandler extends BaseHandler {
     // 已知应用前缀到真实 Bundle ID 的映射
     static get BUNDLE_ID_MAPPINGS() {
         return {
-            plantapp: 'com.scaleup.plantapp'
+            plantapp: 'com.scaleup.plantid'
         };
     }
     
@@ -1302,7 +1302,7 @@ const TEMPLATES = {
                 offerIdentifier: null
             }];
             
-            response.data.attributes.apple_validation_result.bundleId = appInfo.bundleId;
+            response.data.attributes.apple_validation_result.bundleId = response.data.attributes.apple_validation_result.bundleId || appInfo.bundleId;
             this.applyCommonSubscriptionFields(response, appInfo, productId);
             
             // 对 purchase validate 响应做强制订阅态修正（仅 original-transaction-id/validate 路径启用）
