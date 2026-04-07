@@ -24,13 +24,9 @@ hostname = api.adapty.io, *.apphud.com, *.snow.me, api.adaptytech.com
 
 // ================ 配置区域 ================
 const SETTINGS = {
-    // 调试日志开关（QX 生产环境建议关闭）
+    // 调试日志开关
     DEBUG_LOG: true,
-    // 是否持久化捕获信息（仅调试时建议开启）
-    CAPTURE_ENABLED: false,
-    // 通知记录重置开关键（在 QX BoxJS/脚本管理里手动写入 1 可触发一次重置）
-    RESET_SUCCESS_NOTIFY_KEY: "UnifiedVIP_reset_success_notify",
-
+    
     // 通知设置
     NOTIFICATION: {
         ENABLED: true,            // 通知开关
@@ -58,7 +54,18 @@ class Env {
     constructor(name) {
         this.name = name;
         this.startTime = Date.now();
-        this.storage = $prefs;
+        
+        // 初始化存储系统
+        if (typeof $persistentStore !== 'undefined') {
+            this.storage = $persistentStore;
+        } else if (typeof $prefs !== 'undefined') {
+            this.storage = $prefs;
+        } else {
+            this.storage = {
+                read: () => null,
+                write: () => false
+            };
+        }
     }
     
     log(...args) {
@@ -67,20 +74,30 @@ class Env {
         }
     }
     
-    // 读取持久化数据（QX）
+    // 读取持久化数据
     getdata(key) {
         try {
-            return this.storage.valueForKey(key);
+            if (typeof $persistentStore !== 'undefined') {
+                return this.storage.read(key);
+            } else if (typeof $prefs !== 'undefined') {
+                return this.storage.valueForKey(key);
+            }
+            return null;
         } catch (e) {
             this.log(`读取数据失败: ${e.message}`);
             return null;
         }
     }
     
-    // 写入持久化数据（QX）
+    // 写入持久化数据
     setdata(key, value) {
         try {
-            return this.storage.setValueForKey(value, key);
+            if (typeof $persistentStore !== 'undefined') {
+                return this.storage.write(value, key);
+            } else if (typeof $prefs !== 'undefined') {
+                return this.storage.setValueForKey(value, key);
+            }
+            return false;
         } catch (e) {
             this.log(`写入数据失败: ${e.message}`);
             return false;
@@ -137,26 +154,6 @@ class Env {
         this.log(`错误通知: ${context} - ${errorMsg}`);
     }
     
-    // 清理成功通知记录（通过 prefs 开关触发）
-    resetSuccessNotifyIfNeeded(bundleId = "") {
-        try {
-            const resetFlag = this.getdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY);
-            if (resetFlag !== "1") return;
-
-            if (bundleId) {
-                const successNotifyKey = `${this.name}_${bundleId}_success_notified`;
-                this.setdata(successNotifyKey, "0");
-                this.log(`已重置成功通知记录: ${successNotifyKey}`);
-            }
-
-            // 一次性开关，执行后自动关闭
-            this.setdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY, "0");
-            this.log("通知重置开关已自动关闭");
-        } catch (e) {
-            this.log(`重置通知记录失败: ${e.message}`);
-        }
-    }
-
     // 获取模板
     getTemplate(templateName) {
         try {
@@ -233,16 +230,8 @@ class ServiceDetector {
 class BaseHandler {
     constructor(response, request, template = {}) {
         this.rawResponse = response;
-        this.rawBody = response?.body || "";
         try {
-            const trimmed = (typeof this.rawBody === 'string') ? this.rawBody.trim() : "";
-            const firstChar = trimmed.charAt(0);
-            if (firstChar === "{" || firstChar === "[") {
-                this.response = JSON.parse(this.rawBody);
-            } else {
-                this.response = {};
-                env.log("响应体非 JSON，跳过解析并走保底流程");
-            }
+            this.response = JSON.parse(response.body || "{}");
         } catch (e) {
             env.log(`解析响应失败: ${e.message}`);
             env.notifyError(e, "解析响应");
@@ -557,39 +546,20 @@ class AdaptyHandler extends BaseHandler {
             return null;
         }
         
-        const detectTier = (id) => {
+        const scoreProduct = (id) => {
             const lower = id.toLowerCase();
-            
-            // lifetime / forever
-            if (/lifetime|forever|permanent|永久/.test(lower)) return 1;
-            
-            // yearly / annual
-            if (/yearly|annual|one_year|1_year|year_sub|year\b/.test(lower)) return 2;
-            
-            // monthly / 3 months
-            if (/monthly|one_month|1_month|three_month|month\b/.test(lower)) return 3;
-            
-            // weekly
-            if (/weekly|one_week|1_week|week\b/.test(lower)) return 4;
-            
-            // daily
-            if (/daily|one_day|1_day|day\b/.test(lower)) return 5;
-            
-            return 999;
+            let score = 999;
+            for (const [keyword, priority] of Object.entries(AdaptyHandler.PRODUCT_PRIORITY)) {
+                if (lower.includes(keyword)) {
+                    score = Math.min(score, priority);
+                }
+            }
+            return score;
         };
         
         const sorted = validEntries.slice().sort((a, b) => {
-            const tierDiff = detectTier(a.productId) - detectTier(b.productId);
-            if (tierDiff !== 0) return tierDiff;
-            
-            // 同优先级下，优先选择更明确的关键词命中
-            const aLower = a.productId.toLowerCase();
-            const bLower = b.productId.toLowerCase();
-            const aExplicit = /(lifetime|forever|yearly|annual|monthly|weekly|daily)/.test(aLower) ? 0 : 1;
-            const bExplicit = /(lifetime|forever|yearly|annual|monthly|weekly|daily)/.test(bLower) ? 0 : 1;
-            if (aExplicit !== bExplicit) return aExplicit - bExplicit;
-            
-            // 再按长度短的优先
+            const diff = scoreProduct(a.productId) - scoreProduct(b.productId);
+            if (diff !== 0) return diff;
             return a.productId.length - b.productId.length;
         });
         
@@ -646,14 +616,6 @@ class AdaptyHandler extends BaseHandler {
         return null;
     }
     
-    // 判断 productId 是否为 lifetime
-    isLifetimeProduct(productId) {
-        if (!productId || typeof productId !== 'string') {
-            return false;
-        }
-        return /lifetime|forever|permanent|永久/i.test(productId);
-    }
-    
     // 提取 access_level_id
     extractAccessLevelId() {
         const isProductEndpoint = /\/(products-ids|products)\/(app_store|google_play)\/?$/.test(this.url);
@@ -675,7 +637,7 @@ class AdaptyHandler extends BaseHandler {
         return 'premium';
     }
     
-        // 获取应用信息
+    // 获取应用信息
     getAppInfo() {
         // 先获取基本信息
         const baseInfo = super.getAppInfo();
@@ -683,20 +645,16 @@ class AdaptyHandler extends BaseHandler {
         // 从请求头获取 SDK Profile ID
         const profileId = this.headers["adapty-sdk-profile-id"] || this.headers["ADAPTY-SDK-PROFILE-ID"] || "";
         const accessLevelId = this.extractAccessLevelId();
-        const productId = this.extractProductId();
-        const isLifetime = this.isLifetimeProduct(productId);
         
         env.log(`应用名称: ${baseInfo.appName}`);
         env.log(`Profile ID: ${profileId}`);
         env.log(`Bundle ID: ${baseInfo.bundleId}`);
         env.log(`Access Level ID: ${accessLevelId}`);
-        env.log(`Is Lifetime: ${isLifetime}`);
         
         return {
             ...baseInfo,
             profileId,
-            accessLevelId,
-            isLifetime
+            accessLevelId
         };
     }
     
@@ -758,28 +716,23 @@ class AdaptyHandler extends BaseHandler {
             const appInfo = this.getAppInfo();
             const productId = this.extractProductId();
             
-            // Adapty analytics/profiles
-            if (/analytics\/profiles/.test(this.url)) {
-                env.log("处理 Adapty analytics/profiles 请求");
-                return this.template.createProfileResponse(appInfo, productId, this.response);
+            // 使用模板创建响应
+            if (/(analytics\/profiles|purchase\/app-store)/.test(this.url)) {
+                env.log("处理 Adapty 分析/购买请求");
+                return this.template.createAnalyticsResponse(appInfo, productId);
             }
             
-            // Adapty purchase/app-store
-            if (/purchase\/app-store/.test(this.url)) {
-                env.log("处理 Adapty purchase/app-store 请求");
-                return this.template.createPurchaseResponse(appInfo, productId, this.response);
-            }
-            
-            // Adapty receipt/validate 或 purchase-containers
+            // 处理收据验证请求
             if (/(receipt\/validate|purchase-containers)/.test(this.url)) {
-                env.log("处理 Adapty 收据验证/容器请求");
-                return this.template.createReceiptResponse(appInfo, productId, this.response);
+                env.log("处理 Adapty 收据验证请求");
+                return this.template.createReceiptResponse(appInfo, productId);
             }
             
             env.log("未匹配到处理逻辑，返回原始响应");
             return this.response;
         } catch (e) {
             env.notifyError(e, "Adapty注入订阅");
+            // 捕获错误时，返回原始响应
             return this.response;
         }
     }
@@ -1046,13 +999,7 @@ const env = new Env("UnifiedVIP");
 function main() {
     try {
         env.log("开始处理请求");
-
-        // QX 稳定性保护：响应体缺失/非字符串时直接透传
-        if (!$response || typeof $response.body !== "string") {
-            env.log("响应对象无效，透传原始响应");
-            return env.done({ body: $response?.body || "" });
-        }
-
+        
         // 1. 检测服务类型
         const detector = new ServiceDetector($request);
         const serviceInfo = detector.detect();
@@ -1065,41 +1012,26 @@ function main() {
         // 3. 获取应用信息
         const appInfo = handler.getAppInfo();
         
-        // 4. 捕获关键信息（默认关闭，避免 prefs 键膨胀）
-        if (SETTINGS.CAPTURE_ENABLED) {
-            const capturedInfo = handler.captureInfo();
-            if (capturedInfo) {
-                const captureKey = `${env.name}_last_capture`;
-                env.setdata(captureKey, JSON.stringify(capturedInfo));
-                env.log(`已捕获请求信息: ${captureKey}`);
-            }
+        // 4. 捕获关键信息
+        const capturedInfo = handler.captureInfo();
+        if (capturedInfo) {
+            // 存储捕获的信息，可用于后续分析
+            const captureKey = `${env.name}_captured_${Date.now()}`;
+            env.setdata(captureKey, JSON.stringify(capturedInfo));
+            env.log(`已捕获请求信息: ${captureKey}`);
         }
         
         // 5. 注入订阅信息
         const modifiedResponse = handler.injectSubscription();
-        if (modifiedResponse === null || typeof modifiedResponse !== 'object') {
-            env.log("注入结果异常，透传原始响应");
-            return env.done({ body: $response.body });
-        }
         
-        // 6. 发送通知（成功仅首次发送，错误仍按原逻辑）
+        // 6. 发送通知
         if (appInfo.appName && appInfo.bundleId) {
-            // 如手动触发重置开关，先清除该 bundle 的成功通知记录
-            env.resetSuccessNotifyIfNeeded(appInfo.bundleId);
-
-            const successNotifyKey = `${env.name}_${appInfo.bundleId}_success_notified`;
-            const hasNotified = env.getdata(successNotifyKey) === "1";
-            if (!hasNotified) {
-                env.notify(
-                    "✨ VIP 已激活 ✨", 
-                    appInfo.appName, 
-                    `已成功注入 ${serviceInfo.name} 订阅数据 (${appInfo.bundleId})`,
-                    appInfo.bundleId
-                );
-                env.setdata(successNotifyKey, "1");
-            } else {
-                env.log(`成功通知已发送过，跳过: ${appInfo.bundleId}`);
-            }
+            env.notify(
+                "✨ VIP 已激活 ✨", 
+                appInfo.appName, 
+                `已成功注入 ${serviceInfo.name} 订阅数据 (${appInfo.bundleId})`,
+                appInfo.bundleId
+            );
         }
         
         env.log("订阅注入成功");
@@ -1117,52 +1049,15 @@ function main() {
 const TEMPLATES = {
     // Adapty模板 - 精简版
     ADAPTY: {
-        // 确保基础结构存在（尽量保留原响应骨架）
-        ensureDataShape: function(response, appInfo, fallbackType = 'adapty_profile') {
-            const result = response && typeof response === 'object' ? JSON.parse(JSON.stringify(response)) : {};
-            if (!result.data || typeof result.data !== 'object') result.data = {};
-            if (!result.data.attributes || typeof result.data.attributes !== 'object') result.data.attributes = {};
-            if (!result.data.id) result.data.id = appInfo.profileId || SETTINGS.INJECT.TRANSACTION.ID;
-            if (!result.data.type) result.data.type = fallbackType;
-            if (!result.data.attributes.profile_id) result.data.attributes.profile_id = appInfo.profileId;
-            return result;
-        },
-        
-        // 应用通用订阅字段
-        applyCommonSubscriptionFields: function(response, appInfo, productId) {
-            const premiumInfo = this.createPremiumInfo(productId, appInfo.accessLevelId, appInfo.isLifetime);
-            const accessLevelKey = appInfo.accessLevelId || 'premium';
-            
-            if (!response.data.attributes.subscriptions || typeof response.data.attributes.subscriptions !== 'object') {
-                response.data.attributes.subscriptions = {};
-            }
-            if (!response.data.attributes.paid_access_levels || typeof response.data.attributes.paid_access_levels !== 'object') {
-                response.data.attributes.paid_access_levels = {};
-            }
-            
-            // 增量 merge：保留原有其他 product / access level，仅覆盖当前目标项
-            response.data.attributes.subscriptions[productId] = {
-                ...(response.data.attributes.subscriptions[productId] || {}),
-                ...premiumInfo
-            };
-            
-            response.data.attributes.paid_access_levels[accessLevelKey] = {
-                ...(response.data.attributes.paid_access_levels[accessLevelKey] || {}),
-                ...premiumInfo
-            };
-            
-            return response;
-        },
-        
         // 创建会员信息
-        createPremiumInfo: function(productId, accessLevelId = 'premium', isLifetime = false) {
+        createPremiumInfo: function(productId, accessLevelId = 'premium') {
             return {
                 id: accessLevelId,
-                is_lifetime: isLifetime,
+                is_lifetime: false,
                 store: "app_store",
                 starts_at: SETTINGS.INJECT.DATES.CURRENT,
-                expires_at: isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
-                will_renew: !isLifetime,
+                expires_at: SETTINGS.INJECT.DATES.FUTURE,
+                will_renew: true,
                 is_active: true,
                 vendor_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
                 vendor_original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
@@ -1171,118 +1066,78 @@ const TEMPLATES = {
         },
         
         // 创建收据信息 - 精简版
-        createReceiptInfo: function(productId, isLifetime = false) {
-            const nowMs = Date.now().toString();
-            const base = {
+        createReceiptInfo: function(productId) {
+            return {
                 quantity: "1",
-                purchase_date_ms: nowMs,
-                original_purchase_date_ms: nowMs,
+                purchase_date_ms: Date.now().toString(),
+                expires_date: "2088-08-08 08:08:08 Etc/GMT",
                 transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
                 original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
-                product_id: productId
+                product_id: productId,
+                expires_date_ms: "3742762088000"
             };
-            
-            if (!isLifetime) {
-                base.expires_date = "2088-08-08 08:08:08 Etc/GMT";
-                base.expires_date_ms = "3742762088000";
-            }
-            
-            return base;
-        },
-        
-        // 创建交易信息
-        createTransactionInfo: function(productId, isLifetime = false) {
-            const tx = {
-                productId: productId,
-                originalTransactionId: SETTINGS.INJECT.TRANSACTION.ID,
-                purchaseDate: SETTINGS.INJECT.DATES.CURRENT,
-                transactionId: SETTINGS.INJECT.TRANSACTION.ID
-            };
-            
-            if (!isLifetime) {
-                tx.expiresDate = SETTINGS.INJECT.DATES.FUTURE;
-            }
-            
-            return tx;
-        },
-        
-        // 创建 profile 响应
-        createProfileResponse: function(appInfo, productId, rawResponse = {}) {
-            const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_profile');
-            response.data.id = appInfo.profileId || response.data.id;
-            response.data.type = response.data.type || 'adapty_profile';
-            this.applyCommonSubscriptionFields(response, appInfo, productId);
-            return response;
-        },
-        
-        // 创建 purchase/app-store 响应
-        createPurchaseResponse: function(appInfo, productId, rawResponse = {}) {
-            const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_purchase_app_store_original_transaction_id_validation_result');
-            const transaction = this.createTransactionInfo(productId, appInfo.isLifetime);
-            if (!response.data.attributes.apple_validation_result || typeof response.data.attributes.apple_validation_result !== 'object') {
-                response.data.attributes.apple_validation_result = {};
-            }
-            response.data.type = 'adapty_purchase_app_store_original_transaction_id_validation_result';
-            response.data.attributes.apple_validation_result.environment = response.data.attributes.apple_validation_result.environment || 'Production';
-            
-            const originalTransactions = Array.isArray(response.data.attributes.apple_validation_result.transactions)
-                ? response.data.attributes.apple_validation_result.transactions
-                : [];
-            const baseTransaction = (originalTransactions[0] && typeof originalTransactions[0] === 'object') ? originalTransactions[0] : {};
-            response.data.attributes.apple_validation_result.transactions = [{
-                ...baseTransaction,
-                ...transaction
-            }];
-            
-            response.data.attributes.apple_validation_result.bundleId = appInfo.bundleId;
-            this.applyCommonSubscriptionFields(response, appInfo, productId);
-            return response;
         },
         
         // 创建分析/购买响应
-        createAnalyticsResponse: function(appInfo, productId, rawResponse = {}) {
-            const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_profile');
-            response.data.type = response.data.type || 'adapty_profile';
-            this.applyCommonSubscriptionFields(response, appInfo, productId);
-            return response;
+        createAnalyticsResponse: function(appInfo, productId) {
+            const subscriptions = {};
+            subscriptions[productId] = this.createPremiumInfo(productId, appInfo.accessLevelId);
+            const paidAccessLevels = {};
+            paidAccessLevels[appInfo.accessLevelId || 'premium'] = this.createPremiumInfo(productId, appInfo.accessLevelId);
+            
+            return {
+                data: {
+                    type: "adapty_purchase_app_store_original_transaction_id_validation_result",
+                    id: appInfo.profileId,
+                    attributes: {
+                        profile_id: appInfo.profileId,
+                        apple_validation_result: {
+                            environment: "Production",
+                            transactions: [{
+                                productId: productId,
+                                originalTransactionId: SETTINGS.INJECT.TRANSACTION.ID,
+                                expiresDate: SETTINGS.INJECT.DATES.FUTURE,
+                                purchaseDate: SETTINGS.INJECT.DATES.CURRENT,
+                                transactionId: SETTINGS.INJECT.TRANSACTION.ID
+                            }],
+                            bundleId: appInfo.bundleId
+                        },
+                        subscriptions: subscriptions,
+                        paid_access_levels: paidAccessLevels
+                    }
+                }
+            };
         },
         
         // 创建收据验证响应
-        createReceiptResponse: function(appInfo, productId, rawResponse = {}) {
-            const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_inapps_apple_receipt_validation_result');
-            const receiptData = [this.createReceiptInfo(productId, appInfo.isLifetime)];
-            if (!response.data.attributes.apple_validation_result || typeof response.data.attributes.apple_validation_result !== 'object') {
-                response.data.attributes.apple_validation_result = {};
-            }
-            if (!response.data.attributes.apple_validation_result.receipt || typeof response.data.attributes.apple_validation_result.receipt !== 'object') {
-                response.data.attributes.apple_validation_result.receipt = {};
-            }
-            response.data.type = 'adapty_inapps_apple_receipt_validation_result';
-            response.data.attributes.apple_validation_result.environment = response.data.attributes.apple_validation_result.environment || 'Production';
-            response.data.attributes.apple_validation_result.receipt.receipt_type = response.data.attributes.apple_validation_result.receipt.receipt_type || 'Production';
-            response.data.attributes.apple_validation_result.receipt.bundle_id = appInfo.bundleId;
+        createReceiptResponse: function(appInfo, productId) {
+            const subscriptions = {};
+            subscriptions[productId] = this.createPremiumInfo(productId, appInfo.accessLevelId);
+            const receiptData = [this.createReceiptInfo(productId)];
+            const paidAccessLevels = {};
+            paidAccessLevels[appInfo.accessLevelId || 'premium'] = this.createPremiumInfo(productId, appInfo.accessLevelId);
             
-            const originalInApp = Array.isArray(response.data.attributes.apple_validation_result.receipt.in_app)
-                ? response.data.attributes.apple_validation_result.receipt.in_app
-                : [];
-            const baseReceipt = (originalInApp[0] && typeof originalInApp[0] === 'object') ? originalInApp[0] : {};
-            response.data.attributes.apple_validation_result.receipt.in_app = [{
-                ...baseReceipt,
-                ...receiptData[0]
-            }];
-            
-            response.data.attributes.apple_validation_result.status = 0;
-            const originalLatestReceiptInfo = Array.isArray(response.data.attributes.apple_validation_result.latest_receipt_info)
-                ? response.data.attributes.apple_validation_result.latest_receipt_info
-                : [];
-            const baseLatestReceipt = (originalLatestReceiptInfo[0] && typeof originalLatestReceiptInfo[0] === 'object') ? originalLatestReceiptInfo[0] : {};
-            response.data.attributes.apple_validation_result.latest_receipt_info = [{
-                ...baseLatestReceipt,
-                ...receiptData[0]
-            }];
-            
-            this.applyCommonSubscriptionFields(response, appInfo, productId);
-            return response;
+            return {
+                data: {
+                    type: "adapty_inapps_apple_receipt_validation_result",
+                    id: appInfo.profileId,
+                    attributes: {
+                        profile_id: appInfo.profileId,
+                        apple_validation_result: {
+                            environment: "Production",
+                            receipt: {
+                                receipt_type: "Production",
+                                bundle_id: appInfo.bundleId,
+                                in_app: receiptData
+                            },
+                            status: 0,
+                            latest_receipt_info: receiptData
+                        },
+                        subscriptions: subscriptions,
+                        paid_access_levels: paidAccessLevels
+                    }
+                }
+            };
         }
     },
     
