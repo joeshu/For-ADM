@@ -24,9 +24,19 @@ hostname = api.adapty.io, *.apphud.com, *.snow.me, api.adaptytech.com
 
 // ================ 配置区域 ================
 const SETTINGS = {
-    // 调试日志开关
-    DEBUG_LOG: true,
-    
+    // 调试日志开关（QX 生产环境建议关闭）
+    DEBUG_LOG: false,
+    // 是否持久化捕获信息（仅调试时建议开启）
+    CAPTURE_ENABLED: false,
+    // QX 持久化键统一前缀
+    KEY_PREFIX: "UnifiedVIP",
+    // 通知记录重置开关键（在 QX BoxJS/脚本管理里手动写入 1 可触发一次重置）
+    RESET_SUCCESS_NOTIFY_KEY: "UnifiedVIP_reset_success_notify",
+    // 全量重置成功通知记录开关键（写入 1 后将清空所有已记录 bundleId）
+    RESET_SUCCESS_NOTIFY_ALL_KEY: "UnifiedVIP_reset_success_notify_all",
+    // 成功通知记录索引键（用于全量重置）
+    SUCCESS_NOTIFY_INDEX_KEY: "UnifiedVIP_success_notify_index",
+
     // 通知设置
     NOTIFICATION: {
         ENABLED: true,            // 通知开关
@@ -38,7 +48,7 @@ const SETTINGS = {
     INJECT: {
         // 日期配置
         DATES: {
-            CURRENT: new Date().toISOString(),
+            CURRENT: () => new Date().toISOString(),
             FUTURE: "2088-08-08T08:08:08.000Z"
         },
         // 交易ID配置（末尾数字可随机化）
@@ -54,18 +64,7 @@ class Env {
     constructor(name) {
         this.name = name;
         this.startTime = Date.now();
-        
-        // 初始化存储系统
-        if (typeof $persistentStore !== 'undefined') {
-            this.storage = $persistentStore;
-        } else if (typeof $prefs !== 'undefined') {
-            this.storage = $prefs;
-        } else {
-            this.storage = {
-                read: () => null,
-                write: () => false
-            };
-        }
+        this.storage = $prefs;
     }
     
     log(...args) {
@@ -74,36 +73,31 @@ class Env {
         }
     }
     
-    // 读取持久化数据
+    // 读取持久化数据（QX）
     getdata(key) {
         try {
-            if (typeof $persistentStore !== 'undefined') {
-                return this.storage.read(key);
-            } else if (typeof $prefs !== 'undefined') {
-                return this.storage.valueForKey(key);
-            }
-            return null;
+            return this.storage.valueForKey(key);
         } catch (e) {
             this.log(`读取数据失败: ${e.message}`);
             return null;
         }
     }
     
-    // 写入持久化数据
+    // 写入持久化数据（QX）
     setdata(key, value) {
         try {
-            if (typeof $persistentStore !== 'undefined') {
-                return this.storage.write(value, key);
-            } else if (typeof $prefs !== 'undefined') {
-                return this.storage.setValueForKey(value, key);
-            }
-            return false;
+            return this.storage.setValueForKey(value, key);
         } catch (e) {
             this.log(`写入数据失败: ${e.message}`);
             return false;
         }
     }
     
+    // 统一生成持久化键
+    buildKey(...parts) {
+        return `${SETTINGS.KEY_PREFIX}_${parts.filter(Boolean).join("_")}`;
+    }
+
     // 发送通知
     notify(title, subtitle = "", message = "", appId = "") {
         // 如果通知已关闭，仅记录日志
@@ -114,7 +108,7 @@ class Env {
         
         // 检查通知间隔
         if (appId && !title.includes("错误")) {
-            const notificationKey = `${this.name}_${appId}_lastNotify`;
+            const notificationKey = this.buildKey(appId, "lastNotify");
             const lastNotifyTime = this.getdata(notificationKey);
             
             // 如果存在上次通知时间且未超过间隔，不发送通知
@@ -130,13 +124,10 @@ class Env {
             this.setdata(notificationKey, Date.now().toString());
         }
         
-        // 发送通知
+        // 发送通知（QX）
         if (typeof $notify !== 'undefined') {
             $notify(title, subtitle, message);
-        } else if (typeof $notification !== 'undefined') {
-            $notification.post(title, subtitle, message);
         } else {
-            // 如果不支持通知，则输出到日志
             this.log(`${title}\n${subtitle}\n${message}`);
         }
     }
@@ -154,6 +145,67 @@ class Env {
         this.log(`错误通知: ${context} - ${errorMsg}`);
     }
     
+    // 维护成功通知索引（用于全量重置）
+    addSuccessNotifyIndex(bundleId = "") {
+        try {
+            if (!bundleId) return;
+            const raw = this.getdata(this.buildKey("success", "notify", "index")) || "";
+            const list = raw ? raw.split("|").filter(Boolean) : [];
+            if (!list.includes(bundleId)) {
+                list.push(bundleId);
+                this.setdata(this.buildKey("success", "notify", "index"), list.join("|"));
+                this.log(`已加入通知索引: ${bundleId}`);
+            }
+        } catch (e) {
+            this.log(`维护通知索引失败: ${e.message}`);
+        }
+    }
+
+    // 全量清理成功通知记录（通过 prefs 开关触发）
+    resetAllSuccessNotifyIfNeeded() {
+        try {
+            const resetAllFlag = this.getdata(this.buildKey("reset", "success", "notify", "all")) || this.getdata(SETTINGS.RESET_SUCCESS_NOTIFY_ALL_KEY);
+            if (resetAllFlag !== "1") return;
+
+            const raw = this.getdata(this.buildKey("success", "notify", "index")) || this.getdata(SETTINGS.SUCCESS_NOTIFY_INDEX_KEY) || "";
+            const bundleIds = raw ? raw.split("|").filter(Boolean) : [];
+            for (const bundleId of bundleIds) {
+                const key = this.buildKey(bundleId, "success", "notified");
+                this.setdata(key, "0");
+            }
+
+            // 清空索引并关闭开关（兼容新旧键）
+            this.setdata(this.buildKey("success", "notify", "index"), "");
+            this.setdata(SETTINGS.SUCCESS_NOTIFY_INDEX_KEY, "");
+            this.setdata(this.buildKey("reset", "success", "notify", "all"), "0");
+            this.setdata(SETTINGS.RESET_SUCCESS_NOTIFY_ALL_KEY, "0");
+            this.log(`已全量重置成功通知记录，共 ${bundleIds.length} 项`);
+        } catch (e) {
+            this.log(`全量重置通知记录失败: ${e.message}`);
+        }
+    }
+
+    // 清理成功通知记录（通过 prefs 开关触发）
+    resetSuccessNotifyIfNeeded(bundleId = "") {
+        try {
+            const resetFlag = this.getdata(this.buildKey("reset", "success", "notify")) || this.getdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY);
+            if (resetFlag !== "1") return;
+
+            if (bundleId) {
+                const successNotifyKey = this.buildKey(bundleId, "success", "notified");
+                this.setdata(successNotifyKey, "0");
+                this.log(`已重置成功通知记录: ${successNotifyKey}`);
+            }
+
+            // 一次性开关，执行后自动关闭（兼容新旧键）
+            this.setdata(this.buildKey("reset", "success", "notify"), "0");
+            this.setdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY, "0");
+            this.log("通知重置开关已自动关闭");
+        } catch (e) {
+            this.log(`重置通知记录失败: ${e.message}`);
+        }
+    }
+
     // 获取模板
     getTemplate(templateName) {
         try {
@@ -187,6 +239,33 @@ class ServiceDetector {
         this.url = request?.url || "";
         this.headers = request?.headers || {};
     }
+
+    static get ENDPOINT_PATTERNS() {
+        return {
+            adapty: [
+                /\/api\/v\d\/sdk\/analytics\/profiles(?:\?|$)/,
+                /\/api\/v\d\/sdk\/in-apps\/[^\/]+\/(?:products-ids|products)\/(?:app_store|google_play)(?:\?|$)/,
+                /\/api\/v\d\/sdk\/in-apps\/apple\/receipt\/validate(?:\?|$)/,
+                /\/api\/v\d\/sdk\/in-apps\/purchase-containers(?:\?|$)/,
+                /\/api\/v\d\/purchase\/app-store(?:\?|$)/
+            ],
+            apphud: [
+                /\/v\d\/(?:subscriptions|customers)(?:\?|$)/
+            ],
+            snow: [
+                /\/v\d\/purchase\/subscription\/subscriber\/status(?:\?|$)/
+            ]
+        };
+    }
+
+    // 是否命中当前脚本关注的 endpoint（性能短路）
+    isTargetEndpoint(serviceType) {
+        const patterns = ServiceDetector.ENDPOINT_PATTERNS[serviceType] || [];
+        for (const pattern of patterns) {
+            if (pattern.test(this.url)) return true;
+        }
+        return false;
+    }
     
     // 检测服务类型
     detect() {
@@ -218,9 +297,13 @@ class ServiceDetector {
         }
         
         // 未识别的服务
+        let unknownDomain = "unknown.host";
+        try {
+            unknownDomain = new URL(this.url).hostname || unknownDomain;
+        } catch (_) {}
         return {
             type: 'unknown',
-            domain: new URL(this.url).hostname,
+            domain: unknownDomain,
             name: '未知服务'
         };
     }
@@ -230,17 +313,36 @@ class ServiceDetector {
 class BaseHandler {
     constructor(response, request, template = {}) {
         this.rawResponse = response;
-        try {
-            this.response = JSON.parse(response.body || "{}");
-        } catch (e) {
-            env.log(`解析响应失败: ${e.message}`);
-            env.notifyError(e, "解析响应");
-            this.response = {};
-        }
+        this.rawBody = response?.body || "";
+        this.response = {};
+        this.parsed = false;
+        this.parseOk = false;
         this.request = request;
         this.headers = request?.headers || {};
         this.url = request?.url || "";
         this.template = template;
+    }
+
+    ensureParsedResponse() {
+        if (this.parsed) return;
+        this.parsed = true;
+        try {
+            const trimmed = (typeof this.rawBody === 'string') ? this.rawBody.trim() : "";
+            const firstChar = trimmed.charAt(0);
+            if (firstChar === "{" || firstChar === "[") {
+                this.response = JSON.parse(this.rawBody);
+                this.parseOk = true;
+            } else {
+                this.response = {};
+                this.parseOk = false;
+                env.log("响应体非 JSON，跳过解析并走保底流程");
+            }
+        } catch (e) {
+            env.log(`解析响应失败: ${e.message}`);
+            env.notifyError(e, "解析响应");
+            this.response = {};
+            this.parseOk = false;
+        }
     }
     
     // 通用应用信息提取方法
@@ -1035,39 +1137,82 @@ const env = new Env("UnifiedVIP");
 function main() {
     try {
         env.log("开始处理请求");
-        
+
+        // QX 稳定性保护：响应体缺失/非字符串时直接透传
+        if (!$response || typeof $response.body !== "string") {
+            env.log("响应对象无效，透传原始响应");
+            return env.done({ body: $response?.body || "" });
+        }
+
         // 1. 检测服务类型
         const detector = new ServiceDetector($request);
         const serviceInfo = detector.detect();
+
+        // 性能短路：仅处理目标 endpoint，其他请求直接透传
+        if (serviceInfo.type === "unknown" || !detector.isTargetEndpoint(serviceInfo.type)) {
+            env.log(`非目标请求，跳过处理: ${serviceInfo.type}`);
+            return env.done({ body: $response.body });
+        }
         
         env.log(`检测到服务: ${serviceInfo.name} (${serviceInfo.domain})`);
         
         // 2. 创建对应的处理器
         const handler = HandlerFactory.createHandler(serviceInfo, $response, $request);
+        // 懒解析触发点：仅目标请求才解析响应体
+        handler.ensureParsedResponse();
+        if (!handler.parseOk) {
+            env.log("目标请求响应不可解析，透传原始响应");
+            return env.done({ body: $response.body });
+        }
         
         // 3. 获取应用信息
         const appInfo = handler.getAppInfo();
         
-        // 4. 捕获关键信息
-        const capturedInfo = handler.captureInfo();
-        if (capturedInfo) {
-            // 存储捕获的信息，可用于后续分析
-            const captureKey = `${env.name}_captured_${Date.now()}`;
-            env.setdata(captureKey, JSON.stringify(capturedInfo));
-            env.log(`已捕获请求信息: ${captureKey}`);
+        // 4. 捕获关键信息（默认关闭，避免 prefs 键膨胀）
+        if (SETTINGS.CAPTURE_ENABLED && SETTINGS.DEBUG_LOG && handler.parseOk) {
+            const capturedInfo = handler.captureInfo();
+            if (capturedInfo) {
+                const captureKey = env.buildKey("last_capture");
+                env.setdata(captureKey, JSON.stringify(capturedInfo));
+                env.log(`已捕获请求信息: ${captureKey}`);
+            }
         }
         
         // 5. 注入订阅信息
+        const beforeInjectSnapshot = JSON.stringify(handler.response || {});
         const modifiedResponse = handler.injectSubscription();
+        if (modifiedResponse === null || typeof modifiedResponse !== 'object') {
+            env.log("注入结果异常，透传原始响应");
+            return env.done({ body: $response.body });
+        }
+        const afterInjectSnapshot = JSON.stringify(modifiedResponse);
+        const injectionApplied = beforeInjectSnapshot !== afterInjectSnapshot;
         
-        // 6. 发送通知
-        if (appInfo.appName && appInfo.bundleId) {
-            env.notify(
-                "✨ VIP 已激活 ✨", 
-                appInfo.appName, 
-                `已成功注入 ${serviceInfo.name} 订阅数据 (${appInfo.bundleId})`,
-                appInfo.bundleId
-            );
+        // 6. 发送通知（成功仅首次发送，错误仍按原逻辑）
+        // 如手动触发“全量重置”开关，先统一清空历史成功通知记录
+        env.resetAllSuccessNotifyIfNeeded();
+
+        if (injectionApplied && (appInfo.appName || appInfo.bundleId)) {
+            // 如手动触发重置开关，先清除该 bundle 的成功通知记录
+            env.resetSuccessNotifyIfNeeded(appInfo.bundleId || "unknown.bundle");
+
+            const notifyIdentity = appInfo.bundleId || appInfo.appName || "unknown.app";
+            const successNotifyKey = env.buildKey(notifyIdentity, "success", "notified");
+            const hasNotified = env.getdata(successNotifyKey) === "1";
+            if (!hasNotified) {
+                env.notify(
+                    "✨ VIP 已激活 ✨", 
+                    appInfo.appName || "Unknown App", 
+                    `已成功注入 ${serviceInfo.name} 订阅数据 (${appInfo.bundleId || "unknown.bundle"})`,
+                    notifyIdentity
+                );
+                env.setdata(successNotifyKey, "1");
+                if (appInfo.bundleId) env.addSuccessNotifyIndex(appInfo.bundleId);
+            } else {
+                env.log(`成功通知已发送过，跳过: ${notifyIdentity}`);
+            }
+        } else {
+            env.log("未检测到有效注入变更，跳过成功通知");
         }
         
         env.log("订阅注入成功");
@@ -1128,7 +1273,7 @@ const TEMPLATES = {
                 id: accessLevelId,
                 is_lifetime: isLifetime,
                 store: "app_store",
-                starts_at: SETTINGS.INJECT.DATES.CURRENT,
+                starts_at: SETTINGS.INJECT.DATES.CURRENT(),
                 expires_at: isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
                 will_renew: !isLifetime,
                 is_active: true,
@@ -1163,7 +1308,7 @@ const TEMPLATES = {
             const tx = {
                 productId: productId,
                 originalTransactionId: SETTINGS.INJECT.TRANSACTION.ID,
-                purchaseDate: SETTINGS.INJECT.DATES.CURRENT,
+                purchaseDate: SETTINGS.INJECT.DATES.CURRENT(),
                 transactionId: SETTINGS.INJECT.TRANSACTION.ID
             };
             
@@ -1268,7 +1413,7 @@ const TEMPLATES = {
                 "product_id": productId,
                 "platform": "ios",
                 "environment": "production",
-                "started_at": SETTINGS.INJECT.DATES.CURRENT,
+                "started_at": SETTINGS.INJECT.DATES.CURRENT(),
                 "original_transaction_id": SETTINGS.INJECT.TRANSACTION.ID,
                 "expires_at": SETTINGS.INJECT.DATES.FUTURE
             };
