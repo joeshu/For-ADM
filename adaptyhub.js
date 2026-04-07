@@ -10,8 +10,8 @@
 
 [rewrite_local]
 # Adapty解锁
-^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store(?:\/original-transaction-id\/validate)?)(?:\/)?(?:\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store(?:\/original-transaction-id\/validate)?)(?:\/)?(?:\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/sdk\/(analytics\/profiles(?:\/[^\/?#]+)?|in-apps\/[^\/]+\/(products-ids|products)\/app_store|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store(?:\/original-transaction-id\/validate)?)(?:\/)?(?:\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/sdk\/(analytics\/profiles(?:\/[^\/?#]+)?|in-apps\/[^\/]+\/(products-ids|products)\/app_store|in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store(?:\/original-transaction-id\/validate)?)(?:\/)?(?:\?.*)?$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
 # Apphud解锁
 ^https?:\/\/.*\.apphud\.com\/v\d\/(subscriptions|customers)$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
 
