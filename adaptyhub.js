@@ -1,7 +1,7 @@
 /*
 📜 统一订阅解锁框架
-📅 更新时间：2026-04-07 13:34:50 LCL
-🕒 本地修改版本：2026-04-07-133450
+📅 更新时间：2026-04-07 13:41:36 LCL
+🕒 本地修改版本：2026-04-07-134136
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
 目前支持服务：
@@ -29,7 +29,7 @@ const SETTINGS = {
     DEBUG_LOG: true,
     
     // 本地版本标记（用于确认是否加载到最新脚本）
-    SCRIPT_VERSION: "2026-04-07-133450",
+    SCRIPT_VERSION: "2026-04-07-134136",
     
     // 通知设置
     NOTIFICATION: {
@@ -1229,10 +1229,13 @@ const TEMPLATES = {
             response.data.id = appInfo.profileId || response.data.id;
             response.data.type = response.data.type || 'adapty_profile';
             
+            // profiles 接口为订阅状态主判定来源：强制写入有效权限态
+            const attrs = response.data.attributes;
+            
             // profiles 接口里优先选择非 trial/weekly 的产品，避免被恢复流程中的试用产品覆盖
             let resolvedProductId = productId;
-            const subKeys = response?.data?.attributes?.subscriptions && typeof response.data.attributes.subscriptions === 'object'
-                ? Object.keys(response.data.attributes.subscriptions)
+            const subKeys = attrs.subscriptions && typeof attrs.subscriptions === 'object'
+                ? Object.keys(attrs.subscriptions)
                 : [];
             if (subKeys.length > 0) {
                 const preferredKey = subKeys.find(k => !/trial|weekly/i.test(k)) || subKeys[0];
@@ -1242,10 +1245,17 @@ const TEMPLATES = {
                 }
             }
             
+            // 确保只保留目标订阅，避免 SDK 读取到失效的 weekly/trial 项
+            if (attrs.subscriptions && typeof attrs.subscriptions === 'object') {
+                attrs.subscriptions = {
+                    [resolvedProductId]: {
+                        ...(attrs.subscriptions[resolvedProductId] || {})
+                    }
+                };
+            }
+            
             this.applyCommonSubscriptionFields(response, appInfo, resolvedProductId);
             
-            // profiles 接口为订阅状态主判定来源：强制写入有效权限态
-            const attrs = response.data.attributes;
             attrs.introductory_offer_eligibility = false;
             attrs.promotional_offer_eligibility = false;
             attrs.timestamp = Date.now();
