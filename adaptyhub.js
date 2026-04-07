@@ -25,17 +25,9 @@ hostname = api.adapty.io, *.apphud.com, *.snow.me, api.adaptytech.com
 // ================ 配置区域 ================
 const SETTINGS = {
     // 调试日志开关（QX 生产环境建议关闭）
-    DEBUG_LOG: false,
-    // 是否持久化捕获信息（仅调试时建议开启）
-    CAPTURE_ENABLED: false,
+    DEBUG_LOG: true,
     // QX 持久化键统一前缀
     KEY_PREFIX: "UnifiedVIP",
-    // 通知记录重置开关键（在 QX BoxJS/脚本管理里手动写入 1 可触发一次重置）
-    RESET_SUCCESS_NOTIFY_KEY: "UnifiedVIP_reset_success_notify",
-    // 全量重置成功通知记录开关键（写入 1 后将清空所有已记录 bundleId）
-    RESET_SUCCESS_NOTIFY_ALL_KEY: "UnifiedVIP_reset_success_notify_all",
-    // 成功通知记录索引键（用于全量重置）
-    SUCCESS_NOTIFY_INDEX_KEY: "UnifiedVIP_success_notify_index",
 
     // 通知设置
     NOTIFICATION: {
@@ -145,67 +137,6 @@ class Env {
         this.log(`错误通知: ${context} - ${errorMsg}`);
     }
     
-    // 维护成功通知索引（用于全量重置）
-    addSuccessNotifyIndex(bundleId = "") {
-        try {
-            if (!bundleId) return;
-            const raw = this.getdata(this.buildKey("success", "notify", "index")) || "";
-            const list = raw ? raw.split("|").filter(Boolean) : [];
-            if (!list.includes(bundleId)) {
-                list.push(bundleId);
-                this.setdata(this.buildKey("success", "notify", "index"), list.join("|"));
-                this.log(`已加入通知索引: ${bundleId}`);
-            }
-        } catch (e) {
-            this.log(`维护通知索引失败: ${e.message}`);
-        }
-    }
-
-    // 全量清理成功通知记录（通过 prefs 开关触发）
-    resetAllSuccessNotifyIfNeeded() {
-        try {
-            const resetAllFlag = this.getdata(this.buildKey("reset", "success", "notify", "all")) || this.getdata(SETTINGS.RESET_SUCCESS_NOTIFY_ALL_KEY);
-            if (resetAllFlag !== "1") return;
-
-            const raw = this.getdata(this.buildKey("success", "notify", "index")) || this.getdata(SETTINGS.SUCCESS_NOTIFY_INDEX_KEY) || "";
-            const bundleIds = raw ? raw.split("|").filter(Boolean) : [];
-            for (const bundleId of bundleIds) {
-                const key = this.buildKey(bundleId, "success", "notified");
-                this.setdata(key, "0");
-            }
-
-            // 清空索引并关闭开关（兼容新旧键）
-            this.setdata(this.buildKey("success", "notify", "index"), "");
-            this.setdata(SETTINGS.SUCCESS_NOTIFY_INDEX_KEY, "");
-            this.setdata(this.buildKey("reset", "success", "notify", "all"), "0");
-            this.setdata(SETTINGS.RESET_SUCCESS_NOTIFY_ALL_KEY, "0");
-            this.log(`已全量重置成功通知记录，共 ${bundleIds.length} 项`);
-        } catch (e) {
-            this.log(`全量重置通知记录失败: ${e.message}`);
-        }
-    }
-
-    // 清理成功通知记录（通过 prefs 开关触发）
-    resetSuccessNotifyIfNeeded(bundleId = "") {
-        try {
-            const resetFlag = this.getdata(this.buildKey("reset", "success", "notify")) || this.getdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY);
-            if (resetFlag !== "1") return;
-
-            if (bundleId) {
-                const successNotifyKey = this.buildKey(bundleId, "success", "notified");
-                this.setdata(successNotifyKey, "0");
-                this.log(`已重置成功通知记录: ${successNotifyKey}`);
-            }
-
-            // 一次性开关，执行后自动关闭（兼容新旧键）
-            this.setdata(this.buildKey("reset", "success", "notify"), "0");
-            this.setdata(SETTINGS.RESET_SUCCESS_NOTIFY_KEY, "0");
-            this.log("通知重置开关已自动关闭");
-        } catch (e) {
-            this.log(`重置通知记录失败: ${e.message}`);
-        }
-    }
-
     // 获取模板
     getTemplate(templateName) {
         try {
@@ -359,42 +290,6 @@ class BaseHandler {
             appName,
             bundleId
         };
-    }
-    
-    // 捕获请求和响应的关键信息，用于调试或增强功能
-    captureInfo() {
-        try {
-            // 基本信息收集
-            const info = {
-                url: this.url,
-                method: this.request.method || "GET",
-                headers: {},
-                responseStatus: this.rawResponse.status || 200,
-                timestamp: new Date().toISOString()
-            };
-            
-            // 选择性收集关键请求头 (避免收集敏感信息)
-            const safeHeaders = [
-                "user-agent", "content-type", "accept", 
-                "accept-language", "accept-encoding", "connection",
-                "host", "origin", "referer"
-            ];
-            
-            for (const key of Object.keys(this.headers)) {
-                const lowerKey = key.toLowerCase();
-                if (safeHeaders.includes(lowerKey)) {
-                    info.headers[lowerKey] = this.headers[key];
-                }
-            }
-            
-            // 获取应用信息
-            info.appInfo = this.getAppInfo();
-            
-            return info;
-        } catch (e) {
-            env.log(`捕获信息失败: ${e.message}`);
-            return null;
-        }
     }
     
     // 需要由子类实现的方法
@@ -1074,21 +969,6 @@ class SnowHandler extends BaseHandler {
         return this.getAppInfo().bundleId;
     }
     
-    // 捕获SNOW特定信息
-    captureInfo() {
-        const baseInfo = super.captureInfo();
-        
-        // 添加SNOW特定信息
-        const snowInfo = {
-            ...baseInfo,
-            snow: {
-                productId: this.getAppInfo().productId
-            }
-        };
-        
-        return snowInfo;
-    }
-    
     // 注入订阅信息
     injectSubscription() {
         try {
@@ -1168,15 +1048,7 @@ function main() {
         // 3. 获取应用信息
         const appInfo = handler.getAppInfo();
         
-        // 4. 捕获关键信息（默认关闭，避免 prefs 键膨胀）
-        if (SETTINGS.CAPTURE_ENABLED && SETTINGS.DEBUG_LOG && handler.parseOk) {
-            const capturedInfo = handler.captureInfo();
-            if (capturedInfo) {
-                const captureKey = env.buildKey("last_capture");
-                env.setdata(captureKey, JSON.stringify(capturedInfo));
-                env.log(`已捕获请求信息: ${captureKey}`);
-            }
-        }
+        // 4. 调试捕获逻辑已移除（方案1精简）
         
         // 5. 注入订阅信息
         const beforeInjectSnapshot = JSON.stringify(handler.response || {});
@@ -1189,13 +1061,7 @@ function main() {
         const injectionApplied = beforeInjectSnapshot !== afterInjectSnapshot;
         
         // 6. 发送通知（成功仅首次发送，错误仍按原逻辑）
-        // 如手动触发“全量重置”开关，先统一清空历史成功通知记录
-        env.resetAllSuccessNotifyIfNeeded();
-
         if (injectionApplied && (appInfo.appName || appInfo.bundleId)) {
-            // 如手动触发重置开关，先清除该 bundle 的成功通知记录
-            env.resetSuccessNotifyIfNeeded(appInfo.bundleId || "unknown.bundle");
-
             const notifyIdentity = appInfo.bundleId || appInfo.appName || "unknown.app";
             const successNotifyKey = env.buildKey(notifyIdentity, "success", "notified");
             const hasNotified = env.getdata(successNotifyKey) === "1";
@@ -1207,7 +1073,6 @@ function main() {
                     notifyIdentity
                 );
                 env.setdata(successNotifyKey, "1");
-                if (appInfo.bundleId) env.addSuccessNotifyIndex(appInfo.bundleId);
             } else {
                 env.log(`成功通知已发送过，跳过: ${notifyIdentity}`);
             }
