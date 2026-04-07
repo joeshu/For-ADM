@@ -1,7 +1,7 @@
 /*
 📜 统一订阅解锁框架
-📅 更新时间：2026-04-07 12:46:43 LCL
-🕒 本地修改版本：2026-04-07-124643
+📅 更新时间：2026-04-07 13:05:01 LCL
+🕒 本地修改版本：2026-04-07-130501
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
 目前支持服务：
@@ -27,6 +27,9 @@ hostname = api.adapty.io, *.apphud.com, *.snow.me, api.adaptytech.com
 const SETTINGS = {
     // 调试日志开关
     DEBUG_LOG: true,
+    
+    // 本地版本标记（用于确认是否加载到最新脚本）
+    SCRIPT_VERSION: "2026-04-07-130501",
     
     // 通知设置
     NOTIFICATION: {
@@ -1074,6 +1077,19 @@ function main() {
         // 5. 注入订阅信息
         const modifiedResponse = handler.injectSubscription();
         
+        // 5.1 注入脚本版本标记，便于抓包确认是否命中最新脚本
+        try {
+            if (modifiedResponse && typeof modifiedResponse === 'object') {
+                if (!modifiedResponse.meta || typeof modifiedResponse.meta !== 'object') {
+                    modifiedResponse.meta = {};
+                }
+                modifiedResponse.meta.unifiedvip_script_version = SETTINGS.SCRIPT_VERSION;
+                modifiedResponse.meta.unifiedvip_processed_url = $request?.url || '';
+            }
+        } catch (e) {
+            env.log(`注入版本标记失败: ${e.message}`);
+        }
+        
         // 6. 发送通知
         if (appInfo.appName && appInfo.bundleId) {
             env.notify(
@@ -1206,6 +1222,52 @@ const TEMPLATES = {
             response.data.id = appInfo.profileId || response.data.id;
             response.data.type = response.data.type || 'adapty_profile';
             this.applyCommonSubscriptionFields(response, appInfo, productId);
+            
+            // profiles 接口为订阅状态主判定来源：强制写入有效权限态
+            const attrs = response.data.attributes;
+            attrs.introductory_offer_eligibility = false;
+            attrs.promotional_offer_eligibility = false;
+            attrs.timestamp = Date.now();
+            
+            const accessLevelKey = appInfo.accessLevelId || 'premium';
+            if (!attrs.subscriptions || typeof attrs.subscriptions !== 'object') attrs.subscriptions = {};
+            if (!attrs.paid_access_levels || typeof attrs.paid_access_levels !== 'object') attrs.paid_access_levels = {};
+            
+            const commonForceFields = {
+                is_active: true,
+                will_renew: !appInfo.isLifetime,
+                cancellation_reason: null,
+                unsubscribed_at: null,
+                activated_at: SETTINGS.INJECT.DATES.CURRENT,
+                renewed_at: SETTINGS.INJECT.DATES.CURRENT,
+                is_refund: false,
+                is_in_grace_period: false,
+                billing_issue_detected_at: null,
+                active_promotional_offer_id: null,
+                active_promotional_offer_type: null,
+                active_introductory_offer_type: null,
+                offer_id: null,
+                base_plan_id: null,
+                store: "app_store",
+                is_lifetime: !!appInfo.isLifetime,
+                starts_at: SETTINGS.INJECT.DATES.CURRENT,
+                expires_at: appInfo.isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
+                vendor_product_id: productId,
+                vendor_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
+                vendor_original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID
+            };
+            
+            attrs.subscriptions[productId] = {
+                ...(attrs.subscriptions[productId] || {}),
+                ...commonForceFields
+            };
+            
+            attrs.paid_access_levels[accessLevelKey] = {
+                ...(attrs.paid_access_levels[accessLevelKey] || {}),
+                id: accessLevelKey,
+                ...commonForceFields
+            };
+            
             return response;
         },
         
