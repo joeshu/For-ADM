@@ -1,7 +1,7 @@
 /*
 📜 统一订阅解锁框架
-📅 更新时间：2026-04-07 13:25:22 LCL
-🕒 本地修改版本：2026-04-07-132522
+📅 更新时间：2026-04-07 13:34:50 LCL
+🕒 本地修改版本：2026-04-07-133450
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
 目前支持服务：
@@ -29,7 +29,7 @@ const SETTINGS = {
     DEBUG_LOG: true,
     
     // 本地版本标记（用于确认是否加载到最新脚本）
-    SCRIPT_VERSION: "2026-04-07-132522",
+    SCRIPT_VERSION: "2026-04-07-133450",
     
     // 通知设置
     NOTIFICATION: {
@@ -707,14 +707,21 @@ class AdaptyHandler extends BaseHandler {
             }
         }
         
-        // 对 original-transaction-id/validate 优先使用当前响应里的 productId，避免复用旧缓存
+        // 对 original-transaction-id/validate：优先使用已缓存的正式 Product ID；仅在无缓存时回退响应内 productId
         if (/original-transaction-id\/validate/.test(this.url)) {
+            const storedProductId = this.getStoredProductId();
             const txs = this.response?.data?.attributes?.apple_validation_result?.transactions;
-            if (Array.isArray(txs) && txs[0]?.productId) {
-                const currentProductId = txs[0].productId;
-                this.setProductId(currentProductId);
-                env.log(`从 validate 响应提取 Product ID: ${currentProductId}`);
-                return currentProductId;
+            const txProductId = (Array.isArray(txs) && txs[0]?.productId) ? txs[0].productId : null;
+            
+            if (storedProductId && (!txProductId || /trial|weekly/i.test(txProductId))) {
+                env.log(`validate 请求优先使用缓存 Product ID: ${storedProductId} (tx=${txProductId || 'null'})`);
+                return storedProductId;
+            }
+            
+            if (txProductId) {
+                this.setProductId(txProductId);
+                env.log(`从 validate 响应提取 Product ID: ${txProductId}`);
+                return txProductId;
             }
         }
         
@@ -1221,7 +1228,21 @@ const TEMPLATES = {
             const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_profile');
             response.data.id = appInfo.profileId || response.data.id;
             response.data.type = response.data.type || 'adapty_profile';
-            this.applyCommonSubscriptionFields(response, appInfo, productId);
+            
+            // profiles 接口里优先选择非 trial/weekly 的产品，避免被恢复流程中的试用产品覆盖
+            let resolvedProductId = productId;
+            const subKeys = response?.data?.attributes?.subscriptions && typeof response.data.attributes.subscriptions === 'object'
+                ? Object.keys(response.data.attributes.subscriptions)
+                : [];
+            if (subKeys.length > 0) {
+                const preferredKey = subKeys.find(k => !/trial|weekly/i.test(k)) || subKeys[0];
+                if (preferredKey && preferredKey !== resolvedProductId) {
+                    env.log(`profiles 请求使用更优 Product ID: ${preferredKey} (原=${resolvedProductId})`);
+                    resolvedProductId = preferredKey;
+                }
+            }
+            
+            this.applyCommonSubscriptionFields(response, appInfo, resolvedProductId);
             
             // profiles 接口为订阅状态主判定来源：强制写入有效权限态
             const attrs = response.data.attributes;
@@ -1252,13 +1273,13 @@ const TEMPLATES = {
                 is_lifetime: !!appInfo.isLifetime,
                 starts_at: SETTINGS.INJECT.DATES.CURRENT,
                 expires_at: appInfo.isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
-                vendor_product_id: productId,
+                vendor_product_id: resolvedProductId,
                 vendor_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
                 vendor_original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID
             };
             
-            attrs.subscriptions[productId] = {
-                ...(attrs.subscriptions[productId] || {}),
+            attrs.subscriptions[resolvedProductId] = {
+                ...(attrs.subscriptions[resolvedProductId] || {}),
                 ...commonForceFields
             };
             
