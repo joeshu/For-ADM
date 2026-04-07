@@ -1,7 +1,7 @@
 /*
 📜 统一订阅解锁框架
-📅 更新时间：2026-04-07 13:41:36 LCL
-🕒 本地修改版本：2026-04-07-134136
+📅 更新时间：2026-04-07 13:48:13 LCL
+🕒 本地修改版本：2026-04-07-134813
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
 目前支持服务：
@@ -29,7 +29,7 @@ const SETTINGS = {
     DEBUG_LOG: true,
     
     // 本地版本标记（用于确认是否加载到最新脚本）
-    SCRIPT_VERSION: "2026-04-07-134136",
+    SCRIPT_VERSION: "2026-04-07-134813",
     
     // 通知设置
     NOTIFICATION: {
@@ -1371,9 +1371,22 @@ const TEMPLATES = {
                     vendor_original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID
                 };
                 
+                // purchase 响应里仅保留目标订阅，避免恢复流程误读到历史失效订阅
+                attrs.subscriptions = {
+                    [productId]: {
+                        ...(attrs.subscriptions?.[productId] || {})
+                    }
+                };
+                
                 attrs.subscriptions[productId] = {
                     ...(attrs.subscriptions[productId] || {}),
                     ...commonForceFields
+                };
+                
+                attrs.paid_access_levels = {
+                    [accessLevelKey]: {
+                        ...(attrs.paid_access_levels?.[accessLevelKey] || {})
+                    }
                 };
                 
                 attrs.paid_access_levels[accessLevelKey] = {
