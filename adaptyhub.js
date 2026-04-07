@@ -1,6 +1,7 @@
 /*
 📜 统一订阅解锁框架
-📅 更新时间：2025-04-03
+📅 更新时间：2026-04-07 12:46:43 LCL
+🕒 本地修改版本：2026-04-07-124643
 🔓 功能：自动识别服务类型并解锁永久 VIP
 
 目前支持服务：
@@ -767,8 +768,9 @@ class AdaptyHandler extends BaseHandler {
             // Adapty purchase/app-store
             if (/purchase\/app-store/.test(this.url)) {
                 env.log("处理 Adapty purchase/app-store 请求");
-                const isOriginalTxValidate = /purchase\/app-store\/original-transaction-id\/validate(?:\/|\?|$)/.test(this.url);
-                return this.template.createPurchaseResponse(appInfo, productId, this.response, isOriginalTxValidate);
+                const isOriginalTxValidate = /purchase\/app-store\/(?:[^\/?#]+\/)?original-transaction-id\/(?:[^\/?#]+\/)?validate(?:\/|\?|$)/.test(this.url)
+                    || /original-transaction-id/.test(this.url);
+                return this.template.createPurchaseResponse(appInfo, productId, this.response, isOriginalTxValidate, this.url);
             }
             
             // Adapty receipt/validate 或 purchase-containers
@@ -1208,12 +1210,16 @@ const TEMPLATES = {
         },
         
         // 创建 purchase/app-store 响应
-        createPurchaseResponse: function(appInfo, productId, rawResponse = {}, forceValidatePatch = false) {
+        createPurchaseResponse: function(appInfo, productId, rawResponse = {}, forceValidatePatch = false, requestUrl = '') {
             const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_purchase_app_store_original_transaction_id_validation_result');
             const transaction = this.createTransactionInfo(productId, appInfo.isLifetime);
             if (!response.data.attributes.apple_validation_result || typeof response.data.attributes.apple_validation_result !== 'object') {
                 response.data.attributes.apple_validation_result = {};
             }
+            
+            // 对 original-transaction-id 相关接口自动启用强制补丁（兜底）
+            const shouldForcePatch = forceValidatePatch || /original-transaction-id/.test(requestUrl || '') || /original-transaction-id/.test(rawResponse?.data?.type || '');
+            
             response.data.type = 'adapty_purchase_app_store_original_transaction_id_validation_result';
             response.data.attributes.apple_validation_result.environment = response.data.attributes.apple_validation_result.environment || 'Production';
             
@@ -1238,7 +1244,7 @@ const TEMPLATES = {
             this.applyCommonSubscriptionFields(response, appInfo, productId);
             
             // 对 purchase validate 响应做强制订阅态修正（仅 original-transaction-id/validate 路径启用）
-            if (forceValidatePatch) {
+            if (shouldForcePatch) {
                 const attrs = response.data.attributes;
                 attrs.introductory_offer_eligibility = false;
                 attrs.promotional_offer_eligibility = false;
