@@ -10,8 +10,8 @@
 
 [rewrite_local]
 # Adapty解锁
-^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
-^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adapty\.io\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store(?:\/original-transaction-id\/validate)?) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
+^https?:\/\/api\.adaptytech\.com\/api\/v\d\/(sdk\/analytics\/profiles|sdk\/in-apps\/[^\/]+\/(products-ids|products)\/app_store|sdk\/in-apps\/(apple\/receipt\/validate|purchase-containers)|purchase\/app-store(?:\/original-transaction-id\/validate)?) url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
 # Apphud解锁
 ^https?:\/\/.*\.apphud\.com\/v\d\/(subscriptions|customers)$ url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/adaptyhub.js
 
@@ -703,6 +703,17 @@ class AdaptyHandler extends BaseHandler {
             }
         }
         
+        // 对 original-transaction-id/validate 优先使用当前响应里的 productId，避免复用旧缓存
+        if (/original-transaction-id\/validate/.test(this.url)) {
+            const txs = this.response?.data?.attributes?.apple_validation_result?.transactions;
+            if (Array.isArray(txs) && txs[0]?.productId) {
+                const currentProductId = txs[0].productId;
+                this.setProductId(currentProductId);
+                env.log(`从 validate 响应提取 Product ID: ${currentProductId}`);
+                return currentProductId;
+            }
+        }
+        
         const storedProductId = this.getStoredProductId();
         if (storedProductId) {
             return storedProductId;
@@ -756,7 +767,8 @@ class AdaptyHandler extends BaseHandler {
             // Adapty purchase/app-store
             if (/purchase\/app-store/.test(this.url)) {
                 env.log("处理 Adapty purchase/app-store 请求");
-                return this.template.createPurchaseResponse(appInfo, productId, this.response);
+                const isOriginalTxValidate = /purchase\/app-store\/original-transaction-id\/validate\/?$/.test(this.url);
+                return this.template.createPurchaseResponse(appInfo, productId, this.response, isOriginalTxValidate);
             }
             
             // Adapty receipt/validate 或 purchase-containers
@@ -1129,9 +1141,21 @@ const TEMPLATES = {
                 is_lifetime: isLifetime,
                 store: "app_store",
                 starts_at: SETTINGS.INJECT.DATES.CURRENT,
+                activated_at: SETTINGS.INJECT.DATES.CURRENT,
+                renewed_at: SETTINGS.INJECT.DATES.CURRENT,
                 expires_at: isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
                 will_renew: !isLifetime,
                 is_active: true,
+                cancellation_reason: null,
+                unsubscribed_at: null,
+                billing_issue_detected_at: null,
+                active_promotional_offer_id: null,
+                active_promotional_offer_type: null,
+                active_introductory_offer_type: null,
+                is_refund: false,
+                is_in_grace_period: false,
+                offer_id: null,
+                base_plan_id: null,
                 vendor_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
                 vendor_original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
                 vendor_product_id: productId
@@ -1184,7 +1208,7 @@ const TEMPLATES = {
         },
         
         // 创建 purchase/app-store 响应
-        createPurchaseResponse: function(appInfo, productId, rawResponse = {}) {
+        createPurchaseResponse: function(appInfo, productId, rawResponse = {}, forceValidatePatch = false) {
             const response = this.ensureDataShape(rawResponse, appInfo, 'adapty_purchase_app_store_original_transaction_id_validation_result');
             const transaction = this.createTransactionInfo(productId, appInfo.isLifetime);
             if (!response.data.attributes.apple_validation_result || typeof response.data.attributes.apple_validation_result !== 'object') {
@@ -1199,11 +1223,86 @@ const TEMPLATES = {
             const baseTransaction = (originalTransactions[0] && typeof originalTransactions[0] === 'object') ? originalTransactions[0] : {};
             response.data.attributes.apple_validation_result.transactions = [{
                 ...baseTransaction,
-                ...transaction
+                ...transaction,
+                isUpgraded: false,
+                type: baseTransaction.type || "Auto-Renewable Subscription",
+                inAppOwnershipType: "PURCHASED",
+                revocationDate: null,
+                revocationReason: null,
+                offerDiscountType: null,
+                offerType: null,
+                offerIdentifier: null
             }];
             
             response.data.attributes.apple_validation_result.bundleId = appInfo.bundleId;
             this.applyCommonSubscriptionFields(response, appInfo, productId);
+            
+            // 对 purchase validate 响应做强制订阅态修正（仅 original-transaction-id/validate 路径启用）
+            if (forceValidatePatch) {
+                const attrs = response.data.attributes;
+                attrs.introductory_offer_eligibility = false;
+                attrs.promotional_offer_eligibility = false;
+                attrs.timestamp = Date.now();
+                
+                const accessLevelKey = appInfo.accessLevelId || 'premium';
+                if (!attrs.subscriptions || typeof attrs.subscriptions !== 'object') attrs.subscriptions = {};
+                if (!attrs.paid_access_levels || typeof attrs.paid_access_levels !== 'object') attrs.paid_access_levels = {};
+                
+                const commonForceFields = {
+                    is_active: true,
+                    will_renew: !appInfo.isLifetime,
+                    cancellation_reason: null,
+                    unsubscribed_at: null,
+                    activated_at: SETTINGS.INJECT.DATES.CURRENT,
+                    renewed_at: SETTINGS.INJECT.DATES.CURRENT,
+                    is_refund: false,
+                    is_in_grace_period: false,
+                    billing_issue_detected_at: null,
+                    active_promotional_offer_id: null,
+                    active_promotional_offer_type: null,
+                    active_introductory_offer_type: null,
+                    offer_id: null,
+                    base_plan_id: null,
+                    store: "app_store",
+                    is_lifetime: !!appInfo.isLifetime,
+                    starts_at: SETTINGS.INJECT.DATES.CURRENT,
+                    expires_at: appInfo.isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
+                    vendor_product_id: productId,
+                    vendor_transaction_id: SETTINGS.INJECT.TRANSACTION.ID,
+                    vendor_original_transaction_id: SETTINGS.INJECT.TRANSACTION.ID
+                };
+                
+                attrs.subscriptions[productId] = {
+                    ...(attrs.subscriptions[productId] || {}),
+                    ...commonForceFields
+                };
+                
+                attrs.paid_access_levels[accessLevelKey] = {
+                    ...(attrs.paid_access_levels[accessLevelKey] || {}),
+                    id: accessLevelKey,
+                    ...commonForceFields
+                };
+                
+                // 交易字段对齐（避免订阅对象与交易对象不一致）
+                const tx0 = attrs.apple_validation_result.transactions[0] || {};
+                attrs.apple_validation_result.transactions[0] = {
+                    ...tx0,
+                    productId: productId,
+                    originalTransactionId: SETTINGS.INJECT.TRANSACTION.ID,
+                    transactionId: SETTINGS.INJECT.TRANSACTION.ID,
+                    purchaseDate: SETTINGS.INJECT.DATES.CURRENT,
+                    originalPurchaseDate: SETTINGS.INJECT.DATES.CURRENT,
+                    expiresDate: appInfo.isLifetime ? null : SETTINGS.INJECT.DATES.FUTURE,
+                    revocationDate: null,
+                    revocationReason: null,
+                    inAppOwnershipType: "PURCHASED",
+                    isUpgraded: false,
+                    offerDiscountType: null,
+                    offerType: null,
+                    offerIdentifier: null
+                };
+            }
+            
             return response;
         },
         
