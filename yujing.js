@@ -1,17 +1,14 @@
-/**
- * LingoWhale (语鲸) 会员解锁脚本 — Quantumult X 优化版
- * 原始: https://github.com/joeshu/For-ADM/blob/master/yujing.js
+/*
+ * LingoWhale (语鲸) 会员解锁脚本 — Quantumult X 单文件版
  *
- * ==== Quantumult X 重写配置 (放入 [rewrite_local]) ====
- * # 语鲸会员解锁 (请求头 + 响应体)
+ * ==== Quantumult X 重写配置 ====
+[rewrite_local]
 ^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 ^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
- 
+
 [mitm]
 hostname = api-public.lingowhale.com
  */
-
-// ============ Mock 数据 ============
 
 const NOW = () => Math.floor(Date.now() / 1000);
 
@@ -63,31 +60,46 @@ const PRO_FEATURES = {
 
 const UNLIMITED = { can_use: true, daily_used: 0, daily_limit: -1, remaining: -1 };
 
-// ============ 路由表 (path 匹配 → handler) ============
+// ============ 响应体路由表 ============
 
-// 响应体路由
 const RESPONSE_ROUTES = {
     "/membership/plans": (body) => {
-        if (body.data?.plans) body.data.trial_available = false;
+        if (body.data && body.data.plans) body.data.trial_available = false;
         return "会员计划列表已覆写";
     },
     "/membership/status": (body) => {
         body.code = 0;
         body.msg = "success";
-        body.data = { ...body.data, membership: { ...PRO_MEMBERSHIP }, quota: { ...PRO_QUOTA }, available_pay_type: ["monthly", "yearly", "lifetime"], can_claim_trial: false };
+        body.data = {
+            ...body.data,
+            membership: { ...PRO_MEMBERSHIP },
+            quota: { ...PRO_QUOTA },
+            available_pay_type: ["monthly", "yearly", "lifetime"],
+            can_claim_trial: false
+        };
         return "会员状态 → Pro";
     },
     "/membership/purchase": (body) => {
         body.code = 0;
         body.msg = "success";
-        body.data = { ...body.data, order_id: "mock-" + Date.now(), status: "completed", membership: { ...PRO_MEMBERSHIP } };
+        body.data = {
+            ...body.data,
+            order_id: "mock-" + Date.now(),
+            status: "completed",
+            membership: { ...PRO_MEMBERSHIP }
+        };
         return "购买响应已覆写 (未实际扣费)";
     },
     "/membership/cancel": (body) => {
         body.code = 0;
         body.msg = "success";
         if (!body.data) body.data = {};
-        body.data.membership = { plan_status: "active", current_plan: "pro", auto_renewal: 0, plan_expire_time: NOW() + 86400 * 365 * 10 };
+        body.data.membership = {
+            plan_status: "active",
+            current_plan: "pro",
+            auto_renewal: 0,
+            plan_expire_time: NOW() + 86400 * 365 * 10
+        };
         return "取消续费已覆写";
     },
     "/membership/features": (body) => {
@@ -112,7 +124,13 @@ const RESPONSE_ROUTES = {
         body.code = 0;
         body.msg = "success";
         if (body.data) {
-            body.data.membership = { plan_status: "active", current_plan: "pro", plan_name: "Pro 年付", plan_expire_time: NOW() + 86400 * 365 * 10, is_lifetime: false };
+            body.data.membership = {
+                plan_status: "active",
+                current_plan: "pro",
+                plan_name: "Pro 年付",
+                plan_expire_time: NOW() + 86400 * 365 * 10,
+                is_lifetime: false
+            };
         }
         return "用户信息 → Pro";
     },
@@ -124,8 +142,9 @@ const RESPONSE_ROUTES = {
     }
 };
 
-// 兜底: 含 membership 字段
+// 兜底处理
 function fallbackMembership(body) {
+    if (!body.data) body.data = {};
     body.data.membership = { ...PRO_MEMBERSHIP };
     body.code = 0;
     body.msg = body.msg || "success";
@@ -133,44 +152,68 @@ function fallbackMembership(body) {
     return "兜底: membership";
 }
 
-// 兜底: 含 can_use / remaining 字段
 function fallbackLimit(body) {
+    if (!body.data) body.data = {};
     Object.assign(body.data, UNLIMITED);
     return "兜底: 限制检查";
 }
 
 // ============ 请求头处理 ============
 
-function onRequest(req) {
-    const tag = req.url.includes("/purchase") ? "购买" : req.url.includes("/status") ? "状态" : null;
-    if (tag) {
-        req.headers["X-LingoWhale-Mock"] = "1";
-        console.log(`[LingoWhale] ${tag}请求已标记`);
+function handleRequest() {
+    const url = $request.url;
+    let headers = $request.headers || {};
+
+    if (url.includes("/purchase")) {
+        headers["X-LingoWhale-Mock"] = "1";
+        console.log("[LingoWhale] 购买请求已标记");
+    } else if (url.includes("/status")) {
+        headers["X-LingoWhale-Mock"] = "1";
+        console.log("[LingoWhale] 状态请求已标记");
     }
-    return req;
+
+    $done({ headers });
 }
 
 // ============ 响应体处理 ============
 
-function onResponse(req, res) {
+function handleResponse() {
     let body;
-    try { body = JSON.parse(res.body); } catch (_) { return res; }
+    try {
+        body = JSON.parse($response.body);
+    } catch (e) {
+        console.log("[LingoWhale] JSON解析失败，返回原始响应");
+        $done({});
+        return;
+    }
 
-    const path = req.url.replace(/^https?:\/\/[^/]+/, "").replace(/\?.*$/, "");
+    const path = $request.url.replace(/^https?:\/\/[^/]+/, "").replace(/\?.*$/, "");
     const handler = RESPONSE_ROUTES[path];
 
     if (handler) {
-        console.log(`[LingoWhale] ${handler(body)}`);
-    } else if (body.data?.membership) {
-        console.log(`[LingoWhale] ${fallbackMembership(body)}`);
+        console.log("[LingoWhale] " + handler(body));
+    } else if (body.data && body.data.membership) {
+        console.log("[LingoWhale] " + fallbackMembership(body));
     } else if (body.data && (body.data.can_use !== undefined || body.data.remaining !== undefined)) {
-        console.log(`[LingoWhale] ${fallbackLimit(body)}`);
+        console.log("[LingoWhale] " + fallbackLimit(body));
     }
 
-    try { res.body = JSON.stringify(body); } catch (_) {}
-    return res;
+    try {
+        $done({ body: JSON.stringify(body) });
+    } catch (e) {
+        console.log("[LingoWhale] JSON序列化失败");
+        $done({});
+    }
 }
 
 // ============ Quantumult X 入口 ============
+// QX 调用 script-response-body 时提供 $response
+// 调用 script-request-header 时提供 $request，不提供 $response
 
-$response ? $done(onResponse($request, $response)) : $request ? $done(onRequest($request)) : $done({});
+if (typeof $response !== "undefined" && $response) {
+    handleResponse();
+} else if (typeof $request !== "undefined" && $request) {
+    handleRequest();
+} else {
+    $done({});
+}
