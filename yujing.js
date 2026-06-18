@@ -2,30 +2,28 @@
  * LingoWhale 会员解锁脚本
 [rewrite_local]
 # 会员状态
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/status url script-request-header lingowhale-unlock.js
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/status url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/status url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/status url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 会员计划列表
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/plans url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/plans url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 会员购买/订阅
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/purchase url script-request-header lingowhale-unlock.js
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/purchase url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/purchase url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/purchase url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 取消续费
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/cancel url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/cancel url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 会员功能检查
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/features url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/features url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # TTS限制
-https://api-public.lingowhale.com/api/lingowhale/v1/tts/check_limit url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/tts/check_limit url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 文章分解限制
-https://api-public.lingowhale.com/api/lingowhale/v1/article/check_limit url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/article/check_limit url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 用户信息
-https://api-public.lingowhale.com/api/lingowhale/v1/user/info url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/user/info url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 # 试用领取
-https://api-public.lingowhale.com/api/lingowhale/v1/membership/claim_trial url script-response-body lingowhale-unlock.js
+https://api-public.lingowhale.com/api/lingowhale/v1/membership/claim_trial url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 [mitm]
- hostname = iotpservice.smartont.net
+ hostname = api-public.lingowhale.com
  */
-
-
 
 const MEMBERSHIP_MOCK = {
     plan_status: "active",
