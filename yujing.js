@@ -7,7 +7,6 @@
 hostname = api-public.lingowhale.com
  */
 
-
 const NOW = () => Math.floor(Date.now() / 1000);
 
 const PRO_MEMBERSHIP = {
@@ -21,21 +20,22 @@ const PRO_MEMBERSHIP = {
     auto_renewal: 0
 };
 
+// APICatcher 风格：使用极大值 999999 替代 -1，避免客户端解析异常
 const PRO_QUOTA = {
-    article_key_points_used: 0,
-    article_key_points_limit: -1,
-    tts_used: 0,
-    tts_limit: -1,
-    channel_sub_used: 0,
-    channel_sub_limit: 1000,
     channel_create_used: 0,
-    channel_create_limit: 50,
+    article_breakdown_limit: 999999,
+    channel_sub_limit: 999999,
     article_breakdown_used: 0,
-    article_breakdown_limit: -1,
-    export_used: 0,
-    export_limit: -1,
     daily_voice_used: 0,
-    daily_voice_limit: -1
+    article_key_points_used: 0,
+    channel_create_limit: 999999,
+    article_key_points_limit: 999999,
+    export_limit: 999999,
+    channel_sub_used: 0,
+    tts_used: 0,
+    tts_limit: 999999,
+    export_used: 0,
+    daily_voice_limit: 999999
 };
 
 const PRO_FEATURES = {
@@ -56,7 +56,9 @@ const PRO_FEATURES = {
     }
 };
 
-const UNLIMITED = { can_use: true, daily_used: 0, daily_limit: -1, remaining: -1 };
+const UNLIMITED = { can_use: true, daily_used: 0, daily_limit: 999999, remaining: 999999 };
+
+// ============ 响应体路由表 ============
 
 const RESPONSE_ROUTES = {
     "/membership/plans": function(body) {
@@ -107,10 +109,10 @@ const RESPONSE_ROUTES = {
         body.msg = "success";
         body.data = {
             quota: Object.assign({}, PRO_QUOTA),
-            plan_type: "pro",
-            plan_id: "69ea15cd50c847af2a8101a2"
+            plan_type: "premium",
+            plan_id: "unlimited-mock"
         };
-        return "配额详情 -> Pro 无限";
+        return "配额详情 -> Premium 无限";
     },
     "/tts/check_limit": function(body) {
         body.code = 0;
@@ -146,6 +148,7 @@ const RESPONSE_ROUTES = {
     }
 };
 
+// 兜底处理
 function fallbackMembership(body) {
     if (!body.data) body.data = {};
     body.data.membership = Object.assign({}, PRO_MEMBERSHIP);
@@ -161,6 +164,17 @@ function fallbackLimit(body) {
     return "兜底: 限制检查";
 }
 
+// 通用 quota 兜底：任何包含 quota 字段的响应都覆写
+function fallbackQuota(body) {
+    if (!body.data) body.data = {};
+    if (body.data.quota) body.data.quota = Object.assign({}, PRO_QUOTA);
+    body.code = 0;
+    body.msg = body.msg || "success";
+    return "兜底: quota 覆写";
+}
+
+// ============ 请求头处理 ============
+
 function handleRequest() {
     var url = $request.url;
     var headers = $request.headers || {};
@@ -174,24 +188,31 @@ function handleRequest() {
     $done({ headers: headers });
 }
 
+// ============ 响应体处理 ============
+
 function handleResponse() {
     var body;
     try {
         body = JSON.parse($response.body);
     } catch (e) {
-        console.log("[LingoWhale] JSON解析失败");
+        console.log("[LingoWhale] JSON解析失败，返回原始响应");
         $done({});
         return;
     }
+
     var path = $request.url.replace(/^https?:\/\/[^\/]+/, "").replace(/\?.*$/, "");
     var handler = RESPONSE_ROUTES[path];
+
     if (handler) {
         console.log("[LingoWhale] " + handler(body));
     } else if (body.data && body.data.membership) {
         console.log("[LingoWhale] " + fallbackMembership(body));
+    } else if (body.data && body.data.quota) {
+        console.log("[LingoWhale] " + fallbackQuota(body));
     } else if (body.data && (body.data.can_use !== undefined || body.data.remaining !== undefined)) {
         console.log("[LingoWhale] " + fallbackLimit(body));
     }
+
     try {
         $done({ body: JSON.stringify(body) });
     } catch (e) {
@@ -199,6 +220,8 @@ function handleResponse() {
         $done({});
     }
 }
+
+// ============ Quantumult X 入口 ============
 
 if (typeof $response !== "undefined" && $response) {
     handleResponse();
