@@ -1,13 +1,5 @@
 /*
- * LingoWhale (语鲸) 会员解锁脚本 — Quantumult X 单文件版
- *
- * ==== Quantumult X 重写配置 ====
-[rewrite_local]
-^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
-^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
-
-[mitm]
-hostname = api-public.lingowhale.com
+ * LingoWhale (语鲸) 会员解锁 — Quantumult X
  */
 
 const NOW = () => Math.floor(Date.now() / 1000);
@@ -60,37 +52,33 @@ const PRO_FEATURES = {
 
 const UNLIMITED = { can_use: true, daily_used: 0, daily_limit: -1, remaining: -1 };
 
-// ============ 响应体路由表 ============
-
 const RESPONSE_ROUTES = {
-    "/membership/plans": (body) => {
+    "/membership/plans": function(body) {
         if (body.data && body.data.plans) body.data.trial_available = false;
         return "会员计划列表已覆写";
     },
-    "/membership/status": (body) => {
+    "/membership/status": function(body) {
         body.code = 0;
         body.msg = "success";
         body.data = {
-            ...body.data,
-            membership: { ...PRO_MEMBERSHIP },
-            quota: { ...PRO_QUOTA },
+            membership: Object.assign({}, PRO_MEMBERSHIP),
+            quota: Object.assign({}, PRO_QUOTA),
             available_pay_type: ["monthly", "yearly", "lifetime"],
             can_claim_trial: false
         };
-        return "会员状态 → Pro";
+        return "会员状态 -> Pro";
     },
-    "/membership/purchase": (body) => {
+    "/membership/purchase": function(body) {
         body.code = 0;
         body.msg = "success";
         body.data = {
-            ...body.data,
             order_id: "mock-" + Date.now(),
             status: "completed",
-            membership: { ...PRO_MEMBERSHIP }
+            membership: Object.assign({}, PRO_MEMBERSHIP)
         };
-        return "购买响应已覆写 (未实际扣费)";
+        return "购买响应已覆写";
     },
-    "/membership/cancel": (body) => {
+    "/membership/cancel": function(body) {
         body.code = 0;
         body.msg = "success";
         if (!body.data) body.data = {};
@@ -102,25 +90,25 @@ const RESPONSE_ROUTES = {
         };
         return "取消续费已覆写";
     },
-    "/membership/features": (body) => {
+    "/membership/features": function(body) {
         body.code = 0;
         body.msg = "success";
-        body.data = { ...PRO_FEATURES };
-        return "功能检查 → 全部解锁";
+        body.data = JSON.parse(JSON.stringify(PRO_FEATURES));
+        return "功能检查 -> 全部解锁";
     },
-    "/tts/check_limit": (body) => {
+    "/tts/check_limit": function(body) {
         body.code = 0;
         body.msg = "success";
-        body.data = { ...UNLIMITED };
+        body.data = Object.assign({}, UNLIMITED);
         return "TTS 限制已解除";
     },
-    "/article/check_limit": (body) => {
+    "/article/check_limit": function(body) {
         body.code = 0;
         body.msg = "success";
-        body.data = { ...UNLIMITED };
+        body.data = Object.assign({}, UNLIMITED);
         return "文章分解限制已解除";
     },
-    "/user/info": (body) => {
+    "/user/info": function(body) {
         body.code = 0;
         body.msg = "success";
         if (body.data) {
@@ -132,9 +120,9 @@ const RESPONSE_ROUTES = {
                 is_lifetime: false
             };
         }
-        return "用户信息 → Pro";
+        return "用户信息 -> Pro";
     },
-    "/membership/claim_trial": (body) => {
+    "/membership/claim_trial": function(body) {
         body.code = 1001;
         body.msg = "您已经是Pro会员，无需领取试用";
         body.data = null;
@@ -142,13 +130,12 @@ const RESPONSE_ROUTES = {
     }
 };
 
-// 兜底处理
 function fallbackMembership(body) {
     if (!body.data) body.data = {};
-    body.data.membership = { ...PRO_MEMBERSHIP };
+    body.data.membership = Object.assign({}, PRO_MEMBERSHIP);
     body.code = 0;
     body.msg = body.msg || "success";
-    if (body.data.quota) body.data.quota = { ...PRO_QUOTA };
+    if (body.data.quota) body.data.quota = Object.assign({}, PRO_QUOTA);
     return "兜底: membership";
 }
 
@@ -158,38 +145,30 @@ function fallbackLimit(body) {
     return "兜底: 限制检查";
 }
 
-// ============ 请求头处理 ============
-
 function handleRequest() {
-    const url = $request.url;
-    let headers = $request.headers || {};
-
-    if (url.includes("/purchase")) {
+    var url = $request.url;
+    var headers = $request.headers || {};
+    if (url.indexOf("/purchase") !== -1) {
         headers["X-LingoWhale-Mock"] = "1";
         console.log("[LingoWhale] 购买请求已标记");
-    } else if (url.includes("/status")) {
+    } else if (url.indexOf("/status") !== -1) {
         headers["X-LingoWhale-Mock"] = "1";
         console.log("[LingoWhale] 状态请求已标记");
     }
-
-    $done({ headers });
+    $done({ headers: headers });
 }
 
-// ============ 响应体处理 ============
-
 function handleResponse() {
-    let body;
+    var body;
     try {
         body = JSON.parse($response.body);
     } catch (e) {
-        console.log("[LingoWhale] JSON解析失败，返回原始响应");
+        console.log("[LingoWhale] JSON解析失败");
         $done({});
         return;
     }
-
-    const path = $request.url.replace(/^https?:\/\/[^/]+/, "").replace(/\?.*$/, "");
-    const handler = RESPONSE_ROUTES[path];
-
+    var path = $request.url.replace(/^https?:\/\/[^\/]+/, "").replace(/\?.*$/, "");
+    var handler = RESPONSE_ROUTES[path];
     if (handler) {
         console.log("[LingoWhale] " + handler(body));
     } else if (body.data && body.data.membership) {
@@ -197,7 +176,6 @@ function handleResponse() {
     } else if (body.data && (body.data.can_use !== undefined || body.data.remaining !== undefined)) {
         console.log("[LingoWhale] " + fallbackLimit(body));
     }
-
     try {
         $done({ body: JSON.stringify(body) });
     } catch (e) {
@@ -205,10 +183,6 @@ function handleResponse() {
         $done({});
     }
 }
-
-// ============ Quantumult X 入口 ============
-// QX 调用 script-response-body 时提供 $response
-// 调用 script-request-header 时提供 $request，不提供 $response
 
 if (typeof $response !== "undefined" && $response) {
     handleResponse();
