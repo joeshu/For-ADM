@@ -1,11 +1,12 @@
 /*
 [rewrite_local]
-^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
-^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
+^https://api-public\.lingowhale\.com/api/lingowhale/v1/.* url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
+^https://api-public\.lingowhale\.com/api/lingowhale/v1/.* url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
 
 [mitm]
 hostname = api-public.lingowhale.com
  */
+
 
 const NOW = () => Math.floor(Date.now() / 1000);
 
@@ -21,20 +22,20 @@ const PRO_MEMBERSHIP = {
 };
 
 const PRO_QUOTA = {
-    tts_limit: -1,
-    daily_voice_limit: -1,
-    channel_create_limit: 50,
-    channel_sub_limit: 1000,
-    article_key_points_limit: -1,
-    article_breakdown_limit: -1,
-    export_limit: -1,
-    tts_used: 0,
-    daily_voice_used: 0,
-    channel_create_used: 0,
-    channel_sub_used: 0,
     article_key_points_used: 0,
+    article_key_points_limit: -1,
+    tts_used: 0,
+    tts_limit: -1,
+    channel_sub_used: 0,
+    channel_sub_limit: 1000,
+    channel_create_used: 0,
+    channel_create_limit: 50,
     article_breakdown_used: 0,
-    export_used: 0
+    article_breakdown_limit: -1,
+    export_used: 0,
+    export_limit: -1,
+    daily_voice_used: 0,
+    daily_voice_limit: -1
 };
 
 const PRO_FEATURES = {
@@ -100,6 +101,16 @@ const RESPONSE_ROUTES = {
         body.msg = "success";
         body.data = JSON.parse(JSON.stringify(PRO_FEATURES));
         return "功能检查 -> 全部解锁";
+    },
+    "/membership/quota/detail": function(body) {
+        body.code = 0;
+        body.msg = "success";
+        body.data = {
+            quota: Object.assign({}, PRO_QUOTA),
+            plan_type: "pro",
+            plan_id: "69ea15cd50c847af2a8101a2"
+        };
+        return "配额详情 -> Pro 无限";
     },
     "/tts/check_limit": function(body) {
         body.code = 0;
