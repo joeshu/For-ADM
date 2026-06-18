@@ -1,47 +1,32 @@
 /**
  * LingoWhale 会员解锁脚本
- * 
- * Quantumult X 版本
- * 
- * 支持的操作类型:
- *   - script-request-header  (请求体注入)
- *   - script-response-body   (响应体覆写)
- * 
- * 脚本配置说明:
- *   需要配合 rewrite_local 规则使用, 匹配的 URL 会被重写到此脚本
- */
-# Quantumult X 重写规则 - LingoWhale 会员解锁
-# 使用方法：将以下规则添加到 Quantumult X 配置的 [rewrite_local] 部分
-# 并将 lingowhale-unlock.js 放到 Quantumult X 的脚本目录中
-
+[rewrite_local]
 # 会员状态
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/status url script-request-header lingowhale-unlock.js
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/status url script-response-body lingowhale-unlock.js
-
 # 会员计划列表
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/plans url script-response-body lingowhale-unlock.js
-
 # 会员购买/订阅
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/purchase url script-request-header lingowhale-unlock.js
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/purchase url script-response-body lingowhale-unlock.js
-
 # 取消续费
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/cancel url script-response-body lingowhale-unlock.js
-
 # 会员功能检查
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/features url script-response-body lingowhale-unlock.js
-
 # TTS限制
 https://api-public.lingowhale.com/api/lingowhale/v1/tts/check_limit url script-response-body lingowhale-unlock.js
-
 # 文章分解限制
 https://api-public.lingowhale.com/api/lingowhale/v1/article/check_limit url script-response-body lingowhale-unlock.js
-
 # 用户信息
 https://api-public.lingowhale.com/api/lingowhale/v1/user/info url script-response-body lingowhale-unlock.js
-
 # 试用领取
 https://api-public.lingowhale.com/api/lingowhale/v1/membership/claim_trial url script-response-body lingowhale-unlock.js
+[mitm]
+ hostname = iotpservice.smartont.net
+ */
+
+
+
 const MEMBERSHIP_MOCK = {
     plan_status: "active",
     current_plan: "pro",
