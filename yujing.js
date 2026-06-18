@@ -4,11 +4,11 @@
  *
  * ==== Quantumult X 重写配置 (放入 [rewrite_local]) ====
  * # 语鲸会员解锁 (请求头 + 响应体)
- * https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
- * https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
- *
- * ==== MitM 配置 (放入 [mitm]) ====
- * hostname = api-public.lingowhale.com
+^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-request-header https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
+^https://api-public\.lingowhale\.com/api/lingowhale/v1/(membership|tts|article|user)/.* url script-response-body https://raw.githubusercontent.com/joeshu/For-ADM/refs/heads/master/yujing.js
+ 
+[mitm]
+hostname = api-public.lingowhale.com
  */
 
 // ============ Mock 数据 ============
