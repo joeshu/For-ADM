@@ -6,6 +6,7 @@
   var host = match[1].toLowerCase().replace(/^www\./, ""), path = match[2] || "/";
   // Add only a verified site to the appropriate adapter, then add targeted rules / MITM.
   var adapters = [
+    { id: "buka-ycblcw", hosts: ["ycblcw.com","m.ycblcw.com"], route: /^\/(?:dedg\/cs13341\.js(?:\?|$)|(?:[^?#]*\.html)?(?:\?|$))/ },
     { id: "souju", hosts: ["ai.baipiaozhe.com","souju.ai"], route: /^\/(?:v1\/|assets\/(?:global-player-host-|movie-card-runtime-|main-)[^/?]+\.js(?:[?#]|$))/ },
     { id: "artplayer-preroll", hosts: ["4kvms.org","4kvms.com","4kvm.top","4kvm.cc","4kvm.me","4kvm.org","4kvm.tv","4kvm.net","4kvm.pro","4kvm.com"], route: /^\/(?:$|\?|play\/|static\/js\/dist\/app\.ultra\.min\.[^/?]+\.js(?:\?|$))/ }
   ];
@@ -15,6 +16,7 @@
   function capture(result) { if (result && typeof result.body === "string") output = result.body; }
   try {
     if (adapter.id === "souju") runSouju(original, "https://ai.baipiaozhe.com" + path, capture);
+    else if (adapter.id === "buka-ycblcw") runBuka(original, url, capture);
     else runArtplayer(original, url, capture);
     if (output !== original && typeof console !== "undefined") console.log("[ad-clean] " + adapter.id + ": " + host);
     $done(output === original ? {} : { body: output });
@@ -351,4 +353,23 @@
 })();
 
   }
+function runBuka(source, url, done) {
+var $response={body:source}, $request={url:url}, $done=done;
+/* ycblcw / Buka template: verified 2026-10-10. */
+(function () {
+  var original = $response.body || "", url = ($request && $request.url) || "";
+  if (!/^https?:\/\/(?:www\.|m\.)?ycblcw\.com(?:[:/]|$)/i.test(url)) { $done({}); return; }
+  try {
+    if (/\/dedg\/cs13341\.js(?:[?#]|$)/i.test(url)) {
+      $done({body:"/* Dedicated click-overlay and redirect advertising disabled. */"}); return;
+    }
+    if (!/<html[\s>]/i.test(original) || original.indexOf("/template/buka/") < 0) { $done({}); return; }
+    var body = original.replace(/<script\b[^>]*\bsrc\s*=\s*["'](?:https?:)?(?:\/\/(?:www\.|m\.)?ycblcw\.com)?\/dedg\/cs13341\.js(?:\?[^"']*)?["'][^>]*>[\s\S]*?<\/script\s*>/ig, "");
+    // Confirmed app-promotion anchors only. Preserve player_* config and episode links.
+    body = body.replace(/<a\b[^>]*\bhref\s*=\s*["'](?:https?:)?\/\/app2\.zstv47\.com(?:[/?][^"']*)?["'][^>]*>[\s\S]*?<\/a\s*>/ig, "");
+    $done(body === original ? {} : {body:body});
+  } catch (_) { $done({}); }
+})();
+
+}
 })();
