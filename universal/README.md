@@ -57,3 +57,8 @@ wu5mv、55kp2、4kcz 等站点尚未取得可分析源码，没有加入适配�
 ## YQK / QNTV v3 接口补齐
 
 结合用户的 Quantumult X 运行日志确认 v2 已命中多个广告接口，但继续核对前端发现遗漏 `/adInfo/getChatAd` 与 `/adInfo/getTopicAd`。v3 清空聊天广告列表和专题页 `topicAdList`，保留聊天内容、专题影片与播放数据。源码、规则和统一入口均已更新，独立/统一规则版本参数改为 `v=3`。
+
+
+## YQK / QNTV v4：首页快捷推广入口
+
+依据用户提供的 YQK43.APP 截图，继续追到 `/home/firstScreen` 的 `hotMudleList`。站点模板点击时将条目传给 `handleAdItem`；外链 action 1/2/11 和游戏 action 8/10 对应截图所示推广入口。v4 仅从该列表过滤这些动作，保留站内导航及影视数据，并同步独立版与统一版。Quantumult X 脚本规则参数为 `v=4`。
