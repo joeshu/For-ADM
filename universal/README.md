@@ -1,6 +1,6 @@
 # Quantumult X 统一去广告
 
-统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧、4kvm、ycblcw、YQK/QNTV 四组适配。
+统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV 四组适配。
 
 ## 使用
 
@@ -36,6 +36,8 @@ node --test tests/ad-clean.test.mjs
 YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支持已登记的 11 个域名后缀，以及 `yz(?:y)?\d{4,6}` 日期前缀；未知 .com 后缀不会自动进入规则。MITM 使用对应后缀的 `yz*.` 通配符，但重写还需满足更严格的前缀与已适配接口路径。
 
 搜剧 `/v1/` 后续路径已在统一版及独立版修正。JS 只匹配已登记文件族，并检查广告源码特征。页面导航保留，YQK 首页 `hotMudleList` 仅过滤已确认的广告动作 1、2、8、10、11。
+
+看剧AI `kanju3.com` 经真实源码确认复用搜剧模板，统一版和搜剧独立版均包含该域名。已核验 `global-player-host-BEk1MOSZ.js`、`movie-card-runtime-DQVzig5g.js`、`main-DupXbhqc.js`：复用广告配置、网格、横幅与开屏处理，补充翻转容器 `Sp` 和手机顶部广告 `em`；翻转容器改为保留原前景包装及 children，不删除其中的选集/播放器内容。其他文件哈希仍需满足源码指纹。
 
 ## 接入新网站
 

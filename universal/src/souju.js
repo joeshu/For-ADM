@@ -10,7 +10,7 @@ function cleanSouju(ctx, template) {
   var asset=match[1];
   template.components.forEach(function(c){
     if(asset.indexOf(c.prefix)!==0)return;
-    source=admReplaceFunction(source,c.name,function(text){return admHas(text,c.requires);},'function '+c.name+'(){return null}').source;
+    source=admReplaceFunction(source,c.name,function(text){return admHas(text,c.requires);},c.replacement||'function '+c.name+'(){return null}').source;
   });
   var r=template.runtime;
   if(asset.indexOf(r.prefix)===0) {

@@ -348,7 +348,9 @@
             "type": "exact",
             "names": [
               "ai.baipiaozhe.com",
-              "souju.ai"
+              "souju.ai",
+              "kanju3.com",
+              "www.kanju3.com"
             ]
           },
           "routes": [
@@ -446,6 +448,24 @@
           "requires": [
             "app-startup-ad",
             "跳过"
+          ]
+        },
+        {
+          "prefix": "global-player-host-",
+          "name": "Sp",
+          "requires": [
+            "qr(\"player_info\")",
+            "movie-player-info-flip",
+            "i.jsx(\"div\",{className:s,\"data-backdrop-effect\":r,children:e})"
+          ],
+          "replacement": "function Sp({children:e,frontBackdropEffect:r,frontClassName:s}){return i.jsx(\"div\",{className:s,\"data-backdrop-effect\":r,children:e})}"
+        },
+        {
+          "prefix": "global-player-host-",
+          "name": "em",
+          "requires": [
+            "movie-player-top-grid-ad",
+            "播放器顶部广告"
           ]
         }
       ],

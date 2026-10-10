@@ -54,6 +54,24 @@ test('Souju snapshot operations share JSON engine while preserving movie/episode
  const payload={app_experience:snapshot,auth:{vipOnly:true}};
  check('souju-ai','https://souju.ai/v1/app/experience',JSON.stringify(payload),out=>{const p=JSON.parse(out),s=p.app_experience.placements;assert.deepEqual(s.splash_screen.items,[]);assert.deepEqual(s.showcase_grid.items,[]);assert.equal(s.player_info.enabled,false);assert.equal(s.player_info.default_ad_targeting.enabled,false);assert.equal(s.player_info.default_ad_targeting.other,9);assert.deepEqual(s.player_info.movie,snapshot.placements.player_info.movie);assert.deepEqual(p.auth,payload.auth);});
 });
+test('Kanju shares Souju policies and unwraps flip ads without deleting player children',()=>{
+ const conf=read('universal/quantumult-x-snippet.conf'),rules=conf.split('\n').filter(l=>l.startsWith('^')).map(l=>new RegExp(l.split(' url ')[0]));
+ for(const host of ['kanju3.com','www.kanju3.com']) {
+  for(const asset of ['global-player-host-BEk1MOSZ','movie-card-runtime-DQVzig5g','main-DupXbhqc'])assert(rules.some(r=>r.test('https://'+host+'/assets/'+asset+'.js')));
+  assert(rules.some(r=>r.test('https://'+host+'/v1/app/experience')));
+  const snapshot={object:'app.experience_snapshot',placements:{player_info:{enabled:true,items:[1],grid_items:[2],banner_items:[3]}},playerList:[{url:'movie.m3u8'}]};
+  check('souju-ai','https://'+host+'/v1/app/experience',JSON.stringify(snapshot),out=>{const data=JSON.parse(out);assert.equal(data.placements.player_info.enabled,false);assert.deepEqual(data.playerList,snapshot.playerList);});
+ }
+ assert(!rules.some(r=>r.test('https://kanju3.com.evil.com/assets/main-DupXbhqc.js')));
+ const body='function Sp({children:e,frontBackdropEffect:r,frontClassName:s}){qr("player_info");const ad="movie-player-info-flip";return i.jsx("div",{className:s,"data-backdrop-effect":r,children:e})}function em(){return i.jsx("section",{className:"movie-player-top-grid-ad","aria-label":"播放器顶部广告"})}';
+ check('souju-ai','https://kanju3.com/assets/global-player-host-BEk1MOSZ.js',body,out=>{
+  const ctx={i:{jsx:(type,props)=>({type,props})}};vm.runInNewContext(out,ctx);
+  const child={type:'player',url:'movie.m3u8',episodes:[1,2]},element=ctx.Sp({children:child,frontClassName:'original-layout',frontBackdropEffect:'original-effect'});
+  assert.strictEqual(element.props.children,child);assert.equal(element.props.className,'original-layout');assert.equal(element.props['data-backdrop-effect'],'original-effect');assert.equal(ctx.em(),null);
+ });
+ const unknown='function Sp({children:e}){return e}function em(){return "movie.m3u8"}';
+ assert.equal(run(universal,'https://kanju3.com/assets/global-player-host-next.js',unknown),unknown);
+});
 test('HTML adapters remove only verified blocks and preserve player config and episode links',()=>{
  const html='<html><div class="ad-item"><div>ad</div></div><video data-preroll-ad-url="ad.mp4" src="movie.m3u8"></video><a href="/play/ep2">ep2</a></html>';
  check('4kvm','https://www.4kvms.org/play/ep1',html,out=>{assert(!out.includes('ad-item'));assert(!out.includes('data-preroll'));assert(out.includes('movie.m3u8'));assert(out.includes('/play/ep2'));});
