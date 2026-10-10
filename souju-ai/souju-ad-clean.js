@@ -1,22 +1,177 @@
 /**
- * 搜剧AI广告配置清理（Quantumult X）
- * 仅处理响应中 app_experience.app_experience_snapshot 的广告位配置，
- * 不改动播放源、集数、登录或其他接口响应。
+ * 搜剧AI Quantumult X 综合广告清理
+ * 同一条规则同时处理旧版 /v1/ 配置响应和指定广告 JS 资源。
+ * JS 资源中只移除专用广告组件；播放源、线路和集数请求不改动。
  */
 (() => {
-  const original = $response.body;
-  if (!original) {
-    $done({});
+  const body = $response.body || "";
+  const requestUrl = ($request && $request.url) || "";
+  const assetMatch = requestUrl.match(
+    /^https?:\/\/(?:ai\.baipiaozhe\.com|souju\.ai)\/assets\/(global-player-host-[^/]+|movie-card-runtime-[^/]+|main-[^/]+)\.js(?:[?#].*)?$/i
+  );
+
+  function functionBounds(source, name, fromIndex) {
+    const matcher = new RegExp("\\bfunction\\s+" + name + "\\s*\\(", "g");
+    matcher.lastIndex = fromIndex || 0;
+    const match = matcher.exec(source);
+    if (!match) return null;
+
+    const open = source.indexOf("{", matcher.lastIndex);
+    if (open < 0) return null;
+
+    let depth = 0;
+    let quote = "";
+    let escaped = false;
+    let lineComment = false;
+    let blockComment = false;
+
+    for (let i = open; i < source.length; i++) {
+      const ch = source[i];
+      const next = source[i + 1];
+
+      if (lineComment) {
+        if (ch === "\n") lineComment = false;
+        continue;
+      }
+      if (blockComment) {
+        if (ch === "*" && next === "/") {
+          blockComment = false;
+          i++;
+        }
+        continue;
+      }
+      if (quote) {
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (ch === "\\") {
+          escaped = true;
+          continue;
+        }
+        if (ch === quote) quote = "";
+        continue;
+      }
+      if (ch === "/" && next === "/") {
+        lineComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "/" && next === "*") {
+        blockComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "'" || ch === '"' || ch === "`") {
+        quote = ch;
+        continue;
+      }
+      if (ch === "{") depth++;
+      if (ch === "}" && --depth === 0) {
+        return { start: match.index, end: i + 1, text: source.slice(match.index, i + 1) };
+      }
+    }
+    return null;
+  }
+
+  function replaceFunction(source, name, predicate, replacement) {
+    let cursor = 0;
+    while (cursor < source.length) {
+      const bounds = functionBounds(source, name, cursor);
+      if (!bounds) return { source, changed: false };
+      if (predicate(bounds.text)) {
+        return {
+          source: source.slice(0, bounds.start) + replacement + source.slice(bounds.end),
+          changed: true
+        };
+      }
+      cursor = bounds.end;
+    }
+    return { source, changed: false };
+  }
+
+  function rewriteRuntimeConfig(source) {
+    const result = replaceFunction(
+      source,
+      "As",
+      text => text.includes('splash_screen') && text.includes('player_info') && text.includes('showcase_grid'),
+      text => text
+    );
+    if (!result.changed) return { source, changed: false };
+
+    let patched = result.source;
+    const replacements = [
+      ['n=en(t.splash_screen,"banner")', 'n=en({...t.splash_screen,items:[]},"banner")'],
+      ['o=en(t.showcase_grid,"grid")', 'o=en({...t.showcase_grid,items:[]},"grid")'],
+      ['u=en({...a,layout:c==="grid"?"grid":"banner"})', 'u=en({...a,items:[],layout:c==="grid"?"grid":"banner"})'],
+      ['enabled:a.enabled!==!1', 'enabled:!1'],
+      ['banner_items:un(a.banner_items)??u.items', 'banner_items:[]'],
+      ['grid_items:un(a.grid_items)??u.items', 'grid_items:[]']
+    ];
+    let replacementCount = 0;
+    for (const pair of replacements) {
+      const pieces = patched.split(pair[0]);
+      if (pieces.length > 1) {
+        replacementCount += pieces.length - 1;
+        patched = pieces.join(pair[1]);
+      }
+    }
+    return replacementCount >= 3
+      ? { source: patched, changed: true }
+      : { source, changed: false };
+  }
+
+  function rewriteJsAsset(source, assetName) {
+    let current = source;
+    let changed = false;
+
+    if (assetName.startsWith("global-player-host-")) {
+      const adFunctions = [
+        ["Cp", text => text.includes('qr("player_info")') && text.includes("creative_daily_rotation_limit")],
+        ["ti", text => text.includes("movie-player-info-ad-grid")],
+        ["qu", text => text.includes("movie-player-info-ad-banner-shell")]
+      ];
+      for (const [name, predicate] of adFunctions) {
+        const result = replaceFunction(current, name, predicate, "function " + name + "(){return null}");
+        current = result.source;
+        changed = result.changed || changed;
+      }
+    } else if (assetName.startsWith("movie-card-runtime-")) {
+      const result = rewriteRuntimeConfig(current);
+      current = result.source;
+      changed = result.changed;
+    } else if (assetName.startsWith("main-")) {
+      const result = replaceFunction(
+        current,
+        "T0",
+        text => text.includes("app-startup-ad") && text.includes("跳过"),
+        "function T0(){return null}"
+      );
+      current = result.source;
+      changed = result.changed;
+    }
+
+    if (changed) {
+      $done({ body: current });
+    } else {
+      // Unknown bundle revisions are preserved; the /v1/ response rewrite remains active.
+      $done({ body: source });
+    }
+  }
+
+  if (assetMatch) {
+    rewriteJsAsset(body, assetMatch[1]);
     return;
   }
 
   try {
-    const payload = JSON.parse(original);
+    const payload = JSON.parse(body);
     let changed = false;
 
     function clearPlacement(placement) {
-      if (!placement || typeof placement !== "object") return;
-      if (Array.isArray(placement.items)) placement.items = [];
+      if (placement && typeof placement === "object" && Array.isArray(placement.items)) {
+        placement.items = [];
+      }
     }
 
     function sanitizeSnapshot(snapshot) {
@@ -31,7 +186,6 @@
       const placements = snapshot.placements;
       clearPlacement(placements.splash_screen);
       clearPlacement(placements.showcase_grid);
-
       const player = placements.player_info;
       if (player && typeof player === "object") {
         player.enabled = false;
@@ -52,11 +206,9 @@
         for (const item of node) visit(item, depth + 1);
         return;
       }
-
       if (node.object === "app.experience_snapshot") {
         changed = sanitizeSnapshot(node) || changed;
       }
-
       for (const [key, value] of Object.entries(node)) {
         if (key === "app_experience" && value && typeof value === "object") {
           if (value.object === "app.experience_snapshot") {
@@ -71,9 +223,8 @@
     }
 
     visit(payload, 0);
-    $done({ body: changed ? JSON.stringify(payload) : original });
+    $done({ body: changed ? JSON.stringify(payload) : body });
   } catch (_) {
-    // Preserve the original response on unexpected/non-JSON bodies.
-    $done({ body: original });
+    $done({ body });
   }
 })();
