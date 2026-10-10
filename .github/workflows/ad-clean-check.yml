@@ -3,6 +3,9 @@ on:
   push:
     paths:
       - 'universal/**'
+      - 'hls-video/**'
+      - 'scripts/build-hls-clean.mjs'
+      - 'tests/hls-clean.test.mjs'
       - 'souju-ai/**'
       - 'yqk-qntv/**'
       - 'ycblcw/**'
@@ -13,6 +16,9 @@ on:
   pull_request:
     paths:
       - 'universal/**'
+      - 'hls-video/**'
+      - 'scripts/build-hls-clean.mjs'
+      - 'tests/hls-clean.test.mjs'
       - 'souju-ai/**'
       - 'yqk-qntv/**'
       - 'ycblcw/**'
@@ -35,3 +41,5 @@ jobs:
           package-manager-cache: false
       - run: node scripts/build-ad-clean.mjs --check
       - run: node --test tests/ad-clean.test.mjs
+      - run: node scripts/build-hls-clean.mjs --check
+      - run: node --test tests/hls-clean.test.mjs

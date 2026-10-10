@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "rawBase": "https://raw.githubusercontent.com/joeshu/For-ADM/master",
+  "templates": [
+    {
+      "id": "baofeng-adjump-experimental",
+      "host": "c\\d+\\.rrcdnbf\\d+\\.com",
+      "path": "/video/[^?#]+\\.m3u8(?:\\?[^#]*)?$",
+      "mitm": ["c*.rrcdnbf*.com"],
+      "adPath": "/adjump/[^?#]+\\.ts$",
+      "maxAdSeconds": 120,
+      "maxRemovedFraction": 0.2,
+      "evidence": "Yswag/for-own-use js/cmsAdblock.js bfeng path signature; real playback not yet verified"
+    }
+  ]
+}
