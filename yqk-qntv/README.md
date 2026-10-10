@@ -28,8 +28,8 @@
 两站四个完整 bundle 经脚本处理后做模块语法检查；广告数据转换、正片字段保持、未知版本回退、非目标域名回退与 $done 单次调用做本地验证。尚未在手机 Quantumult X 实播，不能据此保证所有线路均能播放。
 
 
-## v2：API 响应兜底与排查
+## v3：补齐两个广告接口
 
-用户反馈旧规则未见效果，尚无手机命中日志，不能判定具体原因。旧版只重写网页 JS；浏览器复用缓存或入口域名未匹配时，广告清理不会执行。v2 保留 JS 处理，同时对白名单中的 11 个 baseApiList 域名新增广告数据响应重写和 MITM。仅匹配已核对接口；/basic/init 只清空 startAdList 并归零广告时长。播放详情仍只关闭 startAd，其余播放源、鉴权和选集字段保留。新增 [YQK-QNTV v2] 日志区分 API cleaned、unchanged 与 JS patched；脚本地址带 ?v=2 方便获取更新版。API 白名单由用户提供；未取得带实际会话的线上 JSON，本地响应测试使用消费者代码确认的字段样例，不代表手机实播验证。
+用户提供的 Quantumult X 日志显示，v2 已清理 /basic/init、/home/firstScreen、/home/body、/getPageAd、/getTextAd、/vodInfo/index 等请求。继续检查前端模块后发现还遗漏 /adInfo/getChatAd 和 /adInfo/getTopicAd：前者作为聊天广告消息插入消息流，后者写入专题页 topicAdList 并插入影视列表。v3 对应将聊天广告数组与 topicAdList 清空，同时保留聊天消息、专题影片列表与播放数据。更新规则中的脚本版本参数为 v=3。
 
-必须重新更新重写资源及 MITM 域名，单独刷新 JS 不会自动补上 API 域名。若仍无效，查看 Quantumult X 请求记录是否出现 /v2/api/basic/init、/adInfo/getPageAd、/vodInfo/index 的重写命中，再提供实际网页地址和对应脚本日志。无命中表示链路尚未进入脚本，日志 unchanged 则需核对数据结构。接口鉴权失败或非 JSON 正文原样保留。
+“API cleaned”表示已改写响应字段，不等于所有广告源均已排除；若更新后仍显示，请提供具体页面截图及出现时对应 API 日志。
