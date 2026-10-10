@@ -147,15 +147,16 @@
   }
 
   function rewriteRuntimeConfig(source) {
-    const result = replaceFunction(
-      source,
-      "As",
-      text => text.includes('splash_screen') && text.includes('player_info') && text.includes('showcase_grid'),
-      text => text
-    );
-    if (!result.changed) return { source, changed: false };
+    let bounds = functionBounds(source, "As", 0);
+    while (
+      bounds &&
+      !(bounds.text.includes("splash_screen") && bounds.text.includes("player_info") && bounds.text.includes("showcase_grid"))
+    ) {
+      bounds = functionBounds(source, "As", bounds.end);
+    }
+    if (!bounds) return { source, changed: false };
 
-    let patched = result.source;
+    let patchedFunction = bounds.text;
     const replacements = [
       ['n=en(t.splash_screen,"banner")', 'n=en({...t.splash_screen,items:[]},"banner")'],
       ['o=en(t.showcase_grid,"grid")', 'o=en({...t.showcase_grid,items:[]},"grid")'],
@@ -166,15 +167,18 @@
     ];
     let replacementCount = 0;
     for (const pair of replacements) {
-      const pieces = patched.split(pair[0]);
+      const pieces = patchedFunction.split(pair[0]);
       if (pieces.length > 1) {
         replacementCount += pieces.length - 1;
-        patched = pieces.join(pair[1]);
+        patchedFunction = pieces.join(pair[1]);
       }
     }
-    return replacementCount >= 3
-      ? { source: patched, changed: true }
-      : { source, changed: false };
+    if (replacementCount < 3) return { source, changed: false };
+
+    return {
+      source: source.slice(0, bounds.start) + patchedFunction + source.slice(bounds.end),
+      changed: true
+    };
   }
 
   function rewriteJsAsset(source, assetName) {
