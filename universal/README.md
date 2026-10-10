@@ -1,6 +1,6 @@
 # Quantumult X 统一去广告
 
-统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV 四组适配。
+统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete 五组适配。
 
 ## 使用
 
@@ -20,7 +20,7 @@
 | `src/engine.js` | 字段校验、不可变 JSON 操作、HTML 删除、JS 修改组、统一入口 |
 | `src/souju.js`、`src/function-tools.js` | 搜剧特定组件函数定位 |
 | `src/yqk.js` | Nuxt 源码定位及公共 JSON 清理器注入 |
-| `../scripts/build-ad-clean.mjs` | 生成五份脚本及五份规则，统一 MITM 和缓存版本 |
+| `../scripts/build-ad-clean.mjs` | 生成六份脚本及六份规则，统一 MITM 和缓存版本 |
 | `../tests/ad-clean.test.mjs` | 域名边界、广告策略、独立/统一一致性及播放字段验证 |
 
 仓库根目录执行，使用 Node.js 24，无需安装依赖：
@@ -50,3 +50,13 @@ YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支
 5. 增加广告清除和播放字段保留样例，生成后运行检查。未取得源码或无法确认的站点不加入匹配范围。
 
 可统一的是清理操作与模板结构；不同网站的广告字段、混淆变量和播放流程仍需分别确认。当前没有自动清除任意网站广告的规则。未知 JS 特征或异常响应保留原正文；源码结构变化需要复核模板。
+
+## Auete 网页广告
+
+发布页 `auete.asia` 当前指向 `www.aeete.com`，访问后使用 `aeete.com`。仅登记这两个已确认主机；发布页和未来域名不会自动扩大匹配范围。
+
+首页与播放页包含 `/js/mcenter/tbxf.js`、`tbtl.js`（首页顶部通栏）、`tlbf.js`（播放页）、`dibu.js`、`dbtl.js`。页面注释明确标出顶部通栏与底部广告位。获取并离线解码 `dbtl.js` 后确认：它加载 `日期+4951g.smun7ro.com:8005/sc/4951` 和 `日期+4951gc.mehqk5u.com:8005/d/4951`，注入底部透明点击层、修改 body 底部留白，并通过触摸/点击跳转广告网址；只进行字符串解码，没有运行广告代码。其他四个模块本次返回 404，仍从 HTML 移除其广告位入口，防止后续恢复加载。
+
+复用现有精确 HTML 脚本标签删除及专用 JS 置空操作，处理这五个路径；不匹配整个 mcenter 目录，也不增加外部广告域名 MITM。禁用 `dbtl.js` 从源头阻止其外部广告加载、占位样式和透明点击层。
+
+`/js/seajump.js`、`common.js`、`function.js`、`play.js`、`statics/js/ditre.js`、播放器 iframe、播放地址、选集与观看记录保留。未增加播放器或 HLS 处理。测试核对入口删除、主机/路径边界、重复执行和上述内容保留；另用实际首页 HTML 与实际 `dbtl.js` 验证改写。截图中的手机横幅是否完全消失仍需 Quantumult X 实测。

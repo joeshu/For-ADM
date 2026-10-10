@@ -580,6 +580,58 @@
           "value": ""
         }
       ]
+    },
+    {
+      "id": "auete",
+      "adapter": "declarative",
+      "output": {
+        "script": "auete/ad-clean.js",
+        "conf": "auete/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "aeete.com"
+            ],
+            "prefixes": [
+              "",
+              "www"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "js",
+              "path": "/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"
+            },
+            {
+              "kind": "html",
+              "path": "/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "kind": "js",
+          "op": "setBody",
+          "bodyPattern": "^(?!\\s*(?:<!doctype|<html|<body)\\b)",
+          "value": "/* For-ADM: dedicated Auete page advertising module disabled. */"
+        },
+        {
+          "kind": "html",
+          "requires": [
+            "Auete",
+            "/js/common.js"
+          ],
+          "bodyPattern": "<html[\\s>]",
+          "op": "replaceRegex",
+          "pattern": "<script\\b[^>]*\\bsrc\\s*=\\s*[\"'](?:https?:)?(?://(?:www\\.)?aeete\\.com)?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?[^\"']*)?[\"'][^>]*>[\\s\\S]*?</script\\s*>",
+          "flags": "ig",
+          "value": ""
+        }
+      ]
     }
   ]
 }
