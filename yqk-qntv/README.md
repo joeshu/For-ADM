@@ -33,3 +33,8 @@
 用户提供的 Quantumult X 日志显示，v2 已清理 /basic/init、/home/firstScreen、/home/body、/getPageAd、/getTextAd、/vodInfo/index 等请求。继续检查前端模块后发现还遗漏 /adInfo/getChatAd 和 /adInfo/getTopicAd：前者作为聊天广告消息插入消息流，后者写入专题页 topicAdList 并插入影视列表。v3 对应将聊天广告数组与 topicAdList 清空，同时保留聊天消息、专题影片列表与播放数据。更新规则中的脚本版本参数为 v=3。
 
 “API cleaned”表示已改写响应字段，不等于所有广告源均已排除；若更新后仍显示，请提供具体页面截图及出现时对应 API 日志。
+
+
+## v4：清除截图中的 5 个首页推广入口
+
+截图中的快捷图标对应 `/v2/api/home/firstScreen` 的 `hotMudleList`，模板将其交给 `handleAdItem`。其中 `useAdLink` 的 action 1/2/11 会跳转外站，8/10 会进入游戏推广页。v4 从 `hotMudleList` 过滤这五种外链/游戏动作，保留站内路径动作、影视内容和其他首页模块；同时清空 `focusAdList`。规则脚本版本参数升为 `v=4`。
