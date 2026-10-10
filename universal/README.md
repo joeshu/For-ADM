@@ -45,7 +45,7 @@ YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支
 
 1. 获取广告接口样本或网站 JS，确认广告字段、播放字段及页面容器。不要只凭 `ad` 名称或宣传文字推断。
 2. 优先复用现有模板。相同网站换域名时，只扩充该模板的域名清单；相同结构可复用操作并登记新域名。
-3. JSON 使用 `set`、`clearArray`、`filterArray`，配合精确接口和结构条件；HTML 使用明确容器或广告资源地址；JS 使用源码指纹与预期替换次数。
+3. JSON 使用 `set`、`clearArray`、`filterArray`，配合精确接口和结构条件；HTML 使用 `removeElements` 按真实标签的完整属性值或 class token 删除，使用 `removeAttributes` 删除明确的广告属性；JS 使用源码指纹与每处预期替换次数。
 4. 新模板选择 `declarative` 或已有适配器，声明 `bindings`、路由类型及 `output`。结构无法复用时才增加适配器，适配器返回正文，由公共入口统一调用 `$done`。
 5. 增加广告清除和播放字段保留样例，生成后运行检查。未取得源码或无法确认的站点不加入匹配范围。
 
@@ -60,3 +60,15 @@ YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支
 复用现有精确 HTML 脚本标签删除及专用 JS 置空操作，处理这五个路径；不匹配整个 mcenter 目录，也不增加外部广告域名 MITM。禁用 `dbtl.js` 从源头阻止其外部广告加载、占位样式和透明点击层。
 
 `/js/seajump.js`、`common.js`、`function.js`、`play.js`、`statics/js/ditre.js`、播放器 iframe、播放地址、选集与观看记录保留。未增加播放器或 HLS 处理。测试核对入口删除、主机/路径边界、重复执行和上述内容保留；另用实际首页、实际视频播放页 HTML 与实际 `dbtl.js` 验证改写；播放页的播放器 iframe、源地址变量、线路和选集链接均保留。没有加入视频流/HLS 改写。截图中的手机横幅是否完全消失仍需 Quantumult X 实测。
+
+## 公共清理操作与播放保护
+
+四类操作共用 engine：JSON 字段使用结构校验后的 set/clearArray/filterArray；广告脚本入口使用 script/src 精确选择器；HTML 容器使用标签与完整 class token，属性清理由独立 removeAttributes 执行；JS 成组替换由 admGroup 校验每处预期次数。网站仍只在自己的域名、路径与源码特征范围内运行。生成器拒绝无效选择器、未锚定的属性正则、HTML 文本正则删除、错误替换次数和重复输出路径。
+
+HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号内的 >、未加引号的属性和实际页面中的相邻引号属性。ad-item-wrapper 不再匹配 ad-item。没有闭合的广告容器保留原文；无法可靠完成扫描时也保留原文。JS 和 CSS 字符串中的伪 HTML 不参与删除。
+
+公共入口统一保护数字或字符串状态码、HTTP 状态行、HEAD/OPTIONS、Content-Type 与正文类型不符，以及带 BOM/注释前缀的 HTML 错误页。已知非 2xx 响应保留原文；脚本异常也保留原文，日志仍默认关闭。
+
+搜剧/看剧 AI 运行时的六处必需替换均要求恰好一次，缺失或重复时整组保留原文；不再使用至少三处命中的部分替换策略。已核验真实 kanju3 运行时的六处原始特征及修改后 ES module 语法。
+
+新增四组回归覆盖相似 class、注释/脚本/样式中的伪标签、错误页及类型不符、成组替换缺失/重复。共 14 项测试通过，并以实际 AUETE 首页和播放页验证广告入口删除、播放器配置/线路/选集/下一集保留。真实页面源响应验证不能代替 iOS 上的播放实测；本轮未增加 HLS 处理。

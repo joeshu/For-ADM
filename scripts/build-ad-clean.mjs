@@ -21,10 +21,30 @@ const source=sources.map(read).join('\n');
 const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+read('scripts/build-ad-clean.mjs')).digest('hex').slice(0,12);
 const templates=manifest.templates.map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
+const outputPaths=new Set();
+function validatePairs(pairs){
+ if(!Array.isArray(pairs)||!pairs.length)throw Error('Empty JS modification group');
+ for(const p of pairs)if(typeof p[0]!=='string'||!p[0]||typeof p[1]!=='string'||(p[2]!==undefined&&(!Number.isInteger(p[2])||p[2]<1)))throw Error('Invalid JS replacement/count');
+}
 for(const t of templates){
  if(ids.has(t.id))throw Error('Duplicate template ID');ids.add(t.id);
  if(!['souju','yqk','declarative'].includes(t.adapter))throw Error('Unknown adapter');
- for(const b of t.bindings){new RegExp('^'+b.host+'$');for(const r of b.routes){if(!r.path.startsWith('/'))throw Error('Route must start at root');new RegExp('^'+r.path);}}
+ for(const p of Object.values(t.output)){if(outputPaths.has(p))throw Error('Duplicate output path');outputPaths.add(p);}
+ for(const b of t.bindings){new RegExp('^'+b.host+'$');for(const r of b.routes){if(!r.path.startsWith('/')||!['html','js','json'].includes(r.kind))throw Error('Invalid route');new RegExp('^'+r.path);}}
+ for(const a of t.actions||[]){
+  if(a.bodyPattern)new RegExp(a.bodyPattern);
+  if(a.kind==='html'){
+   if(a.op==='removeElements'){
+    const s=a.selector;if(!s||!s.tag||!s.attr||[s.token,s.exact,s.pattern].filter(x=>x!==undefined).length!==1)throw Error('Invalid HTML selector');
+    if(s.pattern){if(!s.pattern.startsWith('^')||!s.pattern.endsWith('$'))throw Error('HTML attribute pattern must be anchored');new RegExp(s.pattern);}
+   }else if(a.op==='removeAttributes')new RegExp(a.attributePattern);
+   else throw Error('HTML must use tag-aware operations');
+  }else if(a.kind==='js'){
+   if(a.op==='replaceRegex')new RegExp(a.pattern,a.flags||'g');else if(a.op!=='setBody')throw Error('Invalid JS operation');
+  }else throw Error('Invalid action kind');
+ }
+ if(t.runtime)validatePairs(t.runtime.pairs);
+ for(const rule of t.jsRules||[]){for(const group of rule.groups||[])validatePairs(group);if(rule.inject)validatePairs(rule.inject);}
 }
 const generated=new Map();
 function generate(selected,scriptPath,confPath){

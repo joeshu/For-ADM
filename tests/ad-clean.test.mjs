@@ -15,6 +15,46 @@ function run(code,url,body,meta={}) {
  return result.body===undefined?body:result.body;
 }
 const universal=read('universal/ad-clean.js');
+test('HTML cleanup preserves similar classes and fake markup in comments and raw text',()=>{
+ const protectedContent='<!-- <div class="ad-item"><video src="comment.m3u8"></video></div> -->'+
+ '<script>const markup=\'<div class="ad-item">literal</div>\';const config=\'<video data-preroll-ad-url="keep">\';</script>'+
+ '<style>.x:after{content:\'<div class="ad-item">style</div>\'}</style>'+
+ '<textarea><div class="ad-item">text</div></textarea>'+
+ '<div class="ad-item-wrapper"><video src="movie.m3u8"></video></div><div class="my-ad-item">keep</div>';
+ // Actual Auete pages place quoted attributes adjacent to one another.
+ const html='<html>'+protectedContent+'<div title="nested > content"class="slot ad-item active"><div>advert</div></div><video data-preroll-ad-url="ad.mp4" src="movie.m3u8"></video></html>';
+ check('4kvm','https://4kvms.org/play/ep1',html,out=>{
+  assert(out.includes(protectedContent));assert(!out.includes('advert'));assert(!out.includes('ad.mp4'));assert(out.includes('<video src="movie.m3u8">'));
+ });
+ for(const broken of ['<html><!-- unfinished <div class="ad-item">','<html><div class="ad-item"><video src="movie.m3u8">','<html><script>const fake="<div class=ad-item>"'])assert.equal(run(universal,'https://4kvms.org/play/ep1',broken),broken);
+});
+test('script and anchor deletion use real tags, including unquoted attributes',()=>{
+ const literal='<!-- <script src="/js/mcenter/dbtl.js"></script> -->'+
+ '<script>const s=\'<script src="/js/mcenter/dbtl.js">example</scriptX>\';</script>';
+ const html='<html>Auete<script src="/js/common.js"></script>'+literal+'<script src=/js/mcenter/dbtl.js></script><script src="https://evil.com/js/mcenter/dbtl.js"></script></html>';
+ check('auete','https://www.au1080.top/index.html',html,out=>{assert(out.includes(literal));assert(!out.includes('src=/js/mcenter/dbtl.js'));assert(out.includes('evil.com'));});
+ const anchor='<html><link href="/template/buka/css"><script>const a=\'<a href="https://app2.zstv47.com/">sample</a>\';</script><a href=https://app2.zstv47.com/><span>ad</span></a><a href="/vodplay/2.html">ep2</a></html>';
+ check('ycblcw','https://ycblcw.com/vodplay/1.html',anchor,out=>{assert(out.includes('sample</a>'));assert(!out.includes('<span>ad</span>'));assert(out.includes('/vodplay/2.html'));});
+});
+test('error statuses, response type mismatches and HTML gateway pages are preserved',()=>{
+ const url='https://yz250907.7k5jb8t9.com/v2/api/vodInfo/index',body=JSON.stringify({result:true,data:{startAd:1,playerList:[]}});
+ for(const status of [403,'403','502 Bad Gateway','HTTP/1.1 403 Forbidden','304 Not Modified'])assert.equal(run(universal,url,body,{response:{statusCode:status}}),body);
+ assert.equal(run(universal,url,body,{response:{status:'HTTP/2 502 Bad Gateway'}}),body);
+ for(const method of ['OPTIONS','options','HEAD','head'])assert.equal(run(universal,url,body,{request:{method}}),body);
+ assert.equal(run(universal,url,body,{response:{headers:{'Content-Type':'text/html'}}}),body);
+ for(const site of ['https://aeete.com/js/mcenter/dbtl.js','https://ycblcw.com/dedg/cs13341.js']) {
+  for(const html of ['<!--gateway--><html><body>error</body></html>','\uFEFF /* gateway */ <!doctype html><html>error</html>','// gateway\n<head>error</head>'])assert.equal(run(universal,site,html),html);
+  const content='temporarily unavailable';assert.equal(run(universal,site,content,{response:{headers:{'CONTENT-TYPE':'text/html; charset=utf-8'}}}),content);
+ }
+ check('auete','https://aeete.com/js/mcenter/dbtl.js','const markup="<html>";document.write("ad");',out=>assert(out.includes('disabled')));
+});
+test('Souju runtime patch requires every mandatory site exactly once',()=>{
+ const r=manifest.templates.find(t=>t.id==='souju-ai').runtime;
+ const source='function As(t){const marker="splash_screen player_info showcase_grid";'+r.pairs.map(p=>p[0]+';').join('')+'return "movie.m3u8"}';
+ const url='https://kanju3.com/assets/movie-card-runtime-test.js';
+ check('souju-ai',url,source,out=>{assert.notEqual(out,source);for(const p of r.pairs)assert(out.includes(p[1]));assert(out.includes('movie.m3u8'));});
+ for(const p of r.pairs){assert.equal(run(universal,url,source.replace(p[0],'')),source.replace(p[0],''));const duplicate=source.replace(p[0],p[0]+';'+p[0]);assert.equal(run(universal,url,duplicate),duplicate);}
+});
 function check(template,url,body,verify){
  const independent=read(manifest.templates.find(t=>t.id===template).output.script);
  const a=run(universal,url,body),b=run(independent,url,body);

@@ -313,25 +313,29 @@
         },
         {
           "kind": "html",
-          "op": "replaceRegex",
+          "op": "removeElements",
           "requires": [
             "/template/buka/"
           ],
           "bodyPattern": "<html[\\s>]",
-          "pattern": "<script\\b[^>]*\\bsrc\\s*=\\s*[\"\\'](?:https?:)?(?:\\/\\/(?:www\\.|m\\.)?ycblcw\\.com)?\\/dedg\\/cs13341\\.js(?:\\?[^\"\\']*)?[\"\\'][^>]*>[\\s\\S]*?<\\/script\\s*>",
-          "flags": "ig",
-          "value": ""
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^(?:https?:)?(?://(?:www\\.|m\\.)?ycblcw\\.com)?/dedg/cs13341\\.js(?:[?#].*)?$"
+          }
         },
         {
           "kind": "html",
-          "op": "replaceRegex",
+          "op": "removeElements",
           "requires": [
             "/template/buka/"
           ],
           "bodyPattern": "<html[\\s>]",
-          "pattern": "<a\\b[^>]*\\bhref\\s*=\\s*[\"\\'](?:https?:)?\\/\\/app2\\.zstv47\\.com(?:[/?][^\"\\']*)?[\"\\'][^>]*>[\\s\\S]*?<\\/a\\s*>",
-          "flags": "ig",
-          "value": ""
+          "selector": {
+            "tag": "a",
+            "attr": "href",
+            "pattern": "^(?:https?:)?//app2\\.zstv47\\.com(?:[/?#].*)?$"
+          }
         }
       ]
     },
@@ -477,31 +481,36 @@
           "player_info",
           "showcase_grid"
         ],
-        "minimum": 3,
         "pairs": [
           [
             "n=en(t.splash_screen,\"banner\")",
-            "n=en({...t.splash_screen,items:[]},\"banner\")"
+            "n=en({...t.splash_screen,items:[]},\"banner\")",
+            1
           ],
           [
             "o=en(t.showcase_grid,\"grid\")",
-            "o=en({...t.showcase_grid,items:[]},\"grid\")"
+            "o=en({...t.showcase_grid,items:[]},\"grid\")",
+            1
           ],
           [
             "u=en({...a,layout:c===\"grid\"?\"grid\":\"banner\"})",
-            "u=en({...a,items:[],layout:c===\"grid\"?\"grid\":\"banner\"})"
+            "u=en({...a,items:[],layout:c===\"grid\"?\"grid\":\"banner\"})",
+            1
           ],
           [
             "enabled:a.enabled!==!1",
-            "enabled:!1"
+            "enabled:!1",
+            1
           ],
           [
             "banner_items:un(a.banner_items)??u.items",
-            "banner_items:[]"
+            "banner_items:[]",
+            1
           ],
           [
             "grid_items:un(a.grid_items)??u.items",
-            "grid_items:[]"
+            "grid_items:[]",
+            1
           ]
         ]
       }
@@ -567,17 +576,19 @@
         },
         {
           "kind": "html",
-          "op": "removeDivs",
+          "op": "removeElements",
           "bodyPattern": "<html[\\s>]",
-          "pattern": "<div\\b[^>]*\\bclass\\s*=\\s*[\"\\'][^\"\\']*\\bad-item\\b[^\"\\']*[\"\\'][^>]*>"
+          "selector": {
+            "tag": "div",
+            "attr": "class",
+            "token": "ad-item"
+          }
         },
         {
           "kind": "html",
-          "op": "replaceRegex",
+          "op": "removeAttributes",
           "bodyPattern": "<html[\\s>]",
-          "pattern": "\\sdata-preroll-ad-[\\w-]+\\s*=\\s*(?:\"[^\"]*\"|\\'[^\\']*\\')",
-          "flags": "ig",
-          "value": ""
+          "attributePattern": "^data-preroll-ad-[\\w-]+$"
         }
       ]
     },
@@ -627,10 +638,12 @@
             "/js/common.js"
           ],
           "bodyPattern": "<html[\\s>]",
-          "op": "replaceRegex",
-          "pattern": "<script\\b[^>]*\\bsrc\\s*=\\s*[\"'](?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?[^\"']*)?[\"'][^>]*>[\\s\\S]*?</script\\s*>",
-          "flags": "ig",
-          "value": ""
+          "op": "removeElements",
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"
+          }
         }
       ]
     }

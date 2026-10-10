@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 10b36ab8c631. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 3f13df24d8da. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -72,24 +72,81 @@ function admGroup(source, pairs) {
   return pairs.reduce(function(s,p){return s.split(p[0]).join(p[1]);},source);
 }
 function admHas(source, markers) {return (markers||[]).every(function(s){return source.indexOf(s)>=0;});}
-function admRemoveDivs(body, pattern) {
-  var start=new RegExp(pattern,'ig'),match;
-  while((match=start.exec(body))) {
-    var tags=/<\/?div\b[^>]*>/ig;tags.lastIndex=start.lastIndex;
-    var depth=1,tag,end=-1;
-    while((tag=tags.exec(body))) {depth+=/^<\/div/i.test(tag[0])?-1:1;if(!depth){end=tags.lastIndex;break;}}
-    if(end<0)break;
-    body=body.slice(0,match.index)+body.slice(end);start.lastIndex=match.index;
-  }return body;
+// Scan actual HTML tags. Quoted attributes, comments and raw-text contents are
+// never treated as markup. An unfinished token leaves the response untouched.
+function admHtmlTokens(body) {
+  var tokens=[], pos=0, stacks={}, raw={script:1,style:1,textarea:1,title:1};
+  while(pos<body.length) {
+    var start=body.indexOf('<',pos);if(start<0)break;
+    if(body.slice(start,start+4)==='<!--') {var commentEnd=body.indexOf('-->',start+4);if(commentEnd<0)return null;pos=commentEnd+3;continue;}
+    var head=body.slice(start).match(/^<(\/?)([a-z][\w:-]*)(?=[\s/>])/i);
+    if(!head){pos=start+1;continue;}
+    var quote='', end=start+head[0].length;
+    for(;end<body.length;end++) {var ch=body.charAt(end);if(quote){if(ch===quote)quote='';}else if(ch==='"'||ch==="'")quote=ch;else if(ch==='>')break;}
+    if(end===body.length)return null;
+    var token={start:start,end:end+1,name:head[2].toLowerCase(),close:!!head[1],attrs:[]};
+    if(!token.close) {
+      var at=start+head[0].length;
+      while(at<end) {
+        var tail=body.slice(at,end);if(/^\s*\/?\s*$/.test(tail))break;
+        var attr=tail.match(/^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>`=]+)))?/);
+        if(!attr)return null;
+        token.attrs.push({name:attr[1].toLowerCase(),value:attr[2]!==undefined?attr[2]:attr[3]!==undefined?attr[3]:attr[4]||'',start:at,end:at+attr[0].length});at+=attr[0].length;
+      }
+    }
+    tokens.push(token);pos=token.end;
+    if(raw[token.name]&&!token.close) {
+      var closeRe=new RegExp('</'+token.name+'\\s*>','ig');closeRe.lastIndex=pos;var close=closeRe.exec(body);if(!close)return null;
+      token.stop=closeRe.lastIndex;pos=token.stop;continue;
+    }
+    var stack=stacks[token.name]||(stacks[token.name]=[]);
+    if(token.close){if(stack.length)stack.pop().stop=token.end;}
+    else if(!/^(?:area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)$/.test(token.name))stack.push(token);
+  }return tokens;
+}
+function admHtmlAttr(token,name) {
+  for(var i=0;i<token.attrs.length;i++)if(token.attrs[i].name===name)return token.attrs[i].value;
+  return null;
+}
+function admHtmlMatch(token,selector) {
+  if(token.close||token.name!==selector.tag)return false;
+  var value=admHtmlAttr(token,selector.attr);if(value===null)return false;
+  if(selector.token!==undefined)return value.split(/\s+/).indexOf(selector.token)>=0;
+  if(selector.exact!==undefined)return value===selector.exact;
+  return !!selector.pattern&&new RegExp(selector.pattern,'i').test(value);
+}
+function admCutRanges(body,ranges) {
+  ranges.sort(function(a,b){return a.start-b.start||b.end-a.end;});var pos=0,out='';
+  ranges.forEach(function(r){if(r.start<pos)return;out+=body.slice(pos,r.start);pos=r.end;});return out+body.slice(pos);
+}
+function admHtmlAction(body,rule) {
+  var tokens=admHtmlTokens(body);if(!tokens)return body;var ranges=[];
+  tokens.forEach(function(t){
+    if(rule.op==='removeElements'&&admHtmlMatch(t,rule.selector)&&t.stop)ranges.push({start:t.start,end:t.stop});
+    if(rule.op==='removeAttributes'&&!t.close)t.attrs.forEach(function(a){if(new RegExp(rule.attributePattern,'i').test(a.name))ranges.push({start:a.start,end:a.end});});
+  });return ranges.length?admCutRanges(body,ranges):body;
 }
 function cleanDeclarative(ctx,template) {
   var body=ctx.body;
   (template.actions||[]).forEach(function(rule){
     if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
-    else if(rule.op==='removeDivs')body=admRemoveDivs(body,rule.pattern);
+    else if(rule.op==='removeElements'||rule.op==='removeAttributes')body=admHtmlAction(body,rule);
     else if(rule.op==='setBody')body=rule.value;
   });return body;
+}
+function admResponseAllowed(kind,body,response) {
+  var rawStatus=response.statusCode!==undefined?response.statusCode:response.status;
+  var code=typeof rawStatus==='number'?rawStatus:typeof rawStatus==='string'?(rawStatus.match(/^(?:HTTP\/\S+\s+)?(\d{3})(?:\s|$)/)||[])[1]:undefined;
+  if(code!==undefined&&(+code<200||+code>=300))return false;
+  var headers=response.headers||{},type='';Object.keys(headers).forEach(function(k){if(k.toLowerCase()==='content-type')type=String(headers[k]).toLowerCase();});
+  var prefix=body.replace(/^\s*\uFEFF?/,'');
+  // Gateways can put comments in front of their HTML error documents.
+  while(true){var comment=prefix.match(/^(?:<!--[\s\S]*?-->|\/\*[\s\S]*?\*\/|\/\/[^\r\n]*(?:\r?\n|$))\s*/);if(!comment)break;prefix=prefix.slice(comment[0].length);}
+  var html=/^<(?:!doctype\s+html|html|head|body)(?:[\s>])/i.test(prefix);
+  if(kind==='js')return !html&&!/html|json|xml/.test(type);
+  if(kind==='json')return !html&&!/html|javascript|ecmascript/.test(type)&&/^[\[{]/.test(prefix);
+  return !/json|javascript|ecmascript/.test(type)&&!/^\s*[\[{]/.test(prefix);
 }
 function admJsonRuntime(policies) {
   return [__admRead,__admGuard,__admWrite,__admOps,__admEnvelope].map(function(f){return f.toString();}).join('\n')+
@@ -98,7 +155,7 @@ function admJsonRuntime(policies) {
 function admRun(templates,processors) {
   var original=$response.body||'', output=original;
   try {
-    var url=($request&&$request.url)||'',method=($request&&$request.method)||'';
+    var url=($request&&$request.url)||'',method=String(($request&&$request.method)||'').toUpperCase();
     var status=$response.statusCode;
     var match=url.match(/^https?:\/\/([^/:?#]+)(?:\:\d+)?(\/[^#]*)?/i);
     if(match&&original&&method!=='OPTIONS'&&method!=='HEAD'&&!(typeof status==='number'&&status>=400)) {
@@ -107,11 +164,11 @@ function admRun(templates,processors) {
         var b=templates[i].bindings[j];if(!new RegExp('^'+b.host+'$','i').test(host))continue;
         for(var k=0;k<b.routes.length;k++)if(new RegExp('^'+b.routes[k].path,'i').test(path)){selected={template:templates[i],kind:b.routes[k].kind};break;}
       }
-      if(selected)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind},selected.template);
+      if(selected&&admResponseAllowed(selected.kind,original,$response))output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind},selected.template);
     }
   }catch(_){output=original;}
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"4kvm","adapter":"declarative","output":{"script":"4kvm/4kvm-ad-clean.js","conf":"4kvm/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled=!0","value":"this.prerollAdEnabled=!1"},{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled&&","value":"false&&"},{"kind":"html","op":"removeDivs","bodyPattern":"<html[\\s>]","pattern":"<div\\b[^>]*\\bclass\\s*=\\s*[\"\\'][^\"\\']*\\bad-item\\b[^\"\\']*[\"\\'][^>]*>"},{"kind":"html","op":"replaceRegex","bodyPattern":"<html[\\s>]","pattern":"\\sdata-preroll-ad-[\\w-]+\\s*=\\s*(?:\"[^\"]*\"|\\'[^\\']*\\')","flags":"ig","value":""}],"bindings":[{"host":"(?:|www\\.)(?:4kvms\\.org|4kvms\\.com|4kvm\\.top|4kvm\\.cc|4kvm\\.me|4kvm\\.org|4kvm\\.tv|4kvm\\.net|4kvm\\.pro|4kvm\\.com)","routes":[{"kind":"js","path":"/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:play/[^/?]+)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
+admRun([{"id":"4kvm","adapter":"declarative","output":{"script":"4kvm/4kvm-ad-clean.js","conf":"4kvm/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled=!0","value":"this.prerollAdEnabled=!1"},{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled&&","value":"false&&"},{"kind":"html","op":"removeElements","bodyPattern":"<html[\\s>]","selector":{"tag":"div","attr":"class","token":"ad-item"}},{"kind":"html","op":"removeAttributes","bodyPattern":"<html[\\s>]","attributePattern":"^data-preroll-ad-[\\w-]+$"}],"bindings":[{"host":"(?:|www\\.)(?:4kvms\\.org|4kvms\\.com|4kvm\\.top|4kvm\\.cc|4kvm\\.me|4kvm\\.org|4kvm\\.tv|4kvm\\.net|4kvm\\.pro|4kvm\\.com)","routes":[{"kind":"js","path":"/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:play/[^/?]+)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
 })();

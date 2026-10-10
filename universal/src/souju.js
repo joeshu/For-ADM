@@ -17,9 +17,8 @@ function cleanSouju(ctx, template) {
     var bounds=admFunctionBounds(source,r.name,0);
     while(bounds&&!admHas(bounds.text,r.requires))bounds=admFunctionBounds(source,r.name,bounds.end);
     if(bounds) {
-      var count=0,patched=bounds.text;
-      r.pairs.forEach(function(pair){var pieces=patched.split(pair[0]);count+=pieces.length-1;patched=pieces.join(pair[1]);});
-      if(count>=r.minimum)source=source.slice(0,bounds.start)+patched+source.slice(bounds.end);
+      var patched=admGroup(bounds.text,r.pairs);
+      if(patched!==bounds.text)source=source.slice(0,bounds.start)+patched+source.slice(bounds.end);
     }
   }
   return source;
