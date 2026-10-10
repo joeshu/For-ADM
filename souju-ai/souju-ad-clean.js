@@ -1,16 +1,120 @@
-/**
- * 搜剧AI Quantumult X 综合广告清理
- * 同一条规则同时处理旧版 /v1/ 配置响应和指定广告 JS 资源。
- * JS 资源中只移除专用广告组件；播放源、线路和集数请求不改动。
- */
-(() => {
-  const body = $response.body || "";
-  const requestUrl = ($request && $request.url) || "";
-  const assetMatch = requestUrl.match(
-    /^https?:\/\/(?:ai\.baipiaozhe\.com|souju\.ai)\/assets\/(global-player-host-[^/]+|movie-card-runtime-[^/]+|main-[^/]+)\.js(?:[?#].*)?$/i
-  );
+/* GENERATED from universal/templates.json and universal/src; revision a2b73ec13626. Do not edit. */
+(function(){
+// Shared operations. No host discovery, logging, network calls or player interception.
+function __admRead(root, path) {
+  var parts = path ? path.split('.') : [], value = root;
+  for (var i=0;i<parts.length;i++) {
+    if (!value || typeof value !== 'object' || !Object.prototype.hasOwnProperty.call(value,parts[i])) return undefined;
+    value=value[parts[i]];
+  }
+  return value;
+}
+function __admGuard(root, guard) {
+  if (!guard) return true;
+  if (guard.all) return guard.all.every(function(g){return __admGuard(root,g);});
+  if (guard.any) return guard.any.some(function(g){return __admGuard(root,g);});
+  var value=__admRead(root,guard.path);
+  if (guard.type==='array' && !Array.isArray(value)) return false;
+  if (guard.type==='object' && (!value || typeof value!=='object' || Array.isArray(value))) return false;
+  if (guard.exists!==undefined && (value!==undefined)!==guard.exists) return false;
+  if (Object.prototype.hasOwnProperty.call(guard,'equals') && value!==guard.equals) return false;
+  return true;
+}
+function __admWrite(root, path, value, create) {
+  var parts=path.split('.');
+  function put(node,i) {
+    if (!node || typeof node!=='object') {if (!create || node!==undefined) return node; node={};}
+    var key=parts[i];
+    if (key==='__proto__'||key==='constructor'||key==='prototype') return node;
+    var own=Object.prototype.hasOwnProperty.call(node,key), prev=own?node[key]:undefined;
+    if (!own&&!create) return node;
+    var next=i===parts.length-1?value:put(prev,i+1);
+    if (next===prev || (own && JSON.stringify(next)===JSON.stringify(prev))) return node;
+    var copy=Array.isArray(node)?node.slice():Object.assign({},node);copy[key]=next;return copy;
+  }
+  return put(root,0);
+}
+function __admOps(root, operations) {
+  var next=root;
+  operations.forEach(function(op){
+    if (!__admGuard(next,op.when)) return;
+    var prev=__admRead(next,op.path), value;
+    if (op.op==='set') value=op.value;
+    else if (op.op==='clearArray') {if (!Array.isArray(prev)||!prev.length) return;value=[];}
+    else if (op.op==='filterArray') {
+      if (!Array.isArray(prev)) return;
+      value=prev.filter(function(item){var field=__admRead(item,op.field);if(op.numeric)field=Number(field);return op.exclude.indexOf(field)<0;});
+      if(value.length===prev.length)return;
+    } else return;
+    next=__admWrite(next,op.path,value,!!op.create);
+  });return next;
+}
+function __admEnvelope(raw, endpoint, policies) {
+  var root=typeof raw==='string'?JSON.parse(raw):raw;
+  if(!root||root.result!==true||!root.data)return root;
+  var path=endpoint.split('?')[0];
+  for(var i=0;i<policies.length;i++) {
+    var policy=policies[i];
+    if(new RegExp(policy.endpoint).test(path)&&__admGuard(root,policy.when))return __admOps(root,policy.ops);
+  }
+  return root;
+}
+function admVisit(root, test, ops, depth) {
+  if(!root||typeof root!=='object'||depth>12)return root;
+  var next=__admGuard(root,test)?__admOps(root,ops):root;
+  Object.keys(next).forEach(function(key){
+    var value=admVisit(next[key],test,ops,depth+1);
+    if(value!==next[key]) {var copy=Array.isArray(next)?next.slice():Object.assign({},next);copy[key]=value;next=copy;}
+  });return next;
+}
+function admGroup(source, pairs) {
+  if(!pairs.every(function(p){return source.split(p[0]).length-1===(p[2]||1);}))return source;
+  return pairs.reduce(function(s,p){return s.split(p[0]).join(p[1]);},source);
+}
+function admHas(source, markers) {return (markers||[]).every(function(s){return source.indexOf(s)>=0;});}
+function admRemoveDivs(body, pattern) {
+  var start=new RegExp(pattern,'ig'),match;
+  while((match=start.exec(body))) {
+    var tags=/<\/?div\b[^>]*>/ig;tags.lastIndex=start.lastIndex;
+    var depth=1,tag,end=-1;
+    while((tag=tags.exec(body))) {depth+=/^<\/div/i.test(tag[0])?-1:1;if(!depth){end=tags.lastIndex;break;}}
+    if(end<0)break;
+    body=body.slice(0,match.index)+body.slice(end);start.lastIndex=match.index;
+  }return body;
+}
+function cleanDeclarative(ctx,template) {
+  var body=ctx.body;
+  (template.actions||[]).forEach(function(rule){
+    if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
+    if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
+    else if(rule.op==='removeDivs')body=admRemoveDivs(body,rule.pattern);
+    else if(rule.op==='setBody')body=rule.value;
+  });return body;
+}
+function admJsonRuntime(policies) {
+  return [__admRead,__admGuard,__admWrite,__admOps,__admEnvelope].map(function(f){return f.toString();}).join('\n')+
+    '\nvar __forAdmYqkPolicies='+JSON.stringify(policies)+';\nfunction __forAdmYqkClean(raw,endpoint){return __admEnvelope(raw,endpoint,__forAdmYqkPolicies);}\n';
+}
+function admRun(templates,processors) {
+  var original=$response.body||'', output=original;
+  try {
+    var url=($request&&$request.url)||'',method=($request&&$request.method)||'';
+    var status=$response.statusCode;
+    var match=url.match(/^https?:\/\/([^/:?#]+)(?:\:\d+)?(\/[^#]*)?/i);
+    if(match&&original&&method!=='OPTIONS'&&method!=='HEAD'&&!(typeof status==='number'&&status>=400)) {
+      var host=match[1].toLowerCase(),path=match[2]||'/',selected=null;
+      for(var i=0;i<templates.length&&!selected;i++)for(var j=0;j<templates[i].bindings.length&&!selected;j++) {
+        var b=templates[i].bindings[j];if(!new RegExp('^'+b.host+'$','i').test(host))continue;
+        for(var k=0;k<b.routes.length;k++)if(new RegExp('^'+b.routes[k].path,'i').test(path)){selected={template:templates[i],kind:b.routes[k].kind};break;}
+      }
+      if(selected)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind},selected.template);
+    }
+  }catch(_){output=original;}
+  $done(typeof output==='string'&&output!==original?{body:output}:{});
+}
 
-  function functionBounds(source, name, fromIndex) {
+// Function patches remain guarded by explicit template markers.
+  function admFunctionBounds(source, name, fromIndex) {
     const matcher = new RegExp("\\bfunction\\s+" + name + "\\s*\\(", "g");
     matcher.lastIndex = fromIndex || 0;
     const match = matcher.exec(source);
@@ -28,7 +132,7 @@
       const next = source[i + 1];
 
       if (parameterLineComment) {
-        if (ch === "\\n") parameterLineComment = false;
+        if (ch === "\n") parameterLineComment = false;
         continue;
       }
       if (parameterBlockComment) {
@@ -43,7 +147,7 @@
           parameterEscape = false;
           continue;
         }
-        if (ch === "\\\\") {
+        if (ch === "\\") {
           parameterEscape = true;
           continue;
         }
@@ -130,10 +234,10 @@
     return null;
   }
 
-  function replaceFunction(source, name, predicate, replacement) {
+  function admReplaceFunction(source, name, predicate, replacement) {
     let cursor = 0;
     while (cursor < source.length) {
-      const bounds = functionBounds(source, name, cursor);
+      const bounds = admFunctionBounds(source, name, cursor);
       if (!bounds) return { source, changed: false };
       if (predicate(bounds.text)) {
         return {
@@ -146,145 +250,33 @@
     return { source, changed: false };
   }
 
-  function rewriteRuntimeConfig(source) {
-    let bounds = functionBounds(source, "As", 0);
-    while (
-      bounds &&
-      !(bounds.text.includes("splash_screen") && bounds.text.includes("player_info") && bounds.text.includes("showcase_grid"))
-    ) {
-      bounds = functionBounds(source, "As", bounds.end);
-    }
-    if (!bounds) return { source, changed: false };
 
-    let patchedFunction = bounds.text;
-    const replacements = [
-      ['n=en(t.splash_screen,"banner")', 'n=en({...t.splash_screen,items:[]},"banner")'],
-      ['o=en(t.showcase_grid,"grid")', 'o=en({...t.showcase_grid,items:[]},"grid")'],
-      ['u=en({...a,layout:c==="grid"?"grid":"banner"})', 'u=en({...a,items:[],layout:c==="grid"?"grid":"banner"})'],
-      ['enabled:a.enabled!==!1', 'enabled:!1'],
-      ['banner_items:un(a.banner_items)??u.items', 'banner_items:[]'],
-      ['grid_items:un(a.grid_items)??u.items', 'grid_items:[]']
-    ];
-    let replacementCount = 0;
-    for (const pair of replacements) {
-      const pieces = patchedFunction.split(pair[0]);
-      if (pieces.length > 1) {
-        replacementCount += pieces.length - 1;
-        patchedFunction = pieces.join(pair[1]);
-      }
-    }
-    if (replacementCount < 3) return { source, changed: false };
-
-    return {
-      source: source.slice(0, bounds.start) + patchedFunction + source.slice(bounds.end),
-      changed: true
-    };
+// Custom function boundaries; field operations and fingerprints live in the manifest.
+function cleanSouju(ctx, template) {
+  var source=ctx.body;
+  if(ctx.kind==='json') {
+    var payload=JSON.parse(source),next=admVisit(payload,template.snapshotWhen,template.snapshotOps,0);
+    return next===payload?source:JSON.stringify(next);
   }
-
-  function rewriteJsAsset(source, assetName) {
-    let current = source;
-    let changed = false;
-
-    if (assetName.startsWith("global-player-host-")) {
-      const adFunctions = [
-        ["Cp", text => text.includes('qr("player_info")') && text.includes("creative_daily_rotation_limit")],
-        ["ti", text => text.includes("movie-player-info-ad-grid")],
-        ["qu", text => text.includes("movie-player-info-ad-banner-shell")]
-      ];
-      for (const [name, predicate] of adFunctions) {
-        const result = replaceFunction(current, name, predicate, "function " + name + "(){return null}");
-        current = result.source;
-        changed = result.changed || changed;
-      }
-    } else if (assetName.startsWith("movie-card-runtime-")) {
-      const result = rewriteRuntimeConfig(current);
-      current = result.source;
-      changed = result.changed;
-    } else if (assetName.startsWith("main-")) {
-      const result = replaceFunction(
-        current,
-        "T0",
-        text => text.includes("app-startup-ad") && text.includes("跳过"),
-        "function T0(){return null}"
-      );
-      current = result.source;
-      changed = result.changed;
-    }
-
-    if (changed) {
-      $done({ body: current });
-    } else {
-      // Unknown bundle revisions are preserved; the /v1/ response rewrite remains active.
-      $done({ body: source });
+  var match=ctx.path.match(/^\/assets\/(global-player-host-[^/?]+|movie-card-runtime-[^/?]+|main-[^/?]+)\.js(?:[?#].*)?$/i);
+  if(!match)return source;
+  var asset=match[1];
+  template.components.forEach(function(c){
+    if(asset.indexOf(c.prefix)!==0)return;
+    source=admReplaceFunction(source,c.name,function(text){return admHas(text,c.requires);},'function '+c.name+'(){return null}').source;
+  });
+  var r=template.runtime;
+  if(asset.indexOf(r.prefix)===0) {
+    var bounds=admFunctionBounds(source,r.name,0);
+    while(bounds&&!admHas(bounds.text,r.requires))bounds=admFunctionBounds(source,r.name,bounds.end);
+    if(bounds) {
+      var count=0,patched=bounds.text;
+      r.pairs.forEach(function(pair){var pieces=patched.split(pair[0]);count+=pieces.length-1;patched=pieces.join(pair[1]);});
+      if(count>=r.minimum)source=source.slice(0,bounds.start)+patched+source.slice(bounds.end);
     }
   }
+  return source;
+}
 
-  if (assetMatch) {
-    rewriteJsAsset(body, assetMatch[1]);
-    return;
-  }
-
-  try {
-    const payload = JSON.parse(body);
-    let changed = false;
-
-    function clearPlacement(placement) {
-      if (placement && typeof placement === "object" && Array.isArray(placement.items)) {
-        placement.items = [];
-      }
-    }
-
-    function sanitizeSnapshot(snapshot) {
-      if (
-        !snapshot ||
-        typeof snapshot !== "object" ||
-        snapshot.object !== "app.experience_snapshot" ||
-        !snapshot.placements ||
-        typeof snapshot.placements !== "object"
-      ) return false;
-
-      const placements = snapshot.placements;
-      clearPlacement(placements.splash_screen);
-      clearPlacement(placements.showcase_grid);
-      const player = placements.player_info;
-      if (player && typeof player === "object") {
-        player.enabled = false;
-        player.default_ad_targeting = {
-          ...(player.default_ad_targeting || {}),
-          enabled: false
-        };
-        for (const key of ["items", "banner_items", "grid_items"]) {
-          if (Array.isArray(player[key])) player[key] = [];
-        }
-      }
-      return true;
-    }
-
-    function visit(node, depth) {
-      if (!node || typeof node !== "object" || depth > 12) return;
-      if (Array.isArray(node)) {
-        for (const item of node) visit(item, depth + 1);
-        return;
-      }
-      if (node.object === "app.experience_snapshot") {
-        changed = sanitizeSnapshot(node) || changed;
-      }
-      for (const [key, value] of Object.entries(node)) {
-        if (key === "app_experience" && value && typeof value === "object") {
-          if (value.object === "app.experience_snapshot") {
-            changed = sanitizeSnapshot(value) || changed;
-          } else {
-            visit(value, depth + 1);
-          }
-        } else if (value && typeof value === "object") {
-          visit(value, depth + 1);
-        }
-      }
-    }
-
-    visit(payload, 0);
-    $done({ body: changed ? JSON.stringify(payload) : body });
-  } catch (_) {
-    $done({ body });
-  }
+admRun([{"id":"souju-ai","adapter":"souju","output":{"script":"souju-ai/souju-ad-clean.js","conf":"souju-ai/quantumult-x-snippet.conf"},"snapshotWhen":{"all":[{"path":"object","equals":"app.experience_snapshot"},{"path":"placements","type":"object"}]},"snapshotOps":[{"op":"clearArray","path":"placements.splash_screen.items"},{"op":"clearArray","path":"placements.showcase_grid.items"},{"op":"set","path":"placements.player_info.enabled","value":false,"create":true,"when":{"path":"placements.player_info","type":"object"}},{"op":"set","path":"placements.player_info.default_ad_targeting.enabled","value":false,"create":true,"when":{"path":"placements.player_info","type":"object"}},{"op":"clearArray","path":"placements.player_info.items"},{"op":"clearArray","path":"placements.player_info.banner_items"},{"op":"clearArray","path":"placements.player_info.grid_items"}],"components":[{"prefix":"global-player-host-","name":"Cp","requires":["qr(\"player_info\")","creative_daily_rotation_limit"]},{"prefix":"global-player-host-","name":"ti","requires":["movie-player-info-ad-grid"]},{"prefix":"global-player-host-","name":"qu","requires":["movie-player-info-ad-banner-shell"]},{"prefix":"main-","name":"T0","requires":["app-startup-ad","跳过"]}],"runtime":{"prefix":"movie-card-runtime-","name":"As","requires":["splash_screen","player_info","showcase_grid"],"minimum":3,"pairs":[["n=en(t.splash_screen,\"banner\")","n=en({...t.splash_screen,items:[]},\"banner\")"],["o=en(t.showcase_grid,\"grid\")","o=en({...t.showcase_grid,items:[]},\"grid\")"],["u=en({...a,layout:c===\"grid\"?\"grid\":\"banner\"})","u=en({...a,items:[],layout:c===\"grid\"?\"grid\":\"banner\"})"],["enabled:a.enabled!==!1","enabled:!1"],["banner_items:un(a.banner_items)??u.items","banner_items:[]"],["grid_items:un(a.grid_items)??u.items","grid_items:[]"]]},"bindings":[{"host":"(?:ai\\.baipiaozhe\\.com|souju\\.ai)","routes":[{"kind":"json","path":"/v1/[^?#]*(?:[?#].*)?$"},{"kind":"js","path":"/assets/(?:global-player-host-[^/?]+|movie-card-runtime-[^/?]+|main-[^/?]+)\\.js(?:[?#].*)?$"}]}]}],{souju:cleanSouju});
 })();

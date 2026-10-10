@@ -1,81 +1,136 @@
-/* YQK / QNTV v5: quiet mode; API prefix pattern on verified domain suffixes. */
-(function () {
-  var original = $response.body || "", url = ($request && $request.url) || "";
-  var apiHostPattern = /^yz(?:y)?\d{4,6}\.(?:bzy42ezt|zazy3mc5|7k5jb8t9|3nyk7h9o|jba2yo1c|hzkeka49|q8nsderug|o5r52at9v|tgs2hl4ut|goi6lhmry|6vh3qyu9x)\.com$/i;
-  var api = url.match(/^https?:\/\/([^/:?#]+)(\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd)))(?:[?#].*)?$/i);
-  if (api && apiHostPattern.test(api[1])) {
-    try {
-      var payload = JSON.parse(original), cleaned = sanitize(payload, api[2]);
-      var changed = cleaned !== payload;
-      $done(changed ? {body:JSON.stringify(cleaned)} : {});
-    } catch (_) { $done({}); }
-    return;
+/* GENERATED from universal/templates.json and universal/src; revision a2b73ec13626. Do not edit. */
+(function(){
+// Shared operations. No host discovery, logging, network calls or player interception.
+function __admRead(root, path) {
+  var parts = path ? path.split('.') : [], value = root;
+  for (var i=0;i<parts.length;i++) {
+    if (!value || typeof value !== 'object' || !Object.prototype.hasOwnProperty.call(value,parts[i])) return undefined;
+    value=value[parts[i]];
   }
-  var match = url.match(/^https?:\/\/(?:www\.)?((?:yqk|qntv)\d+\.app)\/_nuxt\/(entry|_play_)\.[a-z0-9]+\.js(?:[?#].*)?$/i);
-  if (!match) { $done({}); return; }
-  var body = original;
-  // Require each complete group once (or the explicitly expected count).
-  // A changed minifier layout fails open rather than applying a guessed patch.
-  function group(pairs) {
-    for (var i = 0; i < pairs.length; i++) {
-      if (body.split(pairs[i][0]).length - 1 !== (pairs[i][2] || 1)) return false;
-    }
-    for (var j = 0; j < pairs.length; j++) body = body.split(pairs[j][0]).join(pairs[j][1]);
-    return true;
+  return value;
+}
+function __admGuard(root, guard) {
+  if (!guard) return true;
+  if (guard.all) return guard.all.every(function(g){return __admGuard(root,g);});
+  if (guard.any) return guard.any.some(function(g){return __admGuard(root,g);});
+  var value=__admRead(root,guard.path);
+  if (guard.type==='array' && !Array.isArray(value)) return false;
+  if (guard.type==='object' && (!value || typeof value!=='object' || Array.isArray(value))) return false;
+  if (guard.exists!==undefined && (value!==undefined)!==guard.exists) return false;
+  if (Object.prototype.hasOwnProperty.call(guard,'equals') && value!==guard.equals) return false;
+  return true;
+}
+function __admWrite(root, path, value, create) {
+  var parts=path.split('.');
+  function put(node,i) {
+    if (!node || typeof node!=='object') {if (!create || node!==undefined) return node; node={};}
+    var key=parts[i];
+    if (key==='__proto__'||key==='constructor'||key==='prototype') return node;
+    var own=Object.prototype.hasOwnProperty.call(node,key), prev=own?node[key]:undefined;
+    if (!own&&!create) return node;
+    var next=i===parts.length-1?value:put(prev,i+1);
+    if (next===prev || (own && JSON.stringify(next)===JSON.stringify(prev))) return node;
+    var copy=Array.isArray(node)?node.slice():Object.assign({},node);copy[key]=next;return copy;
   }
+  return put(root,0);
+}
+function __admOps(root, operations) {
+  var next=root;
+  operations.forEach(function(op){
+    if (!__admGuard(next,op.when)) return;
+    var prev=__admRead(next,op.path), value;
+    if (op.op==='set') value=op.value;
+    else if (op.op==='clearArray') {if (!Array.isArray(prev)||!prev.length) return;value=[];}
+    else if (op.op==='filterArray') {
+      if (!Array.isArray(prev)) return;
+      value=prev.filter(function(item){var field=__admRead(item,op.field);if(op.numeric)field=Number(field);return op.exclude.indexOf(field)<0;});
+      if(value.length===prev.length)return;
+    } else return;
+    next=__admWrite(next,op.path,value,!!op.create);
+  });return next;
+}
+function __admEnvelope(raw, endpoint, policies) {
+  var root=typeof raw==='string'?JSON.parse(raw):raw;
+  if(!root||root.result!==true||!root.data)return root;
+  var path=endpoint.split('?')[0];
+  for(var i=0;i<policies.length;i++) {
+    var policy=policies[i];
+    if(new RegExp(policy.endpoint).test(path)&&__admGuard(root,policy.when))return __admOps(root,policy.ops);
+  }
+  return root;
+}
+function admVisit(root, test, ops, depth) {
+  if(!root||typeof root!=='object'||depth>12)return root;
+  var next=__admGuard(root,test)?__admOps(root,ops):root;
+  Object.keys(next).forEach(function(key){
+    var value=admVisit(next[key],test,ops,depth+1);
+    if(value!==next[key]) {var copy=Array.isArray(next)?next.slice():Object.assign({},next);copy[key]=value;next=copy;}
+  });return next;
+}
+function admGroup(source, pairs) {
+  if(!pairs.every(function(p){return source.split(p[0]).length-1===(p[2]||1);}))return source;
+  return pairs.reduce(function(s,p){return s.split(p[0]).join(p[1]);},source);
+}
+function admHas(source, markers) {return (markers||[]).every(function(s){return source.indexOf(s)>=0;});}
+function admRemoveDivs(body, pattern) {
+  var start=new RegExp(pattern,'ig'),match;
+  while((match=start.exec(body))) {
+    var tags=/<\/?div\b[^>]*>/ig;tags.lastIndex=start.lastIndex;
+    var depth=1,tag,end=-1;
+    while((tag=tags.exec(body))) {depth+=/^<\/div/i.test(tag[0])?-1:1;if(!depth){end=tags.lastIndex;break;}}
+    if(end<0)break;
+    body=body.slice(0,match.index)+body.slice(end);start.lastIndex=match.index;
+  }return body;
+}
+function cleanDeclarative(ctx,template) {
+  var body=ctx.body;
+  (template.actions||[]).forEach(function(rule){
+    if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
+    if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
+    else if(rule.op==='removeDivs')body=admRemoveDivs(body,rule.pattern);
+    else if(rule.op==='setBody')body=rule.value;
+  });return body;
+}
+function admJsonRuntime(policies) {
+  return [__admRead,__admGuard,__admWrite,__admOps,__admEnvelope].map(function(f){return f.toString();}).join('\n')+
+    '\nvar __forAdmYqkPolicies='+JSON.stringify(policies)+';\nfunction __forAdmYqkClean(raw,endpoint){return __admEnvelope(raw,endpoint,__forAdmYqkPolicies);}\n';
+}
+function admRun(templates,processors) {
+  var original=$response.body||'', output=original;
   try {
-    if (match[2].toLowerCase() === "entry") {
-      if (body.indexOf('class:"startup-ad"') < 0 || body.indexOf('/adInfo/getPageAd') < 0 || body.indexOf('useHttp={get:') < 0) { $done({}); return; }
-      group([
-        ['m.value=X.value.data.startAdList||[]', 'm.value=[]'],
-        ['z.floatAd&&R.name!="play-play"', 'false&&R.name!="play-play"']
-      ]);
-      if (body.indexOf('__forAdmYqkClean') < 0 && group([
-        ['transform:r=>typeof r=="string"?JSON.parse(r):r', 'transform:r=>__forAdmYqkClean(r,e)', 3]
-      ])) {
-        // useHttp transforms run after JSON parsing. API host changes need no extra MITM rule.
-        body += '\n' + sanitize.toString().replace('function sanitize', 'function __forAdmYqkClean') + '\n';
+    var url=($request&&$request.url)||'',method=($request&&$request.method)||'';
+    var status=$response.statusCode;
+    var match=url.match(/^https?:\/\/([^/:?#]+)(?:\:\d+)?(\/[^#]*)?/i);
+    if(match&&original&&method!=='OPTIONS'&&method!=='HEAD'&&!(typeof status==='number'&&status>=400)) {
+      var host=match[1].toLowerCase(),path=match[2]||'/',selected=null;
+      for(var i=0;i<templates.length&&!selected;i++)for(var j=0;j<templates[i].bindings.length&&!selected;j++) {
+        var b=templates[i].bindings[j];if(!new RegExp('^'+b.host+'$','i').test(host))continue;
+        for(var k=0;k<b.routes.length;k++)if(new RegExp('^'+b.routes[k].path,'i').test(path)){selected={template:templates[i],kind:b.routes[k].kind};break;}
       }
-    } else {
-      if (body.indexOf('name:"VideoStartAd"') < 0 || body.indexOf('getVodPauseAd({vodId:T') < 0 || body.indexOf('getVideoDetail({vodId:T') < 0) { $done({}); return; }
-      group([
-        ['N.value=t.value.data,m.value', 'N.value=t.value.data,N.value.startAd=null,m.value', 2],
-        ['Ga.value=t.value.data,ta.value=!!t.value.data', 'Ga.value=null,ta.value=!1'],
-        ['e.result&&(Nt.value=t.value.data)},jt=i()', 'e.result&&(Nt.value=[])},jt=i()'],
-        ['e.result&&(jt.value=t.value.data)};let ga=', 'e.result&&(jt.value=null)};let ga=']
-      ]);
+      if(selected)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind},selected.template);
     }
-    $done(body === original ? {} : {body:body});
-  } catch (_) { $done({}); }
+  }catch(_){output=original;}
+  $done(typeof output==='string'&&output!==original?{body:output}:{});
+}
 
-  function sanitize(raw, endpoint) {
-    var r = typeof raw === "string" ? JSON.parse(raw) : raw;
-    if (!r || r.result !== true || !r.data || typeof endpoint !== "string") return r;
-    var path = endpoint.split("?")[0], d = r.data, next = d;
-    if (/\/adInfo\/getPageAd$/.test(path) && !Array.isArray(d) && typeof d === "object") {
-      next = Object.assign({}, d, {floatAd:null, popupAd:null});
-    } else if (/\/adInfo\/getChatAd$/.test(path) && Array.isArray(d)) {
-      next = [];
-    } else if (/\/adInfo\/getTopicAd$/.test(path) && Array.isArray(d.topicAdList)) {
-      next = Object.assign({}, d, {topicAdList:[]});
-    } else if (/\/(?:vodInfo\/getVodPauseAd|adInfo\/getTextAd)$/.test(path)) {
-      next = null;
-    } else if (/\/(?:vodInfo\/getVodBodyAd|adInfo\/(?:getSearchAd|getUserCenterAd))$/.test(path) && Array.isArray(d)) {
-      next = [];
-    } else if (/\/vodInfo\/index$/.test(path) && Array.isArray(d.playerList)) {
-      next = Object.assign({}, d, {startAd:null});
-    } else if (/\/basic\/init$/.test(path) && Array.isArray(d.startAdList)) {
-      next = Object.assign({}, d, {startAdList:[], startAdShowTime:0});
-    } else if (/\/home\/body$/.test(path) && Array.isArray(d.adList)) {
-      next = Object.assign({}, d, {adList:[]});
-    } else if (/\/home\/firstScreen$/.test(path) && (Array.isArray(d.focusAdList) || Array.isArray(d.hotMudleList))) {
-      // useAdLink sends actions 1/2/11 to external URLs and 8/10 to game pages.
-      // Keep the site's internal shortcuts (for example rankings and release pages).
-      var shortcutList = Array.isArray(d.hotMudleList)
-        ? d.hotMudleList.filter(function (item) { return !item || [1, 2, 8, 10, 11].indexOf(Number(item.adAction)) < 0; })
-        : d.hotMudleList;
-      next = Object.assign({}, d, {focusAdList:[], hotMudleList:shortcutList});
-    }
-    return next === d ? r : Object.assign({}, r, {data:next});
+// Shared JSON policy runner; the same policy is injected into verified Nuxt entry bundles.
+function cleanYqk(ctx, template) {
+  var source=ctx.body;
+  if(ctx.kind==='json') {
+    var payload=JSON.parse(source),next=__admEnvelope(payload,ctx.path,template.jsonPolicies);
+    return next===payload?source:JSON.stringify(next);
   }
+  var asset=ctx.path.match(/^\/_nuxt\/(entry|_play_)\./i);
+  if(!asset)return source;
+  var rule=template.jsRules.filter(function(r){return r.asset===asset[1].toLowerCase();})[0];
+  if(!rule||!admHas(source,rule.requires))return source;
+  rule.groups.forEach(function(group){source=admGroup(source,group);});
+  if(rule.inject&&source.indexOf('__forAdmYqkClean')<0) {
+    var patched=admGroup(source,rule.inject);
+    if(patched!==source)source=patched+'\n'+admJsonRuntime(template.jsonPolicies);
+  }
+  return source;
+}
+
+admRun([{"id":"yqk-qntv","adapter":"yqk","output":{"script":"yqk-qntv/ad-clean.js","conf":"yqk-qntv/quantumult-x-snippet.conf"},"jsonPolicies":[{"endpoint":"/adInfo/getPageAd$","when":{"path":"data","type":"object"},"ops":[{"op":"set","path":"data.floatAd","value":null,"create":true},{"op":"set","path":"data.popupAd","value":null,"create":true}]},{"endpoint":"/adInfo/getChatAd$","when":{"path":"data","type":"array"},"ops":[{"op":"clearArray","path":"data"}]},{"endpoint":"/adInfo/getTopicAd$","when":{"path":"data.topicAdList","type":"array"},"ops":[{"op":"clearArray","path":"data.topicAdList"}]},{"endpoint":"/(?:vodInfo/getVodPauseAd|adInfo/getTextAd)$","when":null,"ops":[{"op":"set","path":"data","value":null,"create":true}]},{"endpoint":"/(?:vodInfo/getVodBodyAd|adInfo/(?:getSearchAd|getUserCenterAd))$","when":{"path":"data","type":"array"},"ops":[{"op":"clearArray","path":"data"}]},{"endpoint":"/vodInfo/index$","when":{"path":"data.playerList","type":"array"},"ops":[{"op":"set","path":"data.startAd","value":null,"create":true}]},{"endpoint":"/basic/init$","when":{"path":"data.startAdList","type":"array"},"ops":[{"op":"clearArray","path":"data.startAdList"},{"op":"set","path":"data.startAdShowTime","value":0,"create":true}]},{"endpoint":"/home/body$","when":{"path":"data.adList","type":"array"},"ops":[{"op":"clearArray","path":"data.adList"}]},{"endpoint":"/home/firstScreen$","when":{"any":[{"path":"data.focusAdList","type":"array"},{"path":"data.hotMudleList","type":"array"}]},"ops":[{"op":"set","path":"data.focusAdList","value":[],"create":true},{"op":"filterArray","path":"data.hotMudleList","field":"adAction","numeric":true,"exclude":[1,2,8,10,11]}]}],"jsRules":[{"asset":"entry","requires":["class:\"startup-ad\"","/adInfo/getPageAd","useHttp={get:"],"groups":[[["m.value=X.value.data.startAdList||[]","m.value=[]"],["z.floatAd&&R.name!=\"play-play\"","false&&R.name!=\"play-play\""]]],"inject":[["transform:r=>typeof r==\"string\"?JSON.parse(r):r","transform:r=>__forAdmYqkClean(r,e)",3]]},{"asset":"_play_","requires":["name:\"VideoStartAd\"","getVodPauseAd({vodId:T","getVideoDetail({vodId:T"],"groups":[[["N.value=t.value.data,m.value","N.value=t.value.data,N.value.startAd=null,m.value",2],["Ga.value=t.value.data,ta.value=!!t.value.data","Ga.value=null,ta.value=!1"],["e.result&&(Nt.value=t.value.data)},jt=i()","e.result&&(Nt.value=[])},jt=i()"],["e.result&&(jt.value=t.value.data)};let ga=","e.result&&(jt.value=null)};let ga="]]]}],"bindings":[{"host":"yz(?:y)?\\d{4,6}\\.(?:bzy42ezt\\.com|zazy3mc5\\.com|7k5jb8t9\\.com|3nyk7h9o\\.com|jba2yo1c\\.com|hzkeka49\\.com|q8nsderug\\.com|o5r52at9v\\.com|tgs2hl4ut\\.com|goi6lhmry\\.com|6vh3qyu9x\\.com)","routes":[{"kind":"json","path":"/v[12]/api/(?:basic/init|home/(?:body|firstScreen)|adInfo/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo/(?:index|getVodBodyAd|getVodPauseAd))(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:yqk|qntv)\\d+\\.app","routes":[{"kind":"js","path":"/_nuxt/(?:entry|_play_)\\.[a-zA-Z0-9]+\\.js(?:\\?.*)?$"}]}]}],{yqk:cleanYqk});
 })();
