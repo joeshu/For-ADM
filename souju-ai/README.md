@@ -1,22 +1,23 @@
-# 搜剧AI Quantumult X 广告配置清理
+# 搜剧AI Quantumult X 广告清理
 
-这个规则针对搜剧AI返回的 `app.experience_snapshot` 广告配置，清空开屏、推荐网格和播放器广告素材，并关闭播放器广告投放。它通过修改配置响应来生效，不重写网站的哈希 JS 文件；`global-player-host-*.js` 还负责播放器、线路和其他交互，拦截整份文件会破坏正常功能。
+使用同一条 Quantumult X `script-response-body` 规则处理广告配置 API 和广告专用 JS 组件。
 
-## 文件
+## 核心位置
 
-- `souju-ad-clean.js`：Quantumult X 本地 `script-response-body` 脚本。
-- `quantumult-x-snippet.conf`：需要合并到现有配置的规则片段。
+- `assets/global-player-host-*.js`：播放器广告组件 `Cp`（播放器信息位/翻转广告）、`ti`（网格素材）、`qu`（横幅素材）。脚本把这些专用广告组件改为返回空内容，保留播放器和线路组件。
+- `assets/movie-card-runtime-*.js`：`As` 负责解析 `app.experience_snapshot` 配置。脚本清空开屏、推荐网格和播放器广告素材，并关闭播放器广告开关。
+- `assets/main-*.js`：`T0` 是开屏广告组件。脚本让该组件返回空内容，跳过广告倒计时和跳过界面。
+- `/v1/*`：保留旧版响应清理逻辑，清空 API 返回的广告素材。
+
+脚本只在文件名和已知函数特征匹配时修改 JS；遇到网站构建更新、函数结构不匹配时，会保留原 JS 响应。播放源、线路和集数接口的数据不会被 JS 改写。
 
 ## 安装
 
-1. 将 `souju-ad-clean.js` 保存到 Quantumult X 的本地 Scripts 目录（“我的 iPhone - Quantumult X - Scripts”或 iCloud Drive 对应目录）。
-2. 将配置片段中的 `[rewrite_local]` 规则放入现有同名区段。
-3. 把 `ai.baipiaozhe.com` 加入现有 `[mitm]` 的 hostname 列表。若没有该区段，再新增。
-4. 确认 Quantumult X 已启用 Rewrite 和 MITM，并在 iOS 中信任 Quantumult X 根证书。
-5. 清除 Safari 中该站点的缓存/网站数据后重新打开，避免旧的广告配置仍留在页面本地缓存中。清除网站数据可能会退出登录。
+1. 把 `souju-ad-clean.js` 保存到 Quantumult X 本地 Scripts 目录。
+2. 将 `quantumult-x-snippet.conf` 中规则合并到现有配置。不要覆盖已有的 `[rewrite_local]` 或 `[mitm]` 内容。
+3. 启用 Rewrite 与 MITM，并信任 Quantumult X 根证书。
+4. 清除 Safari 中该站的网站数据，再重新打开，确保重新加载 JS 而非缓存文件。
 
-## 请求范围与验证
+## 验证
 
-目前代码中广告配置以 `app_experience` 字段返回，但静态前端资源没有暴露稳定的后端接口路径。规则因此匹配该站点的 `/v1/` HTTPS 响应；脚本只在 JSON 中找到 `app.experience_snapshot` 时修改内容，其他响应原样返回。启用 MITM 后，Quantumult X 会解密匹配域名的流量以检查响应。
-
-脚本遇到非 JSON、缺少广告配置或结构不匹配时保留原响应。当前只完成静态代码结构验证，尚未在实际 iPhone / Quantumult X 会话中验证拦截效果；若网站调整接口结构，需从 Quantumult X HTTP 记录中确认新的响应格式。
+脚本的逻辑需要在 Quantumult X 设备流量中验证。若播放页面异常，停用本规则即可恢复原始 JS 与 API 响应。
