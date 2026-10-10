@@ -1,4 +1,4 @@
-/* YQK / QNTV v3: JS adapter plus allowlisted API-response fallback. */
+/* YQK / QNTV v4: filter external/game ad shortcuts in hotMudleList. */
 (function () {
   var original = $response.body || "", url = ($request && $request.url) || "";
   var apiHosts = ["yz260324.bzy42ezt.com","yz250907.zazy3mc5.com","yz250907.7k5jb8t9.com","yz250907.3nyk7h9o.com","yz250907.jba2yo1c.com","yz250907.hzkeka49.com","yzy0916.q8nsderug.com","yz1018.o5r52at9v.com","yz1018.tgs2hl4ut.com","yz1018.goi6lhmry.com","yz1018.6vh3qyu9x.com"];
@@ -7,9 +7,9 @@
     try {
       var payload = JSON.parse(original), cleaned = sanitize(payload, api[2]);
       var changed = cleaned !== payload;
-      console.log("[YQK-QNTV v3] API " + api[1] + api[2] + (changed ? " cleaned" : " unchanged"));
+      console.log("[YQK-QNTV v4] API " + api[1] + api[2] + (changed ? " cleaned" : " unchanged"));
       $done(changed ? {body:JSON.stringify(cleaned)} : {});
-    } catch (_) { console.log("[YQK-QNTV v3] API not JSON; preserved"); $done({}); }
+    } catch (_) { console.log("[YQK-QNTV v4] API not JSON; preserved"); $done({}); }
     return;
   }
   var match = url.match(/^https?:\/\/(?:www\.)?((?:yqk|qntv)\d+\.app)\/_nuxt\/(entry|_play_)\.[a-z0-9]+\.js(?:[?#].*)?$/i);
@@ -46,7 +46,7 @@
         ['e.result&&(jt.value=t.value.data)};let ga=', 'e.result&&(jt.value=null)};let ga=']
       ]);
     }
-    console.log("[YQK-QNTV v3] JS " + match[1] + " " + match[2] + (body === original ? " unchanged" : " patched"));
+    console.log("[YQK-QNTV v4] JS " + match[1] + " " + match[2] + (body === original ? " unchanged" : " patched"));
     $done(body === original ? {} : {body:body});
   } catch (_) { $done({}); }
 
@@ -70,8 +70,13 @@
       next = Object.assign({}, d, {startAdList:[], startAdShowTime:0});
     } else if (/\/home\/body$/.test(path) && Array.isArray(d.adList)) {
       next = Object.assign({}, d, {adList:[]});
-    } else if (/\/home\/firstScreen$/.test(path) && Array.isArray(d.focusAdList)) {
-      next = Object.assign({}, d, {focusAdList:[]});
+    } else if (/\/home\/firstScreen$/.test(path) && (Array.isArray(d.focusAdList) || Array.isArray(d.hotMudleList))) {
+      // useAdLink sends actions 1/2/11 to external URLs and 8/10 to game pages.
+      // Keep the site's internal shortcuts (for example rankings and release pages).
+      var shortcutList = Array.isArray(d.hotMudleList)
+        ? d.hotMudleList.filter(function (item) { return !item || [1, 2, 8, 10, 11].indexOf(Number(item.adAction)) < 0; })
+        : d.hotMudleList;
+      next = Object.assign({}, d, {focusAdList:[], hotMudleList:shortcutList});
     }
     return next === d ? r : Object.assign({}, r, {data:next});
   }
