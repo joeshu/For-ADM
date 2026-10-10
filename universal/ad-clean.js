@@ -6,7 +6,7 @@
   var host = match[1].toLowerCase().replace(/^www\./, ""), path = match[2] || "/";
   // Add only a verified site to the appropriate adapter, then add targeted rules / MITM.
   var adapters = [
-    { id: "yqk-qntv", hosts: ["yz260324.bzy42ezt.com","yz250907.zazy3mc5.com","yz250907.7k5jb8t9.com","yz250907.3nyk7h9o.com","yz250907.jba2yo1c.com","yz250907.hzkeka49.com","yzy0916.q8nsderug.com","yz1018.o5r52at9v.com","yz1018.tgs2hl4ut.com","yz1018.goi6lhmry.com","yz1018.6vh3qyu9x.com"], route: /^\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd))(?:\?|$)/ },
+    { id: "yqk-qntv", hosts: ["yz260324.bzy42ezt.com","yz250907.zazy3mc5.com","yz250907.7k5jb8t9.com","yz250907.3nyk7h9o.com","yz250907.jba2yo1c.com","yz250907.hzkeka49.com","yzy0916.q8nsderug.com","yz1018.o5r52at9v.com","yz1018.tgs2hl4ut.com","yz1018.goi6lhmry.com","yz1018.6vh3qyu9x.com"], route: /^\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd))(?:\?|$)/ },
     { id: "yqk-qntv", hosts: ["yqk18.app","qntv28.app"], hostPattern: /^(?:yqk|qntv)\d+\.app$/, route: /^\/_nuxt\/(?:entry|_play_)\.[a-z0-9]+\.js(?:\?|$)/i },
     { id: "buka-ycblcw", hosts: ["ycblcw.com","m.ycblcw.com"], route: /^\/(?:dedg\/cs13341\.js(?:\?|$)|(?:[^?#]*\.html)?(?:\?|$))/ },
     { id: "souju", hosts: ["ai.baipiaozhe.com","souju.ai"], route: /^\/(?:v1\/|assets\/(?:global-player-host-|movie-card-runtime-|main-)[^/?]+\.js(?:[?#]|$))/ },
@@ -377,18 +377,18 @@ var $response={body:source}, $request={url:url}, $done=done;
 }
 function runYqk(source, url, done) {
 var $response={body:source}, $request={url:url}, $done=done;
-/* YQK / QNTV v2: JS adapter plus allowlisted API-response fallback. */
+/* YQK / QNTV v3: JS adapter plus allowlisted API-response fallback. */
 (function () {
   var original = $response.body || "", url = ($request && $request.url) || "";
   var apiHosts = ["yz260324.bzy42ezt.com","yz250907.zazy3mc5.com","yz250907.7k5jb8t9.com","yz250907.3nyk7h9o.com","yz250907.jba2yo1c.com","yz250907.hzkeka49.com","yzy0916.q8nsderug.com","yz1018.o5r52at9v.com","yz1018.tgs2hl4ut.com","yz1018.goi6lhmry.com","yz1018.6vh3qyu9x.com"];
-  var api = url.match(/^https?:\/\/([^/:?#]+)(\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd)))(?:[?#].*)?$/i);
+  var api = url.match(/^https?:\/\/([^/:?#]+)(\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd)))(?:[?#].*)?$/i);
   if (api && apiHosts.indexOf(api[1].toLowerCase()) >= 0) {
     try {
       var payload = JSON.parse(original), cleaned = sanitize(payload, api[2]);
       var changed = cleaned !== payload;
-      console.log("[YQK-QNTV v2] API " + api[1] + api[2] + (changed ? " cleaned" : " unchanged"));
+      console.log("[YQK-QNTV v3] API " + api[1] + api[2] + (changed ? " cleaned" : " unchanged"));
       $done(changed ? {body:JSON.stringify(cleaned)} : {});
-    } catch (_) { console.log("[YQK-QNTV v2] API not JSON; preserved"); $done({}); }
+    } catch (_) { console.log("[YQK-QNTV v3] API not JSON; preserved"); $done({}); }
     return;
   }
   var match = url.match(/^https?:\/\/(?:www\.)?((?:yqk|qntv)\d+\.app)\/_nuxt\/(entry|_play_)\.[a-z0-9]+\.js(?:[?#].*)?$/i);
@@ -425,7 +425,7 @@ var $response={body:source}, $request={url:url}, $done=done;
         ['e.result&&(jt.value=t.value.data)};let ga=', 'e.result&&(jt.value=null)};let ga=']
       ]);
     }
-    console.log("[YQK-QNTV v2] JS " + match[1] + " " + match[2] + (body === original ? " unchanged" : " patched"));
+    console.log("[YQK-QNTV v3] JS " + match[1] + " " + match[2] + (body === original ? " unchanged" : " patched"));
     $done(body === original ? {} : {body:body});
   } catch (_) { $done({}); }
 
@@ -435,6 +435,10 @@ var $response={body:source}, $request={url:url}, $done=done;
     var path = endpoint.split("?")[0], d = r.data, next = d;
     if (/\/adInfo\/getPageAd$/.test(path) && !Array.isArray(d) && typeof d === "object") {
       next = Object.assign({}, d, {floatAd:null, popupAd:null});
+    } else if (/\/adInfo\/getChatAd$/.test(path) && Array.isArray(d)) {
+      next = [];
+    } else if (/\/adInfo\/getTopicAd$/.test(path) && Array.isArray(d.topicAdList)) {
+      next = Object.assign({}, d, {topicAdList:[]});
     } else if (/\/(?:vodInfo\/getVodPauseAd|adInfo\/getTextAd)$/.test(path)) {
       next = null;
     } else if (/\/(?:vodInfo\/getVodBodyAd|adInfo\/(?:getSearchAd|getUserCenterAd))$/.test(path) && Array.isArray(d)) {
