@@ -6,7 +6,7 @@
   var host = match[1].toLowerCase().replace(/^www\./, ""), path = match[2] || "/";
   // Add only a verified site to the appropriate adapter, then add targeted rules / MITM.
   var adapters = [
-    { id: "yqk-qntv", hosts: ["yz260324.bzy42ezt.com","yz250907.zazy3mc5.com","yz250907.7k5jb8t9.com","yz250907.3nyk7h9o.com","yz250907.jba2yo1c.com","yz250907.hzkeka49.com","yzy0916.q8nsderug.com","yz1018.o5r52at9v.com","yz1018.tgs2hl4ut.com","yz1018.goi6lhmry.com","yz1018.6vh3qyu9x.com"], route: /^\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd))(?:\?|$)/ },
+    { id: "yqk-qntv", hosts: [], hostPattern: /^yz(?:y)?\d{4,6}\.(?:bzy42ezt|zazy3mc5|7k5jb8t9|3nyk7h9o|jba2yo1c|hzkeka49|q8nsderug|o5r52at9v|tgs2hl4ut|goi6lhmry|6vh3qyu9x)\.com$/i, route: /^\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd))(?:\?|$)/ },
     { id: "yqk-qntv", hosts: ["yqk18.app","qntv28.app"], hostPattern: /^(?:yqk|qntv)\d+\.app$/, route: /^\/_nuxt\/(?:entry|_play_)\.[a-z0-9]+\.js(?:\?|$)/i },
     { id: "buka-ycblcw", hosts: ["ycblcw.com","m.ycblcw.com"], route: /^\/(?:dedg\/cs13341\.js(?:\?|$)|(?:[^?#]*\.html)?(?:\?|$))/ },
     { id: "souju", hosts: ["ai.baipiaozhe.com","souju.ai"], route: /^\/(?:v1\/|assets\/(?:global-player-host-|movie-card-runtime-|main-)[^/?]+\.js(?:[?#]|$))/ },
@@ -21,7 +21,6 @@
     else if (adapter.id === "buka-ycblcw") runBuka(original, url, capture);
     else if (adapter.id === "yqk-qntv") runYqk(original, url, capture);
     else runArtplayer(original, url, capture);
-    if (output !== original && typeof console !== "undefined") console.log("[ad-clean] " + adapter.id + ": " + host);
     $done(output === original ? {} : { body: output });
   } catch (_) { $done({}); }
   function runSouju(source, url, done) {
@@ -377,18 +376,17 @@ var $response={body:source}, $request={url:url}, $done=done;
 }
 function runYqk(source, url, done) {
 var $response={body:source}, $request={url:url}, $done=done;
-/* YQK / QNTV v4: filter external/game ad shortcuts in hotMudleList. */
+/* YQK / QNTV v5: quiet mode; API prefix pattern on verified domain suffixes. */
 (function () {
   var original = $response.body || "", url = ($request && $request.url) || "";
-  var apiHosts = ["yz260324.bzy42ezt.com","yz250907.zazy3mc5.com","yz250907.7k5jb8t9.com","yz250907.3nyk7h9o.com","yz250907.jba2yo1c.com","yz250907.hzkeka49.com","yzy0916.q8nsderug.com","yz1018.o5r52at9v.com","yz1018.tgs2hl4ut.com","yz1018.goi6lhmry.com","yz1018.6vh3qyu9x.com"];
+  var apiHostPattern = /^yz(?:y)?\d{4,6}\.(?:bzy42ezt|zazy3mc5|7k5jb8t9|3nyk7h9o|jba2yo1c|hzkeka49|q8nsderug|o5r52at9v|tgs2hl4ut|goi6lhmry|6vh3qyu9x)\.com$/i;
   var api = url.match(/^https?:\/\/([^/:?#]+)(\/v[12]\/api\/(?:basic\/init|home\/(?:body|firstScreen)|adInfo\/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo\/(?:index|getVodBodyAd|getVodPauseAd)))(?:[?#].*)?$/i);
-  if (api && apiHosts.indexOf(api[1].toLowerCase()) >= 0) {
+  if (api && apiHostPattern.test(api[1])) {
     try {
       var payload = JSON.parse(original), cleaned = sanitize(payload, api[2]);
       var changed = cleaned !== payload;
-      console.log("[YQK-QNTV v4] API " + api[1] + api[2] + (changed ? " cleaned" : " unchanged"));
       $done(changed ? {body:JSON.stringify(cleaned)} : {});
-    } catch (_) { console.log("[YQK-QNTV v4] API not JSON; preserved"); $done({}); }
+    } catch (_) { $done({}); }
     return;
   }
   var match = url.match(/^https?:\/\/(?:www\.)?((?:yqk|qntv)\d+\.app)\/_nuxt\/(entry|_play_)\.[a-z0-9]+\.js(?:[?#].*)?$/i);
@@ -425,7 +423,6 @@ var $response={body:source}, $request={url:url}, $done=done;
         ['e.result&&(jt.value=t.value.data)};let ga=', 'e.result&&(jt.value=null)};let ga=']
       ]);
     }
-    console.log("[YQK-QNTV v4] JS " + match[1] + " " + match[2] + (body === original ? " unchanged" : " patched"));
     $done(body === original ? {} : {body:body});
   } catch (_) { $done({}); }
 
