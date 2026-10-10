@@ -59,4 +59,4 @@ YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支
 
 复用现有精确 HTML 脚本标签删除及专用 JS 置空操作，处理这五个路径；不匹配整个 mcenter 目录，也不增加外部广告域名 MITM。禁用 `dbtl.js` 从源头阻止其外部广告加载、占位样式和透明点击层。
 
-`/js/seajump.js`、`common.js`、`function.js`、`play.js`、`statics/js/ditre.js`、播放器 iframe、播放地址、选集与观看记录保留。未增加播放器或 HLS 处理。测试核对入口删除、主机/路径边界、重复执行和上述内容保留；另用实际首页 HTML 与实际 `dbtl.js` 验证改写。截图中的手机横幅是否完全消失仍需 Quantumult X 实测。
+`/js/seajump.js`、`common.js`、`function.js`、`play.js`、`statics/js/ditre.js`、播放器 iframe、播放地址、选集与观看记录保留。未增加播放器或 HLS 处理。测试核对入口删除、主机/路径边界、重复执行和上述内容保留；另用实际首页、实际视频播放页 HTML 与实际 `dbtl.js` 验证改写；播放页的播放器 iframe、源地址变量、线路和选集链接均保留。没有加入视频流/HLS 改写。截图中的手机横幅是否完全消失仍需 Quantumult X 实测。
