@@ -42,3 +42,8 @@ ad-clean.js 的 adapters 数组选择站点与路径，内部 runSouju / runArtp
 - 尚未在手机 Quantumult X 实播统一版。现有独立脚本不改动。
 
 wu5mv、55kp2、4kcz 等站点尚未取得可分析源码，没有加入适配。
+
+
+## 新增：ycblcw（2026-10-10）
+
+已加入 buka-ycblcw 适配器，处理 /dedg/cs13341.js 广告入口及 app2.zstv47.com 推广链接。真实首页/详情页/播放页检查通过，正片配置与普通选集保持。详细范围和第三方视频广告限制见 ../ycblcw/README.md。
