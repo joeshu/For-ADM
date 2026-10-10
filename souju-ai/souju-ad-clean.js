@@ -16,7 +16,63 @@
     const match = matcher.exec(source);
     if (!match) return null;
 
-    const open = source.indexOf("{", matcher.lastIndex);
+    let parameterDepth = 1;
+    let parameterQuote = "";
+    let parameterEscape = false;
+    let parameterLineComment = false;
+    let parameterBlockComment = false;
+    let parameterEnd = -1;
+
+    for (let i = matcher.lastIndex; i < source.length; i++) {
+      const ch = source[i];
+      const next = source[i + 1];
+
+      if (parameterLineComment) {
+        if (ch === "\\n") parameterLineComment = false;
+        continue;
+      }
+      if (parameterBlockComment) {
+        if (ch === "*" && next === "/") {
+          parameterBlockComment = false;
+          i++;
+        }
+        continue;
+      }
+      if (parameterQuote) {
+        if (parameterEscape) {
+          parameterEscape = false;
+          continue;
+        }
+        if (ch === "\\\\") {
+          parameterEscape = true;
+          continue;
+        }
+        if (ch === parameterQuote) parameterQuote = "";
+        continue;
+      }
+      if (ch === "/" && next === "/") {
+        parameterLineComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "/" && next === "*") {
+        parameterBlockComment = true;
+        i++;
+        continue;
+      }
+      if (ch === "'" || ch === '"' || ch === "`") {
+        parameterQuote = ch;
+        continue;
+      }
+      if (ch === "(") parameterDepth++;
+      if (ch === ")" && --parameterDepth === 0) {
+        parameterEnd = i;
+        break;
+      }
+    }
+
+    if (parameterEnd < 0) return null;
+    const open = source.indexOf("{", parameterEnd + 1);
     if (open < 0) return null;
 
     let depth = 0;
