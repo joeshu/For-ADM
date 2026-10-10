@@ -593,7 +593,8 @@
           "domains": {
             "type": "exact",
             "names": [
-              "aeete.com"
+              "aeete.com",
+              "au1080.top"
             ],
             "prefixes": [
               "",
@@ -627,7 +628,7 @@
           ],
           "bodyPattern": "<html[\\s>]",
           "op": "replaceRegex",
-          "pattern": "<script\\b[^>]*\\bsrc\\s*=\\s*[\"'](?:https?:)?(?://(?:www\\.)?aeete\\.com)?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?[^\"']*)?[\"'][^>]*>[\\s\\S]*?</script\\s*>",
+          "pattern": "<script\\b[^>]*\\bsrc\\s*=\\s*[\"'](?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?[^\"']*)?[\"'][^>]*>[\\s\\S]*?</script\\s*>",
           "flags": "ig",
           "value": ""
         }

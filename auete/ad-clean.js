@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 85b589c1e8cf. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 10b36ab8c631. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -113,5 +113,5 @@ function admRun(templates,processors) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"auete","adapter":"declarative","output":{"script":"auete/ad-clean.js","conf":"auete/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","bodyPattern":"^(?!\\s*(?:<!doctype|<html|<body)\\b)","value":"/* For-ADM: dedicated Auete page advertising module disabled. */"},{"kind":"html","requires":["Auete","/js/common.js"],"bodyPattern":"<html[\\s>]","op":"replaceRegex","pattern":"<script\\b[^>]*\\bsrc\\s*=\\s*[\"'](?:https?:)?(?://(?:www\\.)?aeete\\.com)?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?[^\"']*)?[\"'][^>]*>[\\s\\S]*?</script\\s*>","flags":"ig","value":""}],"bindings":[{"host":"(?:|www\\.)(?:aeete\\.com)","routes":[{"kind":"js","path":"/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
+admRun([{"id":"auete","adapter":"declarative","output":{"script":"auete/ad-clean.js","conf":"auete/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","bodyPattern":"^(?!\\s*(?:<!doctype|<html|<body)\\b)","value":"/* For-ADM: dedicated Auete page advertising module disabled. */"},{"kind":"html","requires":["Auete","/js/common.js"],"bodyPattern":"<html[\\s>]","op":"replaceRegex","pattern":"<script\\b[^>]*\\bsrc\\s*=\\s*[\"'](?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?[^\"']*)?[\"'][^>]*>[\\s\\S]*?</script\\s*>","flags":"ig","value":""}],"bindings":[{"host":"(?:|www\\.)(?:aeete\\.com|au1080\\.top)","routes":[{"kind":"js","path":"/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
 })();

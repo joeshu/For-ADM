@@ -25,18 +25,19 @@ test('Auete ad loaders clear while player, episodes, history and unknown hosts s
  const player='<script src="/js/play.js"></script><iframe src="/js/player/oyun.html"></iframe><script>var player={url:"https://media.example/movie.m3u8",next:"play-0-8.html"};function openHistoryPanel(){return 1}</script><a href="play-0-8.html">下一集</a>';
  const common='<html><img alt="Auete影视网" src="/statics/picture/logo.png"><script src="/js/common.js"></script><script src="/js/function.js"></script><script src="/js/seajump.js"></script><script src="/statics/js/ditre.js"></script>';
  const html=common+ads.map((n,i)=>`<script language="javascript" src = '${i%2?'https://www.aeete.com':''}/js/mcenter/${n}.js?v=1'></script>`).join('')+'<script src="/js/mcenter/unknown.js"></script>'+player+'</html>';
- for(const host of ['aeete.com','www.aeete.com'])for(const path of ['/','/Tv/riju/example/','/Tv/riju/example/play-0-7.html?from=home'])check('auete','https://'+host+path,html,out=>{
+ for(const host of ['aeete.com','www.aeete.com','au1080.top','www.au1080.top'])for(const path of ['/','/index.html','/Tv/riju/example/','/Tv/riju/example/play-0-7.html?from=home'])check('auete','https://'+host+path,html,out=>{
   for(const n of ads)assert(!out.includes(n+'.js'));
   assert(out.includes(player));assert(out.includes(common));assert(out.includes('/js/mcenter/unknown.js'));
  });
+ check('auete','https://www.au1080.top/index.html',html.replaceAll('https://www.aeete.com','https://www.au1080.top'),out=>assert(!out.includes('/js/mcenter/dbtl.js')));
  for(const n of ads)check('auete','https://aeete.com/js/mcenter/'+n+'.js?v=1','document.write("ad");',out=>{assert(out.includes('disabled'));new vm.Script(out);});
- for(const url of ['https://aeete.com/js/common.js','https://aeete.com/js/play.js','https://aeete.com/js/mcenter/unknown.js','https://aeete.com/js/mcenter/dbtl.js.extra','https://aeete.com/movie.m3u8','https://aeete.com/go/api/dp.php?url=movie.m3u8','https://aeete.com.evil.com/','https://auete.asia/','https://unrelated.com/'])assert.equal(run(universal,url,html),html);
+ for(const url of ['https://aeete.com/js/common.js','https://aeete.com/js/play.js','https://aeete.com/js/mcenter/unknown.js','https://aeete.com/js/mcenter/dbtl.js.extra','https://aeete.com/movie.m3u8','https://aeete.com/go/api/dp.php?url=movie.m3u8','https://aeete.com.evil.com/','https://au1080.top.evil.com/','https://au1081.top/','https://auete.asia/','https://unrelated.com/'])assert.equal(run(universal,url,html),html);
  assert.equal(run(universal,'https://aeete.com/',html.replace('Auete','Different')),html.replace('Auete','Different'));
  const error='<html><body>Unavailable</body></html>';
  assert.equal(run(universal,'https://aeete.com/js/mcenter/dbtl.js',error),error);
  const rules=read('universal/quantumult-x-snippet.conf').split('\n').filter(l=>l.startsWith('^')).map(l=>new RegExp(l.split(' url ')[0]));
  assert(rules.some(r=>r.test('https://www.aeete.com/Tv/example/play-0-7.html')));
- for(const url of ['https://aeete.com/movie.m3u8','https://aeete.com/js/play.js','https://aeete.com.evil.com/','https://auete.asia/'])assert(!rules.some(r=>r.test(url)));
+ for(const url of ['https://aeete.com/movie.m3u8','https://aeete.com/js/play.js','https://aeete.com.evil.com/','https://au1080.top.evil.com/','https://au1081.top/','https://auete.asia/'])assert(!rules.some(r=>r.test(url)));
 });
 test('generated artifacts and standalone syntax remain deterministic',()=>{
  execFileSync(process.execPath,['scripts/build-ad-clean.mjs','--check'],{cwd:root});
