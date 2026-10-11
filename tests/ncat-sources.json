@@ -1,0 +1,432 @@
+[
+  {
+    "file": "1075-legacy.ee23ed48.js",
+    "kind": "banners",
+    "action": 0
+  },
+  {
+    "file": "1075-legacy.ee23ed48.js",
+    "kind": "cards",
+    "action": 1
+  },
+  {
+    "file": "1075.afda49af.js",
+    "kind": "banners",
+    "action": 2
+  },
+  {
+    "file": "1075.afda49af.js",
+    "kind": "cards",
+    "action": 3
+  },
+  {
+    "file": "1910-legacy.461029c9.js",
+    "kind": "banners",
+    "action": 4
+  },
+  {
+    "file": "1910.8ff78120.js",
+    "kind": "banners",
+    "action": 5
+  },
+  {
+    "file": "1996-legacy.2f7fe67f.js",
+    "kind": "cards",
+    "action": 6
+  },
+  {
+    "file": "1996.6d39cce0.js",
+    "kind": "cards",
+    "action": 7
+  },
+  {
+    "file": "2137.264cc8d1.js",
+    "kind": "banners",
+    "action": 8
+  },
+  {
+    "file": "2280-legacy.55abb0d0.js",
+    "kind": "units",
+    "action": 9
+  },
+  {
+    "file": "2280.0e759123.js",
+    "kind": "units",
+    "action": 10
+  },
+  {
+    "file": "2434-legacy.348b41ed.js",
+    "kind": "banners",
+    "action": 11
+  },
+  {
+    "file": "2434-legacy.348b41ed.js",
+    "kind": "cards",
+    "action": 12
+  },
+  {
+    "file": "2434.e91d2bab.js",
+    "kind": "banners",
+    "action": 13
+  },
+  {
+    "file": "2434.e91d2bab.js",
+    "kind": "cards",
+    "action": 14
+  },
+  {
+    "file": "2574-legacy.022bac55.js",
+    "kind": "banners",
+    "action": 15
+  },
+  {
+    "file": "2574.8c483793.js",
+    "kind": "banners",
+    "action": 16
+  },
+  {
+    "file": "2745-legacy.08b3fc8c.js",
+    "kind": "cards",
+    "action": 17
+  },
+  {
+    "file": "2745.c989aa57.js",
+    "kind": "cards",
+    "action": 18
+  },
+  {
+    "file": "2771-legacy.4f07164b.js",
+    "kind": "banners",
+    "action": 19
+  },
+  {
+    "file": "3114-legacy.2d0c1a7b.js",
+    "kind": "banners",
+    "action": 20
+  },
+  {
+    "file": "3114-legacy.2d0c1a7b.js",
+    "kind": "cards",
+    "action": 21
+  },
+  {
+    "file": "3114.0017fdaf.js",
+    "kind": "banners",
+    "action": 22
+  },
+  {
+    "file": "3114.0017fdaf.js",
+    "kind": "cards",
+    "action": 23
+  },
+  {
+    "file": "3170-legacy.f0fc78b2.js",
+    "kind": "banners",
+    "action": 24
+  },
+  {
+    "file": "3170-legacy.f0fc78b2.js",
+    "kind": "cards",
+    "action": 25
+  },
+  {
+    "file": "3170.648680a7.js",
+    "kind": "banners",
+    "action": 26
+  },
+  {
+    "file": "3170.648680a7.js",
+    "kind": "cards",
+    "action": 27
+  },
+  {
+    "file": "3382-legacy.adbdeb1f.js",
+    "kind": "banners",
+    "action": 28
+  },
+  {
+    "file": "3510.14160a1d.js",
+    "kind": "banners",
+    "action": 29
+  },
+  {
+    "file": "3602-legacy.5acfbee9.js",
+    "kind": "units",
+    "action": 30
+  },
+  {
+    "file": "3602-legacy.5acfbee9.js",
+    "kind": "cards",
+    "action": 31
+  },
+  {
+    "file": "3602.c083f3ca.js",
+    "kind": "units",
+    "action": 32
+  },
+  {
+    "file": "3602.c083f3ca.js",
+    "kind": "cards",
+    "action": 33
+  },
+  {
+    "file": "3819-legacy.c23b0452.js",
+    "kind": "units",
+    "action": 34
+  },
+  {
+    "file": "3819.d3f4278c.js",
+    "kind": "units",
+    "action": 35
+  },
+  {
+    "file": "4125-legacy.26f6963f.js",
+    "kind": "banners",
+    "action": 36
+  },
+  {
+    "file": "4125.016ced65.js",
+    "kind": "banners",
+    "action": 37
+  },
+  {
+    "file": "4229-legacy.3996280c.js",
+    "kind": "cards",
+    "action": 38
+  },
+  {
+    "file": "4229.f2ddedb7.js",
+    "kind": "cards",
+    "action": 39
+  },
+  {
+    "file": "4904.ae5d5a0a.js",
+    "kind": "units",
+    "action": 40
+  },
+  {
+    "file": "5230-legacy.91effc8d.js",
+    "kind": "units",
+    "action": 41
+  },
+  {
+    "file": "5230.fb816eb4.js",
+    "kind": "units",
+    "action": 42
+  },
+  {
+    "file": "5805-legacy.8e4fce94.js",
+    "kind": "units",
+    "action": 43
+  },
+  {
+    "file": "6040-legacy.49c57a52.js",
+    "kind": "player",
+    "action": 44
+  },
+  {
+    "file": "6040.034c3c4b.js",
+    "kind": "player",
+    "action": 45
+  },
+  {
+    "file": "6583.937f57a6.js",
+    "kind": "units",
+    "action": 46
+  },
+  {
+    "file": "6602.ff913bce.js",
+    "kind": "cards",
+    "action": 47
+  },
+  {
+    "file": "6735-legacy.94155363.js",
+    "kind": "banners",
+    "action": 48
+  },
+  {
+    "file": "6735-legacy.94155363.js",
+    "kind": "cards",
+    "action": 49
+  },
+  {
+    "file": "6735.58162a4b.js",
+    "kind": "banners",
+    "action": 50
+  },
+  {
+    "file": "6735.58162a4b.js",
+    "kind": "cards",
+    "action": 51
+  },
+  {
+    "file": "7135-legacy.8d9bd627.js",
+    "kind": "cards",
+    "action": 52
+  },
+  {
+    "file": "7135.b9e2c7a1.js",
+    "kind": "cards",
+    "action": 53
+  },
+  {
+    "file": "7440-legacy.523fa081.js",
+    "kind": "cards",
+    "action": 54
+  },
+  {
+    "file": "7440.bebb1e10.js",
+    "kind": "cards",
+    "action": 55
+  },
+  {
+    "file": "7472-legacy.20c99d42.js",
+    "kind": "banners",
+    "action": 56
+  },
+  {
+    "file": "7472-legacy.20c99d42.js",
+    "kind": "cards",
+    "action": 57
+  },
+  {
+    "file": "7472.241c59a7.js",
+    "kind": "banners",
+    "action": 58
+  },
+  {
+    "file": "7472.241c59a7.js",
+    "kind": "cards",
+    "action": 59
+  },
+  {
+    "file": "7481-legacy.7bd4886c.js",
+    "kind": "cards",
+    "action": 60
+  },
+  {
+    "file": "7481.c6062b37.js",
+    "kind": "cards",
+    "action": 61
+  },
+  {
+    "file": "766-legacy.f5a2e3c4.js",
+    "kind": "banners",
+    "action": 62
+  },
+  {
+    "file": "766.042e31e8.js",
+    "kind": "banners",
+    "action": 63
+  },
+  {
+    "file": "816-legacy.80cfb680.js",
+    "kind": "cards",
+    "action": 64
+  },
+  {
+    "file": "816.53b6efd5.js",
+    "kind": "cards",
+    "action": 65
+  },
+  {
+    "file": "8198-legacy.d535bed9.js",
+    "kind": "cards",
+    "action": 66
+  },
+  {
+    "file": "8198.dd7073e6.js",
+    "kind": "cards",
+    "action": 67
+  },
+  {
+    "file": "8448-legacy.2250fd4b.js",
+    "kind": "banners",
+    "action": 68
+  },
+  {
+    "file": "8710-legacy.0170b9ba.js",
+    "kind": "cards",
+    "action": 69
+  },
+  {
+    "file": "8710.325fb8bb.js",
+    "kind": "cards",
+    "action": 70
+  },
+  {
+    "file": "8796-legacy.103cfa58.js",
+    "kind": "player",
+    "action": 71
+  },
+  {
+    "file": "8796.2cf73610.js",
+    "kind": "player",
+    "action": 72
+  },
+  {
+    "file": "8806-legacy.70f08c10.js",
+    "kind": "units",
+    "action": 73
+  },
+  {
+    "file": "8806.20838114.js",
+    "kind": "units",
+    "action": 74
+  },
+  {
+    "file": "8814-legacy.ff1b9aaf.js",
+    "kind": "units",
+    "action": 75
+  },
+  {
+    "file": "8864-legacy.04e6cfae.js",
+    "kind": "cards",
+    "action": 76
+  },
+  {
+    "file": "8864.384bd5aa.js",
+    "kind": "cards",
+    "action": 77
+  },
+  {
+    "file": "8992.88a3673c.js",
+    "kind": "banners",
+    "action": 78
+  },
+  {
+    "file": "9165-legacy.f94c5b3c.js",
+    "kind": "cards",
+    "action": 79
+  },
+  {
+    "file": "9165.62613367.js",
+    "kind": "cards",
+    "action": 80
+  },
+  {
+    "file": "9516-legacy.b63306f4.js",
+    "kind": "cards",
+    "action": 81
+  },
+  {
+    "file": "9955-legacy.8ebf1b1e.js",
+    "kind": "cards",
+    "action": 82
+  },
+  {
+    "file": "9955.9cb13771.js",
+    "kind": "cards",
+    "action": 83
+  },
+  {
+    "file": "app-legacy.97e2a46b.js",
+    "kind": "core",
+    "action": 84
+  },
+  {
+    "file": "app.e102418a.js",
+    "kind": "core",
+    "action": 85
+  }
+]

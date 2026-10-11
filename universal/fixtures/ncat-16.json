@@ -1,0 +1,12 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/2574.8c483793.js",
+  "body": "/* appAdvertisements ; click_advert_ ; FSImage ; 'banner' */\n_0x222de9=_0x45a7c4['appAdvertisements']\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    "_0x222de9=_0x45a7c4['appAdvertisements']"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}

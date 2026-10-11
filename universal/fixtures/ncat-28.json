@@ -1,0 +1,12 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/3382-legacy.adbdeb1f.js",
+  "body": "/* appAdvertisements ; click_advert_ ; FSImage ; 'banner' */\n_0x2f338b=_0x5cc979['appAdvertisements']\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    "_0x2f338b=_0x5cc979['appAdvertisements']"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}

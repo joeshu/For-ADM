@@ -1,0 +1,13 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/1075-legacy.ee23ed48.js",
+  "body": "/* 'VodVerticalItem' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x32e5b2['searchList'],\n\n['pI'])(_0x3ffeab['items'],\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    "['pI'])(_0x32e5b2['searchList'],",
+    "['pI'])(_0x3ffeab['items'],"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/9516-legacy.b63306f4.js",
+  "body": "/* arrangedItems ; webpackChunkmovie ; POSTING_TYPE ; getItemStyle */\n)(_0xf0b811['items'])\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    ")(_0xf0b811['items'])"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}

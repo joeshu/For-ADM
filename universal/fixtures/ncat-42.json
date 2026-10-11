@@ -1,0 +1,12 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/5230.fb816eb4.js",
+  "body": "/* 0x3e71:function ; /v2/config/units.capi ; /app/announcements ; getCacheUrl */\n'so':function(){return _0x27b3d4;}\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    "'so':function(){return _0x27b3d4;}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}

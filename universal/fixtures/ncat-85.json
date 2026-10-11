@@ -1,0 +1,13 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/app.e102418a.js",
+  "body": "/* 'appName':'网飞猫' ; 'appVersion':'2.5.29' ; getAdvertiseById ; FLOATING_WINDOW ; VOD_START */\n'getAdvertiseById'(_0x3649d9){if(!_0x3649d9||0x0==_0x3649d9['length'])return;const _0x3efe4c=this['appAdvertisements'];return _0x3efe4c&&_0x3efe4c['length']>0x0?_0x3efe4c['find'](_0x328522=>_0x328522['id']==_0x3649d9):void 0x0;}\n\n_0x2eaacc=_0x1b92ec=>{const _0x1699fc=(0x0,_0x3a9895['P'])(),_0x3fdba8=_0x1699fc['appAdvertisements'];return!!(_0x3fdba8&&_0x3fdba8['length']>0x0&&_0x1b92ec&&_0x1b92ec['length']>0x0)&&_0x3fdba8['some'](_0x51faf4=>_0x51faf4['id']==_0x1b92ec);}\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    "'getAdvertiseById'(_0x3649d9){if(!_0x3649d9||0x0==_0x3649d9['length'])return;const _0x3efe4c=this['appAdvertisements'];return _0x3efe4c&&_0x3efe4c['length']>0x0?_0x3efe4c['find'](_0x328522=>_0x328522['id']==_0x3649d9):void 0x0;}",
+    "_0x2eaacc=_0x1b92ec=>{const _0x1699fc=(0x0,_0x3a9895['P'])(),_0x3fdba8=_0x1699fc['appAdvertisements'];return!!(_0x3fdba8&&_0x3fdba8['length']>0x0&&_0x1b92ec&&_0x1b92ec['length']>0x0)&&_0x3fdba8['some'](_0x51faf4=>_0x51faf4['id']==_0x1b92ec);}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}

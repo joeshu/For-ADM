@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision cb539d52b91d. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 33dad415dc3b. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -174,11 +174,11 @@ function admRun(templates,processors) {
   try {
     var url=($request&&$request.url)||'',method=String(($request&&$request.method)||'').toUpperCase();
     var status=$response.statusCode;
-    var match=url.match(/^https?:\/\/([^/:?#]+)(?:\:\d+)?(\/[^#]*)?/i);
+    var match=url.match(/^https?:\/\/([^/:?#]+)(?:\:(\d+))?(\/[^#]*)?/i);
     if(match&&original&&method!=='OPTIONS'&&method!=='HEAD'&&!(typeof status==='number'&&status>=400)) {
-      var host=match[1].toLowerCase(),path=match[2]||'/',selected=null;
+      var host=match[1].toLowerCase(),port=match[2]?Number(match[2]):null,path=match[3]||'/',selected=null;
       for(var i=0;i<templates.length&&!selected;i++)for(var j=0;j<templates[i].bindings.length&&!selected;j++) {
-        var b=templates[i].bindings[j];if(!new RegExp('^'+b.host+'$','i').test(host))continue;
+        var b=templates[i].bindings[j];if(b.ports&&port!==null&&b.ports.indexOf(port)<0)continue;if(!new RegExp('^'+b.host+'$','i').test(host))continue;
         for(var k=0;k<b.routes.length;k++)if(new RegExp('^'+b.routes[k].path,'i').test(path)){selected={template:templates[i],kind:b.routes[k].kind};break;}
       }
       if(selected&&admResponseAllowed(selected.kind,original,$response))output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind},selected.template);

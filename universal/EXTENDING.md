@@ -106,3 +106,7 @@ node scripts/check-ad-clean.mjs
 ### 按需 JS helper
 
 声明式模板可在 `jsHelpers` 定义 `{name:{marker,source}}`，JS `replaceGroup` 可通过 `helper: name` 引用。只有整个替换组成功并改变源码才注入 helper；同一响应同名 helper 去重，错误响应、未知源码、未变化组不注入。marker 必须是 source 中的非空唯一标记。helper 在浏览器执行，清理脚本本身只做文本改写；需单独验证 helper 行为以及完整模块改写后的语法。
+
+### 非默认端口
+
+绑定可声明 `ports: [51111]`。生成规则允许该显式端口以及不带显式端口的 URL；运行时按相同规则检查端口，MITM 保留纯域名。未声明 ports 的旧绑定保持原行为，不默认给全部站点开放端口匹配。

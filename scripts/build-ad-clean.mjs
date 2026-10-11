@@ -38,7 +38,7 @@ for(const t of templates){
   if(typeof p!=='string'||path.isAbsolute(p)||p.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!p.endsWith('.js')&&!p.endsWith('.conf'))throw Error('Invalid output path');
   if(outputPaths.has(p))throw Error('Duplicate output path');outputPaths.add(p);
  }
- for(const b of t.bindings){new RegExp('^'+b.host+'$');for(const r of b.routes){if(!r.path.startsWith('/')||!['html','js','json'].includes(r.kind))throw Error('Invalid route');new RegExp('^'+r.path);}}
+ for(const b of t.bindings){if(b.ports&&(!Array.isArray(b.ports)||!b.ports.length||!b.ports.every(p=>Number.isInteger(p)&&p>0&&p<=65535)))throw Error('Invalid binding ports');new RegExp('^'+b.host+'$');for(const r of b.routes){if(!r.path.startsWith('/')||!['html','js','json'].includes(r.kind))throw Error('Invalid route');new RegExp('^'+r.path);}}
  for(const [name,h] of Object.entries(t.jsHelpers||{})){if(!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name)||!h||typeof h.source!=='string'||typeof h.marker!=='string'||!h.marker||!h.source.includes(h.marker))throw Error('Invalid JS helper');}
  for(const a of t.actions||[]){
   if(a.helper&&(a.kind!=='js'||a.op!=='replaceGroup'||!Object.prototype.hasOwnProperty.call(t.jsHelpers||{},a.helper)))throw Error('Invalid JS helper reference');
@@ -88,11 +88,12 @@ for(const r of requestRules){
  if(typeof p!=='string'||path.isAbsolute(p)||p.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!p.endsWith('.conf')||outputPaths.has(p))throw Error('Invalid request rule output');
  outputPaths.add(p);
 }
+function bindingHost(b){return b.host+(b.ports?'(?::(?:'+b.ports.join('|')+'))?':'');}
 function requestLines(r,scriptUrl){if(r.mode==='verbatim')return r.lines.map(l=>r.adapter&&scriptUrl&&l.includes(' url script-response-body ')?l.split(' url ')[0]+' url script-response-body '+scriptUrl:l);return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
 const generated=new Map(),scriptVersions=new Map();
 function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
  const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);
- const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes})=>({host,routes}))}));
+ const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes,ports})=>({host,routes,...(ports?{ports}: {})}))}));
  for(const r of (onlyRequest?requests:[]).filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
  const adapters=[...new Set(runtime.map(t=>t.adapter))];
@@ -105,8 +106,8 @@ function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest
  const header='/* GENERATED from universal/templates.json and universal/src; revision '+scriptVersion+'. Do not edit. */\n';
  const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+');\n})();\n';
  const url=manifest.rawBase+'/'+scriptPath+'?v='+scriptVersion;
- const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)));
- const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)).join('\n')); 
+ const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+url)));
+ const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+url)).join('\n')); 
  const requestUrl=r=>r.adapter?manifest.rawBase+'/'+r.output.script+'?v='+scriptVersions.get(r.output.script):url;
  if(requests.length){rules.push(...requests.flatMap(r=>requestLines(r,requestUrl(r))));groups.push(...requests.map(r=>'# '+r.id+(r.mode==='verbatim'?' — all upstream capabilities; original host matching; bundled response adapter':'')+'\n'+requestLines(r,requestUrl(r)).join('\n')));}
  validateGeneratedRules(rules);

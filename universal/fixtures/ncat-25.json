@@ -1,0 +1,25 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/3170-legacy.f0fc78b2.js",
+  "body": "/* 'VodEntra' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x1fb834['blocks'],\n\n['pI'])(_0x26d0cc['banner']['items'],\n\n['pI'])(_0x2715e8['dataSource']['data'],\n\n['pI'])(_0x14e5c9['dataSource']['data'],\n\n['pI'])(_0x105037['dataSource']['data'],\n\n['pI'])(_0x1ec0c5['dataSource']['data'],\n\n['pI'])(_0x556aca['dataSource']['data'],\n\n['pI'])(_0x32c81f['dataSource']['data'],\n\n['pI'])(_0x30c4a0['dataSource']['data'],\n\n['pI'])(_0x30c4a0['selectedItem']['items'],\n\n['pI'])(_0x1b3487['dataSource']['data'],\n\n['pI'])(_0x4e4c31['dataSource'],\n\n'data-source':_0x58b23b['data']}\n\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n'data-source':_0x58b23b}\n\n/* fixture-film.m3u8?sign=keep ; fixture-account */",
+  "removed": [
+    "['pI'])(_0x1fb834['blocks'],",
+    "['pI'])(_0x26d0cc['banner']['items'],",
+    "['pI'])(_0x2715e8['dataSource']['data'],",
+    "['pI'])(_0x14e5c9['dataSource']['data'],",
+    "['pI'])(_0x105037['dataSource']['data'],",
+    "['pI'])(_0x1ec0c5['dataSource']['data'],",
+    "['pI'])(_0x556aca['dataSource']['data'],",
+    "['pI'])(_0x32c81f['dataSource']['data'],",
+    "['pI'])(_0x30c4a0['dataSource']['data'],",
+    "['pI'])(_0x30c4a0['selectedItem']['items'],",
+    "['pI'])(_0x1b3487['dataSource']['data'],",
+    "['pI'])(_0x4e4c31['dataSource'],",
+    "'data-source':_0x58b23b['data']}",
+    "'data-source':_0x58b23b}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "fixture-account"
+  ]
+}
