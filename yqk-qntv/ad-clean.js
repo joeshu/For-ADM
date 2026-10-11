@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 4b5e268b8bad. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 2a96a3edaeb8. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {

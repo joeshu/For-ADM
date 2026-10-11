@@ -853,7 +853,8 @@
       "mode": "verbatim",
       "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet",
       "adapter": "guazi",
-      "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js"
+      "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js",
+      "cryptoSource": "guazi-app/vendor/cryptojs-aes.min.js"
     }
   ]
 }

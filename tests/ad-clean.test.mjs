@@ -82,7 +82,7 @@ test('Auete ad loaders clear while player, episodes, history and unknown hosts s
 test('generated artifacts and standalone syntax remain deterministic',()=>{
  execFileSync(process.execPath,['scripts/build-ad-clean.mjs','--check'],{cwd:root});
  for(const f of ['universal/ad-clean.js',...manifest.templates.map(t=>t.output.script)])new vm.Script(read(f));
- const revisions=new Set();for(const p of ['universal/quantumult-x-snippet.conf',...manifest.templates.map(t=>t.output.conf)])for(const m of read(p).matchAll(/ad-clean\.js\?v=([a-f0-9]+)/g))revisions.add(m[1]);assert.equal(revisions.size,1);
+ for(const conf of ['universal/quantumult-x-snippet.conf',...manifest.templates.map(t=>t.output.conf),'guazi-app/quantumult-x-snippet.conf'])for(const m of read(conf).matchAll(/https:\/\/raw\.githubusercontent\.com\/joeshu\/For-ADM\/master\/([^?\s]+)\?v=([a-f0-9]+)/g))assert(read(m[1]).split('\n')[0].includes('revision '+m[2]));
 });
 test('all API domain suffixes support known and rotated prefixes, without matching other services',()=>{
  const t=manifest.templates.find(t=>t.id==='yqk-qntv');
