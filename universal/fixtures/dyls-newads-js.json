@@ -1,0 +1,12 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/NewAds-CtNp18Uc.js",
+  "body": "/* AdGridCard; AdGridSkeleton; cacheKey:`section:${e}`; pauseGifInPseudoLandscape */\nvar T=()=>`fixture-grid-with-cache`,E=()=>`fixture-section-ad`;export{T as n,E as t};",
+  "removed": [
+    "export{T as n,E as t};"
+  ],
+  "preserved": [
+    "fixture-grid-with-cache",
+    "fixture-section-ad"
+  ]
+}

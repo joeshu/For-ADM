@@ -1,0 +1,15 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/helperService-BjnnVgxU.js",
+  "body": "/* `/advert/config`; cacheKey:o.adsQuery; fetcher:dt; refetchAds:e.refetch */\nfunction _t(){throw Error(`fixture-old-ad-hook`)};function vt(){throw Error(`fixture-old-ad-load`)};function X(e){return e};function yt(){return `fixture-header-topics`};function ht(){return `fixture-header-hook`};function gt(){return `fixture-header-reset`};function bt(){return `fixture-notifications`};export{_t as a,X as i,yt as n,ht as o,gt as r,bt as s,vt as t};",
+  "removed": [
+    "export{_t as a,X as i,yt as n,ht as o,gt as r,bt as s,vt as t};"
+  ],
+  "preserved": [
+    "fixture-header-topics",
+    "fixture-header-hook",
+    "fixture-header-reset",
+    "fixture-notifications",
+    "function X(e){return e}"
+  ]
+}

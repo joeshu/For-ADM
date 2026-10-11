@@ -128,3 +128,5 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 ## 电影猎手首页接口
 
 新增用户抓包中的 `dyls1.mbxqnb.cn/api/v1/movie/index_recommend`，在成功 JSON 响应中移除轮播推广与 `advert_self` 图标广告区。普通影片分类和推荐完整保留。按用户要求扩大至该精确域名的 `/api/v数字/` API 路径，但清理仍受成功格式与广告布局特征约束；未知结构不改写，详情见 [电影猎手说明](../dyls/README.md)。公共 JSON 清理支持有结构校验的内层数组映射，新的响应成功判断只对显式配置模板启用。
+
+电影猎手多页面 JS：关闭入口开屏与缓存状态，并在 `helperService`、`NewAds` 的专用广告导出处返回空数据/null。搜索页与播放页共享网格直接共用处理；全部源码指纹及次数校验，保留其他模块导出与播放器。见 [电影猎手说明](../dyls/README.md)。
