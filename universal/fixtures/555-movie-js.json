@@ -1,0 +1,12 @@
+{
+  "template": "555-movie",
+  "url": "https://eliteres.fanruan.com/office/2026/09/24/5217868f-8244-4d9f-8eae-1028bcc2c2a7.js?response-content-type=application%2Fjavascript&ver=4ce6382c3424",
+  "body": "$(document).ready(function(){var Y=$(\"#iYmIuMjZyeS5\").data(\"encoded\");if(Y){var H;try{H=JSON.parse(atob(Y))}catch(P){return}Object.keys(H).forEach(B=>{var j=\"small-icon-intro-placeholder\";$(\".small-icon-container\").append(H[B].name)})}});window.fixturePlayer=function(){return \"player-preserved\";};",
+  "removed": [
+    "var Y=$(\"#iYmIuMjZyeS5\").data(\"encoded\");"
+  ],
+  "preserved": [
+    "window.fixturePlayer=function(){return \"player-preserved\";};",
+    "Object.keys(H).forEach(B=>"
+  ]
+}

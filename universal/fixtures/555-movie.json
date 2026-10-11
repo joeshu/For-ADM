@@ -1,0 +1,22 @@
+{
+  "template": "555-movie",
+  "url": "https://5dy4.vip/",
+  "body": "<html><script>var maccms = {\"url\":\"www.555dy.net\"};</script><script data-cdn-origin-assets>window.fixtureAssets=true;</script><script id=\"iYmIuMjZyeS5\" type=\"application/json\" data-encoded=\"fixture-encoded-ad\"></script><div class=\"small-icon-container\"><a>fixture-promotion-grid</a></div><a href=\"https://55kp2.com/d1/?utm_source=YSWZ-wuwuwu\">fixture-app-banner</a><a href=\"https://55dy23.com/d1/?utm_source=YSWZ-wuwuwu\">fixture-app-popup</a><div class=\"banner lazyload-bg\">fixture-movie-hero</div><div class=\"popup\"><a href=\"https://55dy1.top\">发布页</a><a href=\"https://55kp2.com/voddetail/1.html\">fixture-unrelated-link</a><button>关闭公告</button></div><script id=\"other-json\" type=\"application/json\" data-encoded=\"keep-other-config\"></script><script>var player_aaaa={url:\"https://fixture-media.example/master.m3u8?sign=keep\"};</script><script src=\"https://eliteres.fanruan.com/office/2026/09/24/5217868f-8244-4d9f-8eae-1028bcc2c2a7.js?response-content-type=application%2Fjavascript\"></script><a href=\"/vodplay/800530-13-1.html\">播放</a></html>",
+  "removed": [
+    "fixture-encoded-ad",
+    "fixture-promotion-grid",
+    "fixture-app-banner",
+    "fixture-app-popup"
+  ],
+  "preserved": [
+    "fixture-movie-hero",
+    "发布页",
+    "关闭公告",
+    "fixture-unrelated-link",
+    "keep-other-config",
+    "var player_aaaa",
+    "master.m3u8?sign=keep",
+    "/vodplay/800530-13-1.html",
+    "5217868f-8244-4d9f-8eae-1028bcc2c2a7.js"
+  ]
+}

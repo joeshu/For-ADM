@@ -1050,6 +1050,108 @@
         }
       ],
       "parserProfile": "qingning-player"
+    },
+    {
+      "id": "555-movie",
+      "adapter": "declarative",
+      "output": {
+        "script": "555-movie/ad-clean.js",
+        "conf": "555-movie/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "wu5mv.com",
+              "www.wu5mv.com",
+              "5dy4.vip",
+              "www.5dy4.vip"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/(?:[^?#]*\\.html)?(?:\\?.*)?$"
+            }
+          ]
+        },
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "eliteres.fanruan.com"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "js",
+              "path": "/office/2026/09/24/5217868f-8244-4d9f-8eae-1028bcc2c2a7\\.js(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "id",
+            "exact": "iYmIuMjZyeS5"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "selector": {
+            "tag": "div",
+            "attr": "class",
+            "token": "small-icon-container"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "selector": {
+            "tag": "a",
+            "attr": "href",
+            "pattern": "^https://(?:55kp2\\.com|55dy23\\.com)/d1/(?:[?#].*)?$"
+          }
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "#iYmIuMjZyeS5",
+            "JSON.parse(atob(Y))",
+            "small-icon-intro-placeholder",
+            "Object.keys(H).forEach(B=>"
+          ],
+          "pairs": [
+            [
+              "var Y=$(\"#iYmIuMjZyeS5\").data(\"encoded\");",
+              "var Y=null; /* For-ADM: 555 promotion grid disabled. */",
+              1
+            ]
+          ]
+        }
+      ]
     }
   ],
   "requestRules": [
