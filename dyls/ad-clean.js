@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 9717beea1927. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 6493f1901bdb. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -185,5 +185,5 @@ function admRun(templates,processors) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"dyls","adapter":"declarative","output":{"script":"dyls/ad-clean.js","conf":"dyls/quantumult-x-snippet.conf"},"jsonRootGuard":{"all":[{"path":"msg","equals":"获取成功"},{"path":"data","type":"array"}]},"jsonPolicies":[{"endpoint":"^/api/v1/movie/index_recommend$","when":{"path":"data","type":"array"},"ops":[{"op":"filterArray","path":"data","field":"layout","exclude":["advert_self"]},{"op":"mapArray","path":"data","itemWhen":{"all":[{"path":"layout","equals":"index_recommend_carousel"},{"path":"list","type":"array"}]},"ops":[{"op":"filterArray","path":"list","field":"type","exclude":[3]}]}]}],"bindings":[{"host":"(?:dyls1\\.mbxqnb\\.cn)","routes":[{"kind":"json","path":"/api/v1/movie/index_recommend(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
+admRun([{"id":"dyls","adapter":"declarative","output":{"script":"dyls/ad-clean.js","conf":"dyls/quantumult-x-snippet.conf"},"jsonRootGuard":{"all":[{"path":"msg","equals":"获取成功"},{"path":"data","type":"array"}]},"jsonPolicies":[{"endpoint":"^/api/v[0-9]+/[^?#]+$","when":{"path":"data","type":"array"},"ops":[{"op":"filterArray","path":"data","field":"layout","exclude":["advert_self"]},{"op":"mapArray","path":"data","itemWhen":{"all":[{"path":"layout","equals":"index_recommend_carousel"},{"path":"list","type":"array"}]},"ops":[{"op":"filterArray","path":"list","field":"type","exclude":[3]}]}]}],"bindings":[{"host":"(?:dyls1\\.mbxqnb\\.cn)","routes":[{"kind":"json","path":"/api/v[0-9]+/[^?#]+(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
 })();

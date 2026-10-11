@@ -206,7 +206,7 @@
       "testUrls": [
         "https://dyls1.mbxqnb.cn/api/v1/movie/index_recommend"
       ],
-      "notes": "用户 JSON 抓包确认首页轮播 type=3 广告及 advert_self 广告图标区；仅处理该精确域名和接口，保留影片、分类及推荐数据。其他接口/备用域名尚未核验。不处理 HLS。"
+      "notes": "首页 JSON 抓包确认轮播 type=3 广告及 advert_self 广告图标区；按用户要求扩大到 dyls1.mbxqnb.cn 的 /api/v数字/ 路径，仍须成功响应、data 数组和已确认布局特征匹配。其他接口复用此结构时生效，未知结构保留；其他接口手机效果及备用域名尚未核验。不处理 HLS。"
     }
   ]
 }

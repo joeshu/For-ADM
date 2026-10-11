@@ -1285,7 +1285,7 @@
           "routes": [
             {
               "kind": "json",
-              "path": "/api/v1/movie/index_recommend(?:\\?.*)?$"
+              "path": "/api/v[0-9]+/[^?#]+(?:\\?.*)?$"
             }
           ]
         }
@@ -1304,7 +1304,7 @@
       },
       "jsonPolicies": [
         {
-          "endpoint": "^/api/v1/movie/index_recommend$",
+          "endpoint": "^/api/v[0-9]+/[^?#]+$",
           "when": {
             "path": "data",
             "type": "array"
