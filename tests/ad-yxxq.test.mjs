@@ -41,3 +41,13 @@ test('YXXQ all 15 discovered backups have HTML/JS rules, MITM and absolute ad en
   assert(!out.includes('fixture-banner-ad'));assert(!out.includes('src="https://'+host+'/static/js/site-ads.js'));
  }
 });
+test('YXXQ mobile-only loaders clear with all fingerprints and leave other JS alone',()=>{
+ const modules=[['lmgg2-after-click','window.MAC_LMGG_COOLDOWN; function injectLmggRawIfAllowed(){} var rawSourceB64=""; function injectHtmlFallback(html){}','mobile ad injector'],['lmgg-source-monitor','window.MAC_LMGG_SOURCE_MONITOR; function trackTouch(event){} function largestClickableArea(){} function sendAnalytics(action, props){}','mobile ad monitor']];
+ for(const [name,body,label] of modules){
+  const target='https://www.yxxq65.cc/static/js/'+name+'.js?v=20260821a';
+  assert.equal(runCleaner(code,target,body),'/* For-ADM: verified YXXQ '+label+' disabled. */');
+  const marker=name==='lmgg2-after-click'?'rawSourceB64':'function trackTouch(event)';const changed=body.replace(marker,'unknown');assert.equal(runCleaner(code,target,changed),changed);
+  assert.equal(runCleaner(code,target,body,{statusCode:502}),body);
+  assert.equal(runCleaner(code,target.replace('www.yxxq65.cc','www.yxxq99.cc'),body),body);
+ }
+});

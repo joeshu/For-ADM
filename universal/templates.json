@@ -860,7 +860,7 @@
             },
             {
               "kind": "js",
-              "path": "/static/js/site-ads\\.js(?:\\?.*)?$"
+              "path": "/static/js/(?:site-ads|lmgg-source-monitor|lmgg2-after-click)\\.js(?:\\?.*)?$"
             }
           ]
         }
@@ -910,6 +910,49 @@
         },
         {
           "kind": "html",
+          "op": "removeInlineScripts",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "scriptRequires": [
+            "window.MAC_LMGG_SOURCE_MONITOR =",
+            "raw_mobile_non_home",
+            "mxpro_lmgg_raw"
+          ]
+        },
+        {
+          "kind": "html",
+          "op": "removeInlineScripts",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "scriptRequires": [
+            "window.MAC_LMGG_COOLDOWN =",
+            "rawSourceB64:",
+            "raw_mobile_non_home",
+            "mxpro_lmgg_raw"
+          ]
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^(?:(?:https?:)?//(?:www\\.yxxq(?:65|35|51|52|53|54|55|56|57|59|61|62|63|64|41|25)\\.cc))?/static/js/(?:lmgg-source-monitor|lmgg2-after-click)\\.js(?:\\?.*)?$"
+          }
+        },
+        {
+          "kind": "html",
           "op": "removeElements",
           "requires": [
             "var maccms=",
@@ -932,6 +975,28 @@
             "function initAdModal()"
           ],
           "value": "/* For-ADM: verified YXXQ advertising module disabled. */"
+        },
+        {
+          "kind": "js",
+          "op": "setBody",
+          "requires": [
+            "window.MAC_LMGG_COOLDOWN",
+            "function injectLmggRawIfAllowed()",
+            "rawSourceB64",
+            "function injectHtmlFallback(html)"
+          ],
+          "value": "/* For-ADM: verified YXXQ mobile ad injector disabled. */"
+        },
+        {
+          "kind": "js",
+          "op": "setBody",
+          "requires": [
+            "window.MAC_LMGG_SOURCE_MONITOR",
+            "function trackTouch(event)",
+            "function largestClickableArea()",
+            "function sendAnalytics(action, props)"
+          ],
+          "value": "/* For-ADM: verified YXXQ mobile ad monitor disabled. */"
         }
       ]
     },
