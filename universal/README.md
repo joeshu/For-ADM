@@ -1,6 +1,6 @@
 # Quantumult X 统一去广告
 
-统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang 六组适配。
+统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang、聚爷爷七组适配。
 
 ## 使用
 
@@ -22,7 +22,7 @@
 | `src/engine.js` | 字段校验、不可变 JSON 操作、HTML 删除、JS 修改组、统一入口 |
 | `src/souju.js`、`src/function-tools.js` | 搜剧特定组件函数定位 |
 | `src/yqk.js` | Nuxt 源码定位及公共 JSON 清理器注入 |
-| `../scripts/build-ad-clean.mjs` | 生成七份脚本及七份规则，统一 MITM 和缓存版本 |
+| `../scripts/build-ad-clean.mjs` | 生成八份脚本及八份规则，统一 MITM 和缓存版本 |
 | `../tests/ad-clean.test.mjs` | 域名边界、广告策略、独立/统一一致性及播放字段验证 |
 
 仓库根目录执行，使用 Node.js 24，无需安装依赖：
@@ -80,3 +80,7 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 ## 一起看影院 eboyang（旧版）
 
 新增 eboyang.com / www.eboyang.com 的旧版 qiqino5 模板，独立于 Nuxt YQK。广告核心位置、匹配范围和验证见 [eboyang 说明](../eboyang/README.md)。已核验真实首页、详情页、播放页与专用广告 JS，保留播放源、下一集和播放器 iframe；不增加外部播放器或媒体流规则。
+
+## 聚爷爷
+
+依据用户手机详情页响应定位 HTML 底部内嵌混淆广告 JS，复用新增的 removeInlineScripts 操作，仅在站点特征和五个广告源码特征都匹配时移除。见 [聚爷爷说明](../juyeye/README.md)。不删除验证码、手机访问判断、站点公告或播放器逻辑；实际播放页仍待获取。

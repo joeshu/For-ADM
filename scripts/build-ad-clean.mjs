@@ -41,6 +41,8 @@ for(const t of templates){
    if(a.op==='removeElements'){
     const s=a.selector;if(!s||!s.tag||!s.attr||[s.token,s.exact,s.pattern].filter(x=>x!==undefined).length!==1)throw Error('Invalid HTML selector');
     if(s.pattern){if(!s.pattern.startsWith('^')||!s.pattern.endsWith('$'))throw Error('HTML attribute pattern must be anchored');new RegExp(s.pattern);}
+   }else if(a.op==='removeInlineScripts'){
+    if(!Array.isArray(a.scriptRequires)||a.scriptRequires.length<3||!a.scriptRequires.every(s=>typeof s==='string'&&s))throw Error('Inline script removal requires at least three source fingerprints');
    }else if(a.op==='removeAttributes')new RegExp(a.attributePattern);
    else throw Error('HTML must use tag-aware operations');
   }else if(a.kind==='js'){

@@ -176,3 +176,16 @@ test('Eboyang HTML removes exact ad entries without deleting reminders or player
  const rules=read('universal/quantumult-x-snippet.conf').split('\n').filter(l=>l.startsWith('^')).map(l=>new RegExp(l.split(' url ')[0]));
  for(const url of ['https://www.eboyang.com/js/player/vip.html','https://www.eboyang.com/js/play.js','https://www.eboyang.com/movie.m3u8','https://eboyang.com.evil.com/'])assert(!rules.some(r=>r.test(url)));
 });
+
+test('Juyeye inline advertising requires all source fingerprints and keeps player and access logic',()=>{
+ const fixture=JSON.parse(read('universal/fixtures/juyeye.json'));
+ const rule=manifest.templates.find(t=>t.id==='juyeye').actions[0];
+ const ad=fixture.body.match(/<script>(!function\(\)\{function a[\s\S]*?)<\/script>/)[0];
+ const access='<script>if(navigator.platform==="Win32")location.href="../404.html";</script><script>function captchaVerify(){return "keep"}</script>';
+ const protectedContent='<!-- '+ad+' --><style>.sample:after{content:\''+ad+'\'}</style><script src="/known-player.js">'+ad.slice(8,-9)+'</script>'+access;
+ const body=fixture.body.replace('</html>',protectedContent+'</html>');
+ check('juyeye',fixture.url,body,out=>{assert(out.includes(protectedContent));for(const s of fixture.preserved)assert(out.includes(s));assert.equal(out.split(ad).length,3);});
+ for(const marker of rule.scriptRequires){const drift=fixture.body.replace(marker,'SOURCE-CHANGED');assert.equal(run(universal,fixture.url,drift),drift);}
+ for(const url of ['https://juyeye.cc/voddetail/96188.html','https://www.juyeye.cc.evil.com/voddetail/96188.html','https://www.juyeye.vip/','https://www.juyeye.cc/captcha.php','https://www.juyeye.cc/mxtheme/js/home.js','https://www.juyeye.cc/movie.m3u8'])assert.equal(run(universal,url,fixture.body),fixture.body);
+ const challenge='<html>系统安全验证<script>captchaVerify.Init();</script></html>';assert.equal(run(universal,fixture.url,challenge),challenge);
+});

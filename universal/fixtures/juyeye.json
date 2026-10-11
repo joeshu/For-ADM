@@ -1,0 +1,16 @@
+{
+  "template": "juyeye",
+  "url": "https://www.juyeye.cc/voddetail/96188.html",
+  "body": "<html><script>var maccms={\"url\":\"www.juyeye.cc\"};</script><script src=\"/mxtheme/js/home.js?v=2.1\"></script><script>!function(){function a(a){var b={};return a}var b=a(`YTTJ4TLR 1n0n`.substr(10));new Function(b)()}();</script><script>var player_aaaa={url:\"fixture-movie.m3u8\",link_next:\"/vodplay/96188-1-2.html\"};</script><iframe src=\"/player/index.html\"></iframe><a href=\"/vodplay/96188-1-2.html\">下一集</a><div id=\"popup\">来自站长的叮嘱</div></html>",
+  "removed": [
+    "YTTJ4TLR 1n0n",
+    "new Function(b)()"
+  ],
+  "preserved": [
+    "var player_aaaa={url:\"fixture-movie.m3u8\",link_next:\"/vodplay/96188-1-2.html\"};",
+    "<iframe src=\"/player/index.html\"></iframe>",
+    "<a href=\"/vodplay/96188-1-2.html\">下一集</a>",
+    "/mxtheme/js/home.js?v=2.1",
+    "来自站长的叮嘱"
+  ]
+}

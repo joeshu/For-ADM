@@ -716,6 +716,48 @@
           }
         }
       ]
+    },
+    {
+      "id": "juyeye",
+      "adapter": "declarative",
+      "output": {
+        "script": "juyeye/ad-clean.js",
+        "conf": "juyeye/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "www.juyeye.cc"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/(?:index\\.html|(?:voddetail|vodplay|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "kind": "html",
+          "op": "removeInlineScripts",
+          "requires": [
+            "/mxtheme/js/home.js",
+            "var maccms=",
+            "www.juyeye.cc"
+          ],
+          "scriptRequires": [
+            "!function(){function a(a){var b={",
+            "new Function(b)()",
+            "`.substr(10))",
+            "YTTJ4TLR",
+            "1n0n"
+          ]
+        }
+      ]
     }
   ]
 }

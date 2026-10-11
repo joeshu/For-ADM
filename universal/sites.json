@@ -90,6 +90,19 @@
         "https://www.eboyang.com/bovideo/3896-1-0.html"
       ],
       "notes": "核验首页、详情、播放页及 le1008.js 的静态解码；保留 caonima/common/function/play/history 与播放器 iframe。与 Nuxt YQK 分开适配。"
+    },
+    {
+      "id": "juyeye",
+      "name": "聚爷爷",
+      "template": "juyeye",
+      "status": "source-verified",
+      "releasePages": [
+        "https://www.juyeye.vip/"
+      ],
+      "testUrls": [
+        "https://www.juyeye.cc/voddetail/96188.html"
+      ],
+      "notes": "以用户手机抓包响应确认内嵌混淆广告 JS；只移除五个源码特征同时命中的 script。发布页、验证码、桌面访问限制和其他域名不改写。播放页尚未取得真实响应。"
     }
   ]
 }
