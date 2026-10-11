@@ -51,3 +51,14 @@ test('YXXQ mobile-only loaders clear with all fingerprints and leave other JS al
   assert.equal(runCleaner(code,target.replace('www.yxxq65.cc','www.yxxq99.cc'),body),body);
  }
 });
+test('YXXQ HTML covers articles and labels with queries but keeps APIs, media and unknown markup intact',()=>{
+ const mobile=readJSON(new URL('../universal/fixtures/yxxq-arttype.json',import.meta.url));
+ const conf=fs.readFileSync(new URL('../universal/quantumult-x-snippet.conf',import.meta.url),'utf8');
+ const rules=conf.split('\n').filter(line=>line.includes(' url script-response-body ')).map(line=>new RegExp(line.split(' url ')[0]));
+ for(const host of hosts)for(const path of ['/arttype/55.html','/artdetail-5.html','/label/hot.html','/index.php/label/app.html']){
+  const target='https://'+host+path+'?acq_channel=kly&acq_landing_path=%2F';assert(rules.some(re=>re.test(target)));
+  const out=runCleaner(code,target,mobile.body);assert(!out.includes('fixture-encoded-mobile-ad'));assert(out.includes('烧脑悬疑电影推荐'));
+  const unknown='<html><main>文章内容</main><script>var normal=true;</script></html>';assert.equal(runCleaner(code,target,unknown),unknown);
+ }
+ for(const path of ['/api.php/frontend/domainStatusDiscovery','/movie.m3u8','/movie.mp4','/static/js/player.js'])assert.equal(runCleaner(code,'https://www.yxxq65.cc'+path,mobile.body),mobile.body);
+});

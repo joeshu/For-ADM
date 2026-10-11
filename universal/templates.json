@@ -856,7 +856,7 @@
           "routes": [
             {
               "kind": "html",
-              "path": "/(?:index\\.html|(?:html|play|list|search)/[^/?#]+\\.html|index\\.php/label/hot\\.html)?(?:\\?.*)?$"
+              "path": "/(?:[^?#]*\\.html)?(?:\\?.*)?$"
             },
             {
               "kind": "js",

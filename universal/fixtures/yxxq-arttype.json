@@ -1,0 +1,35 @@
+{
+  "template": "yxxq",
+  "url": "https://www.yxxq65.cc/arttype/55.html?acq_id=fixture&acq_channel=kly&acq_source_domain=www.yxxq.top&acq_landing_path=%2F",
+  "body": "<html><script>var maccms={template_dir:\"mxpro\"};</script><script src=\"/mxtheme/js/home.js\"></script><li data-ad-slot=\"category_nav_text\"><a>fixture-nav-ad</a></li><a class=\"mac-ad-card\" data-ad-slot=\"home_hot_card\">fixture-card-ad</a><div data-ad-slot=\"play_below\"><div>fixture-banner-ad</div></div><script src=\"/static/js/site-ads.js?v=20260919a\"></script><script src=\"/static/js/playerconfig.js?t=20261011b\"></script><script src=\"/static/js/player.js?t=d20261011b\"></script><script src=\"/static/js/player-ab-test.js?v=20260603d\"></script><script src=\"/static/js/site-domain-status-ddys.js\"></script><script>var player_aaaa={url:\"fixture-play-url\",from:\"SHNB\",link_next:\"/play/movie-2-2.html\"};var fake='<div data-ad-slot=\"home_hot_card\">fixture-string-kept</div>';</script><div class=\"mac-ad-card-extra\">正常影片</div><div data-ad-slot-extra=\"home_hot_card\">相似属性</div><div class=\"netdisk\">网盘资源</div><a href=\"/play/movie-1-1.html\">切换线路</a><script>window.MAC_LMGG_SOURCE_MONITOR = { enabled: true, source: 'lmgg', slot: 'raw_mobile_non_home', campaign: 'mxpro_lmgg_raw'};</script><script src=\"/static/js/lmgg-source-monitor.js?v=20260821a\"></script><script>window.MAC_LMGG_COOLDOWN = { enabled: true, slot: 'raw_mobile_non_home', campaign: 'mxpro_lmgg_raw', rawSourceB64: 'fixture-encoded-mobile-ad'};</script><script src=\"/static/js/lmgg2-after-click.js?v=20260821a\"></script><script>window.MAC_LMGG_COOLDOWN_OTHER = { enabled:true };var nextPage=\"/play/movie-2-2.html\";</script><main><h1>片单推荐</h1><a href=\"/artdetail-5.html\">烧脑悬疑电影推荐</a><a href=\"/label/hot.html\">热搜榜</a></main></html>",
+  "removed": [
+    "fixture-nav-ad",
+    "fixture-card-ad",
+    "fixture-banner-ad",
+    "src=\"/static/js/site-ads.js?v=20260919a\"",
+    "window.MAC_LMGG_SOURCE_MONITOR =",
+    "window.MAC_LMGG_COOLDOWN =",
+    "fixture-encoded-mobile-ad",
+    "src=\"/static/js/lmgg-source-monitor.js?v=20260821a\"",
+    "src=\"/static/js/lmgg2-after-click.js?v=20260821a\""
+  ],
+  "preserved": [
+    "/mxtheme/js/home.js",
+    "/static/js/playerconfig.js?t=20261011b",
+    "/static/js/player.js?t=d20261011b",
+    "/static/js/player-ab-test.js?v=20260603d",
+    "/static/js/site-domain-status-ddys.js",
+    "var player_aaaa={url:\"fixture-play-url\",from:\"SHNB\",link_next:\"/play/movie-2-2.html\"};",
+    "fixture-string-kept",
+    "正常影片",
+    "相似属性",
+    "网盘资源",
+    "/play/movie-1-1.html",
+    "window.MAC_LMGG_COOLDOWN_OTHER =",
+    "var nextPage=\"/play/movie-2-2.html\"",
+    "片单推荐",
+    "/artdetail-5.html",
+    "烧脑悬疑电影推荐",
+    "/label/hot.html"
+  ]
+}
