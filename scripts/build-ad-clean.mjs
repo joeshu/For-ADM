@@ -61,8 +61,18 @@ for(const t of templates){
   }
  }
 }
+const requestRules=(manifest.requestRules||[]).map(r=>({...r,...domains(r.domains)}));
+for(const r of requestRules){
+ if(ids.has(r.id))throw Error('Duplicate request rule ID');ids.add(r.id);
+ if(r.domains.type!=='exact'||!r.domains.names.length||r.domains.names.some(h=>!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(h)))throw Error('Request rejects require exact hosts');
+ if(r.action!=='reject-dict'||!Array.isArray(r.endpoints)||!r.endpoints.length||new Set(r.endpoints).size!==r.endpoints.length||r.endpoints.some(p=>!/^\/App\/(?:Ad|ad|IndexList|Resource)\/[A-Za-z/]+$/.test(p)))throw Error('Invalid advertising request endpoints');
+ const p=r.output?.conf;
+ if(typeof p!=='string'||path.isAbsolute(p)||p.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!p.endsWith('.conf')||outputPaths.has(p))throw Error('Invalid request rule output');
+ outputPaths.add(p);
+}
+function requestLines(r){return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
 const generated=new Map();
-function generate(selected,scriptPath,confPath){
+function generate(selected,scriptPath,confPath,includeRequests=false){
  const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes})=>({host,routes}))}));
  const header='/* GENERATED from universal/templates.json and universal/src; revision '+revision+'. Do not edit. */\n';
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
@@ -73,10 +83,12 @@ function generate(selected,scriptPath,confPath){
  const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+');\n})();\n';
  const url=manifest.rawBase+'/'+scriptPath+'?v='+revision;
  const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)));
- const mitm=[...new Set(selected.flatMap(t=>t.bindings.flatMap(b=>b.mitm)))];
+ if(includeRequests)rules.push(...requestRules.flatMap(requestLines));
+ const mitm=[...new Set([...selected.flatMap(t=>t.bindings.flatMap(b=>b.mitm)),...(includeRequests?requestRules.flatMap(r=>r.mitm):[])])];
  generated.set(scriptPath,code);generated.set(confPath,'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+rules.join('\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');
 }
-generate(templates,'universal/ad-clean.js','universal/quantumult-x-snippet.conf');
+generate(templates,'universal/ad-clean.js','universal/quantumult-x-snippet.conf',true);
+for(const r of requestRules)generated.set(r.output.conf,'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+requestLines(r).join('\n')+'\n\n[mitm]\nhostname = '+r.mitm.join(', ')+'\n');
 for(const t of templates)generate([t],t.output.script,t.output.conf);
 const checking=process.argv.includes('--check');
 for(const [p,text]of generated){if(checking){if(!fs.existsSync(path.join(root,p))||read(p)!==text)throw Error('Stale generated file: '+p);}else{fs.mkdirSync(path.dirname(path.join(root,p)),{recursive:true});fs.writeFileSync(path.join(root,p),text);}}

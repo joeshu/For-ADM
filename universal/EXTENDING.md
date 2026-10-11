@@ -70,3 +70,7 @@ node scripts/check-ad-clean.mjs
 `sites.json` 仅存放来源、发布页、样本链接和核验状态；运行时域名与路径仍由 `templates.json` 维护。`SITES.md` 自动生成，pending 项不进入规则。发布页增加新域名时先核验，不自动登记。规则更新失败可恢复上一提交的配置和脚本，或暂时禁用对应重写。
 
 内嵌 JS 的局部修改可使用 `replaceInlineScripts`：配置站点 `requires`、至少三个 `scriptRequires` 和 `pairs` 的精确源码/替换内容/预期次数。仅修改真实、无 src 的 script，未知或重复源码保留；用于明确的兼容性修改时保留原脚本其他内容。
+
+## 专用广告请求规则
+
+`requestRules` 用于已确认的广告专用接口，独立于 HTML/JS/JSON 响应清理。每项显式声明 id、exact domains、完整 endpoints、reject-dict action 和独立 conf 路径；统一配置与独立配置由同一构建器生成。必须补充来源、网站登记和域名/路径边界测试。不要使用任意主机或宽泛路径，不要将影片、会员、播放来源接口作为广告拒绝。当前瓜子接口来源是参考规则源码，设备兼容性仍需实测。

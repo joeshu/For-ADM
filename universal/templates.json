@@ -823,5 +823,52 @@
         }
       ]
     }
+  ],
+  "requestRules": [
+    {
+      "id": "guazi-app",
+      "output": {
+        "conf": "guazi-app/quantumult-x-snippet.conf"
+      },
+      "domains": {
+        "type": "exact",
+        "names": [
+          "api.mxtxqe.com",
+          "api.sef5w7.com",
+          "sdapi.u4gdp3.com",
+          "sdapi.4zu76s.com",
+          "sdapi.re3k7n.com",
+          "api.xqe4cxu.com",
+          "api.syq8gvw.com",
+          "api.zjypp7x.com",
+          "apinew.n3yje.icu",
+          "apinew.8hpt2duq.com",
+          "apinew.fzmfbdmg.com",
+          "api.7gmsut2m.com",
+          "api.gq89em.com"
+        ]
+      },
+      "endpoints": [
+        "/App/Ad/splashInfo",
+        "/App/Ad/noticeInfo",
+        "/App/IndexList/homeFloatAd",
+        "/App/Ad/activityInfo",
+        "/App/Ad/skitAdInfo",
+        "/App/Ad/countPopTotal",
+        "/App/Ad/barsUserAdInfo",
+        "/App/ad/config",
+        "/App/Ad/vajraInfo",
+        "/App/Ad/bannerInfo",
+        "/App/Ad/bardCacheAdInfo",
+        "/App/Ad/barsIndexAdInfo",
+        "/App/Ad/comicAdInfo",
+        "/App/Ad/liveEventAdInfo",
+        "/App/Ad/novelAdInfo",
+        "/App/Ad/sportAdInfo",
+        "/App/Resource/CommentAd/show"
+      ],
+      "action": "reject-dict",
+      "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet"
+    }
   ]
 }

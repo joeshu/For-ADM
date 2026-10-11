@@ -84,3 +84,7 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 ## 聚爷爷
 
 依据用户手机详情页响应定位 HTML 底部内嵌混淆广告 JS，复用新增的 removeInlineScripts 操作，仅在站点特征和五个广告源码特征都匹配时移除。见 [聚爷爷说明](../juyeye/README.md)。保留验证码、平台判断变量、站点公告及播放器逻辑；按用户要求另精确取消正常页面中的电脑 404 跳转；实际播放页仍待获取。
+
+## 瓜子影视 App 专用请求拦截
+
+统一配置新增 17 个 reject-dict 广告接口，仅覆盖原规则明确列出的 13 个 API 主机。该规则由 templates.json 的 requestRules 生成；不调用响应脚本，不增加加密库，不扩大到任意域名。来源和未采用的改写见 [guazi-app/README.md](../guazi-app/README.md)。尚未设备验证。
