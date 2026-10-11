@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
+import {validateSourcePath,parseRuleImport,validateGeneratedRules} from './lib/rule-import.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const manifest=JSON.parse(read('universal/templates.json'));
@@ -18,7 +19,7 @@ function domains(d){
 }
 const sources=['universal/src/engine.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js'];
 const source=sources.map(read).join('\n');
-const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>r.sourceFile?read(r.sourceFile):'').join('')+read('scripts/build-ad-clean.mjs')).digest('hex').slice(0,12);
+const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>r.sourceFile?read(validateSourcePath(r.sourceFile)):'').join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')).digest('hex').slice(0,12);
 const templates=manifest.templates.map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
 const outputPaths=new Set();
@@ -66,14 +67,7 @@ for(const r of requestRules){
  if(ids.has(r.id))throw Error('Duplicate request rule ID');ids.add(r.id);
  if(r.domains.type!=='exact'||!r.domains.names.length||r.domains.names.some(h=>!/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(h)))throw Error('Request rejects require exact hosts');
  if(r.mode==='verbatim'){
-  const file=r.sourceFile;
-  if(typeof file!=='string'||path.isAbsolute(file)||file.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!file.endsWith('.snippet'))throw Error('Invalid verbatim source path');
-  const text=read(file),lines=text.split(/\r?\n/).filter(l=>l.startsWith('^'));
-  if(!lines.length||lines.some(l=>!/^\^.+ url (?:reject-dict|script-response-body https:\/\/raw\.githubusercontent\.com\/[^\s]+)$/.test(l)))throw Error('Invalid verbatim rules');
-  for(const line of lines)new RegExp(line.split(' url ')[0]);
-  const hosts=text.match(/^hostname = (.*)$/m)?.[1].split(', ');
-  if(JSON.stringify(hosts)!==JSON.stringify(r.domains.names))throw Error('Verbatim MITM differs from manifest');
-  r.lines=lines;r.metadata=text.split(/\r?\n/).filter(l=>l.startsWith('#!'));
+  Object.assign(r,parseRuleImport(read(validateSourcePath(r.sourceFile)),r.domains.names));
  }else if(r.action!=='reject-dict'||!Array.isArray(r.endpoints)||!r.endpoints.length||new Set(r.endpoints).size!==r.endpoints.length||r.endpoints.some(p=>!/^\/App\/(?:Ad|ad|IndexList|Resource)\/[A-Za-z/]+$/.test(p)))throw Error('Invalid advertising request endpoints');
  const p=r.output?.conf;
  if(typeof p!=='string'||path.isAbsolute(p)||p.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!p.endsWith('.conf')||outputPaths.has(p))throw Error('Invalid request rule output');
@@ -92,9 +86,11 @@ function generate(selected,scriptPath,confPath,includeRequests=false){
  const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+');\n})();\n';
  const url=manifest.rawBase+'/'+scriptPath+'?v='+revision;
  const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)));
- if(includeRequests)rules.push(...requestRules.flatMap(requestLines));
+ const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)).join('\n')); 
+ if(includeRequests){rules.push(...requestRules.flatMap(requestLines));groups.push(...requestRules.map(r=>'# '+r.id+(r.mode==='verbatim'?' — complete upstream rules; original host matching and external script references':'')+'\n'+requestLines(r).join('\n')));}
+ validateGeneratedRules(rules);
  const mitm=[...new Set([...selected.flatMap(t=>t.bindings.flatMap(b=>b.mitm)),...(includeRequests?requestRules.flatMap(r=>r.mitm):[])])];
- generated.set(scriptPath,code);generated.set(confPath,'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+rules.join('\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');
+ generated.set(scriptPath,code);generated.set(confPath,(includeRequests?'#!name = For-ADM 统一去广告\n#!desc = 网站适配与瓜子完整原规则；更新后刷新脚本缓存\n':'')+'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+groups.join('\n\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');
 }
 generate(templates,'universal/ad-clean.js','universal/quantumult-x-snippet.conf',true);
 for(const r of requestRules)generated.set(r.output.conf,(r.metadata?.join('\n')||'')+'\n# GENERATED; revision '+revision+'\n[rewrite_local]\n'+requestLines(r).join('\n')+'\n\n[mitm]\nhostname = '+r.mitm.join(', ')+'\n');
