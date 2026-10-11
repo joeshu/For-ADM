@@ -1651,17 +1651,26 @@
             "names": [
               "a.kkapp06.com",
               "kekys.com",
-              "kkys01.com",
-              "kkys02.com",
-              "kkys03.com",
-              "kkys14.com",
-              "kkys15.com",
-              "www.kekys.com",
-              "www.kkys01.com",
-              "www.kkys02.com",
-              "www.kkys03.com",
-              "www.kkys14.com",
-              "www.kkys15.com"
+              "www.kekys.com"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "js",
+              "path": "/static/v[0-9]+/js/(?:app(?:-legacy)?|[0-9]+(?:-legacy)?)\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+            }
+          ]
+        },
+        {
+          "domains": {
+            "type": "numbered",
+            "brands": [
+              "kkys"
+            ],
+            "tld": "com",
+            "prefixes": [
+              "",
+              "www"
             ]
           },
           "routes": [
@@ -3549,7 +3558,7 @@
       "jsHelpers": {
         "cards": {
           "marker": "function __forAdmKKCleanV2(",
-          "source": "function __forAdmKKCleanV2(value,depth){\n depth=depth||0;if(depth>8||!value||typeof value!=='object')return value;\n function ad(item){\n  if(!item||typeof item!=='object')return false;\n  if(['ad','ad_mp4','ad_h264'].indexOf(item.type)>=0||['ad_home','ad_home2','ad_topic','ad_netflix','ad_netflix_topic'].indexOf(item._vod)>=0)return true;\n  if(['video','movie','mp4','h264'].indexOf(item.type)>=0)return false;\n  if(!('title'in item||'name'in item||'coverPath'in item||'imagePath'in item||'image'in item))return false;\n  var link=item.url;if(typeof link!=='string')return false;\n  if(/^(?:web|browser)\\?/.test(link)){try{var params=new URLSearchParams(link.slice(link.indexOf('?')+1));link=params.get('url')||params.get('urls')||'';}catch(e){return false}}\n  if(!/^https?:\\/\\//i.test(link))return false;\n  try{var urls=link.split('|');return urls.every(function(entry){var parsed=new URL(entry);return parsed.origin!==location.origin&&!/^(?:www\\.)?(?:kekys\\.com|kkys(?:01|02|03|14|15)\\.com)$/.test(parsed.hostname)&&parsed.hostname!=='a.kkapp06.com';});}catch(e){return false}\n }\n if(Array.isArray(value)){var changed=false,out=[];value.forEach(function(item){if(ad(item)){changed=true;return}var next=__forAdmKKCleanV2(item,depth+1);if(next!==item)changed=true;out.push(next)});return changed?out:value;}\n var copy=value;['data','blocks','items','list','reco','hd','trailer','vods'].forEach(function(key){var child=value[key];if(!child||typeof child!=='object')return;var next=__forAdmKKCleanV2(child,depth+1);if(next!==child){if(copy===value){copy={};Object.keys(value).forEach(function(k){if(k!=='__proto__'&&k!=='constructor'&&k!=='prototype')copy[k]=value[k]});}copy[key]=next;}});return copy;\n}"
+          "source": "function __forAdmKKCleanV2(value,depth){\n depth=depth||0;if(depth>8||!value||typeof value!=='object')return value;\n function ad(item){\n  if(!item||typeof item!=='object')return false;\n  if(['ad','ad_mp4','ad_h264'].indexOf(item.type)>=0||['ad_home','ad_home2','ad_topic','ad_netflix','ad_netflix_topic'].indexOf(item._vod)>=0)return true;\n  if(['video','movie','mp4','h264'].indexOf(item.type)>=0)return false;\n  if(!('title'in item||'name'in item||'coverPath'in item||'imagePath'in item||'image'in item))return false;\n  var link=item.url;if(typeof link!=='string')return false;\n  if(/^(?:web|browser)\\?/.test(link)){try{var params=new URLSearchParams(link.slice(link.indexOf('?')+1));link=params.get('url')||params.get('urls')||'';}catch(e){return false}}\n  if(!/^https?:\\/\\//i.test(link))return false;\n  try{var urls=link.split('|');return urls.every(function(entry){var parsed=new URL(entry);return parsed.origin!==location.origin&&!/^(?:www\\.)?(?:kekys\\.com|kkys[0-9]+\\.com)$/.test(parsed.hostname)&&parsed.hostname!=='a.kkapp06.com';});}catch(e){return false}\n }\n if(Array.isArray(value)){var changed=false,out=[];value.forEach(function(item){if(ad(item)){changed=true;return}var next=__forAdmKKCleanV2(item,depth+1);if(next!==item)changed=true;out.push(next)});return changed?out:value;}\n var copy=value;['data','blocks','items','list','reco','hd','trailer','vods'].forEach(function(key){var child=value[key];if(!child||typeof child!=='object')return;var next=__forAdmKKCleanV2(child,depth+1);if(next!==child){if(copy===value){copy={};Object.keys(value).forEach(function(k){if(k!=='__proto__'&&k!=='constructor'&&k!=='prototype')copy[k]=value[k]});}copy[key]=next;}});return copy;\n}"
         }
       }
     }

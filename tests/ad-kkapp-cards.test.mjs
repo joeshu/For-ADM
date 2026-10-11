@@ -16,8 +16,8 @@ test('KKAPP helpers inject once only after a complete card modification; unchang
  const f=readJSON(new URL('../universal/fixtures/kkapp-0.json',import.meta.url));assert.ok(!runCleaner(code,f.url,f.body).includes(template.jsHelpers.cards.marker));
 });
 test('KKAPP announced domains share JS interception but unknown domains and media remain outside rules',()=>{
- const f=readJSON(new URL('../universal/fixtures/kkapp-0.json',import.meta.url));for(const host of template.bindings[0].domains.names)assert.notEqual(runCleaner(code,f.url.replace('a.kkapp06.com',host),f.body),f.body);
- for(const host of ['www.kkys99.com','unknown.kkapp06.com','www.kekys.com.invalid'])assert.equal(runCleaner(code,f.url.replace('a.kkapp06.com',host),f.body),f.body);
- const conf=fs.readFileSync(new URL('../kkapp/quantumult-x-snippet.conf',import.meta.url),'utf8'),pattern=conf.split('\n').find(s=>s.startsWith('^https?://')).split(' url ')[0],re=new RegExp(pattern);
- for(const host of template.bindings[0].domains.names)assert.ok(re.test(f.url.replace('a.kkapp06.com',host)));assert.ok(!re.test('https://www.kekys.com/film.m3u8'));
+ const f=readJSON(new URL('../universal/fixtures/kkapp-0.json',import.meta.url));for(const host of [...template.bindings[0].domains.names,'kkys01.com','www.kkys14.com','kkys99.com','www.kkys123.com'])assert.notEqual(runCleaner(code,f.url.replace('a.kkapp06.com',host),f.body),f.body);
+ for(const host of ['www.kkysabc.com','other.kkys14.com','unknown.kkapp06.com','www.kekys.com.invalid'])assert.equal(runCleaner(code,f.url.replace('a.kkapp06.com',host),f.body),f.body);
+ const conf=fs.readFileSync(new URL('../kkapp/quantumult-x-snippet.conf',import.meta.url),'utf8'),patterns=conf.split('\n').filter(s=>s.startsWith('^https?://')).map(s=>new RegExp(s.split(' url ')[0])),re={test:url=>patterns.some(p=>p.test(url))};
+ for(const host of [...template.bindings[0].domains.names,'kkys01.com','www.kkys14.com','kkys99.com','www.kkys123.com'])assert.ok(re.test(f.url.replace('a.kkapp06.com',host)));assert.ok(!re.test('https://www.kekys.com/film.m3u8'));
 });
