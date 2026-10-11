@@ -222,7 +222,7 @@ test('Guazi full import preserves all upstream rules, script references and MITM
  assert.deepEqual(lines(independent).map(l=>l.split(' url ')[0]),source.map(l=>l.split(' url ')[0]));
  for(const line of source){const pattern=line.split(' url ')[0];assert.equal(lines(unified).filter(l=>l.split(' url ')[0]===pattern).length,1);new RegExp(pattern);if(line.endsWith(' url reject-dict'))assert(lines(independent).includes(line));}
  for(const line of lines(independent).filter(l=>l.includes(' url script-response-body ')))assert(line.includes('/guazi-app/ad-clean.js?v='));
- for(const line of lines(unified).filter(l=>source.some(s=>s.split(' url ')[0]===l.split(' url ')[0])&&l.includes(' url script-response-body ')))assert(line.includes('/universal/ad-clean.js?v='));
+ for(const line of lines(unified).filter(l=>source.some(s=>s.split(' url ')[0]===l.split(' url ')[0])&&l.includes(' url script-response-body ')))assert(line.includes('/guazi-app/ad-clean.js?v='));
  const hosts=original.match(/^hostname = (.*)$/m)[1].split(', ');assert.equal(hosts.length,13);
  assert.deepEqual(independent.match(/^hostname = (.*)$/m)[1].split(', '),hosts);
  for(const host of hosts)assert(unified.match(/^hostname = (.*)$/m)[1].split(', ').includes(host));

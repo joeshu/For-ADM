@@ -82,7 +82,7 @@ const generated=new Map();
 function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
  const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);
  const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes})=>({host,routes}))}));
- for(const r of requests.filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
+ for(const r of (onlyRequest?requests:[]).filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
  const header='/* GENERATED from universal/templates.json and universal/src; revision '+revision+'. Do not edit. */\n';
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
  const adapters=[...new Set(runtime.map(t=>t.adapter))];
@@ -97,7 +97,8 @@ function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest
  const url=manifest.rawBase+'/'+scriptPath+'?v='+revision;
  const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)));
  const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)).join('\n')); 
- if(requests.length){rules.push(...requests.flatMap(r=>requestLines(r,url)));groups.push(...requests.map(r=>'# '+r.id+(r.mode==='verbatim'?' — all upstream capabilities; original host matching; bundled response adapter':'')+'\n'+requestLines(r,url).join('\n')));}
+ const requestUrl=r=>r.adapter?manifest.rawBase+'/'+r.output.script+'?v='+revision:url;
+ if(requests.length){rules.push(...requests.flatMap(r=>requestLines(r,requestUrl(r))));groups.push(...requests.map(r=>'# '+r.id+(r.mode==='verbatim'?' — all upstream capabilities; original host matching; bundled response adapter':'')+'\n'+requestLines(r,requestUrl(r)).join('\n')));}
  validateGeneratedRules(rules);
  const mitm=[...new Set([...selected.flatMap(t=>t.bindings.flatMap(b=>b.mitm)),...requests.flatMap(r=>r.mitm)])];
  generated.set(scriptPath,code);generated.set(confPath,(onlyRequest?.metadata?.length?onlyRequest.metadata.join('\n')+'\n':'')+(includeRequests?'#!name = For-ADM 统一去广告\n#!desc = 网站适配与瓜子完整原规则；更新后刷新脚本缓存\n':'')+'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+groups.join('\n\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');

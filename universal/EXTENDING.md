@@ -73,4 +73,4 @@ node scripts/check-ad-clean.mjs
 
 ## 瓜子影视原规则完整保留
 
-`requestRules` 支持显式 verbatim 模式，从本地 sourceFile 读取并原样合并规则。瓜子影视按用户要求完整采用上游 23 条规则及 13 个 MITM 主机，原匹配正则保持不变；6 条响应规则调用本仓库打包脚本。来源原文件存档在 guazi-app/upstream；详见 [说明](../guazi-app/README.md)。加密依赖本地打包，尚未设备验证。该模式是明确选择的完整导入，不用于自动发现或扩域。
+`requestRules` 支持显式 verbatim 模式，从本地 sourceFile 读取并原样合并规则。瓜子影视按用户要求完整采用上游 23 条规则及 13 个 MITM 主机，原匹配正则保持不变；6 条响应规则调用本仓库瓜子独立脚本。来源原文件存档在 guazi-app/upstream；详见 [说明](../guazi-app/README.md)。加密依赖本地打包，尚未设备验证。该模式是明确选择的完整导入，不用于自动发现或扩域。
