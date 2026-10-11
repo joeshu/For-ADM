@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/8710.325fb8bb.js",
+  "body": "/* 'VodVerticalItem' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x59fdfb['recoArticles'],\n\n/* fixture-account ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "['pI'])(_0x59fdfb['recoArticles'],"
+  ],
+  "preserved": [
+    "fixture-account",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}

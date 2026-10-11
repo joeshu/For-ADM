@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/3602.8deb4ca8.js",
+  "body": "/* 'ShortsSwiperSlideADItem' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x191e64['list'],\n\n'data-source':_0x191e64['collections'],\n\n/* fixture-account ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "['pI'])(_0x191e64['list'],",
+    "'data-source':_0x191e64['collections'],"
+  ],
+  "preserved": [
+    "fixture-account",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}

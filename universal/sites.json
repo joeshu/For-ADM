@@ -213,11 +213,16 @@
       "name": "可可影视 / KKAPP",
       "template": "kkapp",
       "status": "source-verified",
-      "releasePages": [],
-      "testUrls": [
-        "https://a.kkapp06.com/?_c=c1&package=kkapp06.com"
+      "releasePages": [
+        "https://www.kekys.com",
+        "https://dl.kkys17.com"
       ],
-      "notes": "主 JS 广告选择/存在判断、动态模块专用广告 units 导出、多页面横幅读取和播放器前贴/暂停广告选择器均定点改写；保留公告、资源初始化、影片详情、会员校验和 HLS。仅已核验精确域名；未知源码不改写。手机效果待核验。"
+      "testUrls": [
+        "https://a.kkapp06.com/?_c=c1&package=kkapp06.com",
+        "https://www.kkys14.com",
+        "https://www.kkys15.com"
+      ],
+      "notes": "主 JS 广告选择/存在判断、动态模块专用广告 units 导出、多页面横幅读取和播放器前贴/暂停广告选择器均定点改写；保留公告、资源初始化、影片详情、会员校验和 HLS。仅已核验精确域名；未知源码不改写。手机效果待核验。 新增首页外链入口/轮播、混合影片推荐和影评瀑布流卡片过滤；在布局前清理数组避免广告占位。公告登记 kekys.com、kkys14/15.com；发布页还列出 kkys01/02/03.com，分别包含根域与 www。后者应用源码尚未取到，沿用严格 JS 指纹；不扩展任意编号域名。"
     }
   ]
 }

@@ -102,3 +102,7 @@ node scripts/check-ad-clean.mjs
 ```
 
 运行现有 `node scripts/new-ad-site.mjs --spec ./site.json`。无需重新提供 replacement 或指纹，工具使用已登记策略，验证样本的广告删除与播放保留；特征缺失时失败，不写入草稿。不自动启用新主机。禁止将 parserProfile 与本地 actions、其他适配器或 JSON 策略混用，避免覆盖保护条件。
+
+### 按需 JS helper
+
+声明式模板可在 `jsHelpers` 定义 `{name:{marker,source}}`，JS `replaceGroup` 可通过 `helper: name` 引用。只有整个替换组成功并改变源码才注入 helper；同一响应同名 helper 去重，错误响应、未知源码、未变化组不注入。marker 必须是 source 中的非空唯一标记。helper 在浏览器执行，清理脚本本身只做文本改写；需单独验证 helper 行为以及完整模块改写后的语法。

@@ -1,0 +1,21 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/9165-legacy.eda9f208.js",
+  "body": "/* 'VodEntra' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x7983fe['dataSource']['blocks'],\n\n['pI'])(_0x422b0f['dataSource'],\n\n['pI'])(_0x2c0064['dataSource']['data'],\n\n'dataSource':_0x1d0801['reco']['banners']}\n\n'dataSource':_0x7983fe['dataSource']['banners']}\n\n'dataSource':_0x3ad82c}\n\n'data-source':_0x3ad82c['data']}\n\n'dataSource':_0x162e47,\n\n'dataSource':_0x49b16a['reco']['banners']}\n\n'data-source':_0x49b16a['vodHistories']}\n\n/* fixture-account ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "['pI'])(_0x7983fe['dataSource']['blocks'],",
+    "['pI'])(_0x422b0f['dataSource'],",
+    "['pI'])(_0x2c0064['dataSource']['data'],",
+    "'dataSource':_0x1d0801['reco']['banners']}",
+    "'dataSource':_0x7983fe['dataSource']['banners']}",
+    "'dataSource':_0x3ad82c}",
+    "'data-source':_0x3ad82c['data']}",
+    "'dataSource':_0x162e47,",
+    "'dataSource':_0x49b16a['reco']['banners']}",
+    "'data-source':_0x49b16a['vodHistories']}"
+  ],
+  "preserved": [
+    "fixture-account",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}

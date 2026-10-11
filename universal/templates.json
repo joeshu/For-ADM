@@ -1649,7 +1649,19 @@
           "domains": {
             "type": "exact",
             "names": [
-              "a.kkapp06.com"
+              "a.kkapp06.com",
+              "kekys.com",
+              "kkys01.com",
+              "kkys02.com",
+              "kkys03.com",
+              "kkys14.com",
+              "kkys15.com",
+              "www.kekys.com",
+              "www.kkys01.com",
+              "www.kkys02.com",
+              "www.kkys03.com",
+              "www.kkys14.com",
+              "www.kkys15.com"
             ]
           },
           "routes": [
@@ -2480,8 +2492,1066 @@
               1
             ]
           ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x3615f1['searchList'],",
+              "['pI'])(__forAdmKKCleanV2(_0x3615f1['searchList']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5e7221['items'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5e7221['items']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x4e84e6['searchList'],",
+              "['pI'])(__forAdmKKCleanV2(_0x4e84e6['searchList']),",
+              1
+            ],
+            [
+              "['pI'])(_0x460566['items'],",
+              "['pI'])(__forAdmKKCleanV2(_0x460566['items']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x12a0c8['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x12a0c8['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x7b9f83['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x7b9f83['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x3a6386['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x3a6386['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x1c6ba5['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x1c6ba5['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x19cfac['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x19cfac['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x45de03['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x45de03['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x256d18['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x256d18['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0xb6f742['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0xb6f742['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x5ec4ef['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5ec4ef['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x27f1c7['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x27f1c7['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodEntra'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x31af67['blocks'],",
+              "['pI'])(__forAdmKKCleanV2(_0x31af67['blocks']),",
+              1
+            ],
+            [
+              "['pI'])(_0x26d0ca['banner']['items'],",
+              "['pI'])(__forAdmKKCleanV2(_0x26d0ca['banner']['items']),",
+              1
+            ],
+            [
+              "['pI'])(_0x399ad1['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x399ad1['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x50ff5f['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x50ff5f['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x43459a['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x43459a['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0xedd77c['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0xedd77c['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x3bd7c8['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x3bd7c8['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x20cbac['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x20cbac['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5459d6['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5459d6['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5459d6['selectedItem']['items'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5459d6['selectedItem']['items']),",
+              1
+            ],
+            [
+              "['pI'])(_0x12a32b['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x12a32b['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x1995ec['dataSource'],",
+              "['pI'])(__forAdmKKCleanV2(_0x1995ec['dataSource']),",
+              1
+            ],
+            [
+              "'data-source':_0x374a6f['data']}",
+              "'data-source':__forAdmKKCleanV2(_0x374a6f['data'])}",
+              1
+            ],
+            [
+              "'data-source':_0x374a6f}",
+              "'data-source':__forAdmKKCleanV2(_0x374a6f)}",
+              9
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodEntra'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x54f29b['blocks'],",
+              "['pI'])(__forAdmKKCleanV2(_0x54f29b['blocks']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5ed0c7['banner']['items'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5ed0c7['banner']['items']),",
+              1
+            ],
+            [
+              "['pI'])(_0x424279['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x424279['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x56f040['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x56f040['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x501506['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x501506['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5a7309['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5a7309['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x513a46['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x513a46['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x45c9d8['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x45c9d8['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x2195e1['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2195e1['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x2195e1['selectedItem']['items'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2195e1['selectedItem']['items']),",
+              1
+            ],
+            [
+              "['pI'])(_0x12e5f1['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x12e5f1['dataSource']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x290151['dataSource'],",
+              "['pI'])(__forAdmKKCleanV2(_0x290151['dataSource']),",
+              1
+            ],
+            [
+              "'data-source':_0x215ae9['data']}",
+              "'data-source':__forAdmKKCleanV2(_0x215ae9['data'])}",
+              1
+            ],
+            [
+              "'data-source':_0x215ae9}",
+              "'data-source':__forAdmKKCleanV2(_0x215ae9)}",
+              9
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'ShortsSwiperSlideADItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0xe7b1a2['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0xe7b1a2['list']),",
+              1
+            ],
+            [
+              "'data-source':_0xe7b1a2['collections'],",
+              "'data-source':__forAdmKKCleanV2(_0xe7b1a2['collections']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'ShortsSwiperSlideADItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x191e64['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x191e64['list']),",
+              1
+            ],
+            [
+              "'data-source':_0x191e64['collections'],",
+              "'data-source':__forAdmKKCleanV2(_0x191e64['collections']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x31fa8f['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x31fa8f['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x2d5153['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2d5153['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5650da['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5650da['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x123550['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x123550['list']),",
+              1
+            ],
+            [
+              "'data-source':_0x57d39d,",
+              "'data-source':__forAdmKKCleanV2(_0x57d39d),",
+              1
+            ],
+            [
+              "'dataSource':_0x272761}",
+              "'dataSource':__forAdmKKCleanV2(_0x272761)}",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x36ee57['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x36ee57['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x16b3f4['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x16b3f4['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x102073['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x102073['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x443e90['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x443e90['list']),",
+              1
+            ],
+            [
+              "'data-source':_0x3df11c,",
+              "'data-source':__forAdmKKCleanV2(_0x3df11c),",
+              1
+            ],
+            [
+              "'dataSource':_0x402b6e}",
+              "'dataSource':__forAdmKKCleanV2(_0x402b6e)}",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "arrangedItems",
+            "webpackChunkmovie",
+            "POSTING_TYPE",
+            "getItemStyle"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "for(const _0x498556 of _0x5f546c['items'])",
+              "for(const _0x498556 of __forAdmKKCleanV2(_0x5f546c['items']))",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x320a18['dataSource']['hd']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x320a18['dataSource']['hd']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x320a18['dataSource']['trailer']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x320a18['dataSource']['trailer']['data']),",
+              1
+            ],
+            [
+              "'dataSource':_0x557539,",
+              "'dataSource':__forAdmKKCleanV2(_0x557539),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x3ffd0d['dataSource']['hd']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x3ffd0d['dataSource']['hd']['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x3ffd0d['dataSource']['trailer']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x3ffd0d['dataSource']['trailer']['data']),",
+              1
+            ],
+            [
+              "'dataSource':_0x9dda3b,",
+              "'dataSource':__forAdmKKCleanV2(_0x9dda3b),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x2d09d5['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2d09d5['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x1bfc51['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x1bfc51['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x5c1b93['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5c1b93['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x4c185f['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x4c185f['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x436bea['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x436bea['list']),",
+              1
+            ],
+            [
+              "'data-source':_0x2a212f,",
+              "'data-source':__forAdmKKCleanV2(_0x2a212f),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x692e8b['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x692e8b['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x308bca['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x308bca['list']),",
+              1
+            ],
+            [
+              "['pI'])(_0x43e10a['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x43e10a['list']),",
+              1
+            ],
+            [
+              "'data-source':_0x959e01,",
+              "'data-source':__forAdmKKCleanV2(_0x959e01),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x593e31['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x593e31['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5b7e14['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5b7e14['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x4acfa8['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x4acfa8['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x39197d['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x39197d['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x3a35ff['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x3a35ff['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x1fe215['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x1fe215['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x31a088['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x31a088['data']),",
+              1
+            ],
+            [
+              "['pI'])(_0x5af1d7['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x5af1d7['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x413775['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x413775['dataSource']['data']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x2f3926['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2f3926['dataSource']['data']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x29de31['recoArticles'],",
+              "['pI'])(__forAdmKKCleanV2(_0x29de31['recoArticles']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x49fa9b['recoArticles'],",
+              "['pI'])(__forAdmKKCleanV2(_0x49fa9b['recoArticles']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x54f3c4['recoArticles'],",
+              "['pI'])(__forAdmKKCleanV2(_0x54f3c4['recoArticles']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x59fdfb['recoArticles'],",
+              "['pI'])(__forAdmKKCleanV2(_0x59fdfb['recoArticles']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x59d1d6['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x59d1d6['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x52dd7e['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x52dd7e['list']),",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodEntra'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x7983fe['dataSource']['blocks'],",
+              "['pI'])(__forAdmKKCleanV2(_0x7983fe['dataSource']['blocks']),",
+              1
+            ],
+            [
+              "['pI'])(_0x422b0f['dataSource'],",
+              "['pI'])(__forAdmKKCleanV2(_0x422b0f['dataSource']),",
+              1
+            ],
+            [
+              "['pI'])(_0x2c0064['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2c0064['dataSource']['data']),",
+              1
+            ],
+            [
+              "'dataSource':_0x1d0801['reco']['banners']}",
+              "'dataSource':__forAdmKKCleanV2(_0x1d0801['reco']['banners'])}",
+              1
+            ],
+            [
+              "'dataSource':_0x7983fe['dataSource']['banners']}",
+              "'dataSource':__forAdmKKCleanV2(_0x7983fe['dataSource']['banners'])}",
+              1
+            ],
+            [
+              "'dataSource':_0x3ad82c}",
+              "'dataSource':__forAdmKKCleanV2(_0x3ad82c)}",
+              1
+            ],
+            [
+              "'data-source':_0x3ad82c['data']}",
+              "'data-source':__forAdmKKCleanV2(_0x3ad82c['data'])}",
+              1
+            ],
+            [
+              "'dataSource':_0x162e47,",
+              "'dataSource':__forAdmKKCleanV2(_0x162e47),",
+              1
+            ],
+            [
+              "'dataSource':_0x49b16a['reco']['banners']}",
+              "'dataSource':__forAdmKKCleanV2(_0x49b16a['reco']['banners'])}",
+              1
+            ],
+            [
+              "'data-source':_0x49b16a['vodHistories']}",
+              "'data-source':__forAdmKKCleanV2(_0x49b16a['vodHistories'])}",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodEntra'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x152ba9['dataSource']['blocks'],",
+              "['pI'])(__forAdmKKCleanV2(_0x152ba9['dataSource']['blocks']),",
+              1
+            ],
+            [
+              "['pI'])(_0x2697d5['dataSource'],",
+              "['pI'])(__forAdmKKCleanV2(_0x2697d5['dataSource']),",
+              1
+            ],
+            [
+              "['pI'])(_0x381090['dataSource']['data'],",
+              "['pI'])(__forAdmKKCleanV2(_0x381090['dataSource']['data']),",
+              1
+            ],
+            [
+              "'dataSource':_0x4962bc['reco']['banners']}",
+              "'dataSource':__forAdmKKCleanV2(_0x4962bc['reco']['banners'])}",
+              1
+            ],
+            [
+              "'dataSource':_0x152ba9['dataSource']['banners']}",
+              "'dataSource':__forAdmKKCleanV2(_0x152ba9['dataSource']['banners'])}",
+              1
+            ],
+            [
+              "'dataSource':_0x176695}",
+              "'dataSource':__forAdmKKCleanV2(_0x176695)}",
+              1
+            ],
+            [
+              "'data-source':_0x176695['data']}",
+              "'data-source':__forAdmKKCleanV2(_0x176695['data'])}",
+              1
+            ],
+            [
+              "'dataSource':_0x51804a,",
+              "'dataSource':__forAdmKKCleanV2(_0x51804a),",
+              1
+            ],
+            [
+              "'dataSource':_0x1d4380['reco']['banners']}",
+              "'dataSource':__forAdmKKCleanV2(_0x1d4380['reco']['banners'])}",
+              1
+            ],
+            [
+              "'data-source':_0x1d4380['vodHistories']}",
+              "'data-source':__forAdmKKCleanV2(_0x1d4380['vodHistories'])}",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "arrangedItems",
+            "webpackChunkmovie",
+            "POSTING_TYPE",
+            "getItemStyle"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              ")(_0x2a138c['items'])",
+              ")(__forAdmKKCleanV2(_0x2a138c['items']))",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x4d09be['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x4d09be['list']),",
+              2
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "'VodVerticalItem'",
+            "webpackChunkmovie",
+            "['pI']"
+          ],
+          "helper": "cards",
+          "pairs": [
+            [
+              "['pI'])(_0x1f2c63['list'],",
+              "['pI'])(__forAdmKKCleanV2(_0x1f2c63['list']),",
+              2
+            ]
+          ]
         }
-      ]
+      ],
+      "jsHelpers": {
+        "cards": {
+          "marker": "function __forAdmKKCleanV2(",
+          "source": "function __forAdmKKCleanV2(value,depth){\n depth=depth||0;if(depth>8||!value||typeof value!=='object')return value;\n function ad(item){\n  if(!item||typeof item!=='object')return false;\n  if(['ad','ad_mp4','ad_h264'].indexOf(item.type)>=0||['ad_home','ad_home2','ad_topic','ad_netflix','ad_netflix_topic'].indexOf(item._vod)>=0)return true;\n  if(['video','movie','mp4','h264'].indexOf(item.type)>=0)return false;\n  if(!('title'in item||'name'in item||'coverPath'in item||'imagePath'in item||'image'in item))return false;\n  var link=item.url;if(typeof link!=='string')return false;\n  if(/^(?:web|browser)\\?/.test(link)){try{var params=new URLSearchParams(link.slice(link.indexOf('?')+1));link=params.get('url')||params.get('urls')||'';}catch(e){return false}}\n  if(!/^https?:\\/\\//i.test(link))return false;\n  try{var urls=link.split('|');return urls.every(function(entry){var parsed=new URL(entry);return parsed.origin!==location.origin&&!/^(?:www\\.)?(?:kekys\\.com|kkys(?:01|02|03|14|15)\\.com)$/.test(parsed.hostname)&&parsed.hostname!=='a.kkapp06.com';});}catch(e){return false}\n }\n if(Array.isArray(value)){var changed=false,out=[];value.forEach(function(item){if(ad(item)){changed=true;return}var next=__forAdmKKCleanV2(item,depth+1);if(next!==item)changed=true;out.push(next)});return changed?out:value;}\n var copy=value;['data','blocks','items','list','reco','hd','trailer','vods'].forEach(function(key){var child=value[key];if(!child||typeof child!=='object')return;var next=__forAdmKKCleanV2(child,depth+1);if(next!==child){if(copy===value){copy={};Object.keys(value).forEach(function(k){if(k!=='__proto__'&&k!=='constructor'&&k!=='prototype')copy[k]=value[k]});}copy[key]=next;}});return copy;\n}"
+        }
+      }
     }
   ],
   "requestRules": [

@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 84c15955a197. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision b2928ed547dc. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -136,7 +136,7 @@ function admHtmlAction(body,rule) {
   });return ranges.length?admCutRanges(body,ranges):body;
 }
 function cleanDeclarative(ctx,template) {
-  var body=ctx.body;
+  var body=ctx.body,helpers=[];
   if(ctx.kind==='json') {
     if(!admHas(body,template.jsonRequires))return body;
     var original=JSON.parse(body),cleaned=__admEnvelope(original,ctx.path,template.jsonPolicies||[],template.jsonRootGuard);
@@ -145,10 +145,12 @@ function cleanDeclarative(ctx,template) {
   (template.actions||[]).forEach(function(rule){
     if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
-    else if(rule.op==='replaceGroup')body=admGroup(body,rule.pairs);
+    else if(rule.op==='replaceGroup'){var next=admGroup(body,rule.pairs);if(next!==body&&rule.helper&&helpers.indexOf(rule.helper)<0)helpers.push(rule.helper);body=next;}
     else if(rule.op==='removeElements'||rule.op==='removeAttributes'||rule.op==='removeInlineScripts'||rule.op==='replaceInlineScripts')body=admHtmlAction(body,rule);
     else if(rule.op==='setBody')body=rule.value;
-  });return body;
+  });
+  if(ctx.kind==='js')helpers.forEach(function(name){var helper=template.jsHelpers&&template.jsHelpers[name];if(helper&&body.indexOf(helper.marker)<0)body=helper.source+'\n'+body;});
+  return body;
 }
 function admResponseAllowed(kind,body,response) {
   var rawStatus=response.statusCode!==undefined?response.statusCode:response.status;

@@ -1,0 +1,15 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/7440-legacy.a8494b59.js",
+  "body": "/* 'VodVerticalItem' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x5c1b93['list'],\n\n['pI'])(_0x4c185f['list'],\n\n['pI'])(_0x436bea['list'],\n\n'data-source':_0x2a212f,\n\n/* fixture-account ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "['pI'])(_0x5c1b93['list'],",
+    "['pI'])(_0x4c185f['list'],",
+    "['pI'])(_0x436bea['list'],",
+    "'data-source':_0x2a212f,"
+  ],
+  "preserved": [
+    "fixture-account",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}

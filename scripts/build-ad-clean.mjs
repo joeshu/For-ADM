@@ -39,7 +39,9 @@ for(const t of templates){
   if(outputPaths.has(p))throw Error('Duplicate output path');outputPaths.add(p);
  }
  for(const b of t.bindings){new RegExp('^'+b.host+'$');for(const r of b.routes){if(!r.path.startsWith('/')||!['html','js','json'].includes(r.kind))throw Error('Invalid route');new RegExp('^'+r.path);}}
+ for(const [name,h] of Object.entries(t.jsHelpers||{})){if(!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(name)||!h||typeof h.source!=='string'||typeof h.marker!=='string'||!h.marker||!h.source.includes(h.marker))throw Error('Invalid JS helper');}
  for(const a of t.actions||[]){
+  if(a.helper&&(a.kind!=='js'||a.op!=='replaceGroup'||!Object.prototype.hasOwnProperty.call(t.jsHelpers||{},a.helper)))throw Error('Invalid JS helper reference');
   if(a.requires&&(!Array.isArray(a.requires)||!a.requires.every(s=>typeof s==='string'&&s)))throw Error('Invalid source fingerprints');
   if(a.bodyPattern)new RegExp(a.bodyPattern);
   if(a.kind==='html'){

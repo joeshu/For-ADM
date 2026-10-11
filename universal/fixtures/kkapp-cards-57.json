@@ -1,0 +1,25 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/3170.648680a7.js",
+  "body": "/* 'VodEntra' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x54f29b['blocks'],\n\n['pI'])(_0x5ed0c7['banner']['items'],\n\n['pI'])(_0x424279['dataSource']['data'],\n\n['pI'])(_0x56f040['dataSource']['data'],\n\n['pI'])(_0x501506['dataSource']['data'],\n\n['pI'])(_0x5a7309['dataSource']['data'],\n\n['pI'])(_0x513a46['dataSource']['data'],\n\n['pI'])(_0x45c9d8['dataSource']['data'],\n\n['pI'])(_0x2195e1['dataSource']['data'],\n\n['pI'])(_0x2195e1['selectedItem']['items'],\n\n['pI'])(_0x12e5f1['dataSource']['data'],\n\n['pI'])(_0x290151['dataSource'],\n\n'data-source':_0x215ae9['data']}\n\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n'data-source':_0x215ae9}\n\n/* fixture-account ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "['pI'])(_0x54f29b['blocks'],",
+    "['pI'])(_0x5ed0c7['banner']['items'],",
+    "['pI'])(_0x424279['dataSource']['data'],",
+    "['pI'])(_0x56f040['dataSource']['data'],",
+    "['pI'])(_0x501506['dataSource']['data'],",
+    "['pI'])(_0x5a7309['dataSource']['data'],",
+    "['pI'])(_0x513a46['dataSource']['data'],",
+    "['pI'])(_0x45c9d8['dataSource']['data'],",
+    "['pI'])(_0x2195e1['dataSource']['data'],",
+    "['pI'])(_0x2195e1['selectedItem']['items'],",
+    "['pI'])(_0x12e5f1['dataSource']['data'],",
+    "['pI'])(_0x290151['dataSource'],",
+    "'data-source':_0x215ae9['data']}",
+    "'data-source':_0x215ae9}"
+  ],
+  "preserved": [
+    "fixture-account",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}

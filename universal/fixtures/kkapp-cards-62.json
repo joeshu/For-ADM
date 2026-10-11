@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/6602.ff913bce.js",
+  "body": "/* arrangedItems ; webpackChunkmovie ; POSTING_TYPE ; getItemStyle */\nfor(const _0x498556 of _0x5f546c['items'])\n\n/* fixture-account ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "for(const _0x498556 of _0x5f546c['items'])"
+  ],
+  "preserved": [
+    "fixture-account",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}
