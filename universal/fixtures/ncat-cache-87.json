@@ -1,0 +1,11 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/app.e102418a.js",
+  "body": "/* 'appName':'网飞猫';['u']=function;ChunkLoadError;webpackChunkmovie */\n}[_0x1ae194]+'.js';\n/* fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "}[_0x1ae194]+'.js';"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep"
+  ]
+}

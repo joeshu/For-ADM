@@ -45,8 +45,9 @@ for(const t of templates){
   if(a.requires&&(!Array.isArray(a.requires)||!a.requires.every(s=>typeof s==='string'&&s)))throw Error('Invalid source fingerprints');
   if(a.bodyPattern)new RegExp(a.bodyPattern);
   if(a.kind==='html'){
-   if(a.op==='removeElements'){
+   if(a.op==='removeElements'||a.op==='setQueryParameter'){
     const s=a.selector;if(!s||!s.tag||!s.attr||[s.token,s.exact,s.pattern].filter(x=>x!==undefined).length!==1)throw Error('Invalid HTML selector');
+    if(a.op==='setQueryParameter'&&(!/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(a.key)||typeof a.value!=='string'||!a.value))throw Error('Invalid query parameter');
     if(s.pattern){if(!s.pattern.startsWith('^')||!s.pattern.endsWith('$'))throw Error('HTML attribute pattern must be anchored');new RegExp(s.pattern);}
    }else if(a.op==='removeInlineScripts'||a.op==='replaceInlineScripts'){
     if(!Array.isArray(a.scriptRequires)||a.scriptRequires.length<3||!a.scriptRequires.every(s=>typeof s==='string'&&s))throw Error('Inline script removal requires at least three source fingerprints');
@@ -93,7 +94,7 @@ function requestLines(r,scriptUrl){if(r.mode==='verbatim')return r.lines.map(l=>
 const generated=new Map(),scriptVersions=new Map();
 function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
  const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);
- const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes,ports})=>({host,routes,...(ports?{ports}: {})}))}));
+ const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes,ports})=>({host,routes,...(ports?{ports}: {})}))})).map(t=>t.cacheBustRevision?JSON.parse(JSON.stringify(t).replaceAll('__ADM_CACHE_REVISION__',crypto.createHash('sha256').update(read('universal/src/engine.js')+JSON.stringify(t)).digest('hex').slice(0,12))):t);
  for(const r of (onlyRequest?requests:[]).filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
  const adapters=[...new Set(runtime.map(t=>t.adapter))];

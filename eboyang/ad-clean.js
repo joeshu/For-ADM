@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 8154c74a2496. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 244a4a018aea. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -132,6 +132,7 @@ function admHtmlAction(body,rule) {
       if(admHas(source,rule.scriptRequires)){var next=admGroup(source,rule.pairs);if(next!==source)ranges.push({start:t.end,end:t.stop,value:next});}
     }
     if(rule.op==='removeElements'&&admHtmlMatch(t,rule.selector)&&t.stop)ranges.push({start:t.start,end:t.stop});
+    if(rule.op==='setQueryParameter'&&admHtmlMatch(t,rule.selector)&&!t.close)t.attrs.forEach(function(a){if(a.name.toLowerCase()!==rule.selector.attr)return;var value=a.value.replace(/&amp;/g,'&'),query=new RegExp('([?&])'+rule.key+'=[^&]*'),part=rule.key+'='+encodeURIComponent(rule.value),next=query.test(value)?value.replace(query,'$1'+part):value+(value.indexOf('?')<0?'?':'&')+part;if(next!==value)ranges.push({start:a.start,end:a.end,value:' '+a.name+'="'+next.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"'});});
     if(rule.op==='removeAttributes'&&!t.close)t.attrs.forEach(function(a){if(new RegExp(rule.attributePattern,'i').test(a.name))ranges.push({start:a.start,end:a.end});});
   });return ranges.length?admCutRanges(body,ranges):body;
 }
@@ -146,7 +147,7 @@ function cleanDeclarative(ctx,template) {
     if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
     else if(rule.op==='replaceGroup'){var next=admGroup(body,rule.pairs);if(next!==body&&rule.helper&&helpers.indexOf(rule.helper)<0)helpers.push(rule.helper);body=next;}
-    else if(rule.op==='removeElements'||rule.op==='removeAttributes'||rule.op==='removeInlineScripts'||rule.op==='replaceInlineScripts')body=admHtmlAction(body,rule);
+    else if(rule.op==='setQueryParameter'||rule.op==='removeElements'||rule.op==='removeAttributes'||rule.op==='removeInlineScripts'||rule.op==='replaceInlineScripts')body=admHtmlAction(body,rule);
     else if(rule.op==='setBody')body=rule.value;
   });
   if(ctx.kind==='js')helpers.forEach(function(name){var helper=template.jsHelpers&&template.jsHelpers[name];if(helper&&body.indexOf(helper.marker)<0)body=helper.source+'\n'+body;});

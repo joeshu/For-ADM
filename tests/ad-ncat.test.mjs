@@ -14,7 +14,7 @@ test('NCAT player selectors return no ad even when detail and native bridge woul
 });
 test('NCAT requires exact host, known JS families and complete source fingerprints',()=>{
  const f=readJSON(new URL('../universal/fixtures/ncat-0.json',import.meta.url));for(const url of [f.url.replace('a.napp03.com','other.napp03.com'),f.url.replace('/static/v20529/js/','/unrelated/'),f.url.replace(/[^/]+$/,'chunk-vendors.24435528.js')])assert.equal(runCleaner(code,url,f.body),f.body);
- for(const info of sources){const action=t.actions[info.action],f=readJSON(new URL('../universal/fixtures/ncat-'+info.action+'.json',import.meta.url));for(const [old] of action.pairs)for(const body of [f.body.replace(old,'changed-source'),f.body+'\n'+old])assert.equal(runCleaner(code,f.url,body),body);}
+ for(const info of sources){const action=t.actions[info.action],f=readJSON(new URL('../universal/fixtures/ncat-'+(info.kind==='cache'?'cache-':'')+info.action+'.json',import.meta.url));for(const [old] of action.pairs)for(const body of [f.body.replace(old,'changed-source'),f.body+'\n'+old])assert.equal(runCleaner(code,f.url,body),body);}
 });
 
 test('NCAT port-bound rewrite and runtime match the supplied non-default endpoint',()=>{

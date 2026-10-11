@@ -110,3 +110,7 @@ node scripts/check-ad-clean.mjs
 ### 非默认端口
 
 绑定可声明 `ports: [51111]`。生成规则允许该显式端口以及不带显式端口的 URL；运行时按相同规则检查端口，MITM 保留纯域名。未声明 ports 的旧绑定保持原行为，不默认给全部站点开放端口匹配。
+
+### 标签属性中的缓存参数
+
+HTML `setQueryParameter` 使用 tag/attr/pattern 选择器，只修改指定标签属性里的查询参数，重复处理不追加重复参数。显式 `cacheBustRevision: true` 的模板可在参数或替换文本引用 `__ADM_CACHE_REVISION__`；构建时按本站模板与公共引擎计算版本，同一模板的统一/独立脚本使用相同版本，其他站点的改动不会触发本站版本变化。
