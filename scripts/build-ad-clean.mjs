@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
+import {exactHostPattern} from './lib/host-pattern.mjs';
 import {buildGuaziSource} from './lib/guazi-build.mjs';
 import {validateSourcePath,parseRuleImport,validateGeneratedRules} from './lib/rule-import.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -11,7 +12,7 @@ const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function domains(d){
  const prefixes=d.prefixes||[''];
  let base,mitm;
- if(d.type==='exact'){base='(?:'+d.names.map(escape).join('|')+')';mitm=d.names;}
+ if(d.type==='exact'){base=exactHostPattern(d.names);mitm=d.names;}
  else if(d.type==='numbered'){base='(?:'+d.brands.map(escape).join('|')+')\\d+\\.'+escape(d.tld);mitm=d.brands.map(b=>b+'*.'+d.tld);}
  else if(d.type==='dated'){base=d.prefix+'\\.(?:'+d.suffixes.map(escape).join('|')+')';mitm=d.suffixes.map(s=>d.wildcard+'.'+s);}
  else throw Error('Unknown domain type');
@@ -20,7 +21,7 @@ function domains(d){
 }
 const sources=['universal/src/engine.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
 const source=sources.map(read).join('\n');
-const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')).digest('hex').slice(0,12);
+const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')).digest('hex').slice(0,12);
 const templates=manifest.templates.map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
 const outputPaths=new Set();

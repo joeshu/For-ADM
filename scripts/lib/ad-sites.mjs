@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import {exactHostPattern} from './host-pattern.mjs';
 import assert from 'node:assert/strict';
 export const readJSON=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 export const escapeRE=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -28,7 +29,7 @@ export function draftCode(root,template) {
  assert.equal(template.adapter,'declarative');
  const runtime={...template,bindings:template.bindings.map(b=>{
   assert.equal(b.domains.type,'exact');
-  return {host:'(?:'+b.domains.names.map(escapeRE).join('|')+')',routes:b.routes};
+  return {host:exactHostPattern(b.domains.names),routes:b.routes};
  })};
  return '(function(){'+engine+'\nadmRun('+JSON.stringify([runtime])+',{declarative:cleanDeclarative});})();';
 }

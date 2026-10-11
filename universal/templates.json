@@ -919,7 +919,7 @@
           "selector": {
             "tag": "script",
             "attr": "src",
-            "pattern": "^(?:(?:https?:)?//(?:www\\.yxxq65\\.cc|www\\.yxxq35\\.cc|www\\.yxxq51\\.cc|www\\.yxxq52\\.cc|www\\.yxxq53\\.cc|www\\.yxxq54\\.cc|www\\.yxxq55\\.cc|www\\.yxxq56\\.cc|www\\.yxxq57\\.cc|www\\.yxxq59\\.cc|www\\.yxxq61\\.cc|www\\.yxxq62\\.cc|www\\.yxxq63\\.cc|www\\.yxxq64\\.cc|www\\.yxxq41\\.cc|www\\.yxxq25\\.cc))?/static/js/site-ads\\.js(?:\\?.*)?$"
+            "pattern": "^(?:(?:https?:)?//(?:www\\.yxxq(?:65|35|51|52|53|54|55|56|57|59|61|62|63|64|41|25)\\.cc))?/static/js/site-ads\\.js(?:\\?.*)?$"
           }
         },
         {
