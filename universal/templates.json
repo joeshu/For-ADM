@@ -1064,9 +1064,65 @@
             "type": "exact",
             "names": [
               "wu5mv.com",
-              "www.wu5mv.com",
-              "5dy4.vip",
-              "www.5dy4.vip"
+              "www.wu5mv.com"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/(?:[^?#]*\\.html)?(?:\\?.*)?$"
+            }
+          ]
+        },
+        {
+          "domains": {
+            "type": "numbered",
+            "brands": [
+              "5dy"
+            ],
+            "tld": "vip",
+            "prefixes": [
+              "",
+              "www"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/(?:[^?#]*\\.html)?(?:\\?.*)?$"
+            }
+          ]
+        },
+        {
+          "domains": {
+            "type": "numbered",
+            "brands": [
+              "55dy"
+            ],
+            "tld": "top",
+            "prefixes": [
+              "",
+              "www"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/(?:[^?#]*\\.html)?(?:\\?.*)?$"
+            }
+          ]
+        },
+        {
+          "domains": {
+            "type": "numbered",
+            "brands": [
+              "555k",
+              "55kp"
+            ],
+            "tld": "com",
+            "prefixes": [
+              "",
+              "www"
             ]
           },
           "routes": [

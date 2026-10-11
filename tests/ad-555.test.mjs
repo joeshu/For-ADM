@@ -29,11 +29,19 @@ test('555 requires exact CDN path, complete fingerprints and one replacement occ
  for(const statusCode of [403,502])assert.equal(runCleaner(code,js.url,js.body,{statusCode}),js.body);
 });
 test('555 HTML covers registered aliases and article/play routes without widening unknown hosts',()=>{
- for(const host of ['wu5mv.com','www.wu5mv.com','5dy4.vip','www.5dy4.vip'])for(const route of ['/','/index/home.html','/vodplay/800530-13-1.html','/arttype/5.html','/artdetail-23529.html']){
+ for(const host of ['wu5mv.com','www.wu5mv.com','5dy4.vip','www.5dy4.vip','5dy987.vip','55dy1.top','www.55dy98.top','555k2.com','555k91.com','555k58.com','www.555k999.com','55kp8.com','www.55kp123.com'])for(const route of ['/','/index/home.html','/vodplay/800530-13-1.html','/arttype/5.html','/artdetail-23529.html']){
   const out=runCleaner(code,'https://'+host+route+'?utm_source=fixture',html.body);
   for(const v of html.removed)assert.ok(!out.includes(v));
   for(const v of html.preserved)assert.ok(out.includes(v));
  }
  for(const guard of template.actions[0].requires){const body=html.body.replace(guard,'changed-feature');assert.equal(runCleaner(code,html.url,body),body);}
- for(const url of ['https://5dy5.vip/','https://5dy4.vip.invalid/','https://5dy4.vip/media/master.m3u8'])assert.equal(runCleaner(code,url,html.body),html.body);
+ for(const url of ['https://5dya.vip/','https://555k.com/','https://55kp8.net/','https://55kp8.com.invalid/','https://5dy4.vip.invalid/','https://5dy4.vip/media/master.m3u8'])assert.equal(runCleaner(code,url,html.body),html.body);
+});
+
+test('555 numbered subscriptions include MITM families and preserve ordinary publication markup',()=>{
+ const conf=fs.readFileSync(new URL('../555-movie/quantumult-x-snippet.conf',import.meta.url),'utf8');
+ for(const host of ['5dy*.vip','www.5dy*.vip','55dy*.top','www.55dy*.top','555k*.com','www.555k*.com','55kp*.com','www.55kp*.com'])assert.ok(conf.includes(host));
+ const publication='<html><h1>555电影发布页</h1><a href="https://5dy4.vip/">主域名</a><a href="https://555k91.com/">备用网址</a><a href="https://55kp8.com/">备用网址</a></html>';
+ assert.equal(runCleaner(code,'https://55dy1.top/',publication),publication);
+ for(const host of ['5dyevil.vip','55dy-test.top','555ka.com','55kp-app.com'])assert.equal(runCleaner(code,'https://'+host+'/',html.body),html.body);
 });
