@@ -126,9 +126,15 @@ function admHtmlAction(body,rule) {
 }
 function cleanDeclarative(ctx,template) {
   var body=ctx.body;
+  if(ctx.kind==='json') {
+    if(!admHas(body,template.jsonRequires))return body;
+    var original=JSON.parse(body),cleaned=__admEnvelope(original,ctx.path,template.jsonPolicies||[]);
+    return cleaned===original?body:JSON.stringify(cleaned);
+  }
   (template.actions||[]).forEach(function(rule){
     if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
+    else if(rule.op==='replaceGroup')body=admGroup(body,rule.pairs);
     else if(rule.op==='removeElements'||rule.op==='removeAttributes')body=admHtmlAction(body,rule);
     else if(rule.op==='setBody')body=rule.value;
   });return body;

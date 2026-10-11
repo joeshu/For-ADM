@@ -12,7 +12,11 @@ on:
       - '4kvm/**'
       - 'auete/**'
       - 'scripts/build-ad-clean.mjs'
-      - 'tests/ad-clean.test.mjs'
+      - 'scripts/new-ad-site.mjs'
+      - 'scripts/site-registry.mjs'
+      - 'scripts/check-ad-clean.mjs'
+      - 'scripts/lib/**'
+      - 'tests/ad-*.test.mjs'
       - '.github/workflows/ad-clean-check.yml'
   pull_request:
     paths:
@@ -26,7 +30,11 @@ on:
       - '4kvm/**'
       - 'auete/**'
       - 'scripts/build-ad-clean.mjs'
-      - 'tests/ad-clean.test.mjs'
+      - 'scripts/new-ad-site.mjs'
+      - 'scripts/site-registry.mjs'
+      - 'scripts/check-ad-clean.mjs'
+      - 'scripts/lib/**'
+      - 'tests/ad-*.test.mjs'
       - '.github/workflows/ad-clean-check.yml'
 permissions:
   contents: read
@@ -41,7 +49,6 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      - run: node scripts/build-ad-clean.mjs --check
-      - run: node --test tests/ad-clean.test.mjs
+      - run: node scripts/check-ad-clean.mjs
       - run: node scripts/build-hls-clean.mjs --check
       - run: node --test tests/hls-clean.test.mjs

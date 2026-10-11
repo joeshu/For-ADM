@@ -1,0 +1,12 @@
+{
+  "template": "souju-ai",
+  "url": "https://kanju3.com/v1/app/experience",
+  "body": "{\"object\":\"app.experience_snapshot\",\"placements\":{\"splash_screen\":{\"items\":[{\"title\":\"fixture-ad-002\"}]}},\"player\":{\"url\":\"fixture-movie.m3u8\",\"episodes\":[1,2]}}",
+  "removed": [
+    "fixture-ad-002"
+  ],
+  "preserved": [
+    "\"url\":\"fixture-movie.m3u8\"",
+    "\"episodes\":[1,2]"
+  ]
+}

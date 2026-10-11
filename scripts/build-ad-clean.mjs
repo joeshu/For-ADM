@@ -29,9 +29,13 @@ function validatePairs(pairs){
 for(const t of templates){
  if(ids.has(t.id))throw Error('Duplicate template ID');ids.add(t.id);
  if(!['souju','yqk','declarative'].includes(t.adapter))throw Error('Unknown adapter');
- for(const p of Object.values(t.output)){if(outputPaths.has(p))throw Error('Duplicate output path');outputPaths.add(p);}
+ for(const p of Object.values(t.output)){
+  if(typeof p!=='string'||path.isAbsolute(p)||p.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!p.endsWith('.js')&&!p.endsWith('.conf'))throw Error('Invalid output path');
+  if(outputPaths.has(p))throw Error('Duplicate output path');outputPaths.add(p);
+ }
  for(const b of t.bindings){new RegExp('^'+b.host+'$');for(const r of b.routes){if(!r.path.startsWith('/')||!['html','js','json'].includes(r.kind))throw Error('Invalid route');new RegExp('^'+r.path);}}
  for(const a of t.actions||[]){
+  if(a.requires&&(!Array.isArray(a.requires)||!a.requires.every(s=>typeof s==='string'&&s)))throw Error('Invalid source fingerprints');
   if(a.bodyPattern)new RegExp(a.bodyPattern);
   if(a.kind==='html'){
    if(a.op==='removeElements'){
@@ -40,11 +44,19 @@ for(const t of templates){
    }else if(a.op==='removeAttributes')new RegExp(a.attributePattern);
    else throw Error('HTML must use tag-aware operations');
   }else if(a.kind==='js'){
-   if(a.op==='replaceRegex')new RegExp(a.pattern,a.flags||'g');else if(a.op!=='setBody')throw Error('Invalid JS operation');
+   if(a.op==='replaceRegex')new RegExp(a.pattern,a.flags||'g');
+   else if(a.op==='replaceGroup'){validatePairs(a.pairs);if(!a.requires?.length)throw Error('JS group requires source fingerprints');}
+   else if(a.op!=='setBody')throw Error('Invalid JS operation');
   }else throw Error('Invalid action kind');
  }
  if(t.runtime)validatePairs(t.runtime.pairs);
  for(const rule of t.jsRules||[]){for(const group of rule.groups||[])validatePairs(group);if(rule.inject)validatePairs(rule.inject);}
+ for(const policy of t.jsonPolicies||[]){
+  new RegExp(policy.endpoint);
+  for(const op of policy.ops){
+   if(!['set','clearArray','filterArray'].includes(op.op)||!op.path||op.path.split('.').some(s=>['__proto__','prototype','constructor'].includes(s)))throw Error('Invalid JSON operation/path');
+  }
+ }
 }
 const generated=new Map();
 function generate(selected,scriptPath,confPath){

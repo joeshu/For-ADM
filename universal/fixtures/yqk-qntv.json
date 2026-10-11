@@ -1,0 +1,12 @@
+{
+  "template": "yqk-qntv",
+  "url": "https://yz250907.7k5jb8t9.com/v2/api/home/body",
+  "body": "{\"result\":true,\"data\":{\"adList\":[{\"title\":\"fixture-ad-001\"}],\"vodTopicList\":[{\"url\":\"fixture-movie.m3u8\",\"episodes\":[1,2]}]}}",
+  "removed": [
+    "fixture-ad-001"
+  ],
+  "preserved": [
+    "\"url\":\"fixture-movie.m3u8\"",
+    "\"episodes\":[1,2]"
+  ]
+}

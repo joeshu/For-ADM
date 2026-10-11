@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "sites": [
+    {
+      "id": "yqk-qntv",
+      "name": "YQK / QNTV",
+      "template": "yqk-qntv",
+      "status": "source-verified",
+      "releasePages": [
+        "https://yqk18.app/",
+        "https://qntv28.app/"
+      ],
+      "testUrls": [
+        "https://yqk43.app/"
+      ],
+      "notes": "页面编号域名及已登记的 11 个 API 后缀；未知后缀不自动覆盖。"
+    },
+    {
+      "id": "souju-ai",
+      "name": "搜剧 / 看剧 AI",
+      "template": "souju-ai",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://ai.baipiaozhe.com/",
+        "https://kanju3.com/"
+      ],
+      "notes": "源码特征校验；文件哈希变化不代表适配成功。"
+    },
+    {
+      "id": "ycblcw",
+      "name": "ycblcw",
+      "template": "ycblcw",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://www.ycblcw.com/"
+      ],
+      "notes": "专用广告脚本及已确认外链。"
+    },
+    {
+      "id": "4kvm",
+      "name": "4kvm",
+      "template": "4kvm",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://4kvms.org/"
+      ],
+      "notes": "网页广告及播放器广告插件；不修改媒体流。"
+    },
+    {
+      "id": "auete",
+      "name": "Auete",
+      "template": "auete",
+      "status": "source-verified",
+      "releasePages": [
+        "https://auete.asia/"
+      ],
+      "testUrls": [
+        "https://www.au1080.top/index.html",
+        "https://www.aeete.com/"
+      ],
+      "notes": "仅 aeete.com、au1080.top 和 www；发布页本身不进入重写。"
+    },
+    {
+      "id": "auete-pending",
+      "name": "Auete 尚未确认的发布页地址",
+      "template": null,
+      "status": "pending",
+      "releasePages": [
+        "https://auete.asia/"
+      ],
+      "testUrls": [
+        "https://www.auete.com/",
+        "https://www.au1080.com/",
+        "https://www.auete.top/",
+        "https://www.aimtoon.com/"
+      ],
+      "notes": "部分地址此前返回错误，aimtoon 未确认广告特征；不生成规则。"
+    }
+  ]
+}

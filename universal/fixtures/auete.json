@@ -1,0 +1,12 @@
+{
+  "template": "auete",
+  "url": "https://www.au1080.top/index.html",
+  "body": "<html>Auete<script src=\"/js/common.js\"></script><script src=\"/js/mcenter/dbtl.js\"></script><iframe src=\"/js/player/oyun.html\"></iframe><a href=\"play-2.html\">下一集</a></html>",
+  "removed": [
+    "/js/mcenter/dbtl.js"
+  ],
+  "preserved": [
+    "<iframe src=\"/js/player/oyun.html\"></iframe>",
+    "<a href=\"play-2.html\">下一集</a>"
+  ]
+}

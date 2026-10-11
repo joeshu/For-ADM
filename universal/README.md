@@ -10,12 +10,14 @@
 
 脚本默认关闭日志。脚本本身不发起请求、不自动发现域名、不改写播放地址和媒体分片。测试验证了播放列表、剧集与鉴权字段的保留；尚不能替代手机端逐站播放实测，也不处理视频中已经烧录的广告。
 
-另有可单独启用的 [HLS 视频广告试用版](../hls-video/README.md)，尝试清除已登记资源站的明确插入广告段，未合并进网页统一规则。网页模板与资源站模板分别维护，可以同时启用。
+本轮仅维护网页规则，不接入媒体流改写。
 
 ## 文件与生成
 
 | 文件 | 作用 |
 | --- | --- |
+| `sites.json`、`SITES.md` | 网站来源、发布页与核验状态；后者自动生成，不决定运行时匹配 |
+| `fixtures/*.json` | 可扩展的广告移除与播放保留断言，自动加入一键检查 |
 | `templates.json` | 域名、路由、输出路径、广告策略与源码指纹的唯一清单 |
 | `src/engine.js` | 字段校验、不可变 JSON 操作、HTML 删除、JS 修改组、统一入口 |
 | `src/souju.js`、`src/function-tools.js` | 搜剧特定组件函数定位 |
@@ -27,8 +29,8 @@
 
 ```sh
 node scripts/build-ad-clean.mjs
-node scripts/build-ad-clean.mjs --check
-node --test tests/ad-clean.test.mjs
+node scripts/site-registry.mjs
+node scripts/check-ad-clean.mjs
 ```
 
 生成文件带 `GENERATED` 标记，不直接编辑。版本参数由模板、源码和生成器的内容哈希产生；所有规则引用同一版本。GitHub Actions 检查生成结果与源码一致，并运行回归测试。
@@ -42,6 +44,8 @@ YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支
 看剧AI `kanju3.com` 经真实源码确认复用搜剧模板，统一版和搜剧独立版均包含该域名。已核验 `global-player-host-BEk1MOSZ.js`、`movie-card-runtime-DQVzig5g.js`、`main-DupXbhqc.js`：复用广告配置、网格、横幅与开屏处理，补充翻转容器 `Sp` 和手机顶部广告 `em`；翻转容器改为保留原前景包装及 children，不删除其中的选集/播放器内容。其他文件哈希仍需满足源码指纹。
 
 ## 接入新网站
+
+参阅 [扩展操作说明](EXTENDING.md)：`node scripts/new-ad-site.mjs --spec ./site.json` 生成并检查新站草稿，`node scripts/check-ad-clean.mjs` 一键验证。网站来源和核验状态见自动生成的 [网站登记表](SITES.md)，待核验地址不会自动加入规则。
 
 1. 获取广告接口样本或网站 JS，确认广告字段、播放字段及页面容器。不要只凭 `ad` 名称或宣传文字推断。
 2. 优先复用现有模板。相同网站换域名时，只扩充该模板的域名清单；相同结构可复用操作并登记新域名。

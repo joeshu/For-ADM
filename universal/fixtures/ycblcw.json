@@ -1,0 +1,12 @@
+{
+  "template": "ycblcw",
+  "url": "https://ycblcw.com/play.html",
+  "body": "<html><link href=\"/template/buka/style.css\"><script src=\"/dedg/cs13341.js\"></script><video src=\"fixture-movie.m3u8\"></video><a href=\"play-2.html\">下一集</a></html>",
+  "removed": [
+    "/dedg/cs13341.js"
+  ],
+  "preserved": [
+    "<video src=\"fixture-movie.m3u8\"></video>",
+    "<a href=\"play-2.html\">下一集</a>"
+  ]
+}

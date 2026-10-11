@@ -1,0 +1,12 @@
+{
+  "template": "4kvm",
+  "url": "https://4kvms.org/play/test",
+  "body": "<html><div class=\"ad-item\">fixture-ad-003</div><video src=\"fixture-movie.m3u8\"></video><a href=\"/play/2\">下一集</a></html>",
+  "removed": [
+    "fixture-ad-003"
+  ],
+  "preserved": [
+    "<video src=\"fixture-movie.m3u8\"></video>",
+    "<a href=\"/play/2\">下一集</a>"
+  ]
+}
