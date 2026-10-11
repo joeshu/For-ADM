@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/6040-legacy.9f573b78.js",
+  "body": "/* getAdvertiseById ; ['ads']['find'] ; player */\n_0x970721=function(_0x11d4ca,_0x174d79){if(_0x174d79){var _0x417259=_0x174d79['ads']['find'](function(_0x460e5e){return _0x460e5e['id']==_0x11d4ca;});if(_0x417259){var _0xb594d6=_0x5bc0ac['getAdvertiseById'](_0x417259['id']);_0xb594d6&&(_0x417259['items']=_0xb594d6['items']);}return _0x417259&&_0x417259['items']&&_0x417259['items']['length']>0x0?_0x417259:void 0x0;}}\n_0x18a3dd=function(_0x398509,_0x180b38){if(_0x180b38){var _0x527a52=_0x180b38['ads']['find'](function(_0x5e93f2){return _0x5e93f2['id']==_0x398509;});if(_0x527a52){var _0x5b9235=_0x56caf9['getAdvertiseById'](_0x527a52['id']);_0x5b9235&&(_0x527a52['items']=_0x5b9235['items']);}return _0x527a52&&_0x527a52['items']&&_0x527a52['items']['length']>0x0?_0x527a52:void 0x0;}}\n/* fixture-film-url: https://media.example/film.m3u8?sign=preserved ; fixture-account */",
+  "removed": [
+    "_0x970721=function(_0x11d4ca,_0x174d79){if(_0x174d79){var _0x417259=_0x174d79['ads']['find'](function(_0x460e5e){return _0x460e5e['id']==_0x11d4ca;});if(_0x417259){var _0xb594d6=_0x5bc0ac['getAdvertiseById'](_0x417259['id']);_0xb594d6&&(_0x417259['items']=_0xb594d6['items']);}return _0x417259&&_0x417259['items']&&_0x417259['items']['length']>0x0?_0x417259:void 0x0;}}",
+    "_0x18a3dd=function(_0x398509,_0x180b38){if(_0x180b38){var _0x527a52=_0x180b38['ads']['find'](function(_0x5e93f2){return _0x5e93f2['id']==_0x398509;});if(_0x527a52){var _0x5b9235=_0x56caf9['getAdvertiseById'](_0x527a52['id']);_0x5b9235&&(_0x527a52['items']=_0x5b9235['items']);}return _0x527a52&&_0x527a52['items']&&_0x527a52['items']['length']>0x0?_0x527a52:void 0x0;}}"
+  ],
+  "preserved": [
+    "fixture-film-url: https://media.example/film.m3u8?sign=preserved",
+    "fixture-account"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/Main-EhHzH_xM.js",
+  "body": "/* NewAds-CtNp18Uc.js ; search-result-ad-slot ; search_result_up ; itemHeight:176 */\n(0,x.jsx)(`div`,{className:`search-result-ad-slot`,children:(0,x.jsx)(m,{section:`search_result_up`})})\n/* fixture-preserved-results */",
+  "removed": [
+    "(0,x.jsx)(`div`,{className:`search-result-ad-slot`,children:(0,x.jsx)(m,{section:`search_result_up`})})"
+  ],
+  "preserved": [
+    "fixture-preserved-results"
+  ]
+}

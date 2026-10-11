@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/3170.648680a7.js",
+  "body": "/* appAdvertisements ; click_advert_ ; FSImage ; 'banner' */\n_0x4d8136=_0x4de61a['appAdvertisements']\n_0x12b684=_0x1bb94a['appAdvertisements']\n/* fixture-film-url: https://media.example/film.m3u8?sign=preserved ; fixture-account */",
+  "removed": [
+    "_0x4d8136=_0x4de61a['appAdvertisements']",
+    "_0x12b684=_0x1bb94a['appAdvertisements']"
+  ],
+  "preserved": [
+    "fixture-film-url: https://media.example/film.m3u8?sign=preserved",
+    "fixture-account"
+  ]
+}

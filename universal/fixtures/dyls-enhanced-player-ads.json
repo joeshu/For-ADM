@@ -1,0 +1,11 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/player-B4L3j5Ck.js",
+  "body": "/* NewAds-CtNp18Uc.js ; section:`player_episode_up` ; player-detail-page ; warning-content */\n(0,$.jsx)(`div`,{className:`mt-4`,children:(0,$.jsx)(We,{section:`player_episode_up`,fromMovie:!0})})\n/* fixture-preserved-player-ads */",
+  "removed": [
+    "(0,$.jsx)(`div`,{className:`mt-4`,children:(0,$.jsx)(We,{section:`player_episode_up`,fromMovie:!0})})"
+  ],
+  "preserved": [
+    "fixture-preserved-player-ads"
+  ]
+}

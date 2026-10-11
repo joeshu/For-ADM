@@ -58,7 +58,7 @@ test('Dyls JS rejects missing/duplicate markers and unrelated module families',(
   const f=readJSON(new URL('../universal/fixtures/dyls-'+name+'-js.json',import.meta.url)),action=t.actions[i];
   for(const marker of action.requires){const body=f.body.replace(marker,'changed-marker');assert.equal(runCleaner(code,f.url,body),body);}
   for(const [old] of action.pairs){for(const body of [f.body.replace(old,'changed-source'),f.body+'\n'+old])assert.equal(runCleaner(code,f.url,body),body);}
-  for(const url of [f.url.replace('dyls1.','dyls2.'),f.url.replace(/\/assets\/[^/]+$/,'/assets/player-B4L3j5Ck.js')])assert.equal(runCleaner(code,url,f.body),f.body);
+  for(const url of [f.url.replace('dyls1.','dyls2.'),f.url.replace(/\/assets\/[^/]+$/,'/assets/unrelated.js')])assert.equal(runCleaner(code,url,f.body),f.body);
   for(const statusCode of [403,502])assert.equal(runCleaner(code,f.url,f.body,{statusCode}),f.body);
  }
 });

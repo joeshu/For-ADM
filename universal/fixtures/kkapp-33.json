@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/7472-legacy.24254b96.js",
+  "body": "/* appAdvertisements ; click_advert_ ; FSImage ; 'banner' */\n_0x22e09d=_0x26cb7b['appAdvertisements']\n/* fixture-film-url: https://media.example/film.m3u8?sign=preserved ; fixture-account */",
+  "removed": [
+    "_0x22e09d=_0x26cb7b['appAdvertisements']"
+  ],
+  "preserved": [
+    "fixture-film-url: https://media.example/film.m3u8?sign=preserved",
+    "fixture-account"
+  ]
+}

@@ -19,6 +19,7 @@ on:
       - 'qingning-player/**'
       - '555-movie/**'
       - 'dyls/**'
+      - 'kkapp/**'
       - 'guazi-app/**'
       - 'scripts/build-ad-clean.mjs'
       - 'scripts/new-ad-site.mjs'
@@ -26,6 +27,8 @@ on:
       - 'scripts/check-ad-clean.mjs'
       - 'scripts/lib/**'
       - 'tests/ad-*.test.mjs'
+      - 'tests/dyls-enhanced-sources.json'
+      - 'tests/kkapp-sources.json'
       - '.github/workflows/ad-clean-check.yml'
   pull_request:
     paths:
@@ -46,6 +49,7 @@ on:
       - 'qingning-player/**'
       - '555-movie/**'
       - 'dyls/**'
+      - 'kkapp/**'
       - 'guazi-app/**'
       - 'scripts/build-ad-clean.mjs'
       - 'scripts/new-ad-site.mjs'
@@ -53,6 +57,8 @@ on:
       - 'scripts/check-ad-clean.mjs'
       - 'scripts/lib/**'
       - 'tests/ad-*.test.mjs'
+      - 'tests/dyls-enhanced-sources.json'
+      - 'tests/kkapp-sources.json'
       - '.github/workflows/ad-clean-check.yml'
 permissions:
   contents: read

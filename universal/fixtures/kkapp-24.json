@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/4904.e686cb7a.js",
+  "body": "/* 0x3e71:function ; /v2/config/units.capi ; /app/announcements ; getCacheUrl */\n'so':function(){return _0x53fb8a;}\n/* fixture-film-url: https://media.example/film.m3u8?sign=preserved ; fixture-account */",
+  "removed": [
+    "'so':function(){return _0x53fb8a;}"
+  ],
+  "preserved": [
+    "fixture-film-url: https://media.example/film.m3u8?sign=preserved",
+    "fixture-account"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/8796-legacy.e6eba5eb.js",
+  "body": "/* getAdvertiseById ; ['ads']['find'] ; player */\n_0x1a02e5=function(){if(_0x349d67['detail']&&_0x349d67['detail']['ads']){var _0x54dd81=_0x349d67['detail']['ads']['find'](function(_0x3c7460){return _0x3c7460['id']==_0x34c74a['BA']['VOD_START'];});if(_0x54dd81){var _0x277860=_0x16a0cc['getAdvertiseById'](_0x54dd81['id']);_0x277860&&(_0x54dd81['items']=_0x277860['items']);}return _0x54dd81&&_0x54dd81['items']&&_0x54dd81['items']['length']>0x0?_0x54dd81:void 0x0;}}\n_0x5ab38e=function(){if(_0x349d67['detail']&&_0x349d67['detail']['ads']){var _0x16f24e=_0x349d67['detail']['ads']['find'](function(_0x5ed1c4){return _0x5ed1c4['id']==_0x34c74a['BA']['VOD_PAUSE'];});if(_0x16f24e){var _0x120bfd=_0x16a0cc['getAdvertiseById'](_0x16f24e['id']);_0x120bfd&&(_0x16f24e['items']=_0x120bfd['items']);}return _0x16f24e&&_0x16f24e['items']&&_0x16f24e['items']['length']>0x0?_0x16f24e:void 0x0;}}\n/* fixture-film-url: https://media.example/film.m3u8?sign=preserved ; fixture-account */",
+  "removed": [
+    "_0x1a02e5=function(){if(_0x349d67['detail']&&_0x349d67['detail']['ads']){var _0x54dd81=_0x349d67['detail']['ads']['find'](function(_0x3c7460){return _0x3c7460['id']==_0x34c74a['BA']['VOD_START'];});if(_0x54dd81){var _0x277860=_0x16a0cc['getAdvertiseById'](_0x54dd81['id']);_0x277860&&(_0x54dd81['items']=_0x277860['items']);}return _0x54dd81&&_0x54dd81['items']&&_0x54dd81['items']['length']>0x0?_0x54dd81:void 0x0;}}",
+    "_0x5ab38e=function(){if(_0x349d67['detail']&&_0x349d67['detail']['ads']){var _0x16f24e=_0x349d67['detail']['ads']['find'](function(_0x5ed1c4){return _0x5ed1c4['id']==_0x34c74a['BA']['VOD_PAUSE'];});if(_0x16f24e){var _0x120bfd=_0x16a0cc['getAdvertiseById'](_0x16f24e['id']);_0x120bfd&&(_0x16f24e['items']=_0x120bfd['items']);}return _0x16f24e&&_0x16f24e['items']&&_0x16f24e['items']['length']>0x0?_0x16f24e:void 0x0;}}"
+  ],
+  "preserved": [
+    "fixture-film-url: https://media.example/film.m3u8?sign=preserved",
+    "fixture-account"
+  ]
+}

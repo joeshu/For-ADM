@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/app-legacy.513f0edd.js",
+  "body": "/* 'appName':'可可影视' ; 'appVersion':'2.5.14' ; 'getAdvertiseById' ; 'FLOATING_WINDOW' ; 'VOD_START' */\n'getAdvertiseById':function(_0x1959cc){if(_0x1959cc&&0x0!=_0x1959cc['length']){var _0x469999=this['appAdvertisements'];return _0x469999&&_0x469999['length']>0x0?_0x469999['find'](function(_0x594149){return _0x594149['id']==_0x1959cc;}):void 0x0;}}\n_0x2d2bb0=function(_0x37c8fb){var _0x22f04c=(0x0,_0x304591['P'])(),_0x2c7174=_0x22f04c['appAdvertisements'];return!!(_0x2c7174&&_0x2c7174['length']>0x0&&_0x37c8fb&&_0x37c8fb['length']>0x0)&&_0x2c7174['some'](function(_0x59c056){return _0x59c056['id']==_0x37c8fb;});}\n/* fixture-film-url: https://media.example/film.m3u8?sign=preserved ; fixture-account */",
+  "removed": [
+    "'getAdvertiseById':function(_0x1959cc){if(_0x1959cc&&0x0!=_0x1959cc['length']){var _0x469999=this['appAdvertisements'];return _0x469999&&_0x469999['length']>0x0?_0x469999['find'](function(_0x594149){return _0x594149['id']==_0x1959cc;}):void 0x0;}}",
+    "_0x2d2bb0=function(_0x37c8fb){var _0x22f04c=(0x0,_0x304591['P'])(),_0x2c7174=_0x22f04c['appAdvertisements'];return!!(_0x2c7174&&_0x2c7174['length']>0x0&&_0x37c8fb&&_0x37c8fb['length']>0x0)&&_0x2c7174['some'](function(_0x59c056){return _0x59c056['id']==_0x37c8fb;});}"
+  ],
+  "preserved": [
+    "fixture-film-url: https://media.example/film.m3u8?sign=preserved",
+    "fixture-account"
+  ]
+}

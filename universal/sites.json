@@ -206,7 +206,18 @@
       "testUrls": [
         "https://dyls1.mbxqnb.cn/api/v1/movie/index_recommend"
       ],
-      "notes": "首页 JSON 抓包确认轮播 type=3 广告及 advert_self 广告图标区；按用户要求扩大到 dyls1.mbxqnb.cn 的 /api/v数字/ 路径，仍须成功响应、data 数组和已确认布局特征匹配。其他接口复用此结构时生效，未知结构保留；其他接口手机效果及备用域名尚未核验。不处理 HLS。 已核验 index 开屏、helperService 广告配置导出和 NewAds 共用网格；确认搜索页和播放页调用共用模块，未改写播放器模块。"
+      "notes": "首页 JSON 抓包确认轮播 type=3 广告及 advert_self 广告图标区；按用户要求扩大到 dyls1.mbxqnb.cn 的 /api/v数字/ 路径，仍须成功响应、data 数组和已确认布局特征匹配。其他接口复用此结构时生效，未知结构保留；其他接口手机效果及备用域名尚未核验。不处理 HLS。 已核验 index 开屏、helperService 广告配置导出和 NewAds 共用网格；确认搜索页和播放页调用共用模块，新增定向 worker 缓存、首页/筛选/搜索/播放广告外层清理、选线预算与续播进度；原 HLS 逻辑不改写。手机效果待核验。"
+    },
+    {
+      "id": "kkapp",
+      "name": "可可影视 / KKAPP",
+      "template": "kkapp",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://a.kkapp06.com/?_c=c1&package=kkapp06.com"
+      ],
+      "notes": "主 JS 广告选择/存在判断、动态模块专用广告 units 导出、多页面横幅读取和播放器前贴/暂停广告选择器均定点改写；保留公告、资源初始化、影片详情、会员校验和 HLS。仅已核验精确域名；未知源码不改写。手机效果待核验。"
     }
   ]
 }

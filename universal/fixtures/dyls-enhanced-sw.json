@@ -1,0 +1,11 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/sw.js",
+  "body": "/* workbox:core:7.4.0 ; DylsWarmAdImages ; cacheName:Q(`pages`) ; runtime-assets */\ntry{self[`workbox:core:7.4.0`]&&_()}catch{}\n/* fixture-preserved-sw */",
+  "removed": [
+    "try{self[`workbox:core:7.4.0`]&&_()}catch{}"
+  ],
+  "preserved": [
+    "fixture-preserved-sw"
+  ]
+}

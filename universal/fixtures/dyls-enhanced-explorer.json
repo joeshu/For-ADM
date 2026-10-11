@@ -1,0 +1,14 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/explorer-BQDkpEAa.js",
+  "body": "/* NewAds-CtNp18Uc.js ; zhuiju_weektable_under ; section:`ranking` ; topic_movies_top */\nM=B.useMemo(()=>(0,V.jsx)(P,{section:`topic_movies_top`}),[])\n(0,V.jsx)(`div`,{className:`relative z-0 mb-5 mt-3`,children:M})\n(0,V.jsx)(`div`,{className:`relative z-0 mt-3`,children:(0,V.jsx)(Z,{section:`zhuiju_weektable_under`})})\n(0,V.jsx)(`div`,{className:`relative z-0 mt-3`,children:(0,V.jsx)(P,{section:`ranking`})})\n/* fixture-preserved-explorer */",
+  "removed": [
+    "M=B.useMemo(()=>(0,V.jsx)(P,{section:`topic_movies_top`}),[])",
+    "(0,V.jsx)(`div`,{className:`relative z-0 mb-5 mt-3`,children:M})",
+    "(0,V.jsx)(`div`,{className:`relative z-0 mt-3`,children:(0,V.jsx)(Z,{section:`zhuiju_weektable_under`})})",
+    "(0,V.jsx)(`div`,{className:`relative z-0 mt-3`,children:(0,V.jsx)(P,{section:`ranking`})})"
+  ],
+  "preserved": [
+    "fixture-preserved-explorer"
+  ]
+}

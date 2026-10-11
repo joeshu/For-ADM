@@ -1,16 +1,18 @@
 {
   "template": "dyls",
   "url": "https://dyls1.mbxqnb.cn/assets/index-BSCFNKjP.js",
-  "body": "/* landing-ad-image; function Rt({dispatch:e,panding:t,cachedLandingAds:n; app-shell-root relative; x.hasSeenLanding */\nfunction vt(e){return e?.data?.start?.find(e=>e?.data?.image)||null};function fixtureLandingEffect(n,e){vt(n)&&e(re(!0))}function mn(){let e=r(),{openAuthModel:t,openLoginModel:i,openSignupModel:a,panding:o,isShowingDetails:s}=n(e=>e.model),[c]=N.useState(()=>Tt());return{panding:o,login:i,details:s,cached:c}};function fixturePlayer(){return `fixture-player-preserved`}",
+  "body": "/* landing-ad-image; function Rt({dispatch:e,panding:t,cachedLandingAds:n; app-shell-root relative; x.hasSeenLanding */\nfunction vt(e){return e?.data?.start?.find(e=>e?.data?.image)||null};function fixtureLandingEffect(n,e){vt(n)&&e(re(!0))}function mn(){let e=r(),{openAuthModel:t,openLoginModel:i,openSignupModel:a,panding:o,isShowingDetails:s}=n(e=>e.model),[c]=N.useState(()=>Tt());return{panding:o,login:i,details:s,cached:c}};function fixturePlayer(){return `fixture-player-preserved`};function fixtureRegisterWorker(t){return navigator.serviceWorker.register(t,{scope:`/`,updateViaCache:`none`}).catch(()=>{})}",
   "removed": [
     "function vt(e){return e?.data?.start?.find(e=>e?.data?.image)||null}",
     "vt(n)&&e(re(!0))",
-    "panding:o,isShowingDetails:s}=n(e=>e.model),[c]"
+    "panding:o,isShowingDetails:s}=n(e=>e.model),[c]",
+    "navigator.serviceWorker.register(t,{scope:`/`,updateViaCache:`none`}).catch(()=>{})"
   ],
   "preserved": [
     "fixture-player-preserved",
     "openLoginModel:i",
     "isShowingDetails:s",
-    "Tt()"
+    "Tt()",
+    "updateViaCache:`none`"
   ]
 }

@@ -1,0 +1,13 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/home-D4FIgn9T.js",
+  "body": "/* home:advert_self ; index_recommend_carousel ; topic_movies_top ; NewAds-CtNp18Uc.js */\nC=(0,K.useMemo)(()=>Array.isArray(e)?e:[],[e])\nif(e?.layout===`advert_self`)return(0,J.jsx)(Hn,{data:e?.data,isLoading:t||r},a);\n(0,J.jsx)(`div`,{className:`mt-4`,children:(0,J.jsx)(W,{section:`topic_movies_top`})})\n/* fixture-preserved-home */",
+  "removed": [
+    "C=(0,K.useMemo)(()=>Array.isArray(e)?e:[],[e])",
+    "if(e?.layout===`advert_self`)return(0,J.jsx)(Hn,{data:e?.data,isLoading:t||r},a);",
+    "(0,J.jsx)(`div`,{className:`mt-4`,children:(0,J.jsx)(W,{section:`topic_movies_top`})})"
+  ],
+  "preserved": [
+    "fixture-preserved-home"
+  ]
+}
