@@ -71,6 +71,6 @@ node scripts/check-ad-clean.mjs
 
 内嵌 JS 的局部修改可使用 `replaceInlineScripts`：配置站点 `requires`、至少三个 `scriptRequires` 和 `pairs` 的精确源码/替换内容/预期次数。仅修改真实、无 src 的 script，未知或重复源码保留；用于明确的兼容性修改时保留原脚本其他内容。
 
-## 专用广告请求规则
+## 瓜子影视原规则完整保留
 
-`requestRules` 用于已确认的广告专用接口，独立于 HTML/JS/JSON 响应清理。每项显式声明 id、exact domains、完整 endpoints、reject-dict action 和独立 conf 路径；统一配置与独立配置由同一构建器生成。必须补充来源、网站登记和域名/路径边界测试。不要使用任意主机或宽泛路径，不要将影片、会员、播放来源接口作为广告拒绝。当前瓜子接口来源是参考规则源码，设备兼容性仍需实测。
+`requestRules` 支持显式 verbatim 模式，从本地 sourceFile 读取并原样合并规则。瓜子影视按用户要求完整采用上游 23 条规则及 13 个 MITM 主机，原正则和 6 条脚本 URL 均不改写。来源原文件存档在 guazi-app/upstream；详见 [说明](../guazi-app/README.md)。配套脚本依赖上游，尚未设备验证。该模式是明确选择的完整导入，不用于自动发现或扩域。

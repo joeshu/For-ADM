@@ -848,27 +848,9 @@
           "api.gq89em.com"
         ]
       },
-      "endpoints": [
-        "/App/Ad/splashInfo",
-        "/App/Ad/noticeInfo",
-        "/App/IndexList/homeFloatAd",
-        "/App/Ad/activityInfo",
-        "/App/Ad/skitAdInfo",
-        "/App/Ad/countPopTotal",
-        "/App/Ad/barsUserAdInfo",
-        "/App/ad/config",
-        "/App/Ad/vajraInfo",
-        "/App/Ad/bannerInfo",
-        "/App/Ad/bardCacheAdInfo",
-        "/App/Ad/barsIndexAdInfo",
-        "/App/Ad/comicAdInfo",
-        "/App/Ad/liveEventAdInfo",
-        "/App/Ad/novelAdInfo",
-        "/App/Ad/sportAdInfo",
-        "/App/Resource/CommentAd/show"
-      ],
-      "action": "reject-dict",
-      "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet"
+      "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet",
+      "mode": "verbatim",
+      "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet"
     }
   ]
 }

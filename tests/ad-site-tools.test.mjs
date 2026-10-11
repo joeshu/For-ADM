@@ -66,6 +66,7 @@ test('a checked draft integrates through the real builder, registry and generate
   execFileSync(process.execPath,args,{cwd:root});
   const isolated=path.join(dir,'repo');fs.mkdirSync(isolated);
   for(const folder of ['universal','scripts'])fs.cpSync(path.join(root,folder),path.join(isolated,folder),{recursive:true});
+  for(const r of readJSON(path.join(root,'universal/templates.json')).requestRules||[])if(r.sourceFile){const dest=path.join(isolated,r.sourceFile);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,r.sourceFile),dest);}
   const manifest=readJSON(path.join(isolated,'universal/templates.json'));
   const template=readJSON(path.join(dir,'draft/template.json'));manifest.templates.push(template);
   fs.writeFileSync(path.join(isolated,'universal/templates.json'),JSON.stringify(manifest));

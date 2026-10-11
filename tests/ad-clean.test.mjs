@@ -211,22 +211,20 @@ test('Juyeye desktop redirect patch keeps platform variables, unrelated redirect
  const challenge='<html><title>系统安全验证</title><script>'+script+'</script><input name="verify"></html>';assert.equal(run(universal,url,challenge),challenge);
 });
 
-test('Guazi request rules match only explicit API hosts and complete advertising endpoints',()=>{
- const conf=fs.readFileSync(path.join(root,'universal/quantumult-x-snippet.conf'),'utf8');
- const standalone=fs.readFileSync(path.join(root,'guazi-app/quantumult-x-snippet.conf'),'utf8');
- const lines=s=>s.split('\n').filter(l=>l.endsWith(' url reject-dict'));
- assert.deepEqual(lines(conf),lines(standalone));assert.equal(lines(conf).length,17);
- const rules=lines(conf).map(l=>new RegExp(l.split(' url ')[0]));const hit=u=>rules.some(r=>r.test(u));
- const hosts=['api.mxtxqe.com','api.sef5w7.com','sdapi.u4gdp3.com','sdapi.4zu76s.com','sdapi.re3k7n.com','api.xqe4cxu.com','api.syq8gvw.com','api.zjypp7x.com','apinew.n3yje.icu','apinew.8hpt2duq.com','apinew.fzmfbdmg.com','api.7gmsut2m.com','api.gq89em.com'];
- const paths=['/App/Ad/splashInfo','/App/Ad/noticeInfo','/App/IndexList/homeFloatAd','/App/Ad/activityInfo','/App/Ad/skitAdInfo','/App/Ad/countPopTotal','/App/Ad/barsUserAdInfo','/App/ad/config','/App/Ad/vajraInfo','/App/Ad/bannerInfo','/App/Ad/bardCacheAdInfo','/App/Ad/barsIndexAdInfo','/App/Ad/comicAdInfo','/App/Ad/liveEventAdInfo','/App/Ad/novelAdInfo','/App/Ad/sportAdInfo','/App/Resource/CommentAd/show'];
- for(const host of hosts)for(const p of paths){
-  for(const scheme of ['https','http'])for(const query of ['','?id=1&next=%2FApp%2FResource%2FVod%2FshowOne'])assert(hit(scheme+'://'+host+p+query));
-  for(const suffix of ['/extra','Backup','#fragment'])assert(!hit('https://'+host+p+suffix));
-  for(const fake of [host+'.invalid','www.'+host,'other.example'])assert(!hit('https://'+fake+p));
- }
- for(const host of hosts){
-  for(const p of ['/App/Resource/Config/getNav','/App/Resource/Vod/showOne','/App/Resource/Vod/vurlDetail','/App/Resource/AppUserVod/showOne','/App/Ad/barsPlayAdInfo','/App/Ad/playAdInfo','/App/IndexPlay/vodAdvertisement','/movie.m3u8','/movie.ts'])assert(!hit('https://'+host+p));
-  assert.equal(run(universal,'https://'+host+'/App/Resource/Vod/showOne','{"data":{"vip":1,"vurl_clouds":[{"id":"keep"}]}}'),'{"data":{"vip":1,"vurl_clouds":[{"id":"keep"}]}}');
- }
- assert.deepEqual(standalone.match(/^hostname = (.*)$/m)[1].split(', '),hosts);
+test('Guazi full import preserves all upstream rules, script references and MITM hosts',()=>{
+ const original=fs.readFileSync(path.join(root,'guazi-app/upstream/TilingSales_ad_remove.snippet'),'utf8');
+ const unified=fs.readFileSync(path.join(root,'universal/quantumult-x-snippet.conf'),'utf8');
+ const independent=fs.readFileSync(path.join(root,'guazi-app/quantumult-x-snippet.conf'),'utf8');
+ const lines=s=>s.split(/\r?\n/).filter(l=>l.startsWith('^'));
+ const source=lines(original);assert.equal(source.length,23);
+ assert.equal(source.filter(l=>l.endsWith(' url reject-dict')).length,17);
+ assert.equal(source.filter(l=>l.includes(' url script-response-body ')).length,6);
+ assert.deepEqual(lines(independent),source);
+ for(const line of source){assert.equal(lines(unified).filter(l=>l===line).length,1);new RegExp(line.split(' url ')[0]);}
+ const hosts=original.match(/^hostname = (.*)$/m)[1].split(', ');assert.equal(hosts.length,13);
+ assert.deepEqual(independent.match(/^hostname = (.*)$/m)[1].split(', '),hosts);
+ for(const host of hosts)assert(unified.match(/^hostname = (.*)$/m)[1].split(', ').includes(host));
+ for(const metadata of original.split('\n').filter(l=>l.startsWith('#!')))assert(independent.includes(metadata));
+ const rule=new RegExp(source[0].split(' url ')[0]);assert(rule.test('https://other.example/App/Ad/splashInfo'));
+ assert(!rule.test('https://other.example/App/Resource/Vod/showOne'));
 });

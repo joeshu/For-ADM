@@ -1,9 +1,9 @@
-# 瓜子影视 App 广告接口
+# 瓜子影视完整原规则
 
-参考来源：[ZenmoFeiShi/Qx TilingSales_ad_remove.snippet](https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet)，作者“怎么肥事”，源文件标注更新 2026-08-11。
+按用户要求完整保留 [ZenmoFeiShi/Qx 原文件](https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet)（作者“怎么肥事”）。原文件按字节存档在 upstream/TilingSales_ad_remove.snippet。
 
-纳入统一配置：13 个明确 API 主机、17 个专用广告请求端点，使用 Quantumult X 原生 reject-dict。接口只匹配完整路径及可选查询串，不匹配相似接口、其他主机或整段 /App/ 路径。新域名需要核验后手动加入，不自动扩大。
+统一配置和独立配置完整生成原文件的 23 条规则：17 条 reject-dict、6 条 script-response-body，保留原正则、上游脚本 URL、元信息及 13 个 MITM 主机。只增加 Quantumult X 配置段落，不筛选、不收窄域名、不修改路径。
 
-来源的配套 TilingSales_getNav.js 使用 RSA 解出 AES 参数，再解密和回写 response_key。本次没有复制其加密库或密钥，也没有接入 barsPlayAdInfo、playAdInfo、vodAdvertisement 的加密响应改写。getNav 删除内容频道不等于去广告；showOne 修改 VIP 与来源列表、vurlDetail 改名和排序均未采用。播放、用户、会员及媒体流接口保持原样。
+6 条脚本保持引用上游 TilingSales_getNav.js，包含导航清理、3 个加密播放广告接口、影片详情、播放源详情；不经过本仓库统一响应引擎。脚本依赖上游，更新或不可达会影响实际效果。配套脚本中的 VIP 标记、播放源过滤/排序/改名保持原行为。原规则任意主机正则的范围也原样保留。
 
-这是 App API 规则，不是通用网页广告清理。只完成来源源码核验与规则边界离线测试，尚未完成设备效果测试；无法承诺清除全部广告。首次测试请检查首页和播放功能。
+只完成原文件一致性和生成检查，未设备验证，不承诺会员权限或实际播放效果。

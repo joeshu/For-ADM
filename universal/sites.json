@@ -125,7 +125,7 @@
       "status": "source-verified",
       "releasePages": [],
       "testUrls": [],
-      "notes": "核验 ZenmoFeiShi/Qx 规则源码；只采用其 13 个明确 API 主机及 17 个 reject-dict 广告端点。未取得设备响应；不采用任意主机、加密响应修改、VIP 修改或播放源排序。"
+      "notes": "用户要求完整保留原规则：23 条规则、6 条上游脚本引用和 13 个 MITM 主机。保持任意域名匹配及配套脚本原行为，未设备验证。原文件按字节保存在 guazi-app/upstream。"
     }
   ]
 }
