@@ -1266,6 +1266,87 @@
           ]
         }
       ]
+    },
+    {
+      "id": "dyls",
+      "adapter": "declarative",
+      "output": {
+        "script": "dyls/ad-clean.js",
+        "conf": "dyls/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "dyls1.mbxqnb.cn"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "json",
+              "path": "/api/v1/movie/index_recommend(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "jsonRootGuard": {
+        "all": [
+          {
+            "path": "msg",
+            "equals": "获取成功"
+          },
+          {
+            "path": "data",
+            "type": "array"
+          }
+        ]
+      },
+      "jsonPolicies": [
+        {
+          "endpoint": "^/api/v1/movie/index_recommend$",
+          "when": {
+            "path": "data",
+            "type": "array"
+          },
+          "ops": [
+            {
+              "op": "filterArray",
+              "path": "data",
+              "field": "layout",
+              "exclude": [
+                "advert_self"
+              ]
+            },
+            {
+              "op": "mapArray",
+              "path": "data",
+              "itemWhen": {
+                "all": [
+                  {
+                    "path": "layout",
+                    "equals": "index_recommend_carousel"
+                  },
+                  {
+                    "path": "list",
+                    "type": "array"
+                  }
+                ]
+              },
+              "ops": [
+                {
+                  "op": "filterArray",
+                  "path": "list",
+                  "field": "type",
+                  "exclude": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "requestRules": [

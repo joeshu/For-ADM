@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 7824b2f6e9ce. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision e79f90fec6ee. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -45,13 +45,17 @@ function __admOps(root, operations) {
       if (!Array.isArray(prev)) return;
       value=prev.filter(function(item){var field=__admRead(item,op.field);if(op.numeric)field=Number(field);return op.exclude.indexOf(field)<0;});
       if(value.length===prev.length)return;
+    } else if (op.op==='mapArray') {
+      if (!Array.isArray(prev)) return;
+      value=prev.map(function(item){return __admGuard(item,op.itemWhen)?__admOps(item,op.ops||[]):item;});
+      if(value.every(function(item,i){return item===prev[i];}))return;
     } else return;
     next=__admWrite(next,op.path,value,!!op.create);
   });return next;
 }
-function __admEnvelope(raw, endpoint, policies) {
+function __admEnvelope(raw, endpoint, policies, rootGuard) {
   var root=typeof raw==='string'?JSON.parse(raw):raw;
-  if(!root||root.result!==true||!root.data)return root;
+  if(!root||typeof root!=='object'||(rootGuard?!__admGuard(root,rootGuard):(root.result!==true||!root.data)))return root;
   var path=endpoint.split('?')[0];
   for(var i=0;i<policies.length;i++) {
     var policy=policies[i];
@@ -135,7 +139,7 @@ function cleanDeclarative(ctx,template) {
   var body=ctx.body;
   if(ctx.kind==='json') {
     if(!admHas(body,template.jsonRequires))return body;
-    var original=JSON.parse(body),cleaned=__admEnvelope(original,ctx.path,template.jsonPolicies||[]);
+    var original=JSON.parse(body),cleaned=__admEnvelope(original,ctx.path,template.jsonPolicies||[],template.jsonRootGuard);
     return cleaned===original?body:JSON.stringify(cleaned);
   }
   (template.actions||[]).forEach(function(rule){

@@ -61,9 +61,14 @@ for(const t of templates){
  for(const rule of t.jsRules||[]){for(const group of rule.groups||[])validatePairs(group);if(rule.inject)validatePairs(rule.inject);}
  for(const policy of t.jsonPolicies||[]){
   new RegExp(policy.endpoint);
-  for(const op of policy.ops){
-   if(!['set','clearArray','filterArray'].includes(op.op)||!op.path||op.path.split('.').some(s=>['__proto__','prototype','constructor'].includes(s)))throw Error('Invalid JSON operation/path');
+  function validateOps(ops,depth=0){
+   if(!Array.isArray(ops)||depth>12)throw Error('Invalid JSON operation nesting');
+   for(const op of ops){
+    if(!['set','clearArray','filterArray','mapArray'].includes(op.op)||typeof op.path!=='string'||!op.path||op.path.split('.').some(s=>['__proto__','prototype','constructor'].includes(s)))throw Error('Invalid JSON operation/path');
+    if(op.op==='mapArray'){if(!op.itemWhen)throw Error('JSON array mapping requires item guard');validateOps(op.ops,depth+1);}
+   }
   }
+  validateOps(policy.ops);
  }
 }
 const requestRules=(manifest.requestRules||[]).map(r=>({...r,...domains(r.domains)}));

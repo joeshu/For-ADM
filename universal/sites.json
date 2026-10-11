@@ -196,6 +196,17 @@
         "https://555k58.com/"
       ],
       "notes": "5dy4.vip 用户首页抓包及核心 CDN JS 已核验；55dy1.top 发布页截图确认 555k2.com、555k91.com、55kp8.com、555k58.com。按用户要求扩展 5dy数字.vip、55dy数字.top、555k数字.com、55kp数字.com（含 www）；未知编号仅在相同源码特征命中时清理，不代表每个域名都已实测。发布页普通导航保留。Safari 播放页捕获已验证两条手机横幅删除、471 个播放选集链接和播放器配置/iframe 保留；手机刷新效果及第三方解析广告尚未实机核验，不处理 HLS。"
+    },
+    {
+      "id": "dyls",
+      "name": "电影猎手接口 / dyls",
+      "template": "dyls",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://dyls1.mbxqnb.cn/api/v1/movie/index_recommend"
+      ],
+      "notes": "用户 JSON 抓包确认首页轮播 type=3 广告及 advert_self 广告图标区；仅处理该精确域名和接口，保留影片、分类及推荐数据。其他接口/备用域名尚未核验。不处理 HLS。"
     }
   ]
 }

@@ -1,0 +1,20 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/api/v1/movie/index_recommend?fixture=1",
+  "body": "{\"msg\": \"获取成功\", \"data\": [{\"layout\": \"index_recommend_carousel\", \"title\": \"carousel\", \"list\": [{\"type\": 1, \"title\": \"fixture-movie\", \"click\": \"movie-123\", \"image\": \"movie.jpg\"}, {\"type\": 3, \"title\": \"\", \"click\": \"https://fixture-promotion.example/\", \"image\": \"fixture-carousel-ad.gif\"}, {\"type\": 9, \"title\": \"fixture-unknown-card\", \"click\": \"unknown-action\"}], \"right\": {}}, {\"layout\": \"advert_self\", \"title\": \"\", \"list\": [], \"right\": {}, \"data\": [{\"type\": 2, \"location_id\": 2, \"channel\": \"ios\", \"remarks\": \"fixture-icon-ad\", \"data\": {\"image\": \"fixture-icon-ad.gif\", \"url\": \"https://fixture-ad.example/\"}, \"sort\": 1}]}, {\"layout\": \"base\", \"title\": \"fixture-film-list\", \"list\": [{\"id\": \"film-456\", \"name\": \"fixture-film-name\", \"type\": 3, \"url\": \"https://fixture-media.example/master.m3u8?sign=keep\"}], \"right\": {\"text\": \"查看更多\", \"type\": \"tabs\", \"data\": {\"index\": 2, \"param\": {\"class\": \"netflix\"}}}}]}",
+  "removed": [
+    "fixture-carousel-ad.gif",
+    "fixture-promotion.example",
+    "advert_self",
+    "fixture-icon-ad"
+  ],
+  "preserved": [
+    "fixture-movie",
+    "movie-123",
+    "fixture-unknown-card",
+    "fixture-film-list",
+    "fixture-film-name",
+    "master.m3u8?sign=keep",
+    "netflix"
+  ]
+}

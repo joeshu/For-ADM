@@ -124,3 +124,7 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 发布页 `55dy1.top` 的用户截图补充了 `555k2.com`、`555k91.com`、`55kp8.com`、`555k58.com`。按要求覆盖 `5dy数字.vip`、`55dy数字.top`、`555k数字.com`、`55kp数字.com` 及 www 前缀，编号正则与 MITM 通配同步生成。未知编号只有复用已核验模板特征时才执行清理；跨域名族不自动扩大。普通发布页及导航不删除。
 
 555电影 Safari 播放页捕获补充：清理 `d693d6351` 广告配置、`c2f670cd2` / `c2f670cd` 手机横幅和专用两秒延迟渲染脚本。抓包回放保留 471 个播放选集链接，`player_aaaa`、`Player555Options` 与播放器 iframe 原样保留。不据此修改 iframe 内部或媒体流。
+
+## 电影猎手首页接口
+
+新增用户抓包中的 `dyls1.mbxqnb.cn/api/v1/movie/index_recommend`，在成功 JSON 响应中移除轮播推广与 `advert_self` 图标广告区。普通影片分类和推荐完整保留。仅限已确认域名与接口，详情见 [电影猎手说明](../dyls/README.md)。公共 JSON 清理支持有结构校验的内层数组映射，新的响应成功判断只对显式配置模板启用。
