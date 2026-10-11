@@ -756,6 +756,28 @@
             "YTTJ4TLR",
             "1n0n"
           ]
+        },
+        {
+          "kind": "html",
+          "op": "replaceInlineScripts",
+          "requires": [
+            "/mxtheme/js/home.js",
+            "var maccms=",
+            "www.juyeye.cc"
+          ],
+          "scriptRequires": [
+            "var system = {};",
+            "navigator.platform",
+            "system.ispc = navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;",
+            "if (system.win || system.mac || system.ispc) {"
+          ],
+          "pairs": [
+            [
+              "window.location.href = \"../404.html\";",
+              "/* For-ADM: desktop 404 redirect disabled. */",
+              1
+            ]
+          ]
         }
       ]
     }

@@ -189,3 +189,22 @@ test('Juyeye inline advertising requires all source fingerprints and keeps playe
  for(const url of ['https://juyeye.cc/voddetail/96188.html','https://www.juyeye.cc.evil.com/voddetail/96188.html','https://www.juyeye.vip/','https://www.juyeye.cc/captcha.php','https://www.juyeye.cc/mxtheme/js/home.js','https://www.juyeye.cc/movie.m3u8'])assert.equal(run(universal,url,fixture.body),fixture.body);
  const challenge='<html>系统安全验证<script>captchaVerify.Init();</script></html>';assert.equal(run(universal,fixture.url,challenge),challenge);
 });
+
+test('Juyeye desktop redirect patch keeps platform variables, unrelated redirects and CAPTCHA',()=>{
+ const t=manifest.templates.find(t=>t.id==='juyeye'),rule=t.actions.find(r=>r.op==='replaceInlineScripts');
+ const script='var system = {};\nvar p = navigator.platform;\nsystem.win = p.indexOf("Win") == 0;\nsystem.mac = p.indexOf("Mac") == 0;\nsystem.ispc = navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;\nif (system.win || system.mac || system.ispc) {\nwindow.location.href = "../404.html";\n}';
+ const functional='<script>function captchaVerify(){return "keep"}</script><script>location.href="/vodplay/96188-1-2.html";</script>';
+ const head='<html><script src="/mxtheme/js/home.js"></script><script>var maccms={url:"www.juyeye.cc"}</script>';
+ const body=head+'<script>'+script+'</script>'+functional+'</html>',url='https://www.juyeye.cc/voddetail/96188.html';
+ check('juyeye',url,body,out=>{
+  assert(out.includes(functional));const patched=out.match(/<script>(var system[\s\S]*?)<\/script>/)[1];
+  assert.equal(patched,script.replace(rule.pairs[0][0],rule.pairs[0][1]));
+  new vm.Script(patched);
+  for(const [platform,userAgent]of [['Win32','Chrome'],['MacIntel','Safari'],['Linux x86_64','Chrome'],['iPhone','iPhone Safari']]){
+   const ctx={navigator:{platform,userAgent},window:{location:{href:'original'}}};vm.runInNewContext(patched,ctx);assert.equal(ctx.window.location.href,'original');assert.equal(typeof ctx.system.ispc,'boolean');
+  }
+ });
+ for(const marker of rule.scriptRequires){const drift=body.replace(marker,'CHANGED');assert.equal(run(universal,url,drift),drift);}
+ const duplicate=body.replace(rule.pairs[0][0],rule.pairs[0][0]+rule.pairs[0][0]);assert.equal(run(universal,url,duplicate),duplicate);
+ const challenge='<html><title>系统安全验证</title><script>'+script+'</script><input name="verify"></html>';assert.equal(run(universal,url,challenge),challenge);
+});

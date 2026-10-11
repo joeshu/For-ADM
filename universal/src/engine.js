@@ -115,12 +115,16 @@ function admHtmlMatch(token,selector) {
 }
 function admCutRanges(body,ranges) {
   ranges.sort(function(a,b){return a.start-b.start||b.end-a.end;});var pos=0,out='';
-  ranges.forEach(function(r){if(r.start<pos)return;out+=body.slice(pos,r.start);pos=r.end;});return out+body.slice(pos);
+  ranges.forEach(function(r){if(r.start<pos)return;out+=body.slice(pos,r.start)+(r.value===undefined?'':r.value);pos=r.end;});return out+body.slice(pos);
 }
 function admHtmlAction(body,rule) {
   var tokens=admHtmlTokens(body);if(!tokens)return body;var ranges=[];
   tokens.forEach(function(t){
     if(rule.op==='removeInlineScripts'&&!t.close&&t.name==='script'&&t.stop&&admHtmlAttr(t,'src')===null&&admHas(body.slice(t.end,t.stop),rule.scriptRequires))ranges.push({start:t.start,end:t.stop});
+    if(rule.op==='replaceInlineScripts'&&!t.close&&t.name==='script'&&t.stop&&admHtmlAttr(t,'src')===null) {
+      var source=body.slice(t.end,t.stop);
+      if(admHas(source,rule.scriptRequires)){var next=admGroup(source,rule.pairs);if(next!==source)ranges.push({start:t.end,end:t.stop,value:next});}
+    }
     if(rule.op==='removeElements'&&admHtmlMatch(t,rule.selector)&&t.stop)ranges.push({start:t.start,end:t.stop});
     if(rule.op==='removeAttributes'&&!t.close)t.attrs.forEach(function(a){if(new RegExp(rule.attributePattern,'i').test(a.name))ranges.push({start:a.start,end:a.end});});
   });return ranges.length?admCutRanges(body,ranges):body;
@@ -136,7 +140,7 @@ function cleanDeclarative(ctx,template) {
     if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
     else if(rule.op==='replaceGroup')body=admGroup(body,rule.pairs);
-    else if(rule.op==='removeElements'||rule.op==='removeAttributes'||rule.op==='removeInlineScripts')body=admHtmlAction(body,rule);
+    else if(rule.op==='removeElements'||rule.op==='removeAttributes'||rule.op==='removeInlineScripts'||rule.op==='replaceInlineScripts')body=admHtmlAction(body,rule);
     else if(rule.op==='setBody')body=rule.value;
   });return body;
 }

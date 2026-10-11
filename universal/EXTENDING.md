@@ -68,3 +68,5 @@ node scripts/check-ad-clean.mjs
 4. 设备端检查首页、播放、选集和线路切换，刷新 Quantumult X 远程规则/脚本缓存。实际通过后才把 status 改为 device-verified。默认日志保持关闭。
 
 `sites.json` 仅存放来源、发布页、样本链接和核验状态；运行时域名与路径仍由 `templates.json` 维护。`SITES.md` 自动生成，pending 项不进入规则。发布页增加新域名时先核验，不自动登记。规则更新失败可恢复上一提交的配置和脚本，或暂时禁用对应重写。
+
+内嵌 JS 的局部修改可使用 `replaceInlineScripts`：配置站点 `requires`、至少三个 `scriptRequires` 和 `pairs` 的精确源码/替换内容/预期次数。仅修改真实、无 src 的 script，未知或重复源码保留；用于明确的兼容性修改时保留原脚本其他内容。

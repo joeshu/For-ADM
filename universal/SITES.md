@@ -13,4 +13,4 @@
 | Auete | source-verified | auete | aeete.com, au1080.top；前缀：无/www | https://auete.asia/ | https://www.au1080.top/index.html https://www.aeete.com/ | 仅 aeete.com、au1080.top 和 www；发布页本身不进入重写。 |
 | Auete 尚未确认的发布页地址 | pending | 未启用 | 无 | https://auete.asia/ | https://www.auete.com/ https://www.au1080.com/ https://www.auete.top/ https://www.aimtoon.com/ | 部分地址此前返回错误，aimtoon 未确认广告特征；不生成规则。 |
 | 一起看影院（eboyang 旧版） | source-verified | eboyang | eboyang.com；前缀：无/www |  | https://www.eboyang.com/ https://www.eboyang.com/bovideo/3896-1-0.html | 核验首页、详情、播放页及 le1008.js 的静态解码；保留 caonima/common/function/play/history 与播放器 iframe。与 Nuxt YQK 分开适配。 |
-| 聚爷爷 | source-verified | juyeye | www.juyeye.cc | https://www.juyeye.vip/ | https://www.juyeye.cc/voddetail/96188.html | 以用户手机抓包响应确认内嵌混淆广告 JS；只移除五个源码特征同时命中的 script。发布页、验证码、桌面访问限制和其他域名不改写。播放页尚未取得真实响应。 |
+| 聚爷爷 | source-verified | juyeye | www.juyeye.cc | https://www.juyeye.vip/ | https://www.juyeye.cc/voddetail/96188.html | 用户手机抓包确认内嵌混淆广告 JS；精确移除广告并取消正常页面的电脑 404 跳转。保留验证码，不能恢复服务端错误页；实际播放页待核验。 |
