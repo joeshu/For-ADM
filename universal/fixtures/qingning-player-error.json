@@ -1,0 +1,14 @@
+{
+  "template": "qingning-player",
+  "url": "https://tv.qingning88.com/api/publicApi.php",
+  "body": "<html><link href=\"//djs.imgdianyingoss.com/js/ds/ds.css\"><div class=\"main-v-player-main\"><a class=\"ds-video-player-main-sub\" href=\"https://app3.qingning9.com?src=-3\">fixture-download-ad</a><a href=\"https://app2.zstv47.com?src=-3\">fixture-app-ad</a><p>真实错误提示保留</p><a href=\"https://fixture-help.example/\">正常帮助</a><a href=\"https://app3.qingning9.com.invalid/\">相似域名</a></div></html>",
+  "removed": [
+    "fixture-download-ad",
+    "fixture-app-ad"
+  ],
+  "preserved": [
+    "真实错误提示保留",
+    "正常帮助",
+    "相似域名"
+  ]
+}

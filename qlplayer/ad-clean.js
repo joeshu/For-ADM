@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision fb5b522cc54e. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 7824b2f6e9ce. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -89,7 +89,7 @@ function admHtmlTokens(body) {
       var at=start+head[0].length;
       while(at<end) {
         var tail=body.slice(at,end);if(/^\s*\/?\s*$/.test(tail))break;
-        var attr=tail.match(/^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>`=]+)))?/);
+        var attr=tail.match(/^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>`]+)))?/);
         if(!attr)return null;
         token.attrs.push({name:attr[1].toLowerCase(),value:attr[2]!==undefined?attr[2]:attr[3]!==undefined?attr[3]:attr[4]||'',start:at,end:at+attr[0].length});at+=attr[0].length;
       }

@@ -1,0 +1,16 @@
+{
+  "template": "qingning-player",
+  "url": "https://tv.qingning77.com/api/publicApi.php?url=fixture",
+  "body": "<html><body oncontextmenu=window.event.returnValue=false><video id=\"video\" class=\"video-js\"></video><script src=\"/api/videojs/lang/zh-CN.js\"></script><script>\nfunction createSuperLabel(url, id) { window.open(url); }\nvar url = 'https://fixture-media.example/master.m3u8?sign=keep&t=123';\nvar srcRef = 'fixture-ref';\nvar options = {controls:true};\nvar player = videojs('video', options, function onPlayerReady() {\n this.src(url);this.play();\n this.on('error', function() {\n  dialogContent[0].addEventListener('click', function () {\n   createSuperLabel('https://app2.zstv47.com?sc=wap_jztv3&src=-2&ref='+ encodeURIComponent(srcRef) + '&p=' + encodeURIComponent(url), 'vjs_modal_dialog_content_t_id')\n  });\n });\n this.on('ended',function(){nextEpisode();});\n});\n</script></body></html>",
+  "removed": [
+    "createSuperLabel('https://app2.zstv47.com?sc=wap_jztv3&src=-2&ref='+ encodeURIComponent(srcRef) + '&p=' + encodeURIComponent(url), 'vjs_modal_dialog_content_t_id')"
+  ],
+  "preserved": [
+    "var url = 'https://fixture-media.example/master.m3u8?sign=keep&t=123';",
+    "this.src(url);this.play();",
+    "this.on('error', function()",
+    "nextEpisode();",
+    "/api/videojs/lang/zh-CN.js",
+    "oncontextmenu=window.event.returnValue=false"
+  ]
+}

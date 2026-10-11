@@ -1,6 +1,6 @@
 # Quantumult X 统一去广告
 
-统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang、聚爷爷、追影猫、影像星球九组网站适配，另含麒麟第三方解析器模块和瓜子影视 App 完整原规则。
+统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang、聚爷爷、追影猫、影像星球九组网站适配，另含麒麟、清宁第三方解析器模块和瓜子影视 App 完整原规则。
 
 ## 使用
 
@@ -69,7 +69,7 @@ YQK/QNTV 页面域名支持 `(yqk|qntv)数字.app` 与 www 前缀。后端仅支
 
 四类操作共用 engine：JSON 字段使用结构校验后的 set/clearArray/filterArray；广告脚本入口使用 script/src 精确选择器；HTML 容器使用标签与完整 class token，属性清理由独立 removeAttributes 执行；JS 成组替换由 admGroup 校验每处预期次数。网站仍只在自己的域名、路径与源码特征范围内运行。生成器拒绝无效选择器、未锚定的属性正则、HTML 文本正则删除、错误替换次数和重复输出路径。
 
-HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号内的 >、未加引号的属性和实际页面中的相邻引号属性。ad-item-wrapper 不再匹配 ad-item。没有闭合的广告容器保留原文；无法可靠完成扫描时也保留原文。JS 和 CSS 字符串中的伪 HTML 不参与删除。
+HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号内的 >、未加引号的属性和实际页面中的相邻引号属性；兼容浏览器实际接受的未加引号值中的 =（清宁 oncontextmenu），保留属性原文。ad-item-wrapper 不再匹配 ad-item。没有闭合的广告容器保留原文；无法可靠完成扫描时也保留原文。JS 和 CSS 字符串中的伪 HTML 不参与删除。
 
 公共入口统一保护数字或字符串状态码、HTTP 状态行、HEAD/OPTIONS、Content-Type 与正文类型不符，以及带 BOM/注释前缀的 HTML 错误页。已知非 2xx 响应保留原文；脚本异常也保留原文，日志仍默认关闭。
 
@@ -102,3 +102,7 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 ## 麒麟第三方解析器
 
 影像星球部分线路调用 `svip.qlplayer.cyou`。统一订阅已增加独立解析器模块，仅匹配 `/assets/player.js`，精确关闭片头与暂停广告的两个执行条件，保留原解析与播放分支。两处匹配次数均为一次且全部源码特征存在时才修改；详见 [解析器说明](../qlplayer/README.md)。不修改媒体流，不扩展未知解析器域名。
+
+## 第三方解析器排查
+
+清宁 `tv.qingning88.com`（eboyang）与 `tv.qingning77.com`（不卡影院）已纳入统一订阅，取消播放错误提示点击推广及错误页 APP 链接，保留 Video.js 和签名播放地址。见 [清宁说明](../qingning-player/README.md)与[排查登记](PARSERS.md)。Auete 当前抽查两条线路使用站内 DPlayer，配置中的华旗地址返回 502，暂不生成其规则。动态 API 返回的解析器地址仍需对应正常响应才能核验，不自动扩展未知主机。

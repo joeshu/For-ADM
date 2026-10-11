@@ -87,7 +87,7 @@ function admHtmlTokens(body) {
       var at=start+head[0].length;
       while(at<end) {
         var tail=body.slice(at,end);if(/^\s*\/?\s*$/.test(tail))break;
-        var attr=tail.match(/^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>`=]+)))?/);
+        var attr=tail.match(/^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>`]+)))?/);
         if(!attr)return null;
         token.attrs.push({name:attr[1].toLowerCase(),value:attr[2]!==undefined?attr[2]:attr[3]!==undefined?attr[3]:attr[4]||'',start:at,end:at+attr[0].length});at+=attr[0].length;
       }

@@ -152,6 +152,29 @@
         "https://svip.qlplayer.cyou/?url=https%3A%2F%2Fwww.iqiyi.com%2Fv_22bcc34f23o.html"
       ],
       "notes": "独立解析器模块，只精确修改 assets/player.js 的片头/暂停广告判断；两处各一次且全部特征匹配才修改。保留解析、鉴权、弹幕、投屏；不修改 HLS。抓取配置原已关闭广告，开启场景以回归样例验证，手机实测待完成。"
+    },
+    {
+      "id": "qingning-player",
+      "name": "清宁 Video.js 解析器",
+      "template": "qingning-player",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://tv.qingning88.com/api/publicApi.php",
+        "https://tv.qingning77.com/api/publicApi.php"
+      ],
+      "notes": "eboyang 与不卡影院实际使用；已抓取携带真实播放地址的两台播放器响应。精确取消错误提示点击推广及错误页 APP 链接，保留 Video.js、签名 URL 和错误回调；未手机验证，无 HLS。"
+    },
+    {
+      "id": "huaqi-parser-pending",
+      "name": "Auete 配置中的华旗解析器",
+      "template": null,
+      "status": "pending",
+      "releasePages": [],
+      "testUrls": [
+        "https://www.huaqi.live/"
+      ],
+      "notes": "Auete play.js 中配置 jxAapi，带播放地址和首页请求均返回 502。当前抽查 xyun/gyun 两条线路实际走站内 go/api/dp.php；不生成华旗规则。"
     }
   ]
 }
