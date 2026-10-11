@@ -141,6 +141,17 @@
         "https://www.yxxq65.cc/play/vd61054fb1d37m1c-2-1.html"
       ],
       "notes": "65、35 站源码核验；按用户要求加入发现接口列出的全部 15 个备用域名（35 已存在），共 16 个精确 www 主机。新增主机逐站源码/设备未验证；仍需三项 HTML 或四项 JS 特征才改写。保留播放器、线路和域名发现，不修改 HLS。"
+    },
+    {
+      "id": "qlplayer",
+      "name": "麒麟解析器",
+      "template": "qlplayer",
+      "status": "source-verified",
+      "releasePages": [],
+      "testUrls": [
+        "https://svip.qlplayer.cyou/?url=https%3A%2F%2Fwww.iqiyi.com%2Fv_22bcc34f23o.html"
+      ],
+      "notes": "独立解析器模块，只精确修改 assets/player.js 的片头/暂停广告判断；两处各一次且全部特征匹配才修改。保留解析、鉴权、弹幕、投屏；不修改 HLS。抓取配置原已关闭广告，开启场景以回归样例验证，手机实测待完成。"
     }
   ]
 }

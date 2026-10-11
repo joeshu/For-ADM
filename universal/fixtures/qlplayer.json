@@ -1,0 +1,18 @@
+{
+  "template": "qlplayer",
+  "url": "https://svip.qlplayer.cyou/assets/player.js",
+  "body": "async function init() {\n try {\n  if (playerConfig.ads.pre_roll.enabled) {\n   await showPreRoll();\n  } else {\n   const { url, type } = await resolveVideo();\n   initPlayer(url, type);\n  }\n } catch (e) { showError(e.message); }\n}\nfunction showPreRoll(){ return Promise.resolve(\"fixture-pre-ad\"); }\nfunction showPauseAd(){ return \"fixture-pause-ad\"; }\nfunction bindAds(art){\n if (playerConfig.ads.pause.enabled) {\n  art.on('pause',()=>showPauseAd());\n  art.on('play',()=>closePauseAd());\n }\n}\n// preserve videoUrl, apiToken, resolveVideo, initPlayer, authorization, casting, danmaku\n",
+  "removed": [
+    "if (playerConfig.ads.pre_roll.enabled) {",
+    "if (playerConfig.ads.pause.enabled) {"
+  ],
+  "preserved": [
+    "const { url, type } = await resolveVideo();",
+    "initPlayer(url, type);",
+    "async function init()",
+    "function showPreRoll()",
+    "function showPauseAd()",
+    "videoUrl, apiToken",
+    "authorization, casting, danmaku"
+  ]
+}

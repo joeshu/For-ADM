@@ -934,6 +934,55 @@
           "value": "/* For-ADM: verified YXXQ advertising module disabled. */"
         }
       ]
+    },
+    {
+      "id": "qlplayer",
+      "adapter": "declarative",
+      "output": {
+        "script": "qlplayer/ad-clean.js",
+        "conf": "qlplayer/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "svip.qlplayer.cyou"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "js",
+              "path": "/assets/player\\.js(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "async function init()",
+            "function showPreRoll()",
+            "function showPauseAd()",
+            "const { url, type } = await resolveVideo();",
+            "initPlayer(url, type);"
+          ],
+          "pairs": [
+            [
+              "if (playerConfig.ads.pre_roll.enabled) {",
+              "if (false /* For-ADM: pre-roll disabled */) {",
+              1
+            ],
+            [
+              "if (playerConfig.ads.pause.enabled) {",
+              "if (false /* For-ADM: pause ad disabled */) {",
+              1
+            ]
+          ]
+        }
+      ]
     }
   ],
   "requestRules": [

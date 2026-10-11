@@ -20,7 +20,7 @@
 
 保留 `player_aaaa` 全部配置、playerconfig.js、player.js、player-ab-test.js、观看记录、选集、下一集、线路切换、网盘和 site-domain-status-ddys.js。已核验两条播放线路，当前 playerconfig 的 buffer/prestrain 均为空，不修改这些播放器文件。
 
-共享主题 JS 不属于专用广告入口，继续加载。第三方 `svip.qlplayer.cyou` 解析器尚未核验，本模块不处理其内部广告；不改媒体流或 HLS。
+共享主题 JS 不属于专用广告入口，继续加载。第三方 `svip.qlplayer.cyou` 现由统一订阅中的独立麒麟模块关闭片头和暂停广告入口；影像星球独立版不含解析器规则。保留广告容器，防止播放器对节点的引用报错；不改媒体流或 HLS。
 
 ## 验证
 
