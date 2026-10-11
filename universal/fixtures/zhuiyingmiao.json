@@ -1,0 +1,20 @@
+{
+  "template": "zhuiyingmiao",
+  "url": "https://zhuiyingmiao5.com/voddetail/1657047.html",
+  "body": "<html><script>var maccms={\"url\":\"https://www.zhuiyingmiao5.com\"};</script><script src=\"/mxtheme/js/home.js\"></script><script src=\"/mxtheme/js/script.js?v=mizhiv4.3\"></script><link href=\"/mxtheme/css/style.css\"><div class=\"module-adslist ads_w\"><a href=\"https://tf14.huyuetf.net/\"><img src=\"fixture-ad-image\"></a></div><div class=\"play-select\"><a href=\"https://fixture-source.example/movie.html\">播放来源</a></div><script>window.location.href=\"/page.html?url=\"+btoa(link);</script><div class=\"module-adslist-extra\">保留相似类名</div><div class=\"popup\"><p>公告内容</p><div class=\"module-adslist ads_w\">fixture-popup-ad</div><div class=\"close-pop\">好的，我记住啦</div></div></html>",
+  "removed": [
+    "fixture-ad-image",
+    "fixture-popup-ad",
+    "tf14.huyuetf.net"
+  ],
+  "preserved": [
+    "/mxtheme/js/home.js",
+    "/mxtheme/js/script.js?v=mizhiv4.3",
+    "/mxtheme/css/style.css",
+    "https://fixture-source.example/movie.html",
+    "window.location.href=\"/page.html?url=\"+btoa(link);",
+    "保留相似类名",
+    "公告内容",
+    "好的，我记住啦"
+  ]
+}

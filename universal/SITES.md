@@ -14,3 +14,4 @@
 | Auete 尚未确认的发布页地址 | pending | 未启用 | 无 | https://auete.asia/ | https://www.auete.com/ https://www.au1080.com/ https://www.auete.top/ https://www.aimtoon.com/ | 部分地址此前返回错误，aimtoon 未确认广告特征；不生成规则。 |
 | 一起看影院（eboyang 旧版） | source-verified | eboyang | eboyang.com；前缀：无/www |  | https://www.eboyang.com/ https://www.eboyang.com/bovideo/3896-1-0.html | 核验首页、详情、播放页及 le1008.js 的静态解码；保留 caonima/common/function/play/history 与播放器 iframe。与 Nuxt YQK 分开适配。 |
 | 聚爷爷 | source-verified | juyeye | www.juyeye.cc | https://www.juyeye.vip/ | https://www.juyeye.cc/voddetail/96188.html | 用户手机抓包确认内嵌混淆广告 JS；精确移除广告并取消正常页面的电脑 404 跳转。保留验证码，不能恢复服务端错误页；实际播放页待核验。 |
+| 追影猫 | source-verified | zhuiyingmiao | zhuiyingmiao5.com, www.zhuiyingmiao5.com | https://zhuiyingmiao.vip/ | https://zhuiyingmiao5.com/ https://zhuiyingmiao5.com/voddetail/1657047.html | 首页、详情广告直接存在于 module-adslist 容器；保留共享 JS、手机 page.html 跳转和播放来源。未确认独立广告 JS，不修改 HLS 或第三方播放站。 |
