@@ -2,10 +2,11 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {resolveParserProfile} from '../scripts/lib/parser-profiles.mjs';
 import {runCleaner,readJSON} from '../scripts/lib/ad-sites.mjs';
 const code=fs.readFileSync(new URL('../universal/ad-clean.js',import.meta.url),'utf8');
 const manifest=readJSON(new URL('../universal/templates.json',import.meta.url));
-const template=manifest.templates.find(t=>t.id==='qlplayer');
+const template=resolveParserProfile(manifest.templates.find(t=>t.id==='qlplayer'),manifest);
 const fixture=readJSON(new URL('../universal/fixtures/qlplayer.json',import.meta.url));
 test('QLPlayer advertising enabled still takes original resolution branch and registers no pause ads',async()=>{
  const out=runCleaner(code,fixture.url,fixture.body);

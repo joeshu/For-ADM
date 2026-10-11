@@ -958,6 +958,72 @@
           ]
         }
       ],
+      "parserProfile": "qlplayer"
+    },
+    {
+      "id": "qingning-player",
+      "adapter": "declarative",
+      "output": {
+        "script": "qingning-player/ad-clean.js",
+        "conf": "qingning-player/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "tv.qingning88.com",
+              "tv.qingning77.com"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/api/publicApi\\.php(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "parserProfile": "qingning-player"
+    }
+  ],
+  "requestRules": [
+    {
+      "id": "guazi-app",
+      "output": {
+        "conf": "guazi-app/quantumult-x-snippet.conf",
+        "script": "guazi-app/ad-clean.js"
+      },
+      "domains": {
+        "type": "exact",
+        "names": [
+          "api.mxtxqe.com",
+          "api.sef5w7.com",
+          "sdapi.u4gdp3.com",
+          "sdapi.4zu76s.com",
+          "sdapi.re3k7n.com",
+          "api.xqe4cxu.com",
+          "api.syq8gvw.com",
+          "api.zjypp7x.com",
+          "apinew.n3yje.icu",
+          "apinew.8hpt2duq.com",
+          "apinew.fzmfbdmg.com",
+          "api.7gmsut2m.com",
+          "api.gq89em.com"
+        ]
+      },
+      "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet",
+      "mode": "verbatim",
+      "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet",
+      "adapter": "guazi",
+      "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js",
+      "cryptoSource": "guazi-app/vendor/cryptojs-aes.min.js"
+    }
+  ],
+  "parserProfiles": [
+    {
+      "id": "qlplayer",
+      "name": "麒麟片头/暂停广告策略",
       "actions": [
         {
           "kind": "js",
@@ -986,28 +1052,7 @@
     },
     {
       "id": "qingning-player",
-      "adapter": "declarative",
-      "output": {
-        "script": "qingning-player/ad-clean.js",
-        "conf": "qingning-player/quantumult-x-snippet.conf"
-      },
-      "bindings": [
-        {
-          "domains": {
-            "type": "exact",
-            "names": [
-              "tv.qingning88.com",
-              "tv.qingning77.com"
-            ]
-          },
-          "routes": [
-            {
-              "kind": "html",
-              "path": "/api/publicApi\\.php(?:\\?.*)?$"
-            }
-          ]
-        }
-      ],
+      "name": "清宁错误提示与下载推广策略",
       "actions": [
         {
           "kind": "html",
@@ -1068,39 +1113,6 @@
           }
         }
       ]
-    }
-  ],
-  "requestRules": [
-    {
-      "id": "guazi-app",
-      "output": {
-        "conf": "guazi-app/quantumult-x-snippet.conf",
-        "script": "guazi-app/ad-clean.js"
-      },
-      "domains": {
-        "type": "exact",
-        "names": [
-          "api.mxtxqe.com",
-          "api.sef5w7.com",
-          "sdapi.u4gdp3.com",
-          "sdapi.4zu76s.com",
-          "sdapi.re3k7n.com",
-          "api.xqe4cxu.com",
-          "api.syq8gvw.com",
-          "api.zjypp7x.com",
-          "apinew.n3yje.icu",
-          "apinew.8hpt2duq.com",
-          "apinew.fzmfbdmg.com",
-          "api.7gmsut2m.com",
-          "api.gq89em.com"
-        ]
-      },
-      "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet",
-      "mode": "verbatim",
-      "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet",
-      "adapter": "guazi",
-      "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js",
-      "cryptoSource": "guazi-app/vendor/cryptojs-aes.min.js"
     }
   ]
 }

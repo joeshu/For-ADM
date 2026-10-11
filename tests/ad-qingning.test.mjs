@@ -2,10 +2,11 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {resolveParserProfile} from '../scripts/lib/parser-profiles.mjs';
 import {runCleaner,readJSON} from '../scripts/lib/ad-sites.mjs';
 const code=fs.readFileSync(new URL('../universal/ad-clean.js',import.meta.url),'utf8');
 const manifest=readJSON(new URL('../universal/templates.json',import.meta.url));
-const template=manifest.templates.find(t=>t.id==='qingning-player');
+const template=resolveParserProfile(manifest.templates.find(t=>t.id==='qingning-player'),manifest);
 const fixtures=[0,1].map(i=>readJSON(new URL('../universal/fixtures/qingning-player-'+i+'.json',import.meta.url)));
 test('Qingning preserves playback, errors and ending while error click cannot open promotion',()=>{
  for(const fixture of fixtures){

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
+import {resolveParserProfile,parserProfiles} from './lib/parser-profiles.mjs';
 import {exactHostPattern} from './lib/host-pattern.mjs';
 import {buildGuaziSource} from './lib/guazi-build.mjs';
 import {validateSourcePath,parseRuleImport,validateGeneratedRules} from './lib/rule-import.mjs';
@@ -21,8 +22,9 @@ function domains(d){
 }
 const sources=['universal/src/engine.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
 const source=sources.map(read).join('\n');
-const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')).digest('hex').slice(0,12);
-const templates=manifest.templates.map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
+const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')+read('scripts/lib/parser-profiles.mjs')).digest('hex').slice(0,12);
+parserProfiles(manifest);
+const templates=manifest.templates.map(t=>resolveParserProfile(t,manifest)).map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
 const outputPaths=new Set();
 function validatePairs(pairs){

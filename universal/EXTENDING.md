@@ -74,3 +74,31 @@ node scripts/check-ad-clean.mjs
 ## 瓜子影视原规则完整保留
 
 `requestRules` 支持显式 verbatim 模式，从本地 sourceFile 读取并原样合并规则。瓜子影视按用户要求完整采用上游 23 条规则及 13 个 MITM 主机，原匹配正则保持不变；6 条响应规则调用本仓库瓜子独立脚本。来源原文件存档在 guazi-app/upstream；详见 [说明](../guazi-app/README.md)。加密依赖本地打包，尚未设备验证。该模式是明确选择的完整导入，不用于自动发现或扩域。
+
+## 复用解析器策略
+
+`templates.json` 的 `parserProfiles` 保存解析器广告操作与源码指纹；解析器模板通过 `parserProfile` 引用，并单独维护 `bindings` 域名与路径。构建时展开策略，运行时不联网加载，不自动发现主机。当前策略：
+
+| 策略 ID | 内容 |
+| --- | --- |
+| qlplayer | 麒麟片头/暂停广告两个判断，保留直接解析播放分支 |
+| qingning-player | 清宁错误点击 APP 推广与下载链接 |
+
+新增网站调用已登记解析器时，无需修改解析器策略或复制广告代码；统一订阅已经按解析器主机匹配。相同解析器结构换主机时，先核验正常源码，再给原解析器模板增加明确 binding/域名和样例。不同主机需要独立模块但结构一致时，可以引用同一策略生成独立模块。播放器库名称相同不能作为策略适用的证据。
+
+例如新解析器源码与麒麟策略一致，可创建草稿 spec：
+
+```json
+{
+  "id": "new-parser",
+  "url": "https://parser.example/assets/player.js",
+  "kind": "js",
+  "sample": "sample.js",
+  "operation": "profile",
+  "parserProfile": "qlplayer",
+  "removed": ["if (playerConfig.ads.pre_roll.enabled) {", "if (playerConfig.ads.pause.enabled) {"],
+  "preserved": ["const { url, type } = await resolveVideo();", "initPlayer(url, type);"]
+}
+```
+
+运行现有 `node scripts/new-ad-site.mjs --spec ./site.json`。无需重新提供 replacement 或指纹，工具使用已登记策略，验证样本的广告删除与播放保留；特征缺失时失败，不写入草稿。不自动启用新主机。禁止将 parserProfile 与本地 actions、其他适配器或 JSON 策略混用，避免覆盖保护条件。

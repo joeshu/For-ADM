@@ -23,10 +23,13 @@ assert(['html','js','json'].includes(spec.kind),'Invalid kind');
 assert(!/\.(?:m3u8|ts|m4s|mp4|mpd|aac)(?:$|\/)/i.test(url.pathname),'Media routes are not supported');
 const body=fs.readFileSync(path.resolve(path.dirname(specPath),spec.sample),'utf8');
 const requires=spec.requires;
-assert(Array.isArray(requires)&&requires.length&&requires.every(s=>typeof s==='string'&&s&&body.includes(s)),'Source fingerprint(s) must exist in sample');
+if(!spec.parserProfile)assert(Array.isArray(requires)&&requires.length&&requires.every(s=>typeof s==='string'&&s&&body.includes(s)),'Source fingerprint(s) must exist in sample');
 const t={id:spec.id,adapter:'declarative',output:{script:spec.id+'/ad-clean.js',conf:spec.id+'/quantumult-x-snippet.conf'},bindings:[{domains:{type:'exact',names:[url.hostname]},routes:[{kind:spec.kind,path:escapeRE(url.pathname)+'(?:\\?.*)?$'}]}]};
 const action={kind:spec.kind,requires};
-if(spec.kind==='html'){
+if(spec.parserProfile){
+ assert(spec.operation==='profile'&&!spec.target&&!spec.replacement&&!spec.requires,'Profile reuse takes fingerprints and actions from the registered profile');
+ t.parserProfile=spec.parserProfile;
+}else if(spec.kind==='html'){
  assert(['container','script'].includes(spec.operation),'HTML operation must be container or script');
  if(spec.operation==='container'){
   assert(/^[a-z][a-z0-9-]*$/.test(spec.tag||'div')&&typeof spec.target==='string'&&/^\S+$/.test(spec.target),'Expected tag and one exact class token');

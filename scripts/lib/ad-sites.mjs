@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import {resolveParserProfile} from './parser-profiles.mjs';
 import {exactHostPattern} from './host-pattern.mjs';
 import assert from 'node:assert/strict';
 export const readJSON=p=>JSON.parse(fs.readFileSync(p,'utf8'));
@@ -25,6 +26,7 @@ export function fixtureChecks(code,fixture) {
  return out;
 }
 export function draftCode(root,template) {
+ template=resolveParserProfile(template,readJSON(path.join(root,'universal/templates.json')));
  const engine=fs.readFileSync(path.join(root,'universal/src/engine.js'),'utf8');
  assert.equal(template.adapter,'declarative');
  const runtime={...template,bindings:template.bindings.map(b=>{
