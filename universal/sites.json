@@ -125,7 +125,7 @@
       "status": "source-verified",
       "releasePages": [],
       "testUrls": [],
-      "notes": "用户要求完整保留原规则：23 条规则、6 条上游脚本引用和 13 个 MITM 主机。保持任意域名匹配及配套脚本原行为，未设备验证。原文件按字节保存在 guazi-app/upstream。"
+      "notes": "保留上游 23 条规则及原主机匹配；6 类 RSA/AES 响应处理已打包进统一脚本和独立脚本，增加鉴权/密文/结构校验，未设备验证。"
     }
   ]
 }

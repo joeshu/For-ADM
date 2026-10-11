@@ -1,9 +1,11 @@
-# 瓜子影视完整原规则
+# 瓜子影视统一适配
 
-按用户要求完整保留 [ZenmoFeiShi/Qx 原文件](https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet)（作者“怎么肥事”）。原文件按字节存档在 upstream/TilingSales_ad_remove.snippet。
+参考作者“怎么肥事”的 [ZenmoFeiShi/Qx 规则](https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet)。原 snippet 和 TilingSales_getNav.js 完整快照在 upstream/ 保存，未修改。
 
-统一配置和独立配置完整生成原文件的 23 条规则：17 条 reject-dict、6 条 script-response-body，保留原正则、上游脚本 URL、元信息及 13 个 MITM 主机。只增加 Quantumult X 配置段落，不筛选、不收窄域名、不修改路径。
+17 条 reject-dict、6 条响应处理、13 个 MITM 主机及原匹配正则全部保留。6 条响应规则改为调用本仓库统一脚本或独立 guazi-app/ad-clean.js，RSA/AES 依赖本地打包，运行时不再下载上游 JS。
 
-6 条脚本保持引用上游 TilingSales_getNav.js，包含导航清理、3 个加密播放广告接口、影片详情、播放源详情；不经过本仓库统一响应引擎。脚本依赖上游，更新或不可达会影响实际效果。配套脚本中的 VIP 标记、播放源过滤/排序/改名保持原行为。原规则任意主机正则的范围也原样保留。
+保留能力：getNav 过滤 read/game/micro/music；barsPlayAdInfo 和 vodAdvertisement 返回加密空数组，playAdInfo 返回加密空对象；showOne 修改 VIP/展示字段、收藏默认字段和来源过滤；vurlDetail 清理名称、规范分辨率及降序排序。这些字段修改不能保证服务器授予会员权限。
 
-只完成原文件一致性和生成检查，未设备验证，不承诺会员权限或实际播放效果。
+优化：依赖放入局部作用域并按需初始化，不污染其他模块；统一引擎只调用一次真实 $done；HTTP 错误、鉴权错误、无效密钥/密文、未知解密结构原样放行。原文件完整快照便于追溯，上游脚本更新需审核后重新打包。
+
+离线用 Node 原生 RSA/AES 生成加密样本，验证全部六类转换、密文回写、重复执行和播放字段保留。未完成手机效果测试；不处理 HLS。

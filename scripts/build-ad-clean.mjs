@@ -17,9 +17,9 @@ function domains(d){
  const p=prefixes.map(s=>escape(s)+(s?'\\.':''));
  return {host:(p.length>1?'(?:'+p.join('|')+')':p[0])+base,mitm:prefixes.flatMap(p=>mitm.map(s=>(p?p+'.':'')+s))};
 }
-const sources=['universal/src/engine.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js'];
+const sources=['universal/src/engine.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
 const source=sources.map(read).join('\n');
-const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>r.sourceFile?read(validateSourcePath(r.sourceFile)):'').join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')).digest('hex').slice(0,12);
+const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')).digest('hex').slice(0,12);
 const templates=manifest.templates.map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
 const outputPaths=new Set();
@@ -69,31 +69,41 @@ for(const r of requestRules){
  if(r.mode==='verbatim'){
   Object.assign(r,parseRuleImport(read(validateSourcePath(r.sourceFile)),r.domains.names));
  }else if(r.action!=='reject-dict'||!Array.isArray(r.endpoints)||!r.endpoints.length||new Set(r.endpoints).size!==r.endpoints.length||r.endpoints.some(p=>!/^\/App\/(?:Ad|ad|IndexList|Resource)\/[A-Za-z/]+$/.test(p)))throw Error('Invalid advertising request endpoints');
+ if(r.adapter){
+  if(r.adapter!=='guazi'||r.mode!=='verbatim'||r.upstreamScript!=='guazi-app/upstream/TilingSales_getNav.js'||r.output.script!=='guazi-app/ad-clean.js')throw Error('Invalid integrated request adapter');
+  if(outputPaths.has(r.output.script))throw Error('Duplicate integrated script output');outputPaths.add(r.output.script);
+ }
  const p=r.output?.conf;
  if(typeof p!=='string'||path.isAbsolute(p)||p.split(/[\\/]/).some(s=>!s||s==='..'||s==='.')||!p.endsWith('.conf')||outputPaths.has(p))throw Error('Invalid request rule output');
  outputPaths.add(p);
 }
-function requestLines(r){if(r.mode==='verbatim')return r.lines;return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
+function requestLines(r,scriptUrl){if(r.mode==='verbatim')return r.lines.map(l=>r.adapter&&scriptUrl&&l.includes(' url script-response-body ')?l.split(' url ')[0]+' url script-response-body '+scriptUrl:l);return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
 const generated=new Map();
-function generate(selected,scriptPath,confPath,includeRequests=false){
+function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
+ const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);
  const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes})=>({host,routes}))}));
+ for(const r of requests.filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
  const header='/* GENERATED from universal/templates.json and universal/src; revision '+revision+'. Do not edit. */\n';
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
- const adapters=[...new Set(selected.map(t=>t.adapter))];
- const selectedSource=read('universal/src/engine.js')+(adapters.includes('souju')?'\n'+read('universal/src/function-tools.js')+'\n'+read('universal/src/souju.js'):'')+(adapters.includes('yqk')?'\n'+read('universal/src/yqk.js'):'');
- const names={souju:'cleanSouju',yqk:'cleanYqk',declarative:'cleanDeclarative'};
+ const adapters=[...new Set(runtime.map(t=>t.adapter))];
+ let selectedSource=read('universal/src/engine.js')+(adapters.includes('souju')?'\n'+read('universal/src/function-tools.js')+'\n'+read('universal/src/souju.js'):'')+(adapters.includes('yqk')?'\n'+read('universal/src/yqk.js'):'');
+ if(adapters.includes('guazi')){const r=requests.find(r=>r.adapter==='guazi'),upstream=read(r.upstreamScript),boundary=upstream.lastIndexOf('(function () {');if(boundary<0)throw Error('Unknown Guazi upstream structure');let logic=upstream.slice(boundary);
+  const guards=[['return parseJSON(dec);','return admGuaziValidateAES(parseJSON(dec),CryptoJS);'],['var arr0 = dec0.plain;','var arr0 = dec0.plain; if(!Array.isArray(arr0))return $done({body:body});'],['var obj1 = dec1.plain;','var obj1 = dec1.plain; if(!obj1||typeof obj1!=="object"||Array.isArray(obj1))return $done({body:body});'],['var list = dec2.plain;','var list = dec2.plain; if(!Array.isArray(list))return $done({body:body});']];
+  for(const [from,to]of guards){if(logic.split(from).length!==2)throw Error('Unknown Guazi transformation structure');logic=logic.replace(from,to);}
+  selectedSource+='\n'+read('universal/src/guazi.js').replace('/* GUAZI_CRYPTO_SOURCE */',()=>upstream.slice(0,boundary)).replace('/* GUAZI_LOGIC_SOURCE */',()=>logic);}
+ const names={guazi:'cleanGuazi',souju:'cleanSouju',yqk:'cleanYqk',declarative:'cleanDeclarative'};
  const processors='{'+adapters.map(a=>a+':'+names[a]).join(',')+'}';
  const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+');\n})();\n';
  const url=manifest.rawBase+'/'+scriptPath+'?v='+revision;
  const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)));
  const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+b.host+r.path+' url script-response-body '+url)).join('\n')); 
- if(includeRequests){rules.push(...requestRules.flatMap(requestLines));groups.push(...requestRules.map(r=>'# '+r.id+(r.mode==='verbatim'?' — complete upstream rules; original host matching and external script references':'')+'\n'+requestLines(r).join('\n')));}
+ if(requests.length){rules.push(...requests.flatMap(r=>requestLines(r,url)));groups.push(...requests.map(r=>'# '+r.id+(r.mode==='verbatim'?' — all upstream capabilities; original host matching; bundled response adapter':'')+'\n'+requestLines(r,url).join('\n')));}
  validateGeneratedRules(rules);
- const mitm=[...new Set([...selected.flatMap(t=>t.bindings.flatMap(b=>b.mitm)),...(includeRequests?requestRules.flatMap(r=>r.mitm):[])])];
- generated.set(scriptPath,code);generated.set(confPath,(includeRequests?'#!name = For-ADM 统一去广告\n#!desc = 网站适配与瓜子完整原规则；更新后刷新脚本缓存\n':'')+'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+groups.join('\n\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');
+ const mitm=[...new Set([...selected.flatMap(t=>t.bindings.flatMap(b=>b.mitm)),...requests.flatMap(r=>r.mitm)])];
+ generated.set(scriptPath,code);generated.set(confPath,(onlyRequest?.metadata?.length?onlyRequest.metadata.join('\n')+'\n':'')+(includeRequests?'#!name = For-ADM 统一去广告\n#!desc = 网站适配与瓜子完整原规则；更新后刷新脚本缓存\n':'')+'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+groups.join('\n\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');
 }
 generate(templates,'universal/ad-clean.js','universal/quantumult-x-snippet.conf',true);
-for(const r of requestRules)generated.set(r.output.conf,(r.metadata?.join('\n')||'')+'\n# GENERATED; revision '+revision+'\n[rewrite_local]\n'+requestLines(r).join('\n')+'\n\n[mitm]\nhostname = '+r.mitm.join(', ')+'\n');
+for(const r of requestRules){if(r.adapter)generate([],r.output.script,r.output.conf,false,r);else generated.set(r.output.conf,(r.metadata?.join('\n')||'')+'\n# GENERATED; revision '+revision+'\n[rewrite_local]\n'+requestLines(r).join('\n')+'\n\n[mitm]\nhostname = '+r.mitm.join(', ')+'\n');}
 for(const t of templates)generate([t],t.output.script,t.output.conf);
 const checking=process.argv.includes('--check');
 for(const [p,text]of generated){if(checking){if(!fs.existsSync(path.join(root,p))||read(p)!==text)throw Error('Stale generated file: '+p);}else{fs.mkdirSync(path.dirname(path.join(root,p)),{recursive:true});fs.writeFileSync(path.join(root,p),text);}}

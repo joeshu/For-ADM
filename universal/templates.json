@@ -828,7 +828,8 @@
     {
       "id": "guazi-app",
       "output": {
-        "conf": "guazi-app/quantumult-x-snippet.conf"
+        "conf": "guazi-app/quantumult-x-snippet.conf",
+        "script": "guazi-app/ad-clean.js"
       },
       "domains": {
         "type": "exact",
@@ -850,7 +851,9 @@
       },
       "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet",
       "mode": "verbatim",
-      "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet"
+      "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet",
+      "adapter": "guazi",
+      "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js"
     }
   ]
 }
