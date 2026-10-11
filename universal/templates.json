@@ -1150,6 +1150,64 @@
       "actions": [
         {
           "kind": "html",
+          "op": "removeInlineScripts",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "scriptRequires": [
+            "document.getElementById('d693d6351')",
+            "document.getElementById('c2f670cd2')",
+            "document.getElementById('c2f670cd')",
+            "Object.values(JSON.parse(atob(encodedContent)))",
+            "setTimeout(renderContent, 2000)"
+          ]
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "id",
+            "exact": "d693d6351"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "selector": {
+            "tag": "div",
+            "attr": "id",
+            "exact": "c2f670cd2"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms",
+            "www.555dy.net",
+            "data-cdn-origin-assets"
+          ],
+          "selector": {
+            "tag": "div",
+            "attr": "id",
+            "exact": "c2f670cd"
+          }
+        },
+        {
+          "kind": "html",
           "op": "removeElements",
           "requires": [
             "var maccms",

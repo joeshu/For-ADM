@@ -1,0 +1,25 @@
+{
+  "template": "555-movie",
+  "url": "https://5dy4.vip/vodplay/814457-1-1.html",
+  "body": "<html><script>var maccms = {url:\"www.555dy.net\"};</script><script data-cdn-origin-assets>window.fixtureAssets=true;</script><div id=\"c2f670cd2\" class=\"is_mb\"><a href=\"https://www.58854618.com\"><img src=\"fixture-top-ad.png\"></a></div><script>var player_aaaa={url:\"https://fixture-media.example/master.m3u8?sign=keep\",link_next:\"/vodplay/814457-1-2.html\"};window.Player555Options={sources:[{page:\"/vodplay/814457-2-1.html\",label:\"线路R\"}]};</script><iframe id=\"play_iframe\" src=\"/static/player/videojs10.html?ver=fixture\"></iframe><script id=\"d693d6351\" type=\"application/json\" data-encoded=\"fixture-play-ad-config\"></script><div id=\"c2f670cd\"><a href=\"https://532fd.com\"><img src=\"fixture-bottom-ad.jpg\"></a></div><script>\n    const scriptTag = document.getElementById('d693d6351');\n    const encodedContent = scriptTag.getAttribute('data-encoded');\n    const items = Object.values(JSON.parse(atob(encodedContent)));\n\n    function renderContent() {\n        const contentTopContainer = document.getElementById('c2f670cd2');\n        const contentContainer = document.getElementById('c2f670cd');\n\n        if (items.length === 0) return;\n\n        if (items.length === 1) {\n            const selectedItem = items[0];\n            contentContainer.innerHTML = `\n                <div>\n                    <a target=\"_blank\" href=\"${selectedItem.link}\">\n                        <img src=\"${selectedItem.image}\" width=\"100%\">\n                    </a>\n                </div>\n            `;\n            contentContainer.style.opacity = 1;\n        } else if (items.length >= 2) {\n            const [itemTop, itemNormal] = items;\n\n            contentTopContainer.innerHTML = `\n                <div>\n                    <a target=\"_blank\" href=\"${itemTop.link}\">\n                        <img src=\"${itemTop.image}\" width=\"100%\">\n                    </a>\n                </div>\n            `;\n            contentTopContainer.style.opacity = 1;\n\n            contentContainer.innerHTML = `\n                <div>\n                    <a target=\"_blank\" href=\"${itemNormal.link}\">\n                        <img src=\"${itemNormal.image}\" width=\"100%\">\n                    </a>\n                </div>\n            `;\n            contentContainer.style.opacity = 1;\n        }\n    }\n\n    setTimeout(renderContent, 2000);\n</script><div id=\"c2f670cd-extra\">fixture-unrelated-container</div><script id=\"other-config\" type=\"application/json\" data-encoded=\"keep-other-config\"></script><script>setTimeout(function(){window.fixturePlayerReady=true;},2000);</script><a href=\"/vodplay/814457-1-2.html\">下一集</a><a href=\"https://55dy1.top/\">发布页</a></html>",
+  "removed": [
+    "fixture-top-ad.png",
+    "fixture-bottom-ad.jpg",
+    "fixture-play-ad-config",
+    "https://www.58854618.com",
+    "https://532fd.com",
+    "setTimeout(renderContent, 2000)"
+  ],
+  "preserved": [
+    "var player_aaaa",
+    "master.m3u8?sign=keep",
+    "window.Player555Options",
+    "/vodplay/814457-2-1.html",
+    "/vodplay/814457-1-2.html",
+    "/static/player/videojs10.html?ver=fixture",
+    "fixture-unrelated-container",
+    "keep-other-config",
+    "window.fixturePlayerReady",
+    "发布页"
+  ]
+}

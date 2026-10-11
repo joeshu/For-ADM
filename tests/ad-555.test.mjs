@@ -45,3 +45,19 @@ test('555 numbered subscriptions include MITM families and preserve ordinary pub
  assert.equal(runCleaner(code,'https://55dy1.top/',publication),publication);
  for(const host of ['5dyevil.vip','55dy-test.top','555ka.com','55kp-app.com'])assert.equal(runCleaner(code,'https://'+host+'/',html.body),html.body);
 });
+test('555 play banners cannot render later while player configuration and next episode survive',()=>{
+ const f=readJSON(new URL('../universal/fixtures/555-movie-play.json',import.meta.url));
+ function render(body){
+  let banners=0;const window={};const elements={};
+  for(const id of ['c2f670cd','c2f670cd2'])elements[id]={style:{},set innerHTML(value){assert.ok(value.includes('<img'));banners++;}};
+  elements.d693d6351={getAttribute(){return Buffer.from(JSON.stringify({1:{link:'https://fixture-ad.example/',image:'fixture-ad.png'},2:{link:'https://fixture-ad.example/',image:'fixture-ad.jpg'}})).toString('base64');}};
+  const context=vm.createContext({window,document:{getElementById:id=>elements[id]},atob:v=>Buffer.from(v,'base64').toString(),setTimeout:fn=>fn()});
+  for(const match of body.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)){if(!match[1].includes('application/json'))vm.runInContext(match[2],context);}
+  assert.equal(context.player_aaaa.url,'https://fixture-media.example/master.m3u8?sign=keep');
+  assert.equal(context.player_aaaa.link_next,'/vodplay/814457-1-2.html');
+  assert.equal(window.Player555Options.sources[0].page,'/vodplay/814457-2-1.html');
+  assert.equal(window.fixturePlayerReady,true);return banners;
+ }
+ assert.equal(render(f.body),2);const out=runCleaner(code,f.url,f.body);assert.equal(render(out),0);
+ assert.equal(runCleaner(code,f.url,out),out);
+});
