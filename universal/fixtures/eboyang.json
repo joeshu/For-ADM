@@ -1,0 +1,19 @@
+{
+  "template": "eboyang",
+  "url": "https://www.eboyang.com/bovideo/3896-1-0.html",
+  "body": "<html><title>一起看影院</title><link href=\"/templets/qiqino5/style/style.css\"><script src=\"/js/caonima.js\"></script><script src=\"/js/common.js\"></script><script src=\"/js/play.js\"></script><script src=\"/templets/qiqino5/js/history.js\"></script><script src=\"/dedg/le1008.js\"></script><a href=\"//app3.qingning9.com?sc=wap_jztv2\"><div>fixture-eboyang-app-ad</div></a><script>var now=\"fixture-movie.m3u8\";var nextPage=\"/bovideo/3896-1-1.html\";</script><iframe id=\"cciframe\" src=\"/js/player/vip.html\"></iframe><a href=\"/bovideo/3896-1-1.html\">下一集</a><div class=\"guanggaokuang\">收藏本站提示</div></html>",
+  "removed": [
+    "/dedg/le1008.js",
+    "fixture-eboyang-app-ad"
+  ],
+  "preserved": [
+    "var now=\"fixture-movie.m3u8\";var nextPage=\"/bovideo/3896-1-1.html\";",
+    "<iframe id=\"cciframe\" src=\"/js/player/vip.html\"></iframe>",
+    "<a href=\"/bovideo/3896-1-1.html\">下一集</a>",
+    "/js/caonima.js",
+    "/js/common.js",
+    "/js/play.js",
+    "/templets/qiqino5/js/history.js",
+    "收藏本站提示"
+  ]
+}

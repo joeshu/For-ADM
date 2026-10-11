@@ -12,3 +12,4 @@
 | 4kvm | source-verified | 4kvm | 4kvms.org, 4kvms.com, 4kvm.top, 4kvm.cc, 4kvm.me, 4kvm.org, 4kvm.tv, 4kvm.net, 4kvm.pro, 4kvm.com；前缀：无/www |  | https://4kvms.org/ | 网页广告及播放器广告插件；不修改媒体流。 |
 | Auete | source-verified | auete | aeete.com, au1080.top；前缀：无/www | https://auete.asia/ | https://www.au1080.top/index.html https://www.aeete.com/ | 仅 aeete.com、au1080.top 和 www；发布页本身不进入重写。 |
 | Auete 尚未确认的发布页地址 | pending | 未启用 | 无 | https://auete.asia/ | https://www.auete.com/ https://www.au1080.com/ https://www.auete.top/ https://www.aimtoon.com/ | 部分地址此前返回错误，aimtoon 未确认广告特征；不生成规则。 |
+| 一起看影院（eboyang 旧版） | source-verified | eboyang | eboyang.com；前缀：无/www |  | https://www.eboyang.com/ https://www.eboyang.com/bovideo/3896-1-0.html | 核验首页、详情、播放页及 le1008.js 的静态解码；保留 caonima/common/function/play/history 与播放器 iframe。与 Nuxt YQK 分开适配。 |

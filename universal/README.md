@@ -1,6 +1,6 @@
 # Quantumult X 统一去广告
 
-统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete 五组适配。
+统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang 六组适配。
 
 ## 使用
 
@@ -22,7 +22,7 @@
 | `src/engine.js` | 字段校验、不可变 JSON 操作、HTML 删除、JS 修改组、统一入口 |
 | `src/souju.js`、`src/function-tools.js` | 搜剧特定组件函数定位 |
 | `src/yqk.js` | Nuxt 源码定位及公共 JSON 清理器注入 |
-| `../scripts/build-ad-clean.mjs` | 生成六份脚本及六份规则，统一 MITM 和缓存版本 |
+| `../scripts/build-ad-clean.mjs` | 生成七份脚本及七份规则，统一 MITM 和缓存版本 |
 | `../tests/ad-clean.test.mjs` | 域名边界、广告策略、独立/统一一致性及播放字段验证 |
 
 仓库根目录执行，使用 Node.js 24，无需安装依赖：
@@ -76,3 +76,7 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 搜剧/看剧 AI 运行时的六处必需替换均要求恰好一次，缺失或重复时整组保留原文；不再使用至少三处命中的部分替换策略。已核验真实 kanju3 运行时的六处原始特征及修改后 ES module 语法。
 
 新增四组回归覆盖相似 class、注释/脚本/样式中的伪标签、错误页及类型不符、成组替换缺失/重复。共 14 项测试通过，并以实际 AUETE 首页和播放页验证广告入口删除、播放器配置/线路/选集/下一集保留。真实页面源响应验证不能代替 iOS 上的播放实测；本轮未增加 HLS 处理。
+
+## 一起看影院 eboyang（旧版）
+
+新增 eboyang.com / www.eboyang.com 的旧版 qiqino5 模板，独立于 Nuxt YQK。广告核心位置、匹配范围和验证见 [eboyang 说明](../eboyang/README.md)。已核验真实首页、详情页、播放页与专用广告 JS，保留播放源、下一集和播放器 iframe；不增加外部播放器或媒体流规则。

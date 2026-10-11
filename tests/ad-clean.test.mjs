@@ -157,3 +157,22 @@ test('Nuxt injected cleaner is self-contained and protects the player list',()=>
  const cleaned=ctx.__forAdmYqkClean(payload,'/v2/api/vodInfo/index');assert.equal(cleaned.data.startAd,null);assert.strictEqual(cleaned.data.playerList,list);assert(payload.data.startAd);
  assert.equal(run(universal,'https://yqk43.app/_nuxt/entry.abc.js',out),out);
 });
+
+test('Eboyang dedicated loader requires source markers and preserves unrelated scripts',()=>{
+ const body='!function() { var c=`sample`; var t=c; new Function(t)(); }();\n//le1008';
+ for(const host of ['eboyang.com','www.eboyang.com'])check('eboyang','https://'+host+'/dedg/le1008.js?v=1',body,out=>{assert(out.includes('disabled'));new vm.Script(out);});
+ for(const marker of ['var c=','new Function(t)()','//le1008'])assert.equal(run(universal,'https://www.eboyang.com/dedg/le1008.js',body.replace(marker,'OTHER')),body.replace(marker,'OTHER'));
+ for(const url of ['https://www.eboyang.com/js/caonima.js','https://www.eboyang.com/js/play.js','https://www.eboyang.com/js/common.js','https://www.eboyang.com/dedg/other.js','https://www.eboyang.com/dedg/le1008.js.extra','https://www.eboyang.com/movie.m3u8','https://www.eboyang.com.evil.com/dedg/le1008.js','https://tv.qingning88.com/api/publicApi.php?url=movie.m3u8'])assert.equal(run(universal,url,body),body);
+});
+test('Eboyang HTML removes exact ad entries without deleting reminders or player children',()=>{
+ const fixture=JSON.parse(read('universal/fixtures/eboyang.json'));
+ const fake='<!-- <script src="/dedg/le1008.js"></script> --><script>const example="<a href=//app3.qingning9.com>keep</a>";</script>';
+ const body=fixture.body.replace('</html>',fake+'<script src="https://other.com/dedg/le1008.js"></script><a href="https://app3.qingning9.com.evil.com/">keep</a></html>');
+ for(const route of ['/','/index.html','/bovod/3896.html','/bovideo/3896-1-0.html','/vodlist/1.html','/search.php?searchword=test'])check('eboyang','https://www.eboyang.com'+route,body,out=>{
+  assert(!out.includes('fixture-eboyang-app-ad'));assert(!out.includes('<script src="/dedg/le1008.js"></script><a'));
+  assert(out.includes(fake));assert(out.includes('other.com'));assert(out.includes('qingning9.com.evil.com'));for(const s of fixture.preserved)assert(out.includes(s));
+ });
+ const drift=body.replace('一起看影院','Different');assert.equal(run(universal,fixture.url,drift),drift);
+ const rules=read('universal/quantumult-x-snippet.conf').split('\n').filter(l=>l.startsWith('^')).map(l=>new RegExp(l.split(' url ')[0]));
+ for(const url of ['https://www.eboyang.com/js/player/vip.html','https://www.eboyang.com/js/play.js','https://www.eboyang.com/movie.m3u8','https://eboyang.com.evil.com/'])assert(!rules.some(r=>r.test(url)));
+});
