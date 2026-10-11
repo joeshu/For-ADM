@@ -32,6 +32,6 @@ HTML 先要求 mxtheme/home.js、maccms 及 www.juyeye.cc 标记同时存在，�
 
 ## 取消正常页面的电脑 404 跳转
 
-只在上述站点 HTML 指纹成立时定位无 src 的内嵌 script，并要求 system 初始化、navigator.platform、完整手机 UA 判断及完整条件判断同时存在。只将唯一的 `window.location.href = "../404.html";` 替换为注释。原变量、平台判断、if 结构及其他导航均保留；源码变化或语句重复时不修改。
+只在上述站点 HTML 指纹成立时定位无 src 的内嵌 script，并要求 system 初始化、navigator.platform、system.ispc 赋值、完整手机 UA 判断及完整条件判断同时存在。支持 system.ispc 赋值与 UA 判断之间换行（包括用户提供的两行格式）。只将唯一的 `window.location.href = "../404.html";` 替换为注释。原变量、平台判断、if 结构及其他导航均保留；必要指纹变化或语句重复时不修改。
 
 共享 replaceInlineScripts 操作复用精确次数成组替换，不匹配注释、样式或外链脚本。实际抓包验证：1 段广告移除、1 段平台判断只改跳转行，其余 15 段 script 逐字保留。Windows/Mac/Linux/iPhone 条件样本确认不再执行这行跳转；未进行真实电脑浏览器端访问成功验证，因为服务器可能直接返回错误或验证页。

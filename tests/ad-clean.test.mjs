@@ -196,14 +196,16 @@ test('Juyeye desktop redirect patch keeps platform variables, unrelated redirect
  const functional='<script>function captchaVerify(){return "keep"}</script><script>location.href="/vodplay/96188-1-2.html";</script>';
  const head='<html><script src="/mxtheme/js/home.js"></script><script>var maccms={url:"www.juyeye.cc"}</script>';
  const body=head+'<script>'+script+'</script>'+functional+'</html>',url='https://www.juyeye.cc/voddetail/96188.html';
- check('juyeye',url,body,out=>{
+ for(const variant of [script,script.replace('system.ispc = navigator','system.ispc =\n  navigator')]){
+ check('juyeye',url,head+'<script>'+variant+'</script>'+functional+'</html>',out=>{
   assert(out.includes(functional));const patched=out.match(/<script>(var system[\s\S]*?)<\/script>/)[1];
-  assert.equal(patched,script.replace(rule.pairs[0][0],rule.pairs[0][1]));
+  assert.equal(patched,variant.replace(rule.pairs[0][0],rule.pairs[0][1]));
   new vm.Script(patched);
   for(const [platform,userAgent]of [['Win32','Chrome'],['MacIntel','Safari'],['Linux x86_64','Chrome'],['iPhone','iPhone Safari']]){
    const ctx={navigator:{platform,userAgent},window:{location:{href:'original'}}};vm.runInNewContext(patched,ctx);assert.equal(ctx.window.location.href,'original');assert.equal(typeof ctx.system.ispc,'boolean');
   }
  });
+ }
  for(const marker of rule.scriptRequires){const drift=body.replace(marker,'CHANGED');assert.equal(run(universal,url,drift),drift);}
  const duplicate=body.replace(rule.pairs[0][0],rule.pairs[0][0]+rule.pairs[0][0]);assert.equal(run(universal,url,duplicate),duplicate);
  const challenge='<html><title>系统安全验证</title><script>'+script+'</script><input name="verify"></html>';assert.equal(run(universal,url,challenge),challenge);

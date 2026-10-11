@@ -768,7 +768,8 @@
           "scriptRequires": [
             "var system = {};",
             "navigator.platform",
-            "system.ispc = navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;",
+            "system.ispc =",
+            "navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;",
             "if (system.win || system.mac || system.ispc) {"
           ],
           "pairs": [
