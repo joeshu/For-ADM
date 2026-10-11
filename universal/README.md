@@ -1,6 +1,6 @@
 # Quantumult X 统一去广告
 
-统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang、聚爷爷、追影猫八组网站适配，另含瓜子影视 App 完整原规则。
+统一版与独立版现在由一份模板清单生成。共同的 JSON 操作、HTML 广告块删除和 JS 特征匹配已提取为公共逻辑；网站只配置域名、接口、广告字段和源码特征。当前覆盖搜剧/看剧AI（kanju3.com）、4kvm、ycblcw、YQK/QNTV、Auete、eboyang、聚爷爷、追影猫、影像星球九组网站适配，另含瓜子影视 App 完整原规则。
 
 ## 使用
 
@@ -22,7 +22,7 @@
 | `src/engine.js` | 字段校验、不可变 JSON 操作、HTML 删除、JS 修改组、统一入口 |
 | `src/souju.js`、`src/function-tools.js` | 搜剧特定组件函数定位 |
 | `src/yqk.js` | Nuxt 源码定位及公共 JSON 清理器注入 |
-| `../scripts/build-ad-clean.mjs` | 生成八份脚本及八份规则，统一 MITM 和缓存版本 |
+| `../scripts/build-ad-clean.mjs` | 生成网站独立脚本及规则，统一 MITM 和缓存版本 |
 | `../tests/ad-clean.test.mjs` | 域名边界、广告策略、独立/统一一致性及播放字段验证 |
 
 仓库根目录执行，使用 Node.js 24，无需安装依赖：
@@ -33,7 +33,7 @@ node scripts/site-registry.mjs
 node scripts/check-ad-clean.mjs
 ```
 
-生成文件带 `GENERATED` 标记，不直接编辑。版本参数由模板、源码和生成器的内容哈希产生；所有规则引用同一版本。GitHub Actions 检查生成结果与源码一致，并运行回归测试。
+生成文件带 `GENERATED` 标记，不直接编辑。版本参数由模板、源码和生成器的内容哈希产生；各脚本使用自身内容版本。GitHub Actions 检查生成结果与源码一致，并运行回归测试。
 
 ## 域名边界
 
@@ -94,3 +94,7 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 生成配置按模块分组，瓜子完整原规则单独标注；不改变各模块规则顺序。只启用统一版或对应独立版，重复订阅会造成重复改写。更新后刷新配置及远程脚本缓存；如果有网页异常，记录命中的模块、请求地址与正常响应再定位。瓜子独立脚本与各网站脚本分别按自身内容生成缓存版本，只刷新变更脚本；统一配置仍保持一个订阅地址。
 
 原文件导入会校验全部有效行、正则、重复匹配、MITM 和源文件路径，出现未知语法直接阻止生成，避免静默漏规则。现有 23 条瓜子规则原样保留。
+
+## 影像星球 YXXQ
+
+已接入 `www.yxxq65.cc`、`www.yxxq35.cc`，通过公共 HTML 容器删除及 JS 特征校验处理广告。广告核心为 `/static/js/site-ads.js`，静态广告位以 `data-ad-slot` 标记；详见 [影像星球说明](../yxxq/README.md)。仅覆盖已核验站点，保留线路、剧集、播放器和备用域名发现。第三方解析器内部广告未核验，无 HLS 改写。

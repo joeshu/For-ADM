@@ -822,6 +822,104 @@
           }
         }
       ]
+    },
+    {
+      "id": "yxxq",
+      "adapter": "declarative",
+      "output": {
+        "script": "yxxq/ad-clean.js",
+        "conf": "yxxq/quantumult-x-snippet.conf"
+      },
+      "bindings": [
+        {
+          "domains": {
+            "type": "exact",
+            "names": [
+              "www.yxxq65.cc",
+              "www.yxxq35.cc"
+            ]
+          },
+          "routes": [
+            {
+              "kind": "html",
+              "path": "/(?:index\\.html|(?:html|play|list|search)/[^/?#]+\\.html|index\\.php/label/hot\\.html)?(?:\\?.*)?$"
+            },
+            {
+              "kind": "js",
+              "path": "/static/js/site-ads\\.js(?:\\?.*)?$"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "selector": {
+            "tag": "li",
+            "attr": "data-ad-slot",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "selector": {
+            "tag": "a",
+            "attr": "data-ad-slot",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "selector": {
+            "tag": "div",
+            "attr": "data-ad-slot",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "var maccms=",
+            "/mxtheme/js/home.js",
+            "/static/js/site-ads.js"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^(?:(?:https?:)?//www\\.yxxq(?:65|35)\\.cc)?/static/js/site-ads\\.js(?:\\?.*)?$"
+          }
+        },
+        {
+          "kind": "js",
+          "op": "setBody",
+          "requires": [
+            "__MAC_SITE_ADS_READY__",
+            "function initFloat()",
+            "function initNavAds()",
+            "function initAdModal()"
+          ],
+          "value": "/* For-ADM: verified YXXQ advertising module disabled. */"
+        }
+      ]
     }
   ],
   "requestRules": [
