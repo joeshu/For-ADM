@@ -97,4 +97,4 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 
 ## 影像星球 YXXQ
 
-已接入 `www.yxxq65.cc`、`www.yxxq35.cc`，通过公共 HTML 容器删除及 JS 特征校验处理广告。广告核心为 `/static/js/site-ads.js`，静态广告位以 `data-ad-slot` 标记；详见 [影像星球说明](../yxxq/README.md)。仅覆盖已核验站点，保留线路、剧集、播放器和备用域名发现。第三方解析器内部广告未核验，无 HLS 改写。
+已接入 `www.yxxq65.cc` 与发现接口列出的全部 15 个备用 www 域名（包括已核验的 35 站），通过公共 HTML 容器删除及 JS 特征校验处理广告。广告核心为 `/static/js/site-ads.js`，静态广告位以 `data-ad-slot` 标记；详见 [影像星球说明](../yxxq/README.md)。使用精确主机清单和广告源码特征校验；新增备用域名未逐站设备验证，保留线路、剧集、播放器和备用域名发现。第三方解析器内部广告未核验，无 HLS 改写。

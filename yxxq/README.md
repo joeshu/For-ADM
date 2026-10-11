@@ -10,7 +10,13 @@
 
 ## 范围与保留
 
-仅覆盖已取到真实源码的 `www.yxxq65.cc`、`www.yxxq35.cc`，首页、html/play/list/search 页面和站内热门榜路径。发布页 `www.yingxiangxingqiu.cc` 与发现接口列出的其他备用域名不自动加入。
+覆盖首页、html/play/list/search 页面和站内热门榜路径。65、35 站已取到真实源码；按用户要求，另将发现接口列出的全部 15 个备用地址纳入明确主机清单，35 已存在，合计 16 个主机。新增地址未逐站核验源码或手机播放，沿用三项 HTML、四项 JS 特征校验，缺失时保留原响应。
+
+当前精确主机：
+
+`www.yxxq65.cc`, `www.yxxq35.cc`, `www.yxxq51.cc`, `www.yxxq52.cc`, `www.yxxq53.cc`, `www.yxxq54.cc`, `www.yxxq55.cc`, `www.yxxq56.cc`, `www.yxxq57.cc`, `www.yxxq59.cc`, `www.yxxq61.cc`, `www.yxxq62.cc`, `www.yxxq63.cc`, `www.yxxq64.cc`, `www.yxxq41.cc`, `www.yxxq25.cc`。
+
+发布页 `www.yingxiangxingqiu.cc` 不进入改写，未登记编号及非 www 域名不自动扩展。
 
 保留 `player_aaaa` 全部配置、playerconfig.js、player.js、player-ab-test.js、观看记录、选集、下一集、线路切换、网盘和 site-domain-status-ddys.js。已核验两条播放线路，当前 playerconfig 的 buffer/prestrain 均为空，不修改这些播放器文件。
 

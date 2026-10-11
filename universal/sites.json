@@ -140,7 +140,7 @@
         "https://www.yxxq35.cc/",
         "https://www.yxxq65.cc/play/vd61054fb1d37m1c-2-1.html"
       ],
-      "notes": "仅核验 65、35 两个 www 域名；按 data-ad-slot 删除明确广告容器并禁用 site-ads.js。保留 player_aaaa、线路、选集、域名发现与网盘；第三方解析器未覆盖，不修改 HLS。"
+      "notes": "65、35 站源码核验；按用户要求加入发现接口列出的全部 15 个备用域名（35 已存在），共 16 个精确 www 主机。新增主机逐站源码/设备未验证；仍需三项 HTML 或四项 JS 特征才改写。保留播放器、线路和域名发现，不修改 HLS。"
     }
   ]
 }
