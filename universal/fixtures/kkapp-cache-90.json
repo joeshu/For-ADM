@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/app-legacy.513f0edd.js",
+  "body": "/* 'appName':'可可影视' ; ['u']=function ; ChunkLoadError ; webpackChunkmovie */\n}[_0x29b9c5]+'.js';",
+  "removed": [
+    "}[_0x29b9c5]+'.js';"
+  ],
+  "preserved": [
+    "ChunkLoadError",
+    "webpackChunkmovie"
+  ]
+}

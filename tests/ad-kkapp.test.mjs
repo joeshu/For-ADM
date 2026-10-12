@@ -14,5 +14,5 @@ test('KKAPP player selectors return no ad even when detail and native bridge wou
 });
 test('KKAPP requires exact host, known JS families and complete source fingerprints',()=>{
  const f=readJSON(new URL('../universal/fixtures/kkapp-0.json',import.meta.url));for(const url of [f.url.replace('a.kkapp06.com','other.kkapp06.com'),f.url.replace('/static/v20514/js/','/unrelated/'),f.url.replace(/[^/]+$/,'chunk-vendors.24435528.js')])assert.equal(runCleaner(code,url,f.body),f.body);
- for(const info of sources){const action=t.actions[info.action],f=readJSON(new URL('../universal/fixtures/kkapp-'+(info.kind==='cards'?'cards-':info.kind==='download'?'download-':'')+info.action+'.json',import.meta.url));for(const [old] of action.pairs)for(const body of [f.body.replace(old,'changed-source'),f.body+'\n'+old])assert.equal(runCleaner(code,f.url,body),body);}
+ for(const info of sources){const action=t.actions[info.action],f=readJSON(new URL('../universal/fixtures/kkapp-'+(info.kind==='cards'?'cards-':info.kind==='download'?'download-':info.kind==='cache'?'cache-':'')+info.action+'.json',import.meta.url));for(const [old] of action.pairs)for(const body of [f.body.replace(old,'changed-source'),f.body+'\n'+old])assert.equal(runCleaner(code,f.url,body),body);}
 });
