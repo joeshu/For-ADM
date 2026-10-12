@@ -1,0 +1,15 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/8489.2643cfd8.js",
+  "body": "/* 网盘下载 ; ad_last_shown_time ; ['units']['dhz'] ; ['magnets'] ; setNetdisks ; content-wrap */\n_0x57cdc2=_0x5de0fb=>{if(!_0x5de0fb||!_0x5de0fb['units']||(!_0x5de0fb['units']['splash']||0x0==_0x5de0fb['units']['splash']['length'])&&(!_0x5de0fb['units']['video']||0x0==_0x5de0fb['units']['video']['length'])&&(!_0x5de0fb['units']['dhz']||0x0==_0x5de0fb['units']['dhz']['length']))return;_0xce63af(),_0x1b483f=0x3e8*_0x5de0fb['units']['interval']||_0x1b483f;const _0x39ebbc=Date['now'](),_0x332144=localStorage['getItem'](_0x16f2e0);if(!_0x332144)return void _0x405da8(_0x39ebbc);const _0x54e56d=JSON['parse'](_0x332144),_0x390126=_0x39ebbc-_0x54e56d['timestamp'];'pending'===_0x54e56d['status']||_0x390126>=_0x1b483f?_0x405da8(_0x39ebbc):(console['log']('广告冷却中，还剩\\x20'+Math['ceil']((_0x1b483f-_0x390126)/0x3e8)+'\\x20秒'),_0x1e063e['value']=!0x1,_0xce63af());}\n_0x505c61=(_0x3c4fc6,_0x353925)=>{if(!_0x353925||!_0x353925['type'])return void(_0x1e063e['value']=!0x1);const _0x50b694=_0x353925['type']['split'](','),_0x2f9522=(0x0,_0x33bc52['xD'])(_0x50b694);switch(_0x2f9522){case'splash':_0x550857(_0x3c4fc6,_0x353925['splash']);break;case'video':_0x502b56(_0x3c4fc6,_0x353925['video']);break;case'dhz':_0x3ba7c0(_0x3c4fc6,_0x353925['dhz']);break;default:_0x1e063e['value']=!0x1;break;}}\n/* /vod/magnet/detail?magnetId=keep ; fileName ; fileSize ; setNetdisks ; fixture-film.m3u8?sign=keep */",
+  "removed": [
+    "_0x57cdc2=_0x5de0fb=>{if(!_0x5de0fb||!_0x5de0fb['units']||(!_0x5de0fb['units']['splash']||0x0==_0x5de0fb['units']['splash']['length'])&&(!_0x5de0fb['units']['video']||0x0==_0x5de0fb['units']['video']['length'])&&(!_0x5de0fb['units']['dhz']||0x0==_0x5de0fb['units']['dhz']['length']))return;_0xce63af(),_0x1b483f=0x3e8*_0x5de0fb['units']['interval']||_0x1b483f;const _0x39ebbc=Date['now'](),_0x332144=localStorage['getItem'](_0x16f2e0);if(!_0x332144)return void _0x405da8(_0x39ebbc);const _0x54e56d=JSON['parse'](_0x332144),_0x390126=_0x39ebbc-_0x54e56d['timestamp'];'pending'===_0x54e56d['status']||_0x390126>=_0x1b483f?_0x405da8(_0x39ebbc):(console['log']('广告冷却中，还剩\\x20'+Math['ceil']((_0x1b483f-_0x390126)/0x3e8)+'\\x20秒'),_0x1e063e['value']=!0x1,_0xce63af());}",
+    "_0x505c61=(_0x3c4fc6,_0x353925)=>{if(!_0x353925||!_0x353925['type'])return void(_0x1e063e['value']=!0x1);const _0x50b694=_0x353925['type']['split'](','),_0x2f9522=(0x0,_0x33bc52['xD'])(_0x50b694);switch(_0x2f9522){case'splash':_0x550857(_0x3c4fc6,_0x353925['splash']);break;case'video':_0x502b56(_0x3c4fc6,_0x353925['video']);break;case'dhz':_0x3ba7c0(_0x3c4fc6,_0x353925['dhz']);break;default:_0x1e063e['value']=!0x1;break;}}"
+  ],
+  "preserved": [
+    "/vod/magnet/detail?magnetId=keep",
+    "fileName",
+    "fileSize",
+    "fixture-film.m3u8?sign=keep"
+  ]
+}
