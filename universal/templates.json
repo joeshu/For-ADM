@@ -1289,7 +1289,7 @@
             },
             {
               "kind": "js",
-              "path": "/assets/(?:index|helperService|NewAds|home|explorer|Main|search|playerService|player)-[A-Za-z0-9_-]+\\.js(?:\\?.*)?$"
+              "path": "/assets/(?:index|helperService|NewAds|home|explorer|Main|search|playerService|player|social)-[A-Za-z0-9_-]+\\.js(?:\\?.*)?$"
             },
             {
               "kind": "js",
@@ -1439,7 +1439,7 @@
           "pairs": [
             [
               "try{self[`workbox:core:7.4.0`]&&_()}catch{}",
-              "/* For-ADM: dyls targeted JS cache v2. */\n(function(){\nvar target=/^\\/assets\\/(?:index|helperService|NewAds|home|explorer|Main|search|playerService|player)-[A-Za-z0-9_-]+\\.js$/;\nfunction known(url){try{var u=new URL(url,self.location.origin);return u.origin===self.location.origin&&target.test(u.pathname)}catch(e){return false}}\nself.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(names){return Promise.all(names.map(function(name){return caches.open(name).then(function(cache){return cache.keys().then(function(keys){return Promise.all(keys.filter(function(key){return known(key.url)}).map(function(key){return cache.delete(key)}))})})}))}).catch(function(){}))});\nself.addEventListener('fetch',function(event){if(event.request.method!=='GET'||!known(event.request.url))return;event.stopImmediatePropagation();event.respondWith((async function(){try{var response=await fetch(event.request,{cache:'no-store'});if(!response.ok)throw Error('Dyls module response '+response.status);if(!/javascript|ecmascript/i.test(response.headers.get('content-type')||''))throw Error('Dyls module is not JavaScript');{try{var cache=await caches.open('for-adm-dyls-js-v2-__ADM_CACHE_REVISION__');await cache.put(event.request,response.clone())}catch(e){}}return response}catch(error){var fallback=await caches.open('for-adm-dyls-js-v2-__ADM_CACHE_REVISION__');var cached=await fallback.match(event.request);if(cached)return cached;throw error}})())});\n})();\ntry {self[`workbox:core:7.4.0`]&&_()}catch{}",
+              "/* For-ADM: dyls targeted JS cache v2. */\n(function(){\nvar target=/^\\/assets\\/(?:index|helperService|NewAds|home|explorer|Main|search|playerService|player|social)-[A-Za-z0-9_-]+\\.js$/;\nfunction known(url){try{var u=new URL(url,self.location.origin);return u.origin===self.location.origin&&target.test(u.pathname)}catch(e){return false}}\nself.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(names){return Promise.all(names.map(function(name){return caches.open(name).then(function(cache){return cache.keys().then(function(keys){return Promise.all(keys.filter(function(key){return known(key.url)}).map(function(key){return cache.delete(key)}))})})}))}).catch(function(){}))});\nself.addEventListener('fetch',function(event){if(event.request.method!=='GET'||!known(event.request.url))return;event.stopImmediatePropagation();event.respondWith((async function(){try{var response=await fetch(event.request,{cache:'no-store'});if(!response.ok)throw Error('Dyls module response '+response.status);if(!/javascript|ecmascript/i.test(response.headers.get('content-type')||''))throw Error('Dyls module is not JavaScript');{try{var cache=await caches.open('for-adm-dyls-js-v2-__ADM_CACHE_REVISION__');await cache.put(event.request,response.clone())}catch(e){}}return response}catch(error){var fallback=await caches.open('for-adm-dyls-js-v2-__ADM_CACHE_REVISION__');var cached=await fallback.match(event.request);if(cached)return cached;throw error}})())});\n})();\ntry {self[`workbox:core:7.4.0`]&&_()}catch{}",
               1
             ]
           ]
@@ -1777,6 +1777,24 @@
             [
               "return C.length===0?(0,J.jsx)(Fn,{})",
               "return Array.isArray(e)&&e.length>0&&C.length===0?null:C.length===0?(0,J.jsx)(Fn,{})",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "pathPattern": "^/assets/social-[A-Za-z0-9_-]+\\.js(?:\\?.*)?$",
+          "requires": [
+            "social-immersive-ad-panel",
+            "social-immersive-ad-cta",
+            "function z(e){return e?.type===`ads`||!!e?.ads_info}",
+            "function B(e){return e?.file_type===`video`||e?.file_type===`audio`||z(e)}"
+          ],
+          "pairs": [
+            [
+              "function B(e){return e?.file_type===`video`||e?.file_type===`audio`||z(e)}",
+              "function B(e){return !z(e)&&(e?.file_type===`video`||e?.file_type===`audio`)}",
               1
             ]
           ]
