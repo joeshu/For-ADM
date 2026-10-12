@@ -21,3 +21,5 @@ test('KKAPP announced domains share JS interception but unknown domains and medi
  const conf=fs.readFileSync(new URL('../kkapp/quantumult-x-snippet.conf',import.meta.url),'utf8'),patterns=conf.split('\n').filter(s=>s.startsWith('^https?://')).map(s=>new RegExp(s.split(' url ')[0])),re={test:url=>patterns.some(p=>p.test(url))};
  for(const host of [...template.bindings[0].domains.names,'kkys01.com','www.kkys14.com','kkys99.com','www.kkys123.com'])assert.ok(re.test(f.url.replace('a.kkapp06.com',host)));assert.ok(!re.test('https://www.kekys.com/film.m3u8'));
 });
+
+test('kkapp homepage 精彩应用 entry is removed even when it opens an internal aggregation route',()=>{const clean=helper(),keep=[{text:'本周国剧',url:'channel/list?id=1'},{title:'精彩应用',url:'vod/detail?id=2'},{text:'精彩应用'}],ads=[{text:'精彩应用',url:'apps'},{text:'精彩应用',url:'web?url=https%3A%2F%2Fapps.example%2F'},{text:'精彩应用',url:'https://apps.example/'}],input=[...keep,...ads];assert.deepEqual(Array.from(clean(input)),keep);assert.equal(input.length,6);});

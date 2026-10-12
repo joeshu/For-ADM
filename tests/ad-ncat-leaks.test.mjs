@@ -16,3 +16,5 @@ assert.ok(code.includes('for_adm=ncat-v3-'));assert.ok(!code.includes('__ADM_CAC
 test('NCAT revision query is confined to script chunk resolution and never appended to media URLs',()=>{
  const sources=readJSON(new URL('./ncat-sources.json',import.meta.url));for(const info of sources.filter(x=>x.kind==='cache')){const f=readJSON(new URL('../universal/fixtures/ncat-cache-'+info.action+'.json',import.meta.url)),out=runCleaner(code,f.url,f.body);assert.ok(/\.js\?for_adm=ncat-v3-[a-f0-9]{12}/.test(out));assert.ok(out.includes('fixture-film.m3u8?sign=keep'));assert.equal(runCleaner(code,f.url,out),out);}
 });
+
+test('ncat homepage 精彩应用 entry is removed even when it opens an internal aggregation route',()=>{const clean=cleaner(),keep=[{text:'本周国剧',url:'channel/list?id=1'},{title:'精彩应用',url:'vod/detail?id=2'},{text:'精彩应用'}],ads=[{text:'精彩应用',url:'apps'},{text:'精彩应用',url:'web?url=https%3A%2F%2Fapps.example%2F'},{text:'精彩应用',url:'https://apps.example/'}],input=[...keep,...ads];assert.deepEqual(Array.from(clean(input)),keep);assert.equal(input.length,6);});
