@@ -1,0 +1,14 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/3170-legacy.bb891b8e.js",
+  "body": "/* appAdvertisements ; click_advert_ ; FSImage ; 'banner' */\n_0x1c87ba=_0x4289d0['appAdvertisements']\n_0x24d2ef=_0x4043eb['appAdvertisements']\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "_0x1c87ba=_0x4289d0['appAdvertisements']",
+    "_0x24d2ef=_0x4043eb['appAdvertisements']"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/2137.bd4d26c1.js",
+  "body": "/* appAdvertisements ; click_advert_ ; FSImage ; 'banner' */\n_0x22ad62=_0x16e9bd['appAdvertisements']\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "_0x22ad62=_0x16e9bd['appAdvertisements']"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

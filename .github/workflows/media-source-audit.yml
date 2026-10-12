@@ -1,4 +1,4 @@
-name: KKAPP and NCAT source audit
+name: KKAPP NCAT and HAPP source audit
 on:
   workflow_dispatch:
 permissions:
@@ -19,7 +19,7 @@ jobs:
       - if: always()
         run: |
           if [ -f media-source-audit.json ]; then
-            echo '### KKAPP / NCAT source audit' >> "$GITHUB_STEP_SUMMARY"
+            echo '### KKAPP / NCAT / HAPP source audit' >> "$GITHUB_STEP_SUMMARY"
             echo '```json' >> "$GITHUB_STEP_SUMMARY"
             cat media-source-audit.json >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"

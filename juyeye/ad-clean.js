@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 396ee540e34b. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 213150f5604b. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -145,7 +145,7 @@ function cleanDeclarative(ctx,template) {
     return cleaned===original?body:JSON.stringify(cleaned);
   }
   (template.actions||[]).forEach(function(rule){
-    if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
+    if(rule.kind!==ctx.kind||(rule.pathPattern&&!new RegExp(rule.pathPattern,'i').test(ctx.path))||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
     var before=body;if(audit)audit.groups++;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
     else if(rule.op==='replaceGroup'){var next=admGroup(body,rule.pairs);if(next!==body&&rule.helper&&helpers.indexOf(rule.helper)<0)helpers.push(rule.helper);body=next;}
@@ -189,7 +189,7 @@ function admRun(templates,processors,revision) {
       if(selected){
         var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
-        if(debug&&(selected.template.id==='kkapp'||selected.template.id==='ncat'))report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
+        if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
       }
     }
   }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"juyeye","adapter":"declarative","output":{"script":"juyeye/ad-clean.js","conf":"juyeye/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["!function(){function a(a){var b={","new Function(b)()","`.substr(10))","YTTJ4TLR","1n0n"]},{"kind":"html","op":"replaceInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["var system = {};","navigator.platform","system.ispc =","navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;","if (system.win || system.mac || system.ispc) {"],"pairs":[["window.location.href = \"../404.html\";","/* For-ADM: desktop 404 redirect disabled. */",1]]}],"bindings":[{"host":"(?:www\\.juyeye\\.cc)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodplay|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"396ee540e34b");
+admRun([{"id":"juyeye","adapter":"declarative","output":{"script":"juyeye/ad-clean.js","conf":"juyeye/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["!function(){function a(a){var b={","new Function(b)()","`.substr(10))","YTTJ4TLR","1n0n"]},{"kind":"html","op":"replaceInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["var system = {};","navigator.platform","system.ispc =","navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;","if (system.win || system.mac || system.ispc) {"],"pairs":[["window.location.href = \"../404.html\";","/* For-ADM: desktop 404 redirect disabled. */",1]]}],"bindings":[{"host":"(?:www\\.juyeye\\.cc)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodplay|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"213150f5604b");
 })();

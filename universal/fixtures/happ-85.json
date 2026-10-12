@@ -1,0 +1,14 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/app.092bf2a0.js",
+  "body": "/* 'appName':'好好看' ; 'appVersion':'2.5.22' ; getAdvertiseById ; FLOATING_WINDOW ; VOD_START */\n'getAdvertiseById'(_0x2570b3){if(!_0x2570b3||0x0==_0x2570b3['length'])return;const _0x5e6891=this['appAdvertisements'];return _0x5e6891&&_0x5e6891['length']>0x0?_0x5e6891['find'](_0xbf6d4b=>_0xbf6d4b['id']==_0x2570b3):void 0x0;}\n_0x47306f=_0x148a51=>{const _0x4fe52d=(0x0,_0x6a0172['P'])(),_0x43f014=_0x4fe52d['appAdvertisements'];return!!(_0x43f014&&_0x43f014['length']>0x0&&_0x148a51&&_0x148a51['length']>0x0)&&_0x43f014['some'](_0x175bf7=>_0x175bf7['id']==_0x148a51);}\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "'getAdvertiseById'(_0x2570b3){if(!_0x2570b3||0x0==_0x2570b3['length'])return;const _0x5e6891=this['appAdvertisements'];return _0x5e6891&&_0x5e6891['length']>0x0?_0x5e6891['find'](_0xbf6d4b=>_0xbf6d4b['id']==_0x2570b3):void 0x0;}",
+    "_0x47306f=_0x148a51=>{const _0x4fe52d=(0x0,_0x6a0172['P'])(),_0x43f014=_0x4fe52d['appAdvertisements'];return!!(_0x43f014&&_0x43f014['length']>0x0&&_0x148a51&&_0x148a51['length']>0x0)&&_0x43f014['some'](_0x175bf7=>_0x175bf7['id']==_0x148a51);}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

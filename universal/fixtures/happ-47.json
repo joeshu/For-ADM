@@ -1,0 +1,13 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/6602.ff913bce.js",
+  "body": "/* arrangedItems ; webpackChunkmovie ; POSTING_TYPE ; getItemStyle */\nfor(const _0x3ecd53 of _0x528c5e['items'])\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "for(const _0x3ecd53 of _0x528c5e['items'])"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

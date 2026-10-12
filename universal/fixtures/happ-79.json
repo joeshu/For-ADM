@@ -1,0 +1,22 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/9165-legacy.561e0aed.js",
+  "body": "/* 'VodEntra' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x683254['dataSource']['blocks'],\n['pI'])(_0x7b2032['dataSource'],\n['pI'])(_0x5198c2['dataSource']['data'],\n'dataSource':_0x2ded69['reco']['banners']}\n'dataSource':_0x683254['dataSource']['banners']}\n'dataSource':_0x338954}\n'data-source':_0x338954['data']}\n'dataSource':_0x1adfc5,\n'dataSource':_0x46d2c5['reco']['banners']}\n'data-source':_0x46d2c5['vodHistories']}\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "['pI'])(_0x683254['dataSource']['blocks'],",
+    "['pI'])(_0x7b2032['dataSource'],",
+    "['pI'])(_0x5198c2['dataSource']['data'],",
+    "'dataSource':_0x2ded69['reco']['banners']}",
+    "'dataSource':_0x683254['dataSource']['banners']}",
+    "'dataSource':_0x338954}",
+    "'data-source':_0x338954['data']}",
+    "'dataSource':_0x1adfc5,",
+    "'dataSource':_0x46d2c5['reco']['banners']}",
+    "'data-source':_0x46d2c5['vodHistories']}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

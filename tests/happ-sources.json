@@ -1,0 +1,566 @@
+[
+  {
+    "file": "1075-legacy.8e2b0607.js",
+    "kind": "banners",
+    "action": 0,
+    "fromAction": 0
+  },
+  {
+    "file": "1075-legacy.8e2b0607.js",
+    "kind": "cards",
+    "action": 1,
+    "fromAction": 1
+  },
+  {
+    "file": "1075.afda49af.js",
+    "kind": "banners",
+    "action": 2,
+    "fromAction": 2
+  },
+  {
+    "file": "1075.afda49af.js",
+    "kind": "cards",
+    "action": 3,
+    "fromAction": 3
+  },
+  {
+    "file": "1910-legacy.cdc9414e.js",
+    "kind": "banners",
+    "action": 4,
+    "fromAction": 4
+  },
+  {
+    "file": "1910.8ff78120.js",
+    "kind": "banners",
+    "action": 5,
+    "fromAction": 5
+  },
+  {
+    "file": "1996-legacy.0787f9f0.js",
+    "kind": "cards",
+    "action": 6,
+    "fromAction": 6
+  },
+  {
+    "file": "1996.6d39cce0.js",
+    "kind": "cards",
+    "action": 7,
+    "fromAction": 7
+  },
+  {
+    "file": "2137.bd4d26c1.js",
+    "kind": "banners",
+    "action": 8,
+    "fromAction": 8
+  },
+  {
+    "file": "2280-legacy.2ea357aa.js",
+    "kind": "units",
+    "action": 9,
+    "fromAction": 9
+  },
+  {
+    "file": "2280.b345a0cc.js",
+    "kind": "units",
+    "action": 10,
+    "fromAction": 10
+  },
+  {
+    "file": "2434-legacy.8946416c.js",
+    "kind": "banners",
+    "action": 11,
+    "fromAction": 11
+  },
+  {
+    "file": "2434-legacy.8946416c.js",
+    "kind": "cards",
+    "action": 12,
+    "fromAction": 12
+  },
+  {
+    "file": "2434.e91d2bab.js",
+    "kind": "banners",
+    "action": 13,
+    "fromAction": 13
+  },
+  {
+    "file": "2434.e91d2bab.js",
+    "kind": "cards",
+    "action": 14,
+    "fromAction": 14
+  },
+  {
+    "file": "2574-legacy.b99b3940.js",
+    "kind": "banners",
+    "action": 15,
+    "fromAction": 15
+  },
+  {
+    "file": "2574.8c483793.js",
+    "kind": "banners",
+    "action": 16,
+    "fromAction": 16
+  },
+  {
+    "file": "2745-legacy.92e70d93.js",
+    "kind": "cards",
+    "action": 17,
+    "fromAction": 17
+  },
+  {
+    "file": "2745.c989aa57.js",
+    "kind": "cards",
+    "action": 18,
+    "fromAction": 18
+  },
+  {
+    "file": "2771-legacy.061f4abf.js",
+    "kind": "banners",
+    "action": 19,
+    "fromAction": 19
+  },
+  {
+    "file": "3114-legacy.8e29c94f.js",
+    "kind": "banners",
+    "action": 20,
+    "fromAction": 20
+  },
+  {
+    "file": "3114-legacy.8e29c94f.js",
+    "kind": "cards",
+    "action": 21,
+    "fromAction": 21
+  },
+  {
+    "file": "3114.0017fdaf.js",
+    "kind": "banners",
+    "action": 22,
+    "fromAction": 22
+  },
+  {
+    "file": "3114.0017fdaf.js",
+    "kind": "cards",
+    "action": 23,
+    "fromAction": 23
+  },
+  {
+    "file": "3170-legacy.bb891b8e.js",
+    "kind": "banners",
+    "action": 24,
+    "fromAction": 24
+  },
+  {
+    "file": "3170-legacy.bb891b8e.js",
+    "kind": "cards",
+    "action": 25,
+    "fromAction": 25
+  },
+  {
+    "file": "3170.648680a7.js",
+    "kind": "banners",
+    "action": 26,
+    "fromAction": 26
+  },
+  {
+    "file": "3170.648680a7.js",
+    "kind": "cards",
+    "action": 27,
+    "fromAction": 27
+  },
+  {
+    "file": "3382-legacy.86ed35fc.js",
+    "kind": "banners",
+    "action": 28,
+    "fromAction": 28
+  },
+  {
+    "file": "3510.14160a1d.js",
+    "kind": "banners",
+    "action": 29,
+    "fromAction": 29
+  },
+  {
+    "file": "3602-legacy.21d10582.js",
+    "kind": "units",
+    "action": 30,
+    "fromAction": 30
+  },
+  {
+    "file": "3602-legacy.21d10582.js",
+    "kind": "cards",
+    "action": 31,
+    "fromAction": 31
+  },
+  {
+    "file": "3602.87e3f83b.js",
+    "kind": "units",
+    "action": 32,
+    "fromAction": 32
+  },
+  {
+    "file": "3602.87e3f83b.js",
+    "kind": "cards",
+    "action": 33,
+    "fromAction": 33
+  },
+  {
+    "file": "3819-legacy.f65b8f7e.js",
+    "kind": "units",
+    "action": 34,
+    "fromAction": 34
+  },
+  {
+    "file": "3819.244bbc0d.js",
+    "kind": "units",
+    "action": 35,
+    "fromAction": 35
+  },
+  {
+    "file": "4125-legacy.fc185e0f.js",
+    "kind": "banners",
+    "action": 36,
+    "fromAction": 36
+  },
+  {
+    "file": "4125.016ced65.js",
+    "kind": "banners",
+    "action": 37,
+    "fromAction": 37
+  },
+  {
+    "file": "4229-legacy.caf6e94e.js",
+    "kind": "cards",
+    "action": 38,
+    "fromAction": 38
+  },
+  {
+    "file": "4229.f2ddedb7.js",
+    "kind": "cards",
+    "action": 39,
+    "fromAction": 39
+  },
+  {
+    "file": "4904.6168e46a.js",
+    "kind": "units",
+    "action": 40,
+    "fromAction": 40
+  },
+  {
+    "file": "5230-legacy.4f9df514.js",
+    "kind": "units",
+    "action": 41,
+    "fromAction": 41
+  },
+  {
+    "file": "5230.8f224469.js",
+    "kind": "units",
+    "action": 42,
+    "fromAction": 42
+  },
+  {
+    "file": "5805-legacy.91441d37.js",
+    "kind": "units",
+    "action": 43,
+    "fromAction": 43
+  },
+  {
+    "file": "6040-legacy.b5f31a01.js",
+    "kind": "player",
+    "action": 44,
+    "fromAction": 44
+  },
+  {
+    "file": "6040.66dd620d.js",
+    "kind": "player",
+    "action": 45,
+    "fromAction": 45
+  },
+  {
+    "file": "6583.97b1c7c8.js",
+    "kind": "units",
+    "action": 46,
+    "fromAction": 46
+  },
+  {
+    "file": "6602.ff913bce.js",
+    "kind": "cards",
+    "action": 47,
+    "fromAction": 47
+  },
+  {
+    "file": "6735-legacy.36be5423.js",
+    "kind": "banners",
+    "action": 48,
+    "fromAction": 48
+  },
+  {
+    "file": "6735-legacy.36be5423.js",
+    "kind": "cards",
+    "action": 49,
+    "fromAction": 49
+  },
+  {
+    "file": "6735.58162a4b.js",
+    "kind": "banners",
+    "action": 50,
+    "fromAction": 50
+  },
+  {
+    "file": "6735.58162a4b.js",
+    "kind": "cards",
+    "action": 51,
+    "fromAction": 51
+  },
+  {
+    "file": "7135-legacy.ea34082a.js",
+    "kind": "cards",
+    "action": 52,
+    "fromAction": 52
+  },
+  {
+    "file": "7135.b9e2c7a1.js",
+    "kind": "cards",
+    "action": 53,
+    "fromAction": 53
+  },
+  {
+    "file": "7440-legacy.6e19fa4b.js",
+    "kind": "cards",
+    "action": 54,
+    "fromAction": 54
+  },
+  {
+    "file": "7440.bebb1e10.js",
+    "kind": "cards",
+    "action": 55,
+    "fromAction": 55
+  },
+  {
+    "file": "7472-legacy.bc246bd3.js",
+    "kind": "banners",
+    "action": 56,
+    "fromAction": 56
+  },
+  {
+    "file": "7472-legacy.bc246bd3.js",
+    "kind": "cards",
+    "action": 57,
+    "fromAction": 57
+  },
+  {
+    "file": "7472.241c59a7.js",
+    "kind": "banners",
+    "action": 58,
+    "fromAction": 58
+  },
+  {
+    "file": "7472.241c59a7.js",
+    "kind": "cards",
+    "action": 59,
+    "fromAction": 59
+  },
+  {
+    "file": "7481-legacy.2bf7a76e.js",
+    "kind": "cards",
+    "action": 60,
+    "fromAction": 60
+  },
+  {
+    "file": "7481.c6062b37.js",
+    "kind": "cards",
+    "action": 61,
+    "fromAction": 61
+  },
+  {
+    "file": "766-legacy.03895ea2.js",
+    "kind": "banners",
+    "action": 62,
+    "fromAction": 62
+  },
+  {
+    "file": "766.042e31e8.js",
+    "kind": "banners",
+    "action": 63,
+    "fromAction": 63
+  },
+  {
+    "file": "816-legacy.a52a5470.js",
+    "kind": "cards",
+    "action": 64,
+    "fromAction": 64
+  },
+  {
+    "file": "816.53b6efd5.js",
+    "kind": "cards",
+    "action": 65,
+    "fromAction": 65
+  },
+  {
+    "file": "8198-legacy.94a4a390.js",
+    "kind": "cards",
+    "action": 66,
+    "fromAction": 66
+  },
+  {
+    "file": "8198.dd7073e6.js",
+    "kind": "cards",
+    "action": 67,
+    "fromAction": 67
+  },
+  {
+    "file": "8448-legacy.969bab66.js",
+    "kind": "banners",
+    "action": 68,
+    "fromAction": 68
+  },
+  {
+    "file": "8710-legacy.337669b4.js",
+    "kind": "cards",
+    "action": 69,
+    "fromAction": 69
+  },
+  {
+    "file": "8710.325fb8bb.js",
+    "kind": "cards",
+    "action": 70,
+    "fromAction": 70
+  },
+  {
+    "file": "8796-legacy.dd90fa9d.js",
+    "kind": "player",
+    "action": 71,
+    "fromAction": 71
+  },
+  {
+    "file": "8796.65b1ee91.js",
+    "kind": "player",
+    "action": 72,
+    "fromAction": 72
+  },
+  {
+    "file": "8806-legacy.2292cdb8.js",
+    "kind": "units",
+    "action": 73,
+    "fromAction": 73
+  },
+  {
+    "file": "8806.872ad748.js",
+    "kind": "units",
+    "action": 74,
+    "fromAction": 74
+  },
+  {
+    "file": "8814-legacy.410bc041.js",
+    "kind": "units",
+    "action": 75,
+    "fromAction": 75
+  },
+  {
+    "file": "8864-legacy.ad205cc7.js",
+    "kind": "cards",
+    "action": 76,
+    "fromAction": 76
+  },
+  {
+    "file": "8864.d00d3ff9.js",
+    "kind": "cards",
+    "action": 77,
+    "fromAction": 77
+  },
+  {
+    "file": "8992.88a3673c.js",
+    "kind": "banners",
+    "action": 78,
+    "fromAction": 78
+  },
+  {
+    "file": "9165-legacy.561e0aed.js",
+    "kind": "cards",
+    "action": 79,
+    "fromAction": 79
+  },
+  {
+    "file": "9165.62613367.js",
+    "kind": "cards",
+    "action": 80,
+    "fromAction": 80
+  },
+  {
+    "file": "9516-legacy.97815883.js",
+    "kind": "cards",
+    "action": 81,
+    "fromAction": 81
+  },
+  {
+    "file": "9955-legacy.8c543e36.js",
+    "kind": "cards",
+    "action": 82,
+    "fromAction": 82
+  },
+  {
+    "file": "9955.9cb13771.js",
+    "kind": "cards",
+    "action": 83,
+    "fromAction": 83
+  },
+  {
+    "file": "app-legacy.56b51db1.js",
+    "kind": "core",
+    "action": 84,
+    "fromAction": 84
+  },
+  {
+    "file": "app.092bf2a0.js",
+    "kind": "core",
+    "action": 85,
+    "fromAction": 85
+  },
+  {
+    "file": "app.092bf2a0.js",
+    "kind": "cache",
+    "action": 86,
+    "fromAction": 87
+  },
+  {
+    "file": "app-legacy.56b51db1.js",
+    "kind": "cache",
+    "action": 87,
+    "fromAction": 88
+  },
+  {
+    "file": "8489.2643cfd8.js",
+    "kind": "download",
+    "action": 88,
+    "fromAction": 89
+  },
+  {
+    "file": "2131-legacy.7641a65b.js",
+    "kind": "download",
+    "action": 89,
+    "fromAction": 90
+  },
+  {
+    "file": "8489.2643cfd8.js",
+    "kind": "hardening",
+    "action": 90,
+    "fromAction": 91
+  },
+  {
+    "file": "2131-legacy.7641a65b.js",
+    "kind": "hardening",
+    "action": 91,
+    "fromAction": 92
+  },
+  {
+    "file": "9165-legacy.561e0aed.js",
+    "kind": "layout",
+    "action": 92,
+    "fromAction": 93
+  },
+  {
+    "file": "9165.62613367.js",
+    "kind": "layout",
+    "action": 93,
+    "fromAction": 94
+  }
+]

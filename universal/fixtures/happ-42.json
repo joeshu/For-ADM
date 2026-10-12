@@ -1,0 +1,13 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/5230.8f224469.js",
+  "body": "/* 0x3e71:function ; /v2/config/units.capi ; /app/announcements ; getCacheUrl */\n'so':function(){return _0x3a750e;}\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "'so':function(){return _0x3a750e;}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

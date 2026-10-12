@@ -1,0 +1,18 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/4229.f2ddedb7.js",
+  "body": "/* 'VodVerticalItem' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x25f4b2['list'],\n['pI'])(_0x58c8c8['list'],\n['pI'])(_0x2275ea['list'],\n['pI'])(_0x48dba6['list'],\n'data-source':_0xdd229a,\n'dataSource':_0x44482c}\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "['pI'])(_0x25f4b2['list'],",
+    "['pI'])(_0x58c8c8['list'],",
+    "['pI'])(_0x2275ea['list'],",
+    "['pI'])(_0x48dba6['list'],",
+    "'data-source':_0xdd229a,",
+    "'dataSource':_0x44482c}"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

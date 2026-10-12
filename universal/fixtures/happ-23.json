@@ -1,0 +1,14 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/3114.0017fdaf.js",
+  "body": "/* 'VodVerticalItem' ; webpackChunkmovie ; ['pI'] */\n['pI'])(_0x51b4d4['data'],\n['pI'])(_0x5cc5b6['list'],\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "['pI'])(_0x51b4d4['data'],",
+    "['pI'])(_0x5cc5b6['list'],"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

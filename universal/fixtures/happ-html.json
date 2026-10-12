@@ -1,0 +1,14 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/?_c=c300000&package=happ3.com",
+  "body": "<title>好好看</title><script src=\"static/v20522/js/app.092bf2a0.js\" type=\"module\"></script><script src=\"static/v20522/js/app-legacy.56b51db1.js\" nomodule></script><script src=\"static/v20522/js/chunk-vendors.ecb51d3e.js\"></script><link href=\"static/v20522/css/app.29a7350a.css\" rel=\"stylesheet\"><div id=\"app\"></div>",
+  "removed": [
+    "src=\"static/v20522/js/app.092bf2a0.js\"",
+    "src=\"static/v20522/js/app-legacy.56b51db1.js\""
+  ],
+  "preserved": [
+    "src=\"static/v20522/js/chunk-vendors.ecb51d3e.js\"",
+    "static/v20522/css/app.29a7350a.css",
+    "id=\"app\""
+  ]
+}

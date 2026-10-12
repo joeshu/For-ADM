@@ -1,0 +1,13 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20522/js/app.092bf2a0.js",
+  "body": "/* 'appName':'好好看' ; ['u']=function ; ChunkLoadError ; webpackChunkmovie */\n}[_0x54e03e]+'.js';\n/* fixture-film.m3u8?sign=keep ; account-preserved ; /vod/magnet/detail?magnetId=real */",
+  "removed": [
+    "}[_0x54e03e]+'.js';"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-preserved",
+    "/vod/magnet/detail?magnetId=real"
+  ]
+}

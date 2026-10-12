@@ -45,6 +45,7 @@ for(const t of templates){
   if(a.helper&&(a.kind!=='js'||a.op!=='replaceGroup'||!Object.prototype.hasOwnProperty.call(t.jsHelpers||{},a.helper)))throw Error('Invalid JS helper reference');
   if(a.requires&&(!Array.isArray(a.requires)||!a.requires.every(s=>typeof s==='string'&&s)))throw Error('Invalid source fingerprints');
   if(a.bodyPattern)new RegExp(a.bodyPattern);
+  if(a.pathPattern){if(typeof a.pathPattern!=='string'||!a.pathPattern.startsWith('^/')||!a.pathPattern.endsWith('$'))throw Error('Action path must be anchored');new RegExp(a.pathPattern);}
   if(a.kind==='html'){
    if(a.op==='removeElements'||a.op==='setQueryParameter'){
     const s=a.selector;if(!s||!s.tag||!s.attr||[s.token,s.exact,s.pattern].filter(x=>x!==undefined).length!==1)throw Error('Invalid HTML selector');
