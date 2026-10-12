@@ -73,5 +73,6 @@
       "bodyPattern": "<html[\\s>]",
       "attributePattern": "^data-preroll-ad-[\\w-]+$"
     }
-  ]
+  ],
+  "diagnostics": true
 }

@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 129357415ea7. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 73e1eb479bf2. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"4kvm","adapter":"declarative","output":{"script":"4kvm/4kvm-ad-clean.js","conf":"4kvm/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled=!0","value":"this.prerollAdEnabled=!1"},{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled&&","value":"false&&"},{"kind":"html","op":"removeElements","bodyPattern":"<html[\\s>]","selector":{"tag":"div","attr":"class","token":"ad-item"}},{"kind":"html","op":"removeAttributes","bodyPattern":"<html[\\s>]","attributePattern":"^data-preroll-ad-[\\w-]+$"}],"bindings":[{"host":"(?:|www\\.)(?:4kvms\\.org|4kvms\\.com|4kvm\\.top|4kvm\\.cc|4kvm\\.me|4kvm\\.org|4kvm\\.tv|4kvm\\.net|4kvm\\.pro|4kvm\\.com)","routes":[{"kind":"js","path":"/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:play/[^/?]+)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"129357415ea7");
+admRun([{"id":"4kvm","adapter":"declarative","output":{"script":"4kvm/4kvm-ad-clean.js","conf":"4kvm/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled=!0","value":"this.prerollAdEnabled=!1"},{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled&&","value":"false&&"},{"kind":"html","op":"removeElements","bodyPattern":"<html[\\s>]","selector":{"tag":"div","attr":"class","token":"ad-item"}},{"kind":"html","op":"removeAttributes","bodyPattern":"<html[\\s>]","attributePattern":"^data-preroll-ad-[\\w-]+$"}],"diagnostics":true,"bindings":[{"host":"(?:|www\\.)(?:4kvms\\.org|4kvms\\.com|4kvm\\.top|4kvm\\.cc|4kvm\\.me|4kvm\\.org|4kvm\\.tv|4kvm\\.net|4kvm\\.pro|4kvm\\.com)","routes":[{"kind":"js","path":"/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:play/[^/?]+)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"73e1eb479bf2");
 })();

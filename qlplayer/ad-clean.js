@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision ef7eecb2f54b. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 7e51ab275b6d. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"qlplayer","adapter":"declarative","output":{"script":"qlplayer/ad-clean.js","conf":"qlplayer/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceGroup","requires":["async function init()","function showPreRoll()","function showPauseAd()","const { url, type } = await resolveVideo();","initPlayer(url, type);"],"pairs":[["if (playerConfig.ads.pre_roll.enabled) {","if (false /* For-ADM: pre-roll disabled */) {",1],["if (playerConfig.ads.pause.enabled) {","if (false /* For-ADM: pause ad disabled */) {",1]]}],"bindings":[{"host":"(?:svip\\.qlplayer\\.cyou)","routes":[{"kind":"js","path":"/assets/player\\.js(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"ef7eecb2f54b");
+admRun([{"id":"qlplayer","adapter":"declarative","output":{"script":"qlplayer/ad-clean.js","conf":"qlplayer/quantumult-x-snippet.conf"},"diagnostics":true,"actions":[{"kind":"js","op":"replaceGroup","requires":["async function init()","function showPreRoll()","function showPauseAd()","const { url, type } = await resolveVideo();","initPlayer(url, type);"],"pairs":[["if (playerConfig.ads.pre_roll.enabled) {","if (false /* For-ADM: pre-roll disabled */) {",1],["if (playerConfig.ads.pause.enabled) {","if (false /* For-ADM: pause ad disabled */) {",1]]}],"bindings":[{"host":"(?:svip\\.qlplayer\\.cyou)","routes":[{"kind":"js","path":"/assets/player\\.js(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"7e51ab275b6d");
 })();

@@ -51,5 +51,6 @@
         "pattern": "^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"
       }
     }
-  ]
+  ],
+  "diagnostics": true
 }

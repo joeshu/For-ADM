@@ -22,5 +22,6 @@
       ]
     }
   ],
-  "parserProfile": "qingning-player"
+  "parserProfile": "qingning-player",
+  "diagnostics": true
 }

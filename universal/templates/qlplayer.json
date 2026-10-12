@@ -21,5 +21,6 @@
       ]
     }
   ],
-  "parserProfile": "qlplayer"
+  "parserProfile": "qlplayer",
+  "diagnostics": true
 }

@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 0e9c03c02691. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 1fce1fac466c. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"juyeye","adapter":"declarative","output":{"script":"juyeye/ad-clean.js","conf":"juyeye/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["!function(){function a(a){var b={","new Function(b)()","`.substr(10))","YTTJ4TLR","1n0n"]},{"kind":"html","op":"replaceInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["var system = {};","navigator.platform","system.ispc =","navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;","if (system.win || system.mac || system.ispc) {"],"pairs":[["window.location.href = \"../404.html\";","/* For-ADM: desktop 404 redirect disabled. */",1]]}],"bindings":[{"host":"(?:www\\.juyeye\\.cc)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodplay|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"0e9c03c02691");
+admRun([{"id":"juyeye","adapter":"declarative","output":{"script":"juyeye/ad-clean.js","conf":"juyeye/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["!function(){function a(a){var b={","new Function(b)()","`.substr(10))","YTTJ4TLR","1n0n"]},{"kind":"html","op":"replaceInlineScripts","requires":["/mxtheme/js/home.js","var maccms=","www.juyeye.cc"],"scriptRequires":["var system = {};","navigator.platform","system.ispc =","navigator.userAgent.match(/spider|iPad|iPhone|iPod|Android/i) == null;","if (system.win || system.mac || system.ispc) {"],"pairs":[["window.location.href = \"../404.html\";","/* For-ADM: desktop 404 redirect disabled. */",1]]}],"diagnostics":true,"bindings":[{"host":"(?:www\\.juyeye\\.cc)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodplay|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"1fce1fac466c");
 })();

@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision fac1a442d137. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 2dc393beccf2. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -382,5 +382,5 @@ function cleanGuazi(ctx) {
  return result;
 }
 
-admRun([{"id":"guazi-app","adapter":"guazi","bindings":[{"host":"[\\w.-]+","routes":[{"kind":"json","path":"/App/Resource/Config/getNav(?:\\?|$)"},{"kind":"json","path":"/App/Ad/barsPlayAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/Ad/playAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/IndexPlay/vodAdvertisement(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/showOne(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/vurlDetail(?:\\?|$)"}]}]}],{guazi:cleanGuazi},"fac1a442d137");
+admRun([{"id":"guazi-app","adapter":"guazi","diagnostics":true,"bindings":[{"host":"[\\w.-]+","routes":[{"kind":"json","path":"/App/Resource/Config/getNav(?:\\?|$)"},{"kind":"json","path":"/App/Ad/barsPlayAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/Ad/playAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/IndexPlay/vodAdvertisement(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/showOne(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/vurlDetail(?:\\?|$)"}]}]}],{guazi:cleanGuazi},"2dc393beccf2");
 })();

@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 0009cf1f4ba7. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision b7637e69ce0f. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"zhuiyingmiao","adapter":"declarative","output":{"script":"zhuiyingmiao/ad-clean.js","conf":"zhuiyingmiao/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeElements","requires":["var maccms=","/mxtheme/js/home.js","zhuiyingmiao5.com"],"selector":{"tag":"div","attr":"class","token":"module-adslist"}}],"bindings":[{"host":"(?:zhuiyingmiao5\\.com|www\\.zhuiyingmiao5\\.com)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"0009cf1f4ba7");
+admRun([{"id":"zhuiyingmiao","adapter":"declarative","output":{"script":"zhuiyingmiao/ad-clean.js","conf":"zhuiyingmiao/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeElements","requires":["var maccms=","/mxtheme/js/home.js","zhuiyingmiao5.com"],"selector":{"tag":"div","attr":"class","token":"module-adslist"}}],"diagnostics":true,"bindings":[{"host":"(?:zhuiyingmiao5\\.com|www\\.zhuiyingmiao5\\.com)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"b7637e69ce0f");
 })();

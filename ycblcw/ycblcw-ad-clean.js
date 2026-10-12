@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision bf79b48e48da. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 89cf8d879767. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"ycblcw","adapter":"declarative","output":{"script":"ycblcw/ycblcw-ad-clean.js","conf":"ycblcw/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","value":"/* Dedicated click-overlay and redirect advertising disabled. */"},{"kind":"html","op":"removeElements","requires":["/template/buka/"],"bodyPattern":"<html[\\s>]","selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.|m\\.)?ycblcw\\.com)?/dedg/cs13341\\.js(?:[?#].*)?$"}},{"kind":"html","op":"removeElements","requires":["/template/buka/"],"bodyPattern":"<html[\\s>]","selector":{"tag":"a","attr":"href","pattern":"^(?:https?:)?//app2\\.zstv47\\.com(?:[/?#].*)?$"}}],"bindings":[{"host":"(?:|www\\.|m\\.)(?:ycblcw\\.com)","routes":[{"kind":"js","path":"/dedg/cs13341\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"bf79b48e48da");
+admRun([{"id":"ycblcw","adapter":"declarative","output":{"script":"ycblcw/ycblcw-ad-clean.js","conf":"ycblcw/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","value":"/* Dedicated click-overlay and redirect advertising disabled. */"},{"kind":"html","op":"removeElements","requires":["/template/buka/"],"bodyPattern":"<html[\\s>]","selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.|m\\.)?ycblcw\\.com)?/dedg/cs13341\\.js(?:[?#].*)?$"}},{"kind":"html","op":"removeElements","requires":["/template/buka/"],"bodyPattern":"<html[\\s>]","selector":{"tag":"a","attr":"href","pattern":"^(?:https?:)?//app2\\.zstv47\\.com(?:[/?#].*)?$"}}],"diagnostics":true,"bindings":[{"host":"(?:|www\\.|m\\.)(?:ycblcw\\.com)","routes":[{"kind":"js","path":"/dedg/cs13341\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"89cf8d879767");
 })();

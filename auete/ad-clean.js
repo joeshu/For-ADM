@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 00815d156cb2. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 90b50a1aa6f9. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"auete","adapter":"declarative","output":{"script":"auete/ad-clean.js","conf":"auete/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","bodyPattern":"^(?!\\s*(?:<!doctype|<html|<body)\\b)","value":"/* For-ADM: dedicated Auete page advertising module disabled. */"},{"kind":"html","requires":["Auete","/js/common.js"],"bodyPattern":"<html[\\s>]","op":"removeElements","selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"}}],"bindings":[{"host":"(?:|www\\.)(?:aeete\\.com|au1080\\.top)","routes":[{"kind":"js","path":"/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"00815d156cb2");
+admRun([{"id":"auete","adapter":"declarative","output":{"script":"auete/ad-clean.js","conf":"auete/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","bodyPattern":"^(?!\\s*(?:<!doctype|<html|<body)\\b)","value":"/* For-ADM: dedicated Auete page advertising module disabled. */"},{"kind":"html","requires":["Auete","/js/common.js"],"bodyPattern":"<html[\\s>]","op":"removeElements","selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"}}],"diagnostics":true,"bindings":[{"host":"(?:|www\\.)(?:aeete\\.com|au1080\\.top)","routes":[{"kind":"js","path":"/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"90b50a1aa6f9");
 })();

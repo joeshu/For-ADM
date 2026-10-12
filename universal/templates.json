@@ -31,7 +31,8 @@
       "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet",
       "adapter": "guazi",
       "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js",
-      "cryptoSource": "guazi-app/vendor/cryptojs-aes.min.js"
+      "cryptoSource": "guazi-app/vendor/cryptojs-aes.min.js",
+      "diagnostics": true
     }
   ],
   "parserProfiles": [
@@ -399,7 +400,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "ycblcw",
@@ -465,7 +467,8 @@
             "pattern": "^(?:https?:)?//app2\\.zstv47\\.com(?:[/?#].*)?$"
           }
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "souju-ai",
@@ -641,7 +644,8 @@
             1
           ]
         ]
-      }
+      },
+      "diagnostics": true
     },
     {
       "id": "4kvm",
@@ -718,7 +722,8 @@
           "bodyPattern": "<html[\\s>]",
           "attributePattern": "^data-preroll-ad-[\\w-]+$"
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "auete",
@@ -773,7 +778,8 @@
             "pattern": "^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"
           }
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "eboyang",
@@ -843,7 +849,8 @@
             "pattern": "^(?:https?:)?//app3\\.qingning9\\.com(?:[/?#].*)?$"
           }
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "juyeye",
@@ -908,7 +915,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "zhuiyingmiao",
@@ -949,7 +957,8 @@
             "token": "module-adslist"
           }
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "yxxq",
@@ -1126,7 +1135,8 @@
           ],
           "value": "/* For-ADM: verified YXXQ mobile ad monitor disabled. */"
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "qlplayer",
@@ -1151,7 +1161,8 @@
           ]
         }
       ],
-      "parserProfile": "qlplayer"
+      "parserProfile": "qlplayer",
+      "diagnostics": true
     },
     {
       "id": "qingning-player",
@@ -1177,7 +1188,8 @@
           ]
         }
       ],
-      "parserProfile": "qingning-player"
+      "parserProfile": "qingning-player",
+      "diagnostics": true
     },
     {
       "id": "555-movie",
@@ -1393,7 +1405,8 @@
             ]
           ]
         }
-      ]
+      ],
+      "diagnostics": true
     },
     {
       "id": "dyls",

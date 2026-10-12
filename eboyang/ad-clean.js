@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 89478310eef0. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision fcf48b6bce8b. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"eboyang","adapter":"declarative","output":{"script":"eboyang/ad-clean.js","conf":"eboyang/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","requires":["var c=","new Function(t)()","//le1008"],"value":"/* For-ADM: dedicated eboyang bottom-overlay advertising loader disabled. */"},{"kind":"html","op":"removeElements","requires":["一起看影院","/templets/qiqino5/"],"selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.)?eboyang\\.com)?/dedg/le1008\\.js(?:[?#].*)?$"}},{"kind":"html","op":"removeElements","requires":["一起看影院","/templets/qiqino5/"],"selector":{"tag":"a","attr":"href","pattern":"^(?:https?:)?//app3\\.qingning9\\.com(?:[/?#].*)?$"}}],"bindings":[{"host":"(?:|www\\.)(?:eboyang\\.com)","routes":[{"kind":"js","path":"/dedg/le1008\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:index\\.html|(?:bovod|bovideo|vodlist)/[0-9-]+\\.html|(?:search|gbook)\\.php)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"89478310eef0");
+admRun([{"id":"eboyang","adapter":"declarative","output":{"script":"eboyang/ad-clean.js","conf":"eboyang/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","requires":["var c=","new Function(t)()","//le1008"],"value":"/* For-ADM: dedicated eboyang bottom-overlay advertising loader disabled. */"},{"kind":"html","op":"removeElements","requires":["一起看影院","/templets/qiqino5/"],"selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.)?eboyang\\.com)?/dedg/le1008\\.js(?:[?#].*)?$"}},{"kind":"html","op":"removeElements","requires":["一起看影院","/templets/qiqino5/"],"selector":{"tag":"a","attr":"href","pattern":"^(?:https?:)?//app3\\.qingning9\\.com(?:[/?#].*)?$"}}],"diagnostics":true,"bindings":[{"host":"(?:|www\\.)(?:eboyang\\.com)","routes":[{"kind":"js","path":"/dedg/le1008\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:index\\.html|(?:bovod|bovideo|vodlist)/[0-9-]+\\.html|(?:search|gbook)\\.php)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"fcf48b6bce8b");
 })();

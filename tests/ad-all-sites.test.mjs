@@ -1,0 +1,16 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {test} from 'node:test';import {loadTemplateManifest} from '../scripts/lib/template-manifest.mjs';import {auditAllSites,safeProbeURL,summarizeProbes} from '../scripts/audit-all-sites.mjs';
+const root=new URL('../',import.meta.url).pathname,manifest=loadTemplateManifest(root),ids=[...manifest.templates.map(t=>t.id),...manifest.requestRules.filter(r=>r.adapter).map(r=>r.id)],read=p=>fs.readFileSync(root+p,'utf8');
+function run(code,url,body,prefs){let calls=0;const logs=[];vm.runInNewContext(code,{$request:{url},$response:{body},$prefs:{valueForKey:k=>prefs.get(k),setValueForKey:(v,k)=>prefs.set(k,v),removeValueForKey:k=>prefs.delete(k)},console:{log:s=>logs.push(s)},$done(){calls++;}},{timeout:2000});assert.equal(calls,1);return logs;}
+test('whole subscription inventory validates every active standalone route and fixture',async()=>{const r=await auditAllSites({offline:true});assert.deepEqual(r.sites.map(s=>s.id),ids);assert.equal(r.sites.length,17);for(const site of r.sites){assert.equal(site.offline,'PASS');assert.equal(site.diagnostics,true);assert.ok(site.ruleCount>0);assert.ok(site.revision);}});
+test('every independent script records its own site and revision without query or body leakage',()=>{
+ const fixtures=fs.readdirSync(root+'universal/fixtures').filter(p=>p.endsWith('.json')).map(p=>JSON.parse(read('universal/fixtures/'+p)));
+ for(const t of [...manifest.templates,...manifest.requestRules.filter(r=>r.adapter)]){
+  const fixture=fixtures.find(f=>f.template===t.id),url=new URL(fixture?.url||'https://api.mxtxqe.com/App/Ad/playAdInfo');url.searchParams.set('secret','private-query');const prefs=new Map([['ForADM.DebugUntil',String(Date.now()+600000)]]),code=read(t.output.script);run(code,url.href,fixture?.body||'{"code":401}',prefs);const report=JSON.parse(prefs.get('ForADM.Debug.'+t.id));assert.equal(report.site,t.id);assert.equal(report.revision,code.match(/revision ([a-f0-9]+)/)[1]);assert.ok(!JSON.stringify(report).includes('private-query'));
+ }
+});
+test('generated diagnostic tasks clear all sites and report only sites with records',()=>{
+ const prefs=new Map(ids.flatMap(id=>[['ForADM.Debug.'+id,'old'],['ForADM.DebugHistory.'+id,'old']]));run(read('universal/debug-on.js'),'','',prefs);for(const id of ids){assert.equal(prefs.has('ForADM.Debug.'+id),false);assert.equal(prefs.has('ForADM.DebugHistory.'+id),false);}prefs.set('ForADM.Debug.yxxq','{"site":"yxxq","status":"modified"}');const logs=run(read('universal/debug-report.js'),'','',prefs);assert.ok(logs.some(s=>s.includes('覆盖 17 个')));assert.ok(logs.some(s=>s.includes('yxxq')));assert.ok(!logs.some(s=>s.includes('ncat: 暂无记录')));
+});
+test('report strips query strings and does not count entry reachability as source verification',()=>{
+ assert.equal(safeProbeURL('https://example.com:51111/api.php?token=private#x'),'https://example.com:51111/api.php');assert.equal(summarizeProbes([{status:'AVAILABLE'}]),'NOT_RUN');assert.equal(summarizeProbes([{status:'AVAILABLE'},{status:'PASS'}]),'PASS');assert.equal(summarizeProbes([{status:'PASS'},{status:'UNAVAILABLE'}]),'PARTIAL');assert.equal(summarizeProbes([{status:'PASS'},{status:'CHANGED'}]),'CHANGED');
+});

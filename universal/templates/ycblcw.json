@@ -62,5 +62,6 @@
         "pattern": "^(?:https?:)?//app2\\.zstv47\\.com(?:[/?#].*)?$"
       }
     }
-  ]
+  ],
+  "diagnostics": true
 }

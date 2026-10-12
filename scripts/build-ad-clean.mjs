@@ -96,10 +96,12 @@ for(const r of requestRules){
 function bindingHost(b){return b.host+(b.ports?'(?::(?:'+b.ports.join('|')+'))?':'');}
 function requestLines(r,scriptUrl){if(r.mode==='verbatim')return r.lines.map(l=>r.adapter&&scriptUrl&&l.includes(' url script-response-body ')?l.split(' url ')[0]+' url script-response-body '+scriptUrl:l);return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
 const generated=new Map([['universal/templates.json',manifestText]]),scriptVersions=new Map();
+const diagnosticSites=[...templates.filter(t=>t.diagnostics===true).map(t=>t.id),...requestRules.filter(r=>r.adapter&&r.diagnostics===true).map(r=>r.id)];
+for(const name of ['debug-on','debug-report','debug-off'])generated.set('universal/'+name+'.js',read('universal/src/'+name+'.js').replaceAll('__ADM_DIAGNOSTIC_SITES__',JSON.stringify(diagnosticSites)));
 function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
  const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);
  const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes,ports})=>({host,routes,...(ports?{ports}: {})}))})).map(t=>t.cacheBustRevision?JSON.parse(JSON.stringify(t).replaceAll('__ADM_CACHE_REVISION__',crypto.createHash('sha256').update(read('universal/src/engine.js')+JSON.stringify(t)).digest('hex').slice(0,12))):t);
- for(const r of (onlyRequest?requests:[]).filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
+ for(const r of (onlyRequest?requests:[]).filter(r=>r.adapter))runtime.push({id:r.id,adapter:r.adapter,diagnostics:r.diagnostics===true,bindings:[{host:'[\\w.-]+',routes:r.lines.filter(l=>l.includes(' url script-response-body ')).map(l=>{const path=l.split(' url ')[0].split('\\/App')[1];if(!path)throw Error('Invalid integrated API route');return {kind:'json',path:'/App'+path.replaceAll('\\/','/')+'(?:\\?|$)'};})}]});
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
  const adapters=[...new Set(runtime.map(t=>t.adapter))];
  let selectedSource=read('universal/src/engine.js')+(adapters.includes('souju')?'\n'+read('universal/src/function-tools.js')+'\n'+read('universal/src/souju.js'):'')+(adapters.includes('yqk')?'\n'+read('universal/src/yqk.js'):'');

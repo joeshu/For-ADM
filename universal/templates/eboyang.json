@@ -66,5 +66,6 @@
         "pattern": "^(?:https?:)?//app3\\.qingning9\\.com(?:[/?#].*)?$"
       }
     }
-  ]
+  ],
+  "diagnostics": true
 }

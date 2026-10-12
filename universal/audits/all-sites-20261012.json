@@ -1,0 +1,2261 @@
+{
+  "checkedAt": "2026-10-12T06:37:27.506Z",
+  "coverage": "全部已启用适配；编号域名使用登记样本，未遍历无限编号；线上源码核验不等于手机去广告验证",
+  "sites": [
+    {
+      "id": "yqk-qntv",
+      "name": "YQK / QNTV",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 2,
+      "script": "yqk-qntv/ad-clean.js",
+      "bytes": 18233,
+      "revision": "904ca5029d7d",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://yqk43.app/",
+          "status": "AVAILABLE",
+          "httpStatus": 200,
+          "sha256": "5894de75a628ef2fed476f4ce11c3454dfa2f132f3513bdc2db559932a09928a",
+          "reason": "入口可访问，已继续寻找登记脚本；此入口本身不经过重写"
+        },
+        {
+          "url": "https://yqk43.app/_nuxt/entry.34539261.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "35407f28941a115a2e63786ff64cbe962ccca4658e71bb464887d3a7ada4f7dc",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://yqk43.app/_nuxt/_play_.d854e942.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "ef216a11b50e70987a43b5f20f45f50d8336b6006a2494b3eb61c21070ab286c",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "ycblcw",
+      "name": "ycblcw",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 2,
+      "script": "ycblcw/ycblcw-ad-clean.js",
+      "bytes": 15203,
+      "revision": "89cf8d879767",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://www.ycblcw.com/",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "17cd5e199abc44ddbf86e95858751b7fa1040275ea1dc4c5d969ff4ff56a240f",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.ycblcw.com/dedg/cs13341.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "b8da042b2a9e4e6b838d74f9b4a5031bc334f386fbfd77148cf618078a70d499",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "souju-ai",
+      "name": "搜剧 / 看剧 AI",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 2,
+      "script": "souju-ai/souju-ad-clean.js",
+      "bytes": 21614,
+      "revision": "4ee3751178af",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://ai.baipiaozhe.com/",
+          "status": "AVAILABLE",
+          "httpStatus": 200,
+          "sha256": "0c076fe926d5e413ba457256c8ff1e7ca43710f714fbbc2023693e35803bf532",
+          "reason": "入口可访问，已继续寻找登记脚本；此入口本身不经过重写"
+        },
+        {
+          "url": "https://kanju3.com/",
+          "status": "AVAILABLE",
+          "httpStatus": 200,
+          "sha256": "12acf5fe5db313014815bbbad1001a2435da4503faee939467ab3b7702cda83a",
+          "reason": "入口可访问，已继续寻找登记脚本；此入口本身不经过重写"
+        },
+        {
+          "url": "https://ai.baipiaozhe.com/assets/main-Cho70k5y.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "312eedbfe9065b24c3dfa1c6ea94e6eaa2e7d5e2bebc89a7906cc32ba282cb01",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://ai.baipiaozhe.com/assets/movie-card-runtime--bfm_NT6.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "bd004982b38da25d0a6fcf5a3881c4f1e698a78612e1680750d36f89b7597994",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://kanju3.com/assets/main-DupXbhqc.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "d592f2144ec96cff3476cda40b73a611a74d679e1db4cab8c54b6a5023297e07",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://kanju3.com/assets/movie-card-runtime-DQVzig5g.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "30aadff3e89cfa8c51bb55e6f3414b9d45c8ff86d6dfc11dfac44b5950cdc199",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://ai.baipiaozhe.com/assets/global-player-host-Di3c6FIl.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "3c8b49e68540f15bbdf04be627d426e515466e5f04dd2093fdd7871a028fc4e6",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://kanju3.com/assets/global-player-host-BEk1MOSZ.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "0bc59a6c20d1e549d7d1c9e8d46a0873c3378bbbe67a875fe3cf1a3d71eda764",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "4kvm",
+      "name": "4kvm",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 2,
+      "script": "4kvm/4kvm-ad-clean.js",
+      "bytes": 15295,
+      "revision": "73e1eb479bf2",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://4kvms.org/",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "58593da616badc9293b5fd66bcd8a38f882a9246e2fd5d35c5c996493ceb52b2",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://4kvms.org/static/js/dist/app.ultra.min.f257ffc3.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "f257ffc346c237ec7f809f09f088d88fbf70e04bfff7c7dc5be05935fc97a0a1",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "auete",
+      "name": "Auete",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 2,
+      "script": "auete/ad-clean.js",
+      "bytes": 15139,
+      "revision": "90b50a1aa6f9",
+      "diagnostics": true,
+      "online": "PARTIAL",
+      "probes": [
+        {
+          "url": "https://www.au1080.top/index.html",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "b6dee8b69224e0ceb24b06c24192d679b3ae8d0b99f74d35a18409a49a4d4cfb",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.aeete.com/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://www.au1080.top/js/mcenter/tbxf.js",
+          "status": "UNAVAILABLE",
+          "httpStatus": 404,
+          "reason": "HTTP 404"
+        },
+        {
+          "url": "https://www.au1080.top/js/mcenter/tbtl.js",
+          "status": "UNAVAILABLE",
+          "httpStatus": 404,
+          "reason": "HTTP 404"
+        },
+        {
+          "url": "https://www.au1080.top/js/mcenter/tlbf.js",
+          "status": "UNAVAILABLE",
+          "httpStatus": 404,
+          "reason": "HTTP 404"
+        },
+        {
+          "url": "https://www.au1080.top/js/mcenter/dibu.js",
+          "status": "UNAVAILABLE",
+          "httpStatus": 404,
+          "reason": "HTTP 404"
+        },
+        {
+          "url": "https://www.au1080.top/js/mcenter/dbtl.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "df20234138ecae37eb8d1ade73dec0dc5a07ebe9a1671f116bf1718a9f44ce62",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "eboyang",
+      "name": "一起看影院（eboyang 旧版）",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 2,
+      "script": "eboyang/ad-clean.js",
+      "bytes": 15306,
+      "revision": "fcf48b6bce8b",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://www.eboyang.com/",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "4d31d2169d9d077b480bd93529e4383a050b16b89afecfc378e5fb52645118b5",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.eboyang.com/bovideo/3896-1-0.html",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "80443abd340c1746c78003365bc0452c4950b6116510bbcf3d927721a5493838",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.eboyang.com/dedg/le1008.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "1d2eb2797dad37e72d908911ea0a29ebb43218c975cb11705e4a0e5192be249d",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "juyeye",
+      "name": "聚爷爷",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 1,
+      "script": "juyeye/ad-clean.js",
+      "bytes": 15294,
+      "revision": "1fce1fac466c",
+      "diagnostics": true,
+      "online": "UNAVAILABLE",
+      "probes": [
+        {
+          "url": "https://www.juyeye.cc/voddetail/96188.html",
+          "status": "UNAVAILABLE",
+          "httpStatus": 404,
+          "reason": "HTTP 404"
+        },
+        {
+          "url": "https://www.juyeye.cc/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 404,
+          "reason": "首页额外核查 HTTP 404",
+          "checkedAt": "2026-10-12T06:42:00.948932+00:00"
+        }
+      ]
+    },
+    {
+      "id": "zhuiyingmiao",
+      "name": "追影猫",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 1,
+      "script": "zhuiyingmiao/ad-clean.js",
+      "bytes": 14877,
+      "revision": "b7637e69ce0f",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://zhuiyingmiao5.com/",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "74448c7616c146b5c8eba64bd486095e1caa4628c7a9ec99784a3046b07089ed",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://zhuiyingmiao5.com/voddetail/1657047.html",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "344c196898396452d58c4e9fd4bb7eb862850e63ee5f81421a18f70aac1f5f84",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "yxxq",
+      "name": "影像星球",
+      "offline": "PASS",
+      "fixtures": 3,
+      "ruleCount": 2,
+      "script": "yxxq/ad-clean.js",
+      "bytes": 17034,
+      "revision": "bfbcfe493e53",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://www.yxxq65.cc/",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "b1affecd3ac1c5acb1e6b47bda76a475bf725f561fa16bc369802fac5489e22d",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.yxxq35.cc/",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "f2dbbfd9da792c67957561594ff9f741b4356a8697186600f3ffb352b1330c58",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.yxxq65.cc/play/vd61054fb1d37m1c-2-1.html",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "634111da4c11cada5874ef0974d201b3f7b495a3a33645ed6027c47948f8a594",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.yxxq65.cc/html/vd61054fb1d39376.html",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "df573153881814c3067857b0681c0ba0a1e9fc97edf01a37de9fabbc1e552d84",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.yxxq65.cc/arttype/55.html",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "87bbb4cee6ca4dfd8d3a63de5e1a0ad1de954e2daf55b3c98dbfd6f2462312fb",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.yxxq65.cc/static/js/site-ads.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "edb7b105f709cb4d7f38b71e4a948e2215a2993fcf5311e7d59591201dc934fd",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://www.yxxq35.cc/static/js/site-ads.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "edb7b105f709cb4d7f38b71e4a948e2215a2993fcf5311e7d59591201dc934fd",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "qlplayer",
+      "name": "麒麟解析器",
+      "offline": "PASS",
+      "fixtures": 1,
+      "ruleCount": 1,
+      "script": "qlplayer/ad-clean.js",
+      "bytes": 15003,
+      "revision": "7e51ab275b6d",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://svip.qlplayer.cyou/",
+          "status": "AVAILABLE",
+          "httpStatus": 200,
+          "sha256": "4c693fff94b79b23a4e90cff493c3b2015015fe6a63fe17b9f8fb32d096f3f5e",
+          "reason": "入口可访问，已继续寻找登记脚本；此入口本身不经过重写"
+        },
+        {
+          "url": "https://svip.qlplayer.cyou/assets/player.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "0443cd7bc28b0d23c6b3de4f6e81695f69a3af9130dda964d690f346c63bc153",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "qingning-player",
+      "name": "清宁 Video.js 解析器",
+      "offline": "PASS",
+      "fixtures": 3,
+      "ruleCount": 1,
+      "script": "qingning-player/ad-clean.js",
+      "bytes": 16214,
+      "revision": "304b72195bf6",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "url": "https://tv.qingning88.com/api/publicApi.php",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "548f15fd75dc10b3c4540a36d75d2e8f41b14a9390cb5df55b7eb9c4ed4b8e8d",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        },
+        {
+          "url": "https://tv.qingning77.com/api/publicApi.php",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "b05c3bc3772f119d0d7a4ea9bff444daa47975514151e716aa9fa3c715c31377",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "555-movie",
+      "name": "555电影 / wu5mv",
+      "offline": "PASS",
+      "fixtures": 3,
+      "ruleCount": 5,
+      "script": "555-movie/ad-clean.js",
+      "bytes": 16734,
+      "revision": "19140a2f8b52",
+      "diagnostics": true,
+      "online": "PARTIAL",
+      "probes": [
+        {
+          "url": "https://5dy4.vip/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://wu5mv.com/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://wu5mv.com/vodplay/800530-13-1.html",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://555k2.com/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://555k91.com/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://55kp8.com/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://555k58.com/",
+          "status": "UNAVAILABLE",
+          "httpStatus": 502,
+          "reason": "HTTP 502"
+        },
+        {
+          "url": "https://eliteres.fanruan.com/office/2026/09/24/5217868f-8244-4d9f-8eae-1028bcc2c2a7.js",
+          "status": "PASS",
+          "httpStatus": 200,
+          "sha256": "4ce6382c3424dcf2d22f59c8368fdb9e68c7b37a875854aef8d2b64f799cff56",
+          "reason": "完整指纹命中，重写及重复执行通过"
+        }
+      ]
+    },
+    {
+      "id": "dyls",
+      "name": "电影猎手接口 / dyls",
+      "offline": "PASS",
+      "fixtures": 16,
+      "ruleCount": 4,
+      "script": "dyls/ad-clean.js",
+      "bytes": 28343,
+      "revision": "cd19a84d10b6",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "status": "PASS",
+          "url": "https://dyls1.mbxqnb.cn/"
+        },
+        {
+          "file": "explorer-BQDkpEAa.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f7a38e979c1ca39a540fc56e39965522369bcfd23bc80bd0676ac8fb1de94b83"
+        },
+        {
+          "file": "helperService-BjnnVgxU.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d1311991ef51c7ebdb699eae7d610258290fe74f487c42e38f93769eb9fb08a9"
+        },
+        {
+          "file": "helperService-ovSFIM0i.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "fd1a9c1fbb240d849c7bdccb252ebfc32fef5aceea111def639f6b4bef270758"
+        },
+        {
+          "file": "home-D4FIgn9T.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "be65305f90d2929e9213453b894e2f19a65210e61cda45117872854c392624fb"
+        },
+        {
+          "file": "index-BSCFNKjP.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "3d801d0f8f27e71275b22988206ad697d2b886107e0d37c7120d60129e4fbe25"
+        },
+        {
+          "file": "Main-EhHzH_xM.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "7cc5484676e8e9372ad227854f5a38b787dfc10dfcb6952ef9b1485fdb561cb7"
+        },
+        {
+          "file": "NewAds-CtNp18Uc.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "1ad0952e820d1b3ceee1984f1cff236f36dba507889d7557d26ac0a2a395bc95"
+        },
+        {
+          "file": "player-B4L3j5Ck.js",
+          "status": "PASS",
+          "matched": 3,
+          "failures": [],
+          "sha256": "da9a835dff4da4e820d6ec27bfa0c1d238bb3cd51d3989cdc118516da9d533a2"
+        },
+        {
+          "file": "playerService-4kMFfvlJ.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "601a6bb9174b831535477169f4ecf72195ea46f9d363a3c12f68f296072e7c57"
+        },
+        {
+          "file": "search-9JxfQWny.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "24ce6dbfc7038d98dd195e4ff3bd979e0a92581edf5b106783be9e8c29285588"
+        },
+        {
+          "file": "social-CZSyTrLH.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "02869e70275e7549536bdb5f38d1cbe7fe75a505326d1f288db4e486d043c3a8"
+        },
+        {
+          "file": "sw.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "92f190386c21a5f3ee85f78dd038a4bf4458ffbe5e5eeeeb6e46123d37480528"
+        }
+      ],
+      "checkedAt": "2026-10-12T06:22:52.203Z",
+      "moduleCounts": {
+        "PASS": 12
+      }
+    },
+    {
+      "id": "kkapp",
+      "name": "可可影视 / KKAPP",
+      "offline": "PASS",
+      "fixtures": 94,
+      "ruleCount": 4,
+      "script": "kkapp/ad-clean.js",
+      "bytes": 53453,
+      "revision": "545d4f9ef2c2",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "status": "PASS",
+          "url": "https://a.kkapp06.com/"
+        },
+        {
+          "file": "1075-legacy.4d1e886f.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "262ec01e04b100181d3b5aa8b6405f6d08a8bd9c8d1189d6cc270e477a901030"
+        },
+        {
+          "file": "1075.afda49af.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "ded9ce858e82c15388c8be468e8f9dc4382c08717f1220165f5586635d3df5a0"
+        },
+        {
+          "file": "1910-legacy.78698080.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8c39da9f3fdcd561f2e58a9790773c7eec3a8dafe213ebc65275e8ee487eab8c"
+        },
+        {
+          "file": "1910.8ff78120.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "35be0827260f45f7145a4d0ff6939fb63fc537706489c5f40b6b5b8c608870a2"
+        },
+        {
+          "file": "1996-legacy.11389c02.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ebcae2a5f0d020cf862dab5dffd944136ba98fac207f43fa1ba524850908e1fa"
+        },
+        {
+          "file": "1996.6d39cce0.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "cc24daf3c834ecf4a4fe12b36537e607a5e4a9ee80f433fe1bded835a4387c14"
+        },
+        {
+          "file": "2131-legacy.13957314.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "868f18212762597e8fa979cae5555d5d17c52811145aeaa88ccf41e21431863d"
+        },
+        {
+          "file": "2137.b8be401c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "fe4d9b2cd672dd55f4d9ca11e151a74a2ebe25fef562988b9f1d0368dd15aaa6"
+        },
+        {
+          "file": "2280-legacy.89eb81cc.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "4ca3999b189a21620d2c772e3ccb832ae729c6d442b743faf6180e0a2c4f014a"
+        },
+        {
+          "file": "2280.209c7683.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "a6a39c6aff9f73542148b09b7e699afd5592e695306dfc47490f301266f9cd58"
+        },
+        {
+          "file": "2434-legacy.5d90ea64.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "e858a2dfbf94b882d429c0992827bf6f0c42b45cc3af5f87cee68835c275a751"
+        },
+        {
+          "file": "2434.e91d2bab.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "f17aa2df4bef14dd0d17ae0f3f7fc5a169fabbb595d514fb591bc02dbb2ee6c1"
+        },
+        {
+          "file": "2574-legacy.a9b06c6e.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "dc8579808aa1d6ed17e4e8e6bc1563234023e328dde76c597eadc0ba0a1459d1"
+        },
+        {
+          "file": "2574.8c483793.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f83f157bd3cc771ae6211e0a2c8685f5749a36a4ac8d3c76d35efea5961cd75d"
+        },
+        {
+          "file": "2745-legacy.a5a70d13.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e4d2b530af01d9b033ba9d7cd705d5c7b96d1fdd07d74e4255a130fb03575050"
+        },
+        {
+          "file": "2745.c989aa57.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "eb889fd52e0ccc88c5a7506bceb6b9fa40d47b9fcc1d0736abc7187cc3d3969d"
+        },
+        {
+          "file": "2771-legacy.663d4988.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "82d6c86f0e2906d8f94eeb440b4cf1bd5d4708c5af15be7504e5498165ab019d"
+        },
+        {
+          "file": "3114-legacy.12d3ed4f.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "f23d19df1a09af7fecc7d10f9daed53a419434a7f570a4c8506eff6e046a7958"
+        },
+        {
+          "file": "3114.0017fdaf.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "72c3a2a1f240b6fc615f160d22b87d9ab8e8b6e8ba75eac5f82bb1a9dc1fdf00"
+        },
+        {
+          "file": "3170-legacy.695777cd.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5b83e4543b01048416afd44ab0ab21513db53c40da158858dd5ff72414f4dcca"
+        },
+        {
+          "file": "3170.648680a7.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "61db78fcac8caa3b9b530237cbeabe7173a6bea7de17ac4b1f3f58d0da694479"
+        },
+        {
+          "file": "3382-legacy.7a8fe498.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8d6f1a82c3a562dc24ac9a6ff90c33baeee0ac7e27b6672c4ba80355b005dede"
+        },
+        {
+          "file": "3510.14160a1d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8063865e18ad26ff035802a16111f2fe8de8fe575aef10ab3b9658bd2576860c"
+        },
+        {
+          "file": "3602-legacy.8e16fcab.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "9a92b0068d51f23a5b647b4ee8a9d42854c9714d4d995c0b2b012cef6e5fa3db"
+        },
+        {
+          "file": "3602.8deb4ca8.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "3c752ac60ca90176c6ac8e33fc741f2b701821cbcfe0dcfe8cf00ac798885fd0"
+        },
+        {
+          "file": "3819-legacy.8297797b.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "097d0e069705c74738127101d6057d1551cce93ca52908ad129e2c131188810b"
+        },
+        {
+          "file": "3819.3b1af0e6.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "eb5900c5035be31d83807416ad7619a351d678d5b1993394ea13f30cc83ca888"
+        },
+        {
+          "file": "4125-legacy.1d03df22.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "5a57584d14d83c20478e07986997a5c5438af7d4d00a1cde343392c67aaba93c"
+        },
+        {
+          "file": "4125.016ced65.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "53e588f00b88bef565ef678eae176fc8efec8422f5269d76c299b9ae32db3b38"
+        },
+        {
+          "file": "4229-legacy.76d400bc.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8159f7ef6839ccf72619c974ddc243cb6e87fb2207536272e036c43a52e93cd2"
+        },
+        {
+          "file": "4229.f2ddedb7.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "9e45e1b91cb72e1541f36cbd3c63bbf56dff26a53a9eceadf521aa30357ec657"
+        },
+        {
+          "file": "4904.e686cb7a.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "993c6339f243ad61be3b2ba5c092c6537b0846284ab0d1cd14977612f8870419"
+        },
+        {
+          "file": "5230-legacy.a42bc6f8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "5feb1526fb737ab121ed6e3fa92bc209ff28fa45cb927b8816f7be9802b1d0e9"
+        },
+        {
+          "file": "5230.13d44037.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "2488f8bb047f332b92285914630b6a925637aa22ce742f6337d273dd14964dfc"
+        },
+        {
+          "file": "5805-legacy.f198c1d3.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "83ceb1f0d034599b3451faad2fb27c576616ed447c5e1b8f48a3ceb52df3b2a1"
+        },
+        {
+          "file": "6040-legacy.9f573b78.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f27672a64c666d865701566f21e402e4c1adccb96ce16f4d3bc3003f35cdda4b"
+        },
+        {
+          "file": "6040.75d1f423.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ed07b53caf30cdc3732eff216e01d24d8cb7a6c79d755bd598bae58749430976"
+        },
+        {
+          "file": "6583.d9ba7251.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "82acc576fce1294661f65bbc10a6216631243b566d870f80ed09494371450186"
+        },
+        {
+          "file": "6602.ff913bce.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "c5f976cd2ff5b4c20dc9195ac691987ba903d5f75c3398d6ecc44d56329d222e"
+        },
+        {
+          "file": "6735-legacy.5facfe2a.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "6eeab5da44e123ddf6611c2bd9952d1143bf72436c4031156344b124420e9053"
+        },
+        {
+          "file": "6735.58162a4b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "e2275020e65ef1d2b85721cd21f2f7e5fff67d03d635a102f2c6ee40429421f8"
+        },
+        {
+          "file": "7135-legacy.ffb524f3.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f2bb4ea12d5ce58149a80d7e0f5aadfcb79526ac3cce1183cc0cc552b488c833"
+        },
+        {
+          "file": "7135.b9e2c7a1.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ede6ee1a56bae6dfbd6668df325a18ea98d9563e1f049fcfc909df817565a920"
+        },
+        {
+          "file": "7440-legacy.a8494b59.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "42905a3b85ec03c378c77621f5135622498d24f583c1d433b6d002873d948a43"
+        },
+        {
+          "file": "7440.bebb1e10.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "abbfd06a538f1240efbbb83227b645af67e32328f7035efbdbf262f1bc28f615"
+        },
+        {
+          "file": "7472-legacy.24254b96.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "f7d943b28cff2d36a0da941efda9fe8eeaeb583db9c1e945b8cef17018829bf6"
+        },
+        {
+          "file": "7472.241c59a7.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "dac0372112693e6c1b7fef6fbcedd65115056eea2c8b5dc89e049fdcf2caa1e1"
+        },
+        {
+          "file": "7481-legacy.437743a8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "bcadca35750782bc62068bffed72a8c195b820f9ba45bf41295506d03a5d1928"
+        },
+        {
+          "file": "7481.c6062b37.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "35e7be335a523411541735c64e06f3c6bbfd057cb36be2935ca5b70c32924b37"
+        },
+        {
+          "file": "766-legacy.eeb0cd7a.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "4042ae8bdcc391912c69a9488ce8ef59fc24d21da2a634ccc70ebbe7ee3d9e17"
+        },
+        {
+          "file": "766.042e31e8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "56e0a7dabe85c55d324535732d0f48f409df1c53c9110c9cb39103ce5c20fca4"
+        },
+        {
+          "file": "816-legacy.5fd3b981.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ee5db413c3f31bc85280f24b64104d0d6fcc835d9b6406fa196d1e8d7702f803"
+        },
+        {
+          "file": "816.53b6efd5.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "3a8aee75f48ce12723bbb854384e32ebfbe9975502539ff0c7f97e44f782b4ec"
+        },
+        {
+          "file": "8198-legacy.8da605da.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "501b4fbd961b5f22d2dd24e3c58e3c4c3df5cbd5aced1000aeef93d2708f8db5"
+        },
+        {
+          "file": "8198.dd7073e6.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d7fd7f12233d0273c3347e93dbf224a542c065dc7c649503f9dc92c469d9f474"
+        },
+        {
+          "file": "8448-legacy.6f59817a.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "65ccd2156322bfc7fad203514fa7489ed9953b5b1bc7112c4c5573cb1008131a"
+        },
+        {
+          "file": "8489.2643cfd8.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "6bda7362653219d8d34101ec86236a692bb31b1578deef9f83fdc9f79d9f56f5"
+        },
+        {
+          "file": "8710-legacy.e002592c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ac5c43e8c296c3f449400acb08abd5bf3e25b7c9086c46c2281677e9319f0f41"
+        },
+        {
+          "file": "8710.325fb8bb.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "49aa2c81138d9cbc100679bc2904f09d96db29dc876c4c047e75ba77357c4d59"
+        },
+        {
+          "file": "8796-legacy.e6eba5eb.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "66f005787a3d83291ee467fd41ac6cec9e0101b691589b4631ca692db3578a7b"
+        },
+        {
+          "file": "8796.a710a631.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "bd8d80903e6700f36ea814a908a797d8473ed321d62b6e963c302fc57d50b73c"
+        },
+        {
+          "file": "8806-legacy.4b7e91fa.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e4c89be4b2d8a7afb78174778c6ab5983e0baafe166a521146c6f7097b6a9869"
+        },
+        {
+          "file": "8806.356ad15b.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "7c8ddb9d95123dfbbdaa606af7f721a57c3c47115281a3314e42a78c791ce4d6"
+        },
+        {
+          "file": "8814-legacy.58d305bb.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "930b7cb4fe9f18defe5b1dfca0a37b8f836006efccdc7c64f675072f30b7ead0"
+        },
+        {
+          "file": "8864-legacy.09cb9724.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "532cc82a7d2a65e492376eaa7b266788557ba4cf98989c211f09870a9646f651"
+        },
+        {
+          "file": "8864.cb1322e8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "49ede2ac71616ef8d038b6f2e612920e28631571b61b3e6393c09ab424adc2ef"
+        },
+        {
+          "file": "8992.88a3673c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "db54f0c3a6cfdf6a14e1f40ff52b8fd460ec28a08e6ffeb087de9382095c04c9"
+        },
+        {
+          "file": "9165-legacy.eda9f208.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "66383fcaac079f5cb7f4931814985befc2512010be7133dc11ff07759d14eb37"
+        },
+        {
+          "file": "9165.62613367.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "f166f6ffee13ead101929c67218cbcb51d2e11c542ffe05ae5dc856a332107f7"
+        },
+        {
+          "file": "9516-legacy.e9c284f4.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "b36e2a148053341eaa4f9c1f1e5d08de5478d5ecf22feb2e5b44aa58fd879093"
+        },
+        {
+          "file": "9955-legacy.6e778260.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "a432509c7d7e3b540259f1cc0689cae8a4ef105da48cbcc494155c19a7f46eb0"
+        },
+        {
+          "file": "9955.9cb13771.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "25f0bf832059c5f78c315d4f1bb6119738f35bec84082986ef80bcd8b0ebc7cf"
+        },
+        {
+          "file": "app-legacy.513f0edd.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5415fa808000e1c0d6b021db2516cebca31b0c0631afbc41f5760d481bdc75bd"
+        },
+        {
+          "file": "app.ef89c5cb.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5dfb4489d5f073d23b7d13bf24c55d08bf606501e3424a700fdcd007002b23a8"
+        }
+      ],
+      "checkedAt": "2026-10-12T06:29:33.639Z",
+      "moduleCounts": {
+        "PASS": 74
+      }
+    },
+    {
+      "id": "ncat",
+      "name": "网飞猫 / NCAT",
+      "offline": "PASS",
+      "fixtures": 95,
+      "ruleCount": 2,
+      "script": "ncat/ad-clean.js",
+      "bytes": 53107,
+      "revision": "13aa472af12b",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "status": "PASS",
+          "url": "https://a.napp03.com:51111/"
+        },
+        {
+          "file": "1075-legacy.ee23ed48.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "d57db12d6d3ad672f205f4c01d8bd2c9559a0bde102845590233ba7cb299c9b5"
+        },
+        {
+          "file": "1075.afda49af.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "205bc0afe301a4ee9db2b8954bdaa61b24c335fd1165fc5cd196dafcbc1651a0"
+        },
+        {
+          "file": "1910-legacy.461029c9.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "318f4c934025e6b5757adef7051dd32654b3fe1ec1b50b09da8b8173a61384e2"
+        },
+        {
+          "file": "1910.8ff78120.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "9b10397340683c512ed2dbf5aceba06d56089f8721e090028ba8cee269900ec2"
+        },
+        {
+          "file": "1996-legacy.2f7fe67f.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "19ffea3223cf2c45dd90dab99214495bf9d96187305a2c01faa0f6430af22dbd"
+        },
+        {
+          "file": "1996.6d39cce0.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "cb7dc1824685ca54f218e5024509927e20371740e5dad859bf2ef1283173afab"
+        },
+        {
+          "file": "2131-legacy.994459f5.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "4b7eb15c6768a49ae4f622c5cc98da825ff6694f0836862181808a6775140022"
+        },
+        {
+          "file": "2137.264cc8d1.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "da116afa2a7b992d8f2e4340c39c195da2966c142074665e3cb8dc28ad135294"
+        },
+        {
+          "file": "2280-legacy.55abb0d0.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "b9d0122887fdcec898316b5d6c744ae4e9f81b7b06655d19c972dd531f87cb75"
+        },
+        {
+          "file": "2280.0e759123.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d6f374f72a5d6287ac6eccaee3931bd71de51c9dd51a1db8ed6ea58f9ba848e5"
+        },
+        {
+          "file": "2434-legacy.348b41ed.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "b4347fda88faef845bf01f94658b492ab55bfdc40a6b3fc6202cd3158823143b"
+        },
+        {
+          "file": "2434.e91d2bab.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "cb54b9607c4211b125dab14174395d55e429d642381b5958cb9deb0ac9a55208"
+        },
+        {
+          "file": "2574-legacy.022bac55.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d4c63f8fa3708ee68529208c1ab17f6899696b9b86d6d94ef02b1ab7f5c5de3b"
+        },
+        {
+          "file": "2574.8c483793.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "416829bbc530989e4980d747874180a5658a1e706f87ed6dc372b738666148ae"
+        },
+        {
+          "file": "2745-legacy.08b3fc8c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "787e442270a66799e2e69be2d82ee9b12025429f03d7fced035e4640d86b7151"
+        },
+        {
+          "file": "2745.c989aa57.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "29eb9fd00efb932fd57794515b8b6fb746a4b254d94981f1e941779269471069"
+        },
+        {
+          "file": "2771-legacy.4f07164b.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d9a78ad2325bf2e8fba138afe10048b742168cd0a66e104a56113035b598b3a2"
+        },
+        {
+          "file": "3114-legacy.2d0c1a7b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "9df60573c18957930d7fa294f76fce1628a56c0541bac22a23f678ebc8c35cec"
+        },
+        {
+          "file": "3114.0017fdaf.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "98c634dd778deb70a07dbe529f20d318c6f35b5c304537b54b48f3aa0fcbc30f"
+        },
+        {
+          "file": "3170-legacy.f0fc78b2.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "abf4229d1204e783833e895a007b3fe089fe1f16b3a4ad05288265728107e668"
+        },
+        {
+          "file": "3170.648680a7.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "43f479a4bc927b70a75b1f0f99a1c4ac9b1ac598e9a2d0097c66335f25ed1972"
+        },
+        {
+          "file": "3382-legacy.adbdeb1f.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "3cf72d48176c4d06877fd95833373fdc4ab522d262c7fa8fb603e781d2773a8b"
+        },
+        {
+          "file": "3510.14160a1d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "5b8b1210204eef44e5fd426eb71480710c2b47d1f3c6b55b7969c84af7f041ff"
+        },
+        {
+          "file": "3602-legacy.5acfbee9.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "955d9ba51d4564fd93d8eeeb7e052278f1447826a6bda617014560292c9aae0c"
+        },
+        {
+          "file": "3602.c083f3ca.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "df9b539fcedb9a48d244e7ce08d89c182088ab185ea8538968038b51454c51ea"
+        },
+        {
+          "file": "3819-legacy.c23b0452.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "80928dc86edde75375afda84a64521a0c75bbe682e543067a28eb9e5f6daeb07"
+        },
+        {
+          "file": "3819.d3f4278c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "6af3607788b4e6527f54e6bdbbc3015c73a68e36c1c653190e513c45af71a476"
+        },
+        {
+          "file": "4125-legacy.26f6963f.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f68143f008bf542892cad4eaca75baaa4ddd99f83c36a02f31de4649ca057ae3"
+        },
+        {
+          "file": "4125.016ced65.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "81432c4f5291fd21a52703d412375b61959ce4c2a8c56d74a0675be10a8acc07"
+        },
+        {
+          "file": "4229-legacy.3996280c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "25d6e4a73a2a10de84a1252fda0a225e36f1cb649f5755eb38be1f0995eb5277"
+        },
+        {
+          "file": "4229.f2ddedb7.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "1d298ad4bf30f5b0cdeed90a97273d7e82fcf9c9423adea6ef33e7fe093dcf9d"
+        },
+        {
+          "file": "4904.ae5d5a0a.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "c8a069fca79c2bef19659b5cd765fcc3df05aedeea318d269ba50c5d457cc0c0"
+        },
+        {
+          "file": "5230-legacy.91effc8d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "2bc937fdc9a5f316db5bea10619d21b3e164fa558a10cc72b21f6b381ed5389c"
+        },
+        {
+          "file": "5230.fb816eb4.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "83b13db49cdbc183ac5d6cbd3a78d118e405f9c893ff6f91bf55658ac30419f2"
+        },
+        {
+          "file": "5805-legacy.8e4fce94.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d091bbc3ef89f37e6e08da561dfbfd1d8125d34857db252856aa08c75db8b374"
+        },
+        {
+          "file": "6040-legacy.49c57a52.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "a350b1447cc1334e7d7cea932666b1ae13e8381919d08edddb8622b97972558e"
+        },
+        {
+          "file": "6040.034c3c4b.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "6797d6502e225a8d9438e1abf410fc77069469f34433c25a7905288fda8bf736"
+        },
+        {
+          "file": "6583.937f57a6.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "bd3823ec25c818dd767a3d3d47f3f53cced6991991bd8d6c7acf002b47e50593"
+        },
+        {
+          "file": "6602.ff913bce.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "b2335bcb3c1c8f7892ca68fa6a2e969264a7d20b2912511db63ab6d05da0ecaf"
+        },
+        {
+          "file": "6735-legacy.94155363.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "9a4775359b79b840b9ddf02eb7c3de8b1a723f1efcf3761c29d9768d9d9807f9"
+        },
+        {
+          "file": "6735.58162a4b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "c74f4e5d0b8aacfd279aae89b492ec5fd8b36a227c0cbf6377e128c554f1cb8f"
+        },
+        {
+          "file": "7135-legacy.8d9bd627.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "b046c2a2e3c4c7696cde472d7f66879b3cd9610a24fd6369d34eb919ef709d29"
+        },
+        {
+          "file": "7135.b9e2c7a1.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "6b3e448691a0bd4e50c2ecd308014c95d041ddffad3c10cc109ed1052254fe34"
+        },
+        {
+          "file": "7440-legacy.523fa081.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "77e919b820543ddf26a75cc156fd733f909c0626022dcc9e817e0662adb5c008"
+        },
+        {
+          "file": "7440.bebb1e10.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "4e41f90c09752748994186756cabfa5bb24c4fae266e516a2057e0499fa248fc"
+        },
+        {
+          "file": "7472-legacy.20c99d42.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "6230b9fa2d542e072bd05a883c4724c8f7cd0a345be191249f14336325424fb3"
+        },
+        {
+          "file": "7472.241c59a7.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "c0e4c5cbc378d737c2657216185ad1bfec192e2af04aa4feae6bae2e2f9e86fc"
+        },
+        {
+          "file": "7481-legacy.7bd4886c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "eaaef7471b2b3f76b0d32b90bd8b1e769098afbad32b0d438167213549dda34f"
+        },
+        {
+          "file": "7481.c6062b37.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "b4fa1a75a025aba2e1b3cb41ded80d7c3451a39b97715eb5581e1b4b3efa6453"
+        },
+        {
+          "file": "766-legacy.f5a2e3c4.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "4a50aeece7339ca47fa621dad3b9b118ce70ffb0f900466fa7c301f66c252d08"
+        },
+        {
+          "file": "766.042e31e8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "bdc1eaa48c9c2875200ccdd7280f21fc07646921eb62499e01581dc9dd43953b"
+        },
+        {
+          "file": "816-legacy.80cfb680.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "7199b9a4847a1291b2e465a72565983ab82da33da12399e31fbc5677228ca99c"
+        },
+        {
+          "file": "816.53b6efd5.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f2e579a07a93f0c9fefaa723deaeb87cc1b1e60236f22fc43607b13f1ef76726"
+        },
+        {
+          "file": "8198-legacy.d535bed9.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "06662e6a5d52005b25a8c81c859c316285b1bf31d90dd242be8a27db34eb030c"
+        },
+        {
+          "file": "8198.dd7073e6.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "68defee47c14faf0d66021a243b77306d6c1a36a3a35e8377af530ba0921b537"
+        },
+        {
+          "file": "8448-legacy.2250fd4b.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "82255ad89ae2582f08767a65e8c0bf6b48e576a60068e33cfd47b119b4c8c334"
+        },
+        {
+          "file": "8489.2643cfd8.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5d0a10800b552731dba0232c518839b1eac7f1f4837339ee41d86ba466632af2"
+        },
+        {
+          "file": "8710-legacy.0170b9ba.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "06facf0ee8b66cbce0a91e3755dfcdb244e23c350c3cbd094dceaae629717025"
+        },
+        {
+          "file": "8710.325fb8bb.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "3b8dace8c328bef2ca920c43da9e66180abc80392b7792bb3eed6e1ce9a82db0"
+        },
+        {
+          "file": "8796-legacy.103cfa58.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8b8fe1c9a280c92e33542d0dbc027301bd55cdf1418f9d27b759bee8b854d7d6"
+        },
+        {
+          "file": "8796.2cf73610.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "97afca9d1653c2067e860e31822b32a02954aeb0b6284ff828f464a6e0c4a841"
+        },
+        {
+          "file": "8806-legacy.70f08c10.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "59710216c5231058ae90f5cb3bb0ddc298f8890a59d96f4ad4ecf9c514640d7e"
+        },
+        {
+          "file": "8806.20838114.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "5da835394234ac9b65509a868b97636974d91e0ba86bc292b07a2176d2c782e7"
+        },
+        {
+          "file": "8814-legacy.ff1b9aaf.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e6a162b78a3b3512015e2cda9e2f58cf658e8bef024f6bd39d6ed5d36d17da07"
+        },
+        {
+          "file": "8864-legacy.04e6cfae.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d4e771530de13f824070dba7d4ad00e232734c0bc0a922267b2839494e9d5a90"
+        },
+        {
+          "file": "8864.384bd5aa.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "507c2cc968d26e2889142cfcce99d066703dc3571a84bd704917e8e0ad14ac89"
+        },
+        {
+          "file": "8992.88a3673c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d3919119644ed7afeeaeffd43bb10aca3d9c9b8cddff9a09520497906796fb79"
+        },
+        {
+          "file": "9165-legacy.f94c5b3c.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "4fcb0f98b0630bdcbdacb203283afd911d5b1c678f9bff110f2a0e4d42455adf"
+        },
+        {
+          "file": "9165.62613367.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "288aef09237964c1e5f8680c49ba2d216059cd877532846dd251ec2364a0706a"
+        },
+        {
+          "file": "9516-legacy.b63306f4.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ec8f6e52dbb8e55d73d88e1e4b22b8431fce4ec98ba93e47b4d5fc88968bf103"
+        },
+        {
+          "file": "9955-legacy.8ebf1b1e.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "84abf09db34e9aaddf842ba0a55e975a7fff7aa161ff2c3fa5e6e5a941894a33"
+        },
+        {
+          "file": "9955.9cb13771.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "36eacb8cab85cd5724701d9623f1eac39e258fd8da8467ceb80264e47ae07e63"
+        },
+        {
+          "file": "app-legacy.97e2a46b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "edfc3e609e62b4552b345598a5eafa799912a9201d78054a8ba75f1c31956dbf"
+        },
+        {
+          "file": "app.e102418a.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "2057d9c670e6c7d4121ac6ce39e28c078299c64be31c2a2c8f19f8d4dfe7ee7e"
+        }
+      ],
+      "checkedAt": "2026-10-12T06:29:33.639Z",
+      "moduleCounts": {
+        "PASS": 74
+      }
+    },
+    {
+      "id": "happ",
+      "name": "好好看 / HAPP",
+      "offline": "PASS",
+      "fixtures": 95,
+      "ruleCount": 4,
+      "script": "happ/ad-clean.js",
+      "bytes": 60192,
+      "revision": "1528ac33456e",
+      "diagnostics": true,
+      "online": "PASS",
+      "probes": [
+        {
+          "status": "PASS",
+          "url": "https://a.happ3.com:51111/"
+        },
+        {
+          "file": "1075-legacy.8e2b0607.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "af10eb0179fff1292fc3dfb45df28072a3c21fef5bb0090311ca25d3409815b9"
+        },
+        {
+          "file": "1075.afda49af.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "92c0eee8eac20389c4f5b4d230672ba29d76ffe96e1b3abbada6aac27b0174bf"
+        },
+        {
+          "file": "1910-legacy.cdc9414e.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d31ffb4f0313cc1080da1ca2a5579f50acb4998023b0f6c99b62c83548ad4889"
+        },
+        {
+          "file": "1910.8ff78120.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "2de128e8b078b8e069a05ad1b4aed6fc2f394376aeb30a1cf2f198c9313c623e"
+        },
+        {
+          "file": "1996-legacy.0787f9f0.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "a5fb41d31dc7cedf41047a0d5ff1ea60e2ac4bc196dac86415a5e13632abfa82"
+        },
+        {
+          "file": "1996.6d39cce0.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "874597c43f0a0a85001525a46d38175742e2b9058d89ab5868deb630a07b4551"
+        },
+        {
+          "file": "2131-legacy.7641a65b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "293709426d2263c1928c87bb1ac43a2fdd15b5d5e706b068eb7333b630f5d23c"
+        },
+        {
+          "file": "2137.bd4d26c1.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "01b8a4d0a0a1e0c6f0cd6bd2462e889b705d36d4d5d08ddf9beb4f99fc8a5c75"
+        },
+        {
+          "file": "2280-legacy.2ea357aa.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "55e95a0a8ae22d86fa20e451e7fd9f86d57ca78ae88e6c1de5f7af33af6fb310"
+        },
+        {
+          "file": "2280.b345a0cc.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "409c136df581ee6c7935aafc14e8d2c7e171ad7204f80739ed4efe53eb4c3cd2"
+        },
+        {
+          "file": "2434-legacy.8946416c.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5a6e74903dd2907ae01fb41fa2be45760bc0121aa28b79db4d1e426b0ec4a9e5"
+        },
+        {
+          "file": "2434.e91d2bab.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "8b6f10491ec1d5210ee071e3662693614b36eadbd3e7b70a5261617eac9c38ef"
+        },
+        {
+          "file": "2574-legacy.b99b3940.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "4b47fd67767ec3d2fd20b22c3a1bcf5862489d0773bc338e7664876e1ef9ac3b"
+        },
+        {
+          "file": "2574.8c483793.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "1850adbd9b0a819719bd3e54067b98a81a293d834cc3e48beb523fbf5440c8eb"
+        },
+        {
+          "file": "2745-legacy.92e70d93.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "55af016b20d924c0913efccf7a0894c162d4d82f34f3cc61e68621a1fcc41eb3"
+        },
+        {
+          "file": "2745.c989aa57.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "cf96d4b0eec30e7414b952280c2982ea872dfe5025f4ffda527858852cf0aaf3"
+        },
+        {
+          "file": "2771-legacy.061f4abf.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "9dfa08adc301220022c3508094712da086567c9ce482b3e6b9b960463db8ba51"
+        },
+        {
+          "file": "3114-legacy.8e29c94f.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "76411b26c91e0eac9b72feabd6812a8a4d416fbbc16d4ea3b90a0f78acd0b51b"
+        },
+        {
+          "file": "3114.0017fdaf.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "1af69f492df5bd32c845c698552e6db1883a0207e2fe9ace2397327132931d7a"
+        },
+        {
+          "file": "3170-legacy.bb891b8e.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "423477ad84529fdaee53c9efdc6200a6d57bd6f348dc1f741b456678cdff52f4"
+        },
+        {
+          "file": "3170.648680a7.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "45701da3cd23626813b5be9042c6ae856e9e5fc41ec94c48226c83735d2242bb"
+        },
+        {
+          "file": "3382-legacy.86ed35fc.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "18c020d0279974c3f536a59ef3c8bc23c56f79e935be5b0b72e7b4d32663bbfd"
+        },
+        {
+          "file": "3510.14160a1d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "646cef22ca5974443c24c57ebd7130645796f07a32617d7f1fdc990a9af843d5"
+        },
+        {
+          "file": "3602-legacy.21d10582.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "b6cbf7b89b773614ded51627f3c2d8363d4adcda9039765b8e778a55e80df343"
+        },
+        {
+          "file": "3602.87e3f83b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "bbdf4fccbd9d07089b8e80b9849fd68aec2cca9a19db2764a3d21f163b7aed04"
+        },
+        {
+          "file": "3819-legacy.f65b8f7e.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "9ff90f3626518100bb9961ea1a55b50706b42a431cdee0852f915adfc3d8a07a"
+        },
+        {
+          "file": "3819.244bbc0d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ad5bbece4454feb73ea88df1ee5f8c33ef0e2a9cec3f8b32b0ce07c690689e78"
+        },
+        {
+          "file": "4125-legacy.fc185e0f.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "5e84096b8ba7c7525c550c3dd0dd92e5471857857dba5f3c8bde6963244f0bed"
+        },
+        {
+          "file": "4125.016ced65.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "0da93431f8891acdb3545dc12efadc908b18b193d3084940c2d609ff42d53844"
+        },
+        {
+          "file": "4229-legacy.caf6e94e.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "794b3ec4435a06065978c677b839ea03a1cb4b21f783b403b4f2ebee3ab0a3ef"
+        },
+        {
+          "file": "4229.f2ddedb7.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e9a334cb83bc4e086124963fafa2749ea24b3f70339ec42180394ec2498c2855"
+        },
+        {
+          "file": "4904.6168e46a.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d8d13a9f10647dadd08e200403d86857921a0c9391ac8243b10df1e5a4c3bf5f"
+        },
+        {
+          "file": "5230-legacy.4f9df514.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "fc593b18fd4d915c7a61f2dd53c7cef4e940c66e2393d06a8200066674d9e297"
+        },
+        {
+          "file": "5230.8f224469.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "391a1c773e5e36359cb788da58b258547ada6ccf3953d8ee2893aa4d32b63815"
+        },
+        {
+          "file": "5805-legacy.91441d37.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "30fa1d0d0062480aaf0d77076d86d316d59724d16cff3b57d1b7f197f42767e1"
+        },
+        {
+          "file": "6040-legacy.b5f31a01.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "7cf05dfb073870ce864a3fa0a3f5b5e537dc2a7227f9907cc668bc4a16564273"
+        },
+        {
+          "file": "6040.66dd620d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "b867b0a24a03562d5bdb2370bbcb3ee1de2f5c207b55a08d233dec8fa9f28c4d"
+        },
+        {
+          "file": "6583.97b1c7c8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8b96cf13bb7c0a4bc949f2e3e2cc0cf7b4ea94a49a3ca133c052139834c4abd3"
+        },
+        {
+          "file": "6602.ff913bce.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "f84ffc23137112b63c3a5192678219e8573bc5a1af3b43997180371fbb5c25fe"
+        },
+        {
+          "file": "6735-legacy.36be5423.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5ea4a4833496cd931f740eb0463c7a1e200620d8b5582e12b2833d771de0b09e"
+        },
+        {
+          "file": "6735.58162a4b.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "cc986757a883a292ac3abab1be57e98917c686b8d1e9fb84fd44e61d2a1a7e79"
+        },
+        {
+          "file": "7135-legacy.ea34082a.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "ae3c65ec339125de368d4bb74ff416b82ea1e011cae426306a14f977594d49a3"
+        },
+        {
+          "file": "7135.b9e2c7a1.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "046de547ab107710ba5d11cce5c27e6f2e072494fede486607ba25bddcbb9d27"
+        },
+        {
+          "file": "7440-legacy.6e19fa4b.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d3a71388f914d4997423ebe3667fed693cdc1b235fd78452764a0f4b1d888c7e"
+        },
+        {
+          "file": "7440.bebb1e10.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "c2e3673202f2cfe7523f1c269d56b2f946ef5515b9b7857eefc03fa6b99297d2"
+        },
+        {
+          "file": "7472-legacy.bc246bd3.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "7e46f1c30355716c56fc7fad7dd64d4ab39c3f19fca7ad090cedafe032e6aae4"
+        },
+        {
+          "file": "7472.241c59a7.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "d32a2abbe77d0090bc1a35f3dcfff4300826cd0293229105e7e5cbc9c64e68db"
+        },
+        {
+          "file": "7481-legacy.2bf7a76e.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "6083746699f8ec8354e2a03f35250f628da09b8677f399238568cbb7ae88a6d3"
+        },
+        {
+          "file": "7481.c6062b37.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "88879960fe231551355971eca42ba3414a95029fd011731ba6ab864c4c9c2871"
+        },
+        {
+          "file": "766-legacy.03895ea2.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "53acad4d6bb969d16eb2bebf84b15e342ef6fb601cef90a6d6789b09bd582a98"
+        },
+        {
+          "file": "766.042e31e8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "09193b0fd8c3202055c51a51c9717ef6cfc96ec0dfdf3c8185b626986d49424c"
+        },
+        {
+          "file": "816-legacy.a52a5470.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e601c9c98f335f87b570214d72dd98d30bc46e95f41a4a6d24408dac51e799f0"
+        },
+        {
+          "file": "816.53b6efd5.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "42ac31223425d2d7de26bd84f2afaf32242a72f8c3fb221cf91ec6cb88820490"
+        },
+        {
+          "file": "8198-legacy.94a4a390.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "39e7b4f6a3b770c5369719d241ada9ceaf715d65c016d02bc41ec529f467c2c5"
+        },
+        {
+          "file": "8198.dd7073e6.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "9a366d0c9025b41dc55bc20e214b585afa71dd6920f715957e7be9e144e87cbe"
+        },
+        {
+          "file": "8448-legacy.969bab66.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "6d39d830acbb5ed2d3ea809ee2dc579f739426c4b0004b4dcd1b6c29c52372cd"
+        },
+        {
+          "file": "8489.2643cfd8.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "d89a257e7b7465df20f2eb78b6e0b613aee97c526fc0ff404b571a22bb3278bb"
+        },
+        {
+          "file": "8710-legacy.337669b4.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "78bf8f7df55c9ade8b516992b8faba41e1f5df50b8fbade2be7df2b31a14d846"
+        },
+        {
+          "file": "8710.325fb8bb.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "de17650ae3722d8115439b32ecf6a1eb21f80e0b09a27a72d7d945c64799ea25"
+        },
+        {
+          "file": "8796-legacy.dd90fa9d.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e14d6bb0bb775c0fbea55abd4c62416110e63d453c62ec483b81a2f7dd5c0b8f"
+        },
+        {
+          "file": "8796.65b1ee91.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "812692b668df45c2f5d237eea329ee867d73a95a7c0919d4b752a1ec778f66eb"
+        },
+        {
+          "file": "8806-legacy.2292cdb8.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "a7b8f081985bc519824ffaa84def8c4a02cb63b9b2fdb6edbec4fa968d6d7b7a"
+        },
+        {
+          "file": "8806.872ad748.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "23f6cbe32beb6b6a669781d87e9833c92baeae4ccc21f58b453de2c144de44f2"
+        },
+        {
+          "file": "8814-legacy.410bc041.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "d83b93be7cb444148e170e3e0ea611d92da824aa514dede8162a76b118d91a42"
+        },
+        {
+          "file": "8864-legacy.ad205cc7.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "e7c59222e30efc3346c03ea560cfc30e446b41e20dcc6aca83dde478eb679e89"
+        },
+        {
+          "file": "8864.d00d3ff9.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "c4c89d4fba96562910b04c474d82b32e8be08eafee42c85592fbe328342014ce"
+        },
+        {
+          "file": "8992.88a3673c.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "738a80936da4679ffc790c9f68e5b960857c6f69d1569b7670dab4951e963d76"
+        },
+        {
+          "file": "9165-legacy.561e0aed.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "d7a1f0a157e8d73b3318263ead6b0ab33ffef7ef492c519d98ffa03776106c89"
+        },
+        {
+          "file": "9165.62613367.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "bdc37e26c693208b8fb7a157e2007427e3b7f56e3dd1fe11fcda1efdd73d03d7"
+        },
+        {
+          "file": "9516-legacy.97815883.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "3ae9152b493d0c06b9fc45e43026209d8ac9a190216ddaea40a37273c8fabca5"
+        },
+        {
+          "file": "9955-legacy.8c543e36.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "8dacae6fc73a86fa6741be03973005752272f1747b255774526e67dce79c33e2"
+        },
+        {
+          "file": "9955.9cb13771.js",
+          "status": "PASS",
+          "matched": 1,
+          "failures": [],
+          "sha256": "02e598e9ac9dee4d2359fcc84c123325ffebb116e1eb350f5cc77d6542ba3d65"
+        },
+        {
+          "file": "app-legacy.56b51db1.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "f3dacd95a69772141d11242c9ef6654e954244c77bd5c008d5875aeb0425cb2b"
+        },
+        {
+          "file": "app.092bf2a0.js",
+          "status": "PASS",
+          "matched": 2,
+          "failures": [],
+          "sha256": "5aae33a9e1d1baef3ee1dfa9b0d031f2803c03c9d96738eb4e7a175fc67b4c36"
+        }
+      ],
+      "checkedAt": "2026-10-12T06:29:33.639Z",
+      "moduleCounts": {
+        "PASS": 74
+      }
+    },
+    {
+      "offlineScope": "路由、诊断登记与脚本语法；加密行为由全量 ad-guazi 回归核验",
+      "id": "guazi-app",
+      "name": "瓜子影视 App 专用广告接口",
+      "offline": "PASS",
+      "fixtures": null,
+      "ruleCount": 23,
+      "script": "guazi-app/ad-clean.js",
+      "bytes": 90728,
+      "revision": "2dc393beccf2",
+      "diagnostics": true,
+      "online": "NOT_RUN",
+      "probes": [
+        {
+          "status": "NOT_RUN",
+          "reason": "App 加密接口需要真实设备响应；未合成账号、签名或播放请求"
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "offline": {
+      "PASS": 17
+    },
+    "online": {
+      "PASS": 13,
+      "PARTIAL": 2,
+      "UNAVAILABLE": 1,
+      "NOT_RUN": 1
+    }
+  },
+  "sourceCommit": "a95ad93cf9ce30d6509f0ef9a5aee05b3bdcce03",
+  "checks": {
+    "webpageRegression": {
+      "passed": 455,
+      "failed": 0
+    },
+    "mediaArtifacts": "unchanged"
+  }
+}

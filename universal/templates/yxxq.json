@@ -173,5 +173,6 @@
       ],
       "value": "/* For-ADM: verified YXXQ mobile ad monitor disabled. */"
     }
-  ]
+  ],
+  "diagnostics": true
 }
