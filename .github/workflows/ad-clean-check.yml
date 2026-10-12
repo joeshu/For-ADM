@@ -31,6 +31,7 @@ on:
       - 'tests/dyls-enhanced-sources.json'
       - 'tests/kkapp-sources.json'
       - 'tests/ncat-sources.json'
+      - 'tests/ncat-download-sources.json'
       - '.github/workflows/ad-clean-check.yml'
   pull_request:
     paths:
@@ -63,6 +64,7 @@ on:
       - 'tests/dyls-enhanced-sources.json'
       - 'tests/kkapp-sources.json'
       - 'tests/ncat-sources.json'
+      - 'tests/ncat-download-sources.json'
       - '.github/workflows/ad-clean-check.yml'
 permissions:
   contents: read

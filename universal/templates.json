@@ -5514,6 +5514,54 @@
               1
             ]
           ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "网盘下载",
+            "ad_last_shown_time",
+            "['units']['dhz']",
+            "['magnets']",
+            "setNetdisks",
+            "content-wrap"
+          ],
+          "pairs": [
+            [
+              "_0x418a97=_0x5eda48=>{if(!_0x5eda48||!_0x5eda48['units']||(!_0x5eda48['units']['splash']||0x0==_0x5eda48['units']['splash']['length'])&&(!_0x5eda48['units']['video']||0x0==_0x5eda48['units']['video']['length'])&&(!_0x5eda48['units']['dhz']||0x0==_0x5eda48['units']['dhz']['length']))return;_0x586482(),_0x1114c3=0x3e8*_0x5eda48['units']['interval']||_0x1114c3;const _0x4b723d=Date['now'](),_0x128201=localStorage['getItem'](_0x12ae00);if(!_0x128201)return void _0x1fef76(_0x4b723d);const _0x206de0=JSON['parse'](_0x128201),_0x316016=_0x4b723d-_0x206de0['timestamp'];'pending'===_0x206de0['status']||_0x316016>=_0x1114c3?_0x1fef76(_0x4b723d):(console['log']('广告冷却中，还剩\\x20'+Math['ceil']((_0x1114c3-_0x316016)/0x3e8)+'\\x20秒'),_0x518dd1['value']=!0x1,_0x586482());}",
+              "_0x418a97=_0x5eda48=>{_0x518dd1['value']=!0x1,_0x2838b9['value']=0x0,_0x586482();}",
+              1
+            ],
+            [
+              "_0x59d7e9=(_0x31a6ad,_0x3f456c)=>{if(!_0x3f456c||!_0x3f456c['type'])return void(_0x518dd1['value']=!0x1);const _0x489088=_0x3f456c['type']['split'](','),_0x1c34b4=(0x0,_0x35fe9f['xD'])(_0x489088);switch(_0x1c34b4){case'splash':_0x36b218(_0x31a6ad,_0x3f456c['splash']);break;case'video':_0xd511d7(_0x31a6ad,_0x3f456c['video']);break;case'dhz':_0x5c13da(_0x31a6ad,_0x3f456c['dhz']);break;default:_0x518dd1['value']=!0x1;break;}}",
+              "_0x59d7e9=(_0x31a6ad,_0x3f456c)=>{_0x518dd1['value']=!0x1,_0x2838b9['value']=0x0,_0x586482();}",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "网盘下载",
+            "ad_last_shown_time",
+            "['units']['dhz']",
+            "['magnets']",
+            "setNetdisks",
+            "content-wrap"
+          ],
+          "pairs": [
+            [
+              "_0x1f86da=function(_0x46ef01){if(_0x46ef01&&_0x46ef01['units']&&(_0x46ef01['units']['splash']&&0x0!=_0x46ef01['units']['splash']['length']||_0x46ef01['units']['video']&&0x0!=_0x46ef01['units']['video']['length']||_0x46ef01['units']['dhz']&&0x0!=_0x46ef01['units']['dhz']['length'])){_0x26eeb0(),_0x2c81f0=0x3e8*_0x46ef01['units']['interval']||_0x2c81f0;var _0x2bbf3d=Date['now'](),_0x805db9=localStorage['getItem'](_0x3c95f2);if(_0x805db9){var _0x1d4cf3=JSON['parse'](_0x805db9),_0x38b926=_0x2bbf3d-_0x1d4cf3['timestamp'];'pending'===_0x1d4cf3['status']||_0x38b926>=_0x2c81f0?_0x24e79f(_0x2bbf3d):(console['log']('广告冷却中，还剩\\x20'['concat'](Math['ceil']((_0x2c81f0-_0x38b926)/0x3e8),'\\x20秒')),_0x5da561['value']=!0x1,_0x26eeb0());}else _0x24e79f(_0x2bbf3d);}}",
+              "_0x1f86da=function(_0x46ef01){_0x5da561['value']=!0x1,_0x42dc34['value']=0x0,_0x26eeb0();}",
+              1
+            ],
+            [
+              "_0x598ebe=function(_0x52d666,_0x1ed559){if(_0x1ed559&&_0x1ed559['type']){var _0x3a69b6=_0x1ed559['type']['split'](','),_0x3f6aed=(0x0,_0x3e640f['xD'])(_0x3a69b6);switch(_0x3f6aed){case'splash':_0x307cfc(_0x52d666,_0x1ed559['splash']);break;case'video':_0x3d7827(_0x52d666,_0x1ed559['video']);break;case'dhz':_0x3159d2(_0x52d666,_0x1ed559['dhz']);break;default:_0x5da561['value']=!0x1;break;}}else _0x5da561['value']=!0x1;}",
+              "_0x598ebe=function(_0x52d666,_0x1ed559){_0x5da561['value']=!0x1,_0x42dc34['value']=0x0,_0x26eeb0();}",
+              1
+            ]
+          ]
         }
       ],
       "jsHelpers": {
