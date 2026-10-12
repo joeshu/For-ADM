@@ -13,6 +13,6 @@
 
 94 组 JS 替换来自本站两版完整源码逐项核验；只匹配登记域名、已核验的分包文件名及完整源码指纹，未知版本保留。HTML 只给主 app 入口增加缓存版本，vendor/CSS/API/媒体不改写。共享卡片分类器在构建时打包，不运行时引用上游 JS。
 
-仅登记 `a.happ3.com`，允许不显式指定端口或 `:51111`；MITM 仅填写域名，不推测其他 HAPP 域名。使用 [统一订阅](../universal/quantumult-x-snippet.conf) 或本目录独立订阅之一。更新后需刷新 QX 脚本缓存并重新进入网页；不修改 HLS。
+按用户公告新增 `(www\.)?hhkan[0-9]+\.com`，覆盖根域与 www 的 hhkan1/2/3/4.com 及后续编号；保留 `a.happ3.com`。允许不显式指定端口或 `:51111`，MITM 仅填写域名。新增域名按用户授权登记，未逐站核验；仍须命中已登记路径、分包文件名和源码指纹，不泛化到其他品牌。使用 [统一订阅](../universal/quantumult-x-snippet.conf) 或本目录独立订阅之一。更新后需刷新 QX 脚本缓存并重新进入网页；不修改 HLS。
 
 限时诊断默认关闭，已接入 `happ` 记录，使用方式见 [诊断说明](../universal/DIAGNOSTICS.md)。源码变化检查支持 `node scripts/audit-media-sites.mjs --site=happ`；GitHub Actions 提供手动检查。源码核验不代表手机实际展示已验收。
