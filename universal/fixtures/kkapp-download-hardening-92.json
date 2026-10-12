@@ -1,0 +1,17 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/2131-legacy.13957314.js",
+  "body": "/* 网盘下载 ; ad_last_shown_time ; ['magnets'] ; setNetdisks ; content-wrap */\n_0x5dd931['value']=_0x17ab32['data']\n(0x0,_0x59d97e['R1'])(_0x934e43)?\n_0x7d9f57=(0x0,_0x59d97e['KR'])(0xa)\n/* /vod/magnet/detail?magnetId=real ; fileName ; fileSize ; netdisk ; film.m3u8?sign=keep */",
+  "removed": [
+    "_0x5dd931['value']=_0x17ab32['data']",
+    "(0x0,_0x59d97e['R1'])(_0x934e43)?",
+    "_0x7d9f57=(0x0,_0x59d97e['KR'])(0xa)"
+  ],
+  "preserved": [
+    "/vod/magnet/detail?magnetId=real",
+    "fileName",
+    "fileSize",
+    "netdisk",
+    "film.m3u8?sign=keep"
+  ]
+}

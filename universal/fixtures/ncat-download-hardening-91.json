@@ -1,0 +1,17 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/8489.2643cfd8.js",
+  "body": "/* 网盘下载 ; ad_last_shown_time ; ['magnets'] ; setNetdisks ; content-wrap */\n_0x45fbd9['value']=_0x2f8940['data']\n(0x0,_0xa99a52['R1'])(_0xa2c340)?\n_0x2838b9=(0x0,_0xa99a52['KR'])(0xa)\n/* /vod/magnet/detail?magnetId=real ; fileName ; fileSize ; netdisk ; film.m3u8?sign=keep */",
+  "removed": [
+    "_0x45fbd9['value']=_0x2f8940['data']",
+    "(0x0,_0xa99a52['R1'])(_0xa2c340)?",
+    "_0x2838b9=(0x0,_0xa99a52['KR'])(0xa)"
+  ],
+  "preserved": [
+    "/vod/magnet/detail?magnetId=real",
+    "fileName",
+    "fileSize",
+    "netdisk",
+    "film.m3u8?sign=keep"
+  ]
+}

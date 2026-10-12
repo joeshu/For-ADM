@@ -1,0 +1,38 @@
+[
+  {
+    "template": "kkapp",
+    "file": "8489.2643cfd8.js",
+    "action": 91,
+    "fixture": "kkapp-download-hardening-91.json",
+    "url": "https://a.kkapp06.com/static/v20514/js/8489.2643cfd8.js",
+    "ref": "_0x361f68",
+    "response": "_0x216ec7"
+  },
+  {
+    "template": "kkapp",
+    "file": "2131-legacy.13957314.js",
+    "action": 92,
+    "fixture": "kkapp-download-hardening-92.json",
+    "url": "https://a.kkapp06.com/static/v20514/js/2131-legacy.13957314.js",
+    "ref": "_0x5dd931",
+    "response": "_0x17ab32"
+  },
+  {
+    "template": "ncat",
+    "file": "8489.2643cfd8.js",
+    "action": 91,
+    "fixture": "ncat-download-hardening-91.json",
+    "url": "https://a.napp03.com:51111/static/v20529/js/8489.2643cfd8.js",
+    "ref": "_0x45fbd9",
+    "response": "_0x2f8940"
+  },
+  {
+    "template": "ncat",
+    "file": "2131-legacy.994459f5.js",
+    "action": 92,
+    "fixture": "ncat-download-hardening-92.json",
+    "url": "https://a.napp03.com:51111/static/v20529/js/2131-legacy.994459f5.js",
+    "ref": "_0x27ba15",
+    "response": "_0x2fed62"
+  }
+]
