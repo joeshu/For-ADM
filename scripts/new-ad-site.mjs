@@ -1,3 +1,4 @@
+import {loadTemplateManifest} from './lib/template-manifest.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -14,7 +15,7 @@ for(let i=0;i<args.length;i+=2){assert(['--spec','--out'].includes(args[i])&&arg
 assert(options['--spec'],'Missing --spec; use --help');
 const specPath=path.resolve(options['--spec']),spec=readJSON(specPath);
 assert(/^[a-z0-9][a-z0-9-]*$/.test(spec.id),'Invalid ID');
-const manifest=readJSON(path.join(root,'universal/templates.json'));
+const manifest=loadTemplateManifest(root);
 assert(!manifest.templates.some(t=>t.id===spec.id),'Template ID already registered; reuse its existing binding instead');
 const url=new URL(spec.url);
 assert(['http:','https:'].includes(url.protocol)&&!url.username&&!url.password&&!url.port,'Expected HTTP(S) URL without credentials or port');

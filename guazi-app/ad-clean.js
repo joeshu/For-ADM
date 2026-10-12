@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 3f3d2173d77a. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision fac1a442d137. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -192,7 +192,7 @@ function admRun(templates,processors,revision) {
         if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0,playbackProtection:output.indexOf('function __forAdmDylsProbe(')>=0,adCacheProtection:output.indexOf('function __forAdmDylsClearAds(')>=0};
       }
     }
-  }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
+  }catch(_){output=original;if(debug){report={checkedAt:Date.now(),status:'runtime-error',revision:revision};if(selected&&selected.template.diagnostics===true){report.site=selected.template.id;report.host=host;report.path=path.split('?')[0];report.kind=selected.kind;report.probe=/(?:[?&])for_adm_probe=/.test(path);}}}
   if(report)try{console.log('[For-ADM] '+JSON.stringify(report));if(report.site){$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.'+report.site);var historyKey='ForADM.DebugHistory.'+report.site,history=[];try{history=JSON.parse($prefs.valueForKey(historyKey)||'[]');if(!Array.isArray(history))history=[];}catch(ignore){}history=history.filter(function(item){return item&&!(item.path===report.path&&item.probe===report.probe);});history.push(report);$prefs.setValueForKey(JSON.stringify(history.slice(-16)),historyKey);}}catch(ignore){}
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
@@ -382,5 +382,5 @@ function cleanGuazi(ctx) {
  return result;
 }
 
-admRun([{"id":"guazi-app","adapter":"guazi","bindings":[{"host":"[\\w.-]+","routes":[{"kind":"json","path":"/App/Resource/Config/getNav(?:\\?|$)"},{"kind":"json","path":"/App/Ad/barsPlayAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/Ad/playAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/IndexPlay/vodAdvertisement(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/showOne(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/vurlDetail(?:\\?|$)"}]}]}],{guazi:cleanGuazi},"3f3d2173d77a");
+admRun([{"id":"guazi-app","adapter":"guazi","bindings":[{"host":"[\\w.-]+","routes":[{"kind":"json","path":"/App/Resource/Config/getNav(?:\\?|$)"},{"kind":"json","path":"/App/Ad/barsPlayAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/Ad/playAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/IndexPlay/vodAdvertisement(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/showOne(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/vurlDetail(?:\\?|$)"}]}]}],{guazi:cleanGuazi},"fac1a442d137");
 })();

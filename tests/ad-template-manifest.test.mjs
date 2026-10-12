@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {spawnSync} from 'node:child_process';
 import {loadTemplateManifest} from '../scripts/lib/template-manifest.mjs';
 const root=new URL('../',import.meta.url).pathname;
 const read=p=>JSON.parse(fs.readFileSync(path.join(root,p),'utf8'));
@@ -33,4 +34,19 @@ test('missing profiles, parameters, duplicate IDs and unsafe source paths fail c
   t=>{const a=t.actions.find(a=>a.behavior);a.parameters[Object.keys(a.parameters)[0]]='evil()';},
  ])isolated(dir=>{const p=path.join(dir,'universal/templates/ncat.json'),t=JSON.parse(fs.readFileSync(p,'utf8'));mutation(t);fs.writeFileSync(p,JSON.stringify(t));assert.throws(()=>loadTemplateManifest(dir));});
  for(const files of [['../outside'],['ncat','ncat']])isolated(dir=>{const p=path.join(dir,'universal/manifest.json'),m=JSON.parse(fs.readFileSync(p,'utf8'));m.templateFiles=files;fs.writeFileSync(p,JSON.stringify(m));assert.throws(()=>loadTemplateManifest(dir));});
+});
+test('profile-only templates still inherit shared helpers and explicit empty references fail',()=>isolated(dir=>{
+ const file=path.join(dir,'universal/templates/ncat.json'),t=JSON.parse(fs.readFileSync(file,'utf8'));delete t.jsHelpers;fs.writeFileSync(file,JSON.stringify(t));assert.ok(loadTemplateManifest(dir).templates.find(t=>t.id==='ncat').jsHelpers.download.source);
+ t.actions[0]={behavior:'',parameters:{}};fs.writeFileSync(file,JSON.stringify(t));assert.throws(()=>loadTemplateManifest(dir),/Invalid action behavior/);
+}));
+test('shared defaults cannot change site bindings and helpers cannot silently collide',()=>{
+ isolated(dir=>{const file=path.join(dir,'universal/profiles/shared-media.json'),p=JSON.parse(fs.readFileSync(file,'utf8'));p.defaults.bindings=[];fs.writeFileSync(file,JSON.stringify(p));assert.throws(()=>loadTemplateManifest(dir),/Invalid shared defaults/);});
+ isolated(dir=>{const file=path.join(dir,'universal/templates/ncat.json'),t=JSON.parse(fs.readFileSync(file,'utf8'));t.jsHelpers.download={marker:'different',source:'different'};fs.writeFileSync(file,JSON.stringify(t));assert.throws(()=>loadTemplateManifest(dir),/silently overridden/);});
+});
+test('unknown or unfinished behavior placeholders fail before generating scripts',()=>{
+ for(const token of ['{{wrong}}','{{v99','{{}}'])isolated(dir=>{const file=path.join(dir,'universal/profiles/shared-media.json'),p=JSON.parse(fs.readFileSync(file,'utf8'));for(const action of Object.values(p.actions))action.pairs[0][1]+=token;fs.writeFileSync(file,JSON.stringify(p));assert.throws(()=>loadTemplateManifest(dir),/Unresolved behavior placeholder/);});
+});
+
+test('registry reads source configurations even when the generated aggregate is absent',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'adm-source-tools-'));try{fs.cpSync(path.join(root,'scripts'),path.join(dir,'scripts'),{recursive:true});fs.cpSync(path.join(root,'universal'),path.join(dir,'universal'),{recursive:true});fs.unlinkSync(path.join(dir,'universal/templates.json'));const result=spawnSync(process.execPath,['scripts/site-registry.mjs','--check'],{cwd:dir,encoding:'utf8'});assert.equal(result.status,0,result.stderr);}finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

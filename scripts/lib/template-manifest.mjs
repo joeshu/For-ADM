@@ -1,20 +1,30 @@
 import fs from 'node:fs';
 import path from 'node:path';
+const object=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const valid=id=>typeof id==='string'&&/^[a-z0-9][a-z0-9-]*$/.test(id);
 export function loadTemplateManifest(root){
  const read=file=>JSON.parse(fs.readFileSync(path.join(root,'universal',file),'utf8'));
- const source=read('manifest.json'),{templateFiles,behaviorProfiles,...metadata}=source;
+ const source=read('manifest.json');if(!object(source)||source.schemaVersion!==1||Object.hasOwn(source,'templates'))throw Error('Invalid source manifest');
+ const {templateFiles,behaviorProfiles,...metadata}=source;
  if(!Array.isArray(templateFiles)||new Set(templateFiles).size!==templateFiles.length||!templateFiles.every(valid))throw Error('Invalid template file list');
  if(!Array.isArray(behaviorProfiles)||new Set(behaviorProfiles).size!==behaviorProfiles.length||!behaviorProfiles.every(valid))throw Error('Invalid behavior profile list');
- const profiles=new Map(behaviorProfiles.map(id=>{const p=read('profiles/'+id+'.json');if(p.id!==id||!p.actions||!p.defaults||!p.jsHelpers)throw Error('Invalid behavior profile');return[id,p];}));
+ const profiles=new Map(behaviorProfiles.map(id=>{
+  const p=read('profiles/'+id+'.json');
+  if(!object(p)||p.id!==id||!object(p.actions)||!object(p.defaults)||!object(p.jsHelpers)||Object.keys(p).some(k=>!['id','actions','defaults','jsHelpers'].includes(k)))throw Error('Invalid behavior profile');
+  if(Object.entries(p.defaults).some(([k,v])=>!['diagnostics','cacheBustRevision'].includes(k)||typeof v!=='boolean'))throw Error('Invalid shared defaults');
+  if(Object.keys(p.jsHelpers).some(k=>!valid(k)||['constructor','prototype','__proto__'].includes(k)))throw Error('Invalid shared helper name');
+  return[id,p];
+ }));
  function expand(action,profile){
-  if(!action.behavior)return action;
+  if(!object(action))throw Error('Invalid action');
+  if(!Object.hasOwn(action,'behavior'))return action;
+  if(typeof action.behavior!=='string'||!action.behavior)throw Error('Invalid action behavior');
   if(Object.keys(action).some(k=>!['behavior','parameters','pathPattern'].includes(k)))throw Error('Unknown behavior override');
   const [id,key,...rest]=action.behavior.split('/');if(rest.length||id!==profile?.id||!Object.hasOwn(profile.actions,key))throw Error('Unknown action behavior');
   const params=action.parameters;if(!params||typeof params!=='object'||Array.isArray(params))throw Error('Invalid behavior parameters');
   const used=new Set();
   function visit(value){
-   if(typeof value==='string')return value.replace(/\{\{(v\d+)\}\}/g,(_,name)=>{used.add(name);if(!Object.hasOwn(params,name)||!/^_0x[0-9a-f]+$/.test(params[name]))throw Error('Invalid or missing behavior parameter');return params[name];});
+   if(typeof value==='string'){const rendered=value.replace(/\{\{(v\d+)\}\}/g,(_,name)=>{used.add(name);if(!Object.hasOwn(params,name)||typeof params[name]!=='string'||!/^_0x[0-9a-f]+$/.test(params[name]))throw Error('Invalid or missing behavior parameter');return params[name];});if(rendered.includes('{{'))throw Error('Unresolved behavior placeholder');return rendered;}
    if(Array.isArray(value))return value.map(visit);
    if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,visit(v)]));
    return value;
@@ -24,10 +34,13 @@ export function loadTemplateManifest(root){
   return resolved;
  }
  const templates=templateFiles.map(id=>{
-  const t=read('templates/'+id+'.json');if(t.id!==id)throw Error('Template ID/file mismatch');
+  const t=read('templates/'+id+'.json');if(!object(t)||t.id!==id)throw Error('Template ID/file mismatch');
   const {behaviorProfile,...local}=t,p=behaviorProfile===undefined?null:profiles.get(behaviorProfile);
   if(behaviorProfile!==undefined&&!p)throw Error('Unknown behavior profile');
-  return {...(p?.defaults||{}),...local,...(t.jsHelpers?{jsHelpers:{...t.jsHelpers,...(p?.jsHelpers||{})}}:{}),...(t.actions?{actions:t.actions.map(a=>expand(a,p))}:{})};
+  if(t.actions!==undefined&&!Array.isArray(t.actions))throw Error('Invalid actions');
+  if(t.jsHelpers!==undefined&&!object(t.jsHelpers))throw Error('Invalid local helpers');
+  if(p&&Object.keys(t.jsHelpers||{}).some(k=>Object.hasOwn(p.jsHelpers,k)))throw Error('Shared helper cannot be silently overridden');
+  return {...(p?.defaults||{}),...local,...((t.jsHelpers||Object.keys(p?.jsHelpers||{}).length)?{jsHelpers:{...(t.jsHelpers||{}),...(p?.jsHelpers||{})}}:{}),...(t.actions?{actions:t.actions.map(a=>expand(a,p))}:{})};
  });
  return {...metadata,templates};
 }

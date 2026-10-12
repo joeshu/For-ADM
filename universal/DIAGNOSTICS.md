@@ -21,6 +21,7 @@
 | revision | 实际执行的统一/独立脚本版本 |
 | status=modified | 本次响应已改写；仍需确认页面加载并执行该响应 |
 | status=unchanged | 响应未修改；可能已清理、源码更新或没有支持的广告指纹 |
+| status=runtime-error | 重写处理异常，原响应保留；已匹配站点的错误会进入最近记录，不保存查询参数或异常详情 |
 | status=response-preserved | 状态码/响应类型不适合改写，已保留 |
 | groups / changedGroups / pairs | 源码指纹匹配组数、实际变更组数和替换项数 |
 | failedGroups | 指纹匹配但完整替换次数不符合的组数；源码变化时可用于定位 |
@@ -51,3 +52,5 @@ node scripts/audit-media-sites.mjs --site=ncat --source-dir=/path/to/sources --o
 电影猎手接入 `dyls` 记录。`playbackProtection` 表示响应含超时/续播辅助代码；`adCacheProtection` 表示响应含两个已确认广告缓存键的清理代码。两者不能证明浏览器执行成功。电影猎手源码检查运行 `node scripts/audit-dyls-site.mjs`，或手动运行 “Dyls source audit” 工作流。
 
 统一订阅现在按站调用独立脚本，revision 为对应站点的脚本内容版本；不同站点的 revision 不需要相同。诊断开启、查看、关闭任务地址和站点标记保持不变。
+
+源码审计直接读取按站源码配置。PARTIAL（含缺失的离线文件或只检查部分模块）返回退出码 2，不作为完整通过；没有适用动作的模块标为 NOT_RUN。

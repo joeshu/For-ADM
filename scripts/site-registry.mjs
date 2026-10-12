@@ -1,10 +1,11 @@
+import {loadTemplateManifest} from './lib/template-manifest.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {readJSON} from './lib/ad-sites.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const manifest=readJSON(path.join(root,'universal/templates.json'));
+const manifest=loadTemplateManifest(root);
 const registered=[...manifest.templates,...(manifest.requestRules||[]).map(r=>({...r,bindings:[{domains:r.domains}]}))];
 const registry=readJSON(path.join(root,'universal/sites.json'));
 assert.equal(registry.schemaVersion,1);

@@ -149,3 +149,9 @@ HTML 扫描跳过注释与 script/style/textarea/title 的正文，支持引号�
 统一订阅地址不变，每个站点规则引用本站 ad-clean.js 及内容哈希版本。universal/ad-clean.js 保留为兼容与对照测试产物，正式统一订阅不再调用它。新增站点不会扩大其他站的执行脚本；公共引擎变更仍会更新受影响脚本。
 
 可可影视、网飞猫、好好看的共用行为在 profiles/shared-media.json 中定义。站点配置使用 behavior 引用和 parameters 映射混淆变量；pathPattern 保留本站精确边界。构建时展开为原有的完整替换组，手机端没有额外下载、动态加载或 eval。卡片清理继续使用 src/shared-media-cards.js，共用下载 helper 和诊断配置由行为 profile 提供。
+
+## 配置与检查边界
+
+构建、网站登记、新站草稿和线上源码审计直接读取 manifest.json、templates/ 与 profiles/；templates.json 仅为展开产物，审计不依赖它是否已经重新生成。共用行为只允许提供诊断/缓存布尔默认值、helper 和替换动作，不能覆盖站点域名与路径。未知或未完成的参数占位、空引用和同名 helper 冲突在构建前报错；仅使用共用 helper 的模板也能正确继承。
+
+一键检查自动发现 tests/ad-*.test.mjs，新增测试无需另改运行清单。源码审计没有适用 JS 动作时报告 NOT_RUN；缺少源码或只检查部分模块时报告 PARTIAL 并返回退出码 2，源码变化返回 1，完整核验通过返回 0。线上核验不能代替手机实际重写验证。

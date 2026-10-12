@@ -1,3 +1,4 @@
+import {loadTemplateManifest} from './template-manifest.mjs';
 import fs from 'node:fs';
 import {resolveMediaTemplate} from './shared-media.mjs';
 import path from 'node:path';
@@ -27,7 +28,7 @@ export function fixtureChecks(code,fixture) {
  return out;
 }
 export function draftCode(root,template) {
- template=resolveMediaTemplate(resolveParserProfile(template,readJSON(path.join(root,'universal/templates.json'))));
+ template=resolveMediaTemplate(resolveParserProfile(template,loadTemplateManifest(root)));
  const engine=fs.readFileSync(path.join(root,'universal/src/engine.js'),'utf8');
  assert.equal(template.adapter,'declarative');
  const runtime={...template,bindings:template.bindings.map(b=>{
