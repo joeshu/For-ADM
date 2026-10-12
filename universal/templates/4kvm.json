@@ -1,0 +1,77 @@
+{
+  "id": "4kvm",
+  "adapter": "declarative",
+  "output": {
+    "script": "4kvm/4kvm-ad-clean.js",
+    "conf": "4kvm/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "exact",
+        "names": [
+          "4kvms.org",
+          "4kvms.com",
+          "4kvm.top",
+          "4kvm.cc",
+          "4kvm.me",
+          "4kvm.org",
+          "4kvm.tv",
+          "4kvm.net",
+          "4kvm.pro",
+          "4kvm.com"
+        ],
+        "prefixes": [
+          "",
+          "www"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "js",
+          "path": "/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"
+        },
+        {
+          "kind": "html",
+          "path": "/(?:play/[^/?]+)?(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "kind": "js",
+      "op": "replaceRegex",
+      "requires": [
+        "artplayerPluginAds({"
+      ],
+      "pattern": "this\\.prerollAdEnabled=!0",
+      "value": "this.prerollAdEnabled=!1"
+    },
+    {
+      "kind": "js",
+      "op": "replaceRegex",
+      "requires": [
+        "artplayerPluginAds({"
+      ],
+      "pattern": "this\\.prerollAdEnabled&&",
+      "value": "false&&"
+    },
+    {
+      "kind": "html",
+      "op": "removeElements",
+      "bodyPattern": "<html[\\s>]",
+      "selector": {
+        "tag": "div",
+        "attr": "class",
+        "token": "ad-item"
+      }
+    },
+    {
+      "kind": "html",
+      "op": "removeAttributes",
+      "bodyPattern": "<html[\\s>]",
+      "attributePattern": "^data-preroll-ad-[\\w-]+$"
+    }
+  ]
+}

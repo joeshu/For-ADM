@@ -1,0 +1,271 @@
+{
+  "id": "yqk-qntv",
+  "adapter": "yqk",
+  "output": {
+    "script": "yqk-qntv/ad-clean.js",
+    "conf": "yqk-qntv/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "dated",
+        "prefix": "yz(?:y)?\\d{4,6}",
+        "wildcard": "yz*",
+        "suffixes": [
+          "bzy42ezt.com",
+          "zazy3mc5.com",
+          "7k5jb8t9.com",
+          "3nyk7h9o.com",
+          "jba2yo1c.com",
+          "hzkeka49.com",
+          "q8nsderug.com",
+          "o5r52at9v.com",
+          "tgs2hl4ut.com",
+          "goi6lhmry.com",
+          "6vh3qyu9x.com"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "json",
+          "path": "/v[12]/api/(?:basic/init|home/(?:body|firstScreen)|adInfo/(?:getPageAd|getTextAd|getSearchAd|getUserCenterAd|getChatAd|getTopicAd)|vodInfo/(?:index|getVodBodyAd|getVodPauseAd))(?:\\?.*)?$"
+        }
+      ]
+    },
+    {
+      "domains": {
+        "type": "numbered",
+        "brands": [
+          "yqk",
+          "qntv"
+        ],
+        "tld": "app",
+        "prefixes": [
+          "",
+          "www"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "js",
+          "path": "/_nuxt/(?:entry|_play_)\\.[a-zA-Z0-9]+\\.js(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "jsonPolicies": [
+    {
+      "endpoint": "/adInfo/getPageAd$",
+      "when": {
+        "path": "data",
+        "type": "object"
+      },
+      "ops": [
+        {
+          "op": "set",
+          "path": "data.floatAd",
+          "value": null,
+          "create": true
+        },
+        {
+          "op": "set",
+          "path": "data.popupAd",
+          "value": null,
+          "create": true
+        }
+      ]
+    },
+    {
+      "endpoint": "/adInfo/getChatAd$",
+      "when": {
+        "path": "data",
+        "type": "array"
+      },
+      "ops": [
+        {
+          "op": "clearArray",
+          "path": "data"
+        }
+      ]
+    },
+    {
+      "endpoint": "/adInfo/getTopicAd$",
+      "when": {
+        "path": "data.topicAdList",
+        "type": "array"
+      },
+      "ops": [
+        {
+          "op": "clearArray",
+          "path": "data.topicAdList"
+        }
+      ]
+    },
+    {
+      "endpoint": "/(?:vodInfo/getVodPauseAd|adInfo/getTextAd)$",
+      "when": null,
+      "ops": [
+        {
+          "op": "set",
+          "path": "data",
+          "value": null,
+          "create": true
+        }
+      ]
+    },
+    {
+      "endpoint": "/(?:vodInfo/getVodBodyAd|adInfo/(?:getSearchAd|getUserCenterAd))$",
+      "when": {
+        "path": "data",
+        "type": "array"
+      },
+      "ops": [
+        {
+          "op": "clearArray",
+          "path": "data"
+        }
+      ]
+    },
+    {
+      "endpoint": "/vodInfo/index$",
+      "when": {
+        "path": "data.playerList",
+        "type": "array"
+      },
+      "ops": [
+        {
+          "op": "set",
+          "path": "data.startAd",
+          "value": null,
+          "create": true
+        }
+      ]
+    },
+    {
+      "endpoint": "/basic/init$",
+      "when": {
+        "path": "data.startAdList",
+        "type": "array"
+      },
+      "ops": [
+        {
+          "op": "clearArray",
+          "path": "data.startAdList"
+        },
+        {
+          "op": "set",
+          "path": "data.startAdShowTime",
+          "value": 0,
+          "create": true
+        }
+      ]
+    },
+    {
+      "endpoint": "/home/body$",
+      "when": {
+        "path": "data.adList",
+        "type": "array"
+      },
+      "ops": [
+        {
+          "op": "clearArray",
+          "path": "data.adList"
+        }
+      ]
+    },
+    {
+      "endpoint": "/home/firstScreen$",
+      "when": {
+        "any": [
+          {
+            "path": "data.focusAdList",
+            "type": "array"
+          },
+          {
+            "path": "data.hotMudleList",
+            "type": "array"
+          }
+        ]
+      },
+      "ops": [
+        {
+          "op": "set",
+          "path": "data.focusAdList",
+          "value": [],
+          "create": true
+        },
+        {
+          "op": "filterArray",
+          "path": "data.hotMudleList",
+          "field": "adAction",
+          "numeric": true,
+          "exclude": [
+            1,
+            2,
+            8,
+            10,
+            11
+          ]
+        }
+      ]
+    }
+  ],
+  "jsRules": [
+    {
+      "asset": "entry",
+      "requires": [
+        "class:\"startup-ad\"",
+        "/adInfo/getPageAd",
+        "useHttp={get:"
+      ],
+      "groups": [
+        [
+          [
+            "m.value=X.value.data.startAdList||[]",
+            "m.value=[]"
+          ],
+          [
+            "z.floatAd&&R.name!=\"play-play\"",
+            "false&&R.name!=\"play-play\""
+          ]
+        ]
+      ],
+      "inject": [
+        [
+          "transform:r=>typeof r==\"string\"?JSON.parse(r):r",
+          "transform:r=>__forAdmYqkClean(r,e)",
+          3
+        ]
+      ]
+    },
+    {
+      "asset": "_play_",
+      "requires": [
+        "name:\"VideoStartAd\"",
+        "getVodPauseAd({vodId:T",
+        "getVideoDetail({vodId:T"
+      ],
+      "groups": [
+        [
+          [
+            "N.value=t.value.data,m.value",
+            "N.value=t.value.data,N.value.startAd=null,m.value",
+            2
+          ],
+          [
+            "Ga.value=t.value.data,ta.value=!!t.value.data",
+            "Ga.value=null,ta.value=!1"
+          ],
+          [
+            "e.result&&(Nt.value=t.value.data)},jt=i()",
+            "e.result&&(Nt.value=[])},jt=i()"
+          ],
+          [
+            "e.result&&(jt.value=t.value.data)};let ga=",
+            "e.result&&(jt.value=null)};let ga="
+          ]
+        ]
+      ]
+    }
+  ]
+}

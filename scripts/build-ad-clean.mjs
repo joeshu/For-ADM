@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {loadTemplateManifest} from './lib/template-manifest.mjs';
 import {resolveMediaTemplate} from './lib/shared-media.mjs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -9,7 +10,8 @@ import {buildGuaziSource} from './lib/guazi-build.mjs';
 import {validateSourcePath,parseRuleImport,validateGeneratedRules} from './lib/rule-import.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const manifest=JSON.parse(read('universal/templates.json'));
+const manifest=loadTemplateManifest(root);
+const manifestText=JSON.stringify(manifest,null,2)+'\n';
 const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function domains(d){
  const prefixes=d.prefixes||[''];
@@ -23,7 +25,7 @@ function domains(d){
 }
 const sources=['universal/src/engine.js','universal/src/shared-media-cards.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
 const source=sources.map(read).join('\n');
-const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')+read('scripts/lib/parser-profiles.mjs')).digest('hex').slice(0,12);
+const revision=crypto.createHash('sha256').update(manifestText+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')+read('scripts/lib/parser-profiles.mjs')).digest('hex').slice(0,12);
 parserProfiles(manifest);
 const templates=manifest.templates.map(t=>resolveMediaTemplate(resolveParserProfile(t,manifest))).map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
@@ -93,7 +95,7 @@ for(const r of requestRules){
 }
 function bindingHost(b){return b.host+(b.ports?'(?::(?:'+b.ports.join('|')+'))?':'');}
 function requestLines(r,scriptUrl){if(r.mode==='verbatim')return r.lines.map(l=>r.adapter&&scriptUrl&&l.includes(' url script-response-body ')?l.split(' url ')[0]+' url script-response-body '+scriptUrl:l);return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
-const generated=new Map(),scriptVersions=new Map();
+const generated=new Map([['universal/templates.json',manifestText]]),scriptVersions=new Map();
 function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
  const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);
  const runtime=selected.map(({bindings,...t})=>({...t,bindings:bindings.map(({host,routes,ports})=>({host,routes,...(ports?{ports}: {})}))})).map(t=>t.cacheBustRevision?JSON.parse(JSON.stringify(t).replaceAll('__ADM_CACHE_REVISION__',crypto.createHash('sha256').update(read('universal/src/engine.js')+JSON.stringify(t)).digest('hex').slice(0,12))):t);
@@ -109,8 +111,9 @@ function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest
  const header='/* GENERATED from universal/templates.json and universal/src; revision '+scriptVersion+'. Do not edit. */\n';
  const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+','+JSON.stringify(scriptVersion)+');\n})();\n';
  const url=manifest.rawBase+'/'+scriptPath+'?v='+scriptVersion;
- const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+url)));
- const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+url)).join('\n')); 
+ const routeUrl=t=>includeRequests?manifest.rawBase+'/'+t.output.script+'?v='+scriptVersions.get(t.output.script):url;
+ const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+routeUrl(t))));
+ const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+routeUrl(t))).join('\n'));
  const requestUrl=r=>r.adapter?manifest.rawBase+'/'+r.output.script+'?v='+scriptVersions.get(r.output.script):url;
  if(requests.length){rules.push(...requests.flatMap(r=>requestLines(r,requestUrl(r))));groups.push(...requests.map(r=>'# '+r.id+(r.mode==='verbatim'?' — all upstream capabilities; original host matching; bundled response adapter':'')+'\n'+requestLines(r,requestUrl(r)).join('\n')));}
  validateGeneratedRules(rules);
@@ -118,8 +121,8 @@ function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest
  generated.set(scriptPath,code);generated.set(confPath,(onlyRequest?.metadata?.length?onlyRequest.metadata.join('\n')+'\n':'')+(includeRequests?'#!name = For-ADM 统一去广告\n#!desc = 网站适配与瓜子完整原规则；更新后刷新脚本缓存\n':'')+'# GENERATED; revision '+revision+'\n[rewrite_local]\n'+groups.join('\n\n')+'\n\n[mitm]\nhostname = '+mitm.join(', ')+'\n');
 }
 for(const r of requestRules){if(r.adapter)generate([],r.output.script,r.output.conf,false,r);else generated.set(r.output.conf,(r.metadata?.join('\n')||'')+'\n# GENERATED; revision '+revision+'\n[rewrite_local]\n'+requestLines(r).join('\n')+'\n\n[mitm]\nhostname = '+r.mitm.join(', ')+'\n');}
-generate(templates,'universal/ad-clean.js','universal/quantumult-x-snippet.conf',true);
 for(const t of templates)generate([t],t.output.script,t.output.conf);
+generate(templates,'universal/ad-clean.js','universal/quantumult-x-snippet.conf',true);
 const checking=process.argv.includes('--check');
 for(const [p,text]of generated){if(checking){if(!fs.existsSync(path.join(root,p))||read(p)!==text)throw Error('Stale generated file: '+p);}else{fs.mkdirSync(path.dirname(path.join(root,p)),{recursive:true});fs.writeFileSync(path.join(root,p),text);}}
 console.log((checking?'Verified':'Generated')+' '+generated.size+' artifacts, revision '+revision);

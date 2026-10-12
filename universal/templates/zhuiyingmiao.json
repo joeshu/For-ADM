@@ -1,0 +1,41 @@
+{
+  "id": "zhuiyingmiao",
+  "adapter": "declarative",
+  "output": {
+    "script": "zhuiyingmiao/ad-clean.js",
+    "conf": "zhuiyingmiao/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "exact",
+        "names": [
+          "zhuiyingmiao5.com",
+          "www.zhuiyingmiao5.com"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "html",
+          "path": "/(?:index\\.html|(?:voddetail|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "kind": "html",
+      "op": "removeElements",
+      "requires": [
+        "var maccms=",
+        "/mxtheme/js/home.js",
+        "zhuiyingmiao5.com"
+      ],
+      "selector": {
+        "tag": "div",
+        "attr": "class",
+        "token": "module-adslist"
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "qlplayer",
+  "adapter": "declarative",
+  "output": {
+    "script": "qlplayer/ad-clean.js",
+    "conf": "qlplayer/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "exact",
+        "names": [
+          "svip.qlplayer.cyou"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "js",
+          "path": "/assets/player\\.js(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "parserProfile": "qlplayer"
+}

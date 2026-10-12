@@ -67,9 +67,10 @@ test('a checked draft integrates through the real builder, registry and generate
   const isolated=path.join(dir,'repo');fs.mkdirSync(isolated);
   for(const folder of ['universal','scripts'])fs.cpSync(path.join(root,folder),path.join(isolated,folder),{recursive:true});
   for(const r of readJSON(path.join(root,'universal/templates.json')).requestRules||[])for(const file of [r.sourceFile,r.upstreamScript,r.cryptoSource].filter(Boolean)){const dest=path.join(isolated,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,file),dest);}
-  const manifest=readJSON(path.join(isolated,'universal/templates.json'));
-  const template=readJSON(path.join(dir,'draft/template.json'));manifest.templates.push(template);
-  fs.writeFileSync(path.join(isolated,'universal/templates.json'),JSON.stringify(manifest));
+  const manifest=readJSON(path.join(isolated,'universal/manifest.json'));
+  const template=readJSON(path.join(dir,'draft/template.json'));manifest.templateFiles.push(template.id);
+  fs.writeFileSync(path.join(isolated,'universal/templates/'+template.id+'.json'),JSON.stringify(template));
+  fs.writeFileSync(path.join(isolated,'universal/manifest.json'),JSON.stringify(manifest));
   const registry=readJSON(path.join(isolated,'universal/sites.json'));
   registry.sites.push({...readJSON(path.join(dir,'draft/site.json')),template:template.id,status:'source-verified'});
   fs.writeFileSync(path.join(isolated,'universal/sites.json'),JSON.stringify(registry));

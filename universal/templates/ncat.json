@@ -1,0 +1,868 @@
+{
+  "id": "ncat",
+  "adapter": "declarative",
+  "output": {
+    "script": "ncat/ad-clean.js",
+    "conf": "ncat/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "exact",
+        "names": [
+          "a.napp03.com"
+        ]
+      },
+      "ports": [
+        51111
+      ],
+      "routes": [
+        {
+          "kind": "js",
+          "path": "/static/v[0-9]+/js/(?:app(?:-legacy)?|[0-9]+(?:-legacy)?)\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+        },
+        {
+          "kind": "html",
+          "path": "/(?:index\\.html|vod/(?:magnets|magnet/detail))?(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x1bc5fd",
+        "v1": "_0x37bc34"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-519fd9be89",
+      "parameters": {
+        "v0": "_0x32e5b2",
+        "v1": "_0x3ffeab"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x307100",
+        "v1": "_0xaf523"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-519fd9be89",
+      "parameters": {
+        "v0": "_0x54ad1c",
+        "v1": "_0x1fceff"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x3cf900",
+        "v1": "_0x1452b2"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x420503",
+        "v1": "_0x12e08a"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x2e2a76"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x1a295a"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x272160",
+        "v1": "_0x31c269"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x49e5c4"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x57a4fd"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x501df3",
+        "v1": "_0x3c8aef"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x3ba4d9"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x3a7ff0",
+        "v1": "_0x4e1062"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x3256f9"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x1fb76c",
+        "v1": "_0x52df84"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x222de9",
+        "v1": "_0x45a7c4"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x2e5cb6"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x21a533"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x413943",
+        "v1": "_0x520c9e"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x3d356b",
+        "v1": "_0x32f77f"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-655c37ff43",
+      "parameters": {
+        "v0": "_0x162349",
+        "v1": "_0x3d6aca"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x4d5e2b",
+        "v1": "_0x533c20"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-655c37ff43",
+      "parameters": {
+        "v0": "_0x4a5040",
+        "v1": "_0x213a3c"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-b0eb132fe9",
+      "parameters": {
+        "v0": "_0x128643",
+        "v1": "_0x3ded7d",
+        "v2": "_0x29f875",
+        "v3": "_0x459b75"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-a9a076e509",
+      "parameters": {
+        "v0": "_0x1fb834",
+        "v1": "_0x26d0cc",
+        "v2": "_0x2715e8",
+        "v3": "_0x14e5c9",
+        "v4": "_0x105037",
+        "v5": "_0x1ec0c5",
+        "v6": "_0x556aca",
+        "v7": "_0x32c81f",
+        "v8": "_0x30c4a0",
+        "v9": "_0x1b3487",
+        "v10": "_0x4e4c31",
+        "v11": "_0x58b23b"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-b0eb132fe9",
+      "parameters": {
+        "v0": "_0x57f46a",
+        "v1": "_0x275e46",
+        "v2": "_0x4cf3e7",
+        "v3": "_0x264c20"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-a9a076e509",
+      "parameters": {
+        "v0": "_0x18f1bd",
+        "v1": "_0x349322",
+        "v2": "_0x16e699",
+        "v3": "_0x409d1b",
+        "v4": "_0x3f6473",
+        "v5": "_0x2a0834",
+        "v6": "_0x101348",
+        "v7": "_0x24cecf",
+        "v8": "_0x13e118",
+        "v9": "_0x1ddfe8",
+        "v10": "_0x149a90",
+        "v11": "_0x54628f"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x2f338b",
+        "v1": "_0x5cc979"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0xf57df9",
+        "v1": "_0x267d82"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x459d27"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-3766e9e652",
+      "parameters": {
+        "v0": "_0x542556"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x2497fb"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-3766e9e652",
+      "parameters": {
+        "v0": "_0x4d211c"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x14d7f9"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x1d1b1b"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x475ef7",
+        "v1": "_0x40dcbd"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x41a941",
+        "v1": "_0x4f19d2"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-7e82bf212b",
+      "parameters": {
+        "v0": "_0x479ce2",
+        "v1": "_0x6745e5",
+        "v2": "_0x255274",
+        "v3": "_0x4de64e",
+        "v4": "_0x3ff100",
+        "v5": "_0x5916ea"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-7e82bf212b",
+      "parameters": {
+        "v0": "_0x1924d3",
+        "v1": "_0x17d007",
+        "v2": "_0x125cd4",
+        "v3": "_0x4482b9",
+        "v4": "_0x2f2362",
+        "v5": "_0x380632"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x583fa8"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x15f3f6"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x27b3d4"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x4a78b2"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-625b2e79dd",
+      "parameters": {
+        "v0": "_0x476105",
+        "v1": "_0x45f290",
+        "v2": "_0x3e5d14",
+        "v3": "_0x3da899",
+        "v4": "_0x21a2b5",
+        "v5": "_0x2715f2",
+        "v6": "_0x5dd4a1",
+        "v7": "_0xc19c29",
+        "v8": "_0x4838a8",
+        "v9": "_0x11e6b6",
+        "v10": "_0x33928b",
+        "v11": "_0x43170a",
+        "v12": "_0x4b628b",
+        "v13": "_0x1d4581"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-4aef3dade1",
+      "parameters": {
+        "v0": "_0xf84727",
+        "v1": "_0x60df29",
+        "v2": "_0x2c28df",
+        "v3": "_0x55e5a0",
+        "v4": "_0x34fbd1",
+        "v5": "_0x356a7f",
+        "v6": "_0xae1a8a",
+        "v7": "_0x248524",
+        "v8": "_0xca195e",
+        "v9": "_0x58976c",
+        "v10": "_0x1ec2ae",
+        "v11": "_0x156b7e",
+        "v12": "_0x429f2e",
+        "v13": "_0x5758af"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x354c8d"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-02960f4a6f",
+      "parameters": {
+        "v0": "_0x3ddac0",
+        "v1": "_0x50121e"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x46110e",
+        "v1": "_0x566fe2"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-d495a3c8bd",
+      "parameters": {
+        "v0": "_0x25a4c3",
+        "v1": "_0x419ed0"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x15f0fa",
+        "v1": "_0x13e4c2"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-d495a3c8bd",
+      "parameters": {
+        "v0": "_0x30d62f",
+        "v1": "_0x55be05"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x35edd9"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0xa34d16"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-4d79b17202",
+      "parameters": {
+        "v0": "_0x121d1d",
+        "v1": "_0xc1eb35",
+        "v2": "_0x4f74f4",
+        "v3": "_0xa9f043"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-4d79b17202",
+      "parameters": {
+        "v0": "_0x3f183b",
+        "v1": "_0x1467bb",
+        "v2": "_0x141a78",
+        "v3": "_0x47be1c"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x2b32b0",
+        "v1": "_0x3689ac"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-655c37ff43",
+      "parameters": {
+        "v0": "_0x2ad652",
+        "v1": "_0x57f6f7"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x27a06a",
+        "v1": "_0x3dd910"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-655c37ff43",
+      "parameters": {
+        "v0": "_0x39c92d",
+        "v1": "_0x5f4152"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-655c37ff43",
+      "parameters": {
+        "v0": "_0x1cad43",
+        "v1": "_0x4923c4"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-655c37ff43",
+      "parameters": {
+        "v0": "_0xe28f2a",
+        "v1": "_0x4541b9"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x55acd1",
+        "v1": "_0x457c89"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x47e1a9",
+        "v1": "_0x3dd3bf"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-f1dba9ae29",
+      "parameters": {
+        "v0": "_0x4abc89"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-f1dba9ae29",
+      "parameters": {
+        "v0": "_0x352669"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-5bd6ee6021",
+      "parameters": {
+        "v0": "_0x2e9174"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-5bd6ee6021",
+      "parameters": {
+        "v0": "_0x29f68b"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x17e7fd",
+        "v1": "_0x4cb13a"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-5bd6ee6021",
+      "parameters": {
+        "v0": "_0x3f5b65"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-5bd6ee6021",
+      "parameters": {
+        "v0": "_0x4d0139"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-d5e3df450d",
+      "parameters": {
+        "v0": "_0x25aa6a",
+        "v1": "_0x4b01a1",
+        "v2": "_0x213df5",
+        "v3": "_0x5918b8",
+        "v4": "_0x320285",
+        "v5": "_0x4cea7b",
+        "v6": "_0x3c1673",
+        "v7": "_0x5c1eaa",
+        "v8": "_0x2e51a2",
+        "v9": "_0x3643e2",
+        "v10": "_0x5971ba"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a6d1be18fb",
+      "parameters": {
+        "v0": "_0x270019",
+        "v1": "_0x5c105d",
+        "v2": "_0x11e8ad",
+        "v3": "_0x3795b5",
+        "v4": "_0x47cf2a",
+        "v5": "_0xe8d918",
+        "v6": "_0x27b2f0",
+        "v7": "_0x31fe25",
+        "v8": "_0x19acc6",
+        "v9": "_0x3e5329",
+        "v10": "_0x33003d"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x1dd7b9"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x47d403"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-a181bf2104",
+      "parameters": {
+        "v0": "_0x5525d5"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x5df7b8"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-b92398e55c",
+      "parameters": {
+        "v0": "_0x573708"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-500657ae5e",
+      "parameters": {
+        "v0": "_0x10298e",
+        "v1": "_0x424abb"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-3c4719ac77",
+      "parameters": {
+        "v0": "_0x30096b",
+        "v1": "_0x1ff55f",
+        "v2": "_0x2e8c87",
+        "v3": "_0x4d6bf4",
+        "v4": "_0x2c2aff",
+        "v5": "_0x38d3d6",
+        "v6": "_0x304e73"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-3c4719ac77",
+      "parameters": {
+        "v0": "_0xfdf450",
+        "v1": "_0x4607d8",
+        "v2": "_0x1f675f",
+        "v3": "_0x31484c",
+        "v4": "_0x8af479",
+        "v5": "_0x286263",
+        "v6": "_0x22e2d5"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-e8026dcee9",
+      "parameters": {
+        "v0": "_0xf0b811"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-55ea43445c",
+      "parameters": {
+        "v0": "_0x18d4cf"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-55ea43445c",
+      "parameters": {
+        "v0": "_0x487dc2"
+      }
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'appName':'网飞猫'",
+        "'appVersion':'2.5.29'",
+        "getAdvertiseById",
+        "FLOATING_WINDOW",
+        "VOD_START"
+      ],
+      "pairs": [
+        [
+          "'getAdvertiseById':function(_0x7d4e7a){if(_0x7d4e7a&&0x0!=_0x7d4e7a['length']){var _0x353b7f=this['appAdvertisements'];return _0x353b7f&&_0x353b7f['length']>0x0?_0x353b7f['find'](function(_0x5844d5){return _0x5844d5['id']==_0x7d4e7a;}):void 0x0;}}",
+          "'getAdvertiseById':function(_0x7d4e7a){return void 0x0;}",
+          1
+        ],
+        [
+          "_0x221c7d=function(_0x215081){var _0x33bac6=(0x0,_0x29a1c1['P'])(),_0xb577f8=_0x33bac6['appAdvertisements'];return!!(_0xb577f8&&_0xb577f8['length']>0x0&&_0x215081&&_0x215081['length']>0x0)&&_0xb577f8['some'](function(_0x3c2001){return _0x3c2001['id']==_0x215081;});}",
+          "_0x221c7d=function(_0x215081){return false;}",
+          1
+        ]
+      ]
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'appName':'网飞猫'",
+        "'appVersion':'2.5.29'",
+        "getAdvertiseById",
+        "FLOATING_WINDOW",
+        "VOD_START"
+      ],
+      "pairs": [
+        [
+          "'getAdvertiseById'(_0x3649d9){if(!_0x3649d9||0x0==_0x3649d9['length'])return;const _0x3efe4c=this['appAdvertisements'];return _0x3efe4c&&_0x3efe4c['length']>0x0?_0x3efe4c['find'](_0x328522=>_0x328522['id']==_0x3649d9):void 0x0;}",
+          "'getAdvertiseById'(_0x3649d9){return void 0x0;}",
+          1
+        ],
+        [
+          "_0x2eaacc=_0x1b92ec=>{const _0x1699fc=(0x0,_0x3a9895['P'])(),_0x3fdba8=_0x1699fc['appAdvertisements'];return!!(_0x3fdba8&&_0x3fdba8['length']>0x0&&_0x1b92ec&&_0x1b92ec['length']>0x0)&&_0x3fdba8['some'](_0x51faf4=>_0x51faf4['id']==_0x1b92ec);}",
+          "_0x2eaacc=_0x1b92ec=>{return false;}",
+          1
+        ]
+      ]
+    },
+    {
+      "kind": "html",
+      "op": "setQueryParameter",
+      "requires": [
+        "网飞猫",
+        "static/v20529/js/app.e102418a.js",
+        "id=\"app\""
+      ],
+      "selector": {
+        "tag": "script",
+        "attr": "src",
+        "pattern": "^static/v[0-9]+/js/app(?:-legacy)?\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+      },
+      "key": "for_adm",
+      "value": "ncat-v3-__ADM_CACHE_REVISION__"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'appName':'网飞猫'",
+        "['u']=function",
+        "ChunkLoadError",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "}[_0x1ae194]+'.js';",
+          "}[_0x1ae194]+'.js?for_adm=ncat-v3-__ADM_CACHE_REVISION__';",
+          1
+        ]
+      ]
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'appName':'网飞猫'",
+        "['u']=function",
+        "ChunkLoadError",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "}[_0x947369]+'.js';",
+          "}[_0x947369]+'.js?for_adm=ncat-v3-__ADM_CACHE_REVISION__';",
+          1
+        ]
+      ]
+    },
+    {
+      "behavior": "shared-media/ads-ca1f9a4b29",
+      "parameters": {
+        "v0": "_0x418a97",
+        "v1": "_0x5eda48",
+        "v2": "_0x586482",
+        "v3": "_0x1114c3",
+        "v4": "_0x4b723d",
+        "v5": "_0x128201",
+        "v6": "_0x12ae00",
+        "v7": "_0x1fef76",
+        "v8": "_0x206de0",
+        "v9": "_0x316016",
+        "v10": "_0x518dd1",
+        "v11": "_0x2838b9",
+        "v12": "_0x59d7e9",
+        "v13": "_0x31a6ad",
+        "v14": "_0x3f456c",
+        "v15": "_0x489088",
+        "v16": "_0x1c34b4",
+        "v17": "_0x35fe9f",
+        "v18": "_0x36b218",
+        "v19": "_0xd511d7",
+        "v20": "_0x5c13da"
+      }
+    },
+    {
+      "behavior": "shared-media/ads-812222210e",
+      "parameters": {
+        "v0": "_0x1f86da",
+        "v1": "_0x46ef01",
+        "v2": "_0x26eeb0",
+        "v3": "_0x2c81f0",
+        "v4": "_0x2bbf3d",
+        "v5": "_0x805db9",
+        "v6": "_0x3c95f2",
+        "v7": "_0x1d4cf3",
+        "v8": "_0x38b926",
+        "v9": "_0x24e79f",
+        "v10": "_0x5da561",
+        "v11": "_0x42dc34",
+        "v12": "_0x598ebe",
+        "v13": "_0x52d666",
+        "v14": "_0x1ed559",
+        "v15": "_0x3a69b6",
+        "v16": "_0x3f6aed",
+        "v17": "_0x3e640f",
+        "v18": "_0x307cfc",
+        "v19": "_0x3d7827",
+        "v20": "_0x3159d2"
+      }
+    },
+    {
+      "behavior": "shared-media/download-f7ffa299ee",
+      "parameters": {
+        "v0": "_0x45fbd9",
+        "v1": "_0x2f8940",
+        "v2": "_0xa99a52",
+        "v3": "_0xa2c340",
+        "v4": "_0x2838b9"
+      }
+    },
+    {
+      "behavior": "shared-media/download-f7ffa299ee",
+      "parameters": {
+        "v0": "_0x27ba15",
+        "v1": "_0x2fed62",
+        "v2": "_0x27197e",
+        "v3": "_0x1bfe4c",
+        "v4": "_0x42dc34"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-8bcbc8dd67",
+      "parameters": {
+        "v0": "_0x4d6bf4",
+        "v1": "_0x30096b",
+        "v2": "_0x304e73"
+      }
+    },
+    {
+      "behavior": "shared-media/cards-8bcbc8dd67",
+      "parameters": {
+        "v0": "_0x31484c",
+        "v1": "_0xfdf450",
+        "v2": "_0x22e2d5"
+      }
+    }
+  ],
+  "jsHelpers": {
+    "cards": {
+      "marker": "function __forAdmKKCleanV2(",
+      "profile": "shared-media",
+      "allowedHosts": [
+        "a\\.napp03\\.com"
+      ]
+    }
+  },
+  "behaviorProfile": "shared-media"
+}

@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "rawBase": "https://raw.githubusercontent.com/joeshu/For-ADM/master",
+  "requestRules": [
+    {
+      "id": "guazi-app",
+      "output": {
+        "conf": "guazi-app/quantumult-x-snippet.conf",
+        "script": "guazi-app/ad-clean.js"
+      },
+      "domains": {
+        "type": "exact",
+        "names": [
+          "api.mxtxqe.com",
+          "api.sef5w7.com",
+          "sdapi.u4gdp3.com",
+          "sdapi.4zu76s.com",
+          "sdapi.re3k7n.com",
+          "api.xqe4cxu.com",
+          "api.syq8gvw.com",
+          "api.zjypp7x.com",
+          "apinew.n3yje.icu",
+          "apinew.8hpt2duq.com",
+          "apinew.fzmfbdmg.com",
+          "api.7gmsut2m.com",
+          "api.gq89em.com"
+        ]
+      },
+      "source": "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/TilingSales_ad_remove.snippet",
+      "mode": "verbatim",
+      "sourceFile": "guazi-app/upstream/TilingSales_ad_remove.snippet",
+      "adapter": "guazi",
+      "upstreamScript": "guazi-app/upstream/TilingSales_getNav.js",
+      "cryptoSource": "guazi-app/vendor/cryptojs-aes.min.js"
+    }
+  ],
+  "parserProfiles": [
+    {
+      "id": "qlplayer",
+      "name": "麒麟片头/暂停广告策略",
+      "actions": [
+        {
+          "kind": "js",
+          "op": "replaceGroup",
+          "requires": [
+            "async function init()",
+            "function showPreRoll()",
+            "function showPauseAd()",
+            "const { url, type } = await resolveVideo();",
+            "initPlayer(url, type);"
+          ],
+          "pairs": [
+            [
+              "if (playerConfig.ads.pre_roll.enabled) {",
+              "if (false /* For-ADM: pre-roll disabled */) {",
+              1
+            ],
+            [
+              "if (playerConfig.ads.pause.enabled) {",
+              "if (false /* For-ADM: pause ad disabled */) {",
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qingning-player",
+      "name": "清宁错误提示与下载推广策略",
+      "actions": [
+        {
+          "kind": "html",
+          "op": "replaceInlineScripts",
+          "requires": [
+            "/api/videojs/lang/zh-CN.js",
+            "video-js",
+            "app3.qingning9.com"
+          ],
+          "scriptRequires": [
+            "function createSuperLabel(url, id)",
+            "videojs('video', options, function onPlayerReady()",
+            "this.on('error', function()",
+            "createSuperLabel('https://app3.qingning9.com?sc=wap_jztv2&src=-2&ref='+ encodeURIComponent(srcRef) + '&p=' + encodeURIComponent(url), 'vjs_modal_dialog_content_t_id')"
+          ],
+          "pairs": [
+            [
+              "createSuperLabel('https://app3.qingning9.com?sc=wap_jztv2&src=-2&ref='+ encodeURIComponent(srcRef) + '&p=' + encodeURIComponent(url), 'vjs_modal_dialog_content_t_id')",
+              "void 0 /* For-ADM: error promotion disabled */",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "html",
+          "op": "replaceInlineScripts",
+          "requires": [
+            "/api/videojs/lang/zh-CN.js",
+            "video-js",
+            "app2.zstv47.com"
+          ],
+          "scriptRequires": [
+            "function createSuperLabel(url, id)",
+            "videojs('video', options, function onPlayerReady()",
+            "this.on('error', function()",
+            "createSuperLabel('https://app2.zstv47.com?sc=wap_jztv3&src=-2&ref='+ encodeURIComponent(srcRef) + '&p=' + encodeURIComponent(url), 'vjs_modal_dialog_content_t_id')"
+          ],
+          "pairs": [
+            [
+              "createSuperLabel('https://app2.zstv47.com?sc=wap_jztv3&src=-2&ref='+ encodeURIComponent(srcRef) + '&p=' + encodeURIComponent(url), 'vjs_modal_dialog_content_t_id')",
+              "void 0 /* For-ADM: error promotion disabled */",
+              1
+            ]
+          ]
+        },
+        {
+          "kind": "html",
+          "op": "removeElements",
+          "requires": [
+            "//djs.imgdianyingoss.com/js/ds/ds.css",
+            "main-v-player-main",
+            "ds-video-player-main-sub"
+          ],
+          "selector": {
+            "tag": "a",
+            "attr": "href",
+            "pattern": "^(?:https?:)?//(?:app3\\.qingning9\\.com|app2\\.zstv47\\.com)(?:[/?#].*)?$"
+          }
+        }
+      ]
+    }
+  ],
+  "templateFiles": [
+    "yqk-qntv",
+    "ycblcw",
+    "souju-ai",
+    "4kvm",
+    "auete",
+    "eboyang",
+    "juyeye",
+    "zhuiyingmiao",
+    "yxxq",
+    "qlplayer",
+    "qingning-player",
+    "555-movie",
+    "dyls",
+    "kkapp",
+    "ncat",
+    "happ"
+  ],
+  "behaviorProfiles": [
+    "shared-media"
+  ]
+}

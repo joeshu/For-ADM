@@ -1,0 +1,55 @@
+{
+  "id": "auete",
+  "adapter": "declarative",
+  "output": {
+    "script": "auete/ad-clean.js",
+    "conf": "auete/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "exact",
+        "names": [
+          "aeete.com",
+          "au1080.top"
+        ],
+        "prefixes": [
+          "",
+          "www"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "js",
+          "path": "/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"
+        },
+        {
+          "kind": "html",
+          "path": "/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "kind": "js",
+      "op": "setBody",
+      "bodyPattern": "^(?!\\s*(?:<!doctype|<html|<body)\\b)",
+      "value": "/* For-ADM: dedicated Auete page advertising module disabled. */"
+    },
+    {
+      "kind": "html",
+      "requires": [
+        "Auete",
+        "/js/common.js"
+      ],
+      "bodyPattern": "<html[\\s>]",
+      "op": "removeElements",
+      "selector": {
+        "tag": "script",
+        "attr": "src",
+        "pattern": "^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"
+      }
+    }
+  ]
+}

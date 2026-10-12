@@ -32,13 +32,13 @@ test('Guazi unknown decrypted schemas are preserved without re-encryption',()=>{
  for(const [p,value]of [['/App/Resource/Config/getNav',{unknown:1}],['/App/Resource/Vod/showOne',[]],['/App/Resource/Vod/showOne',null],['/App/Resource/Vod/vurlDetail',{unknown:1}]]){const body=envelope(value);assert.equal(both(p,body),body);}
 });
 
-test('Unified subscription routes Guazi to independent crypto script and other sites to lightweight engine',()=>{
+test('Unified subscription routes Guazi to independent crypto script and other sites to independent engines',()=>{
  assert(!unified.includes('JSEncrypt'));assert(!unified.includes('CryptoJS'));assert(!unified.includes('admGetGuaziLibrary'));
  assert(standalone.includes('JSEncrypt'));assert(standalone.includes('CryptoJS'));
  const conf=read('universal/quantumult-x-snippet.conf'),scripts=conf.split('\n').filter(l=>l.includes(' url script-response-body '));
  const guazi=scripts.filter(l=>l.includes('/guazi-app/ad-clean.js?v='));assert.equal(guazi.length,6);
  for(const path of ['/App/Resource/Config/getNav','/App/Ad/barsPlayAdInfo','/App/Ad/playAdInfo','/App/IndexPlay/vodAdvertisement','/App/Resource/Vod/showOne','/App/Resource/Vod/vurlDetail']){const line=scripts.find(l=>new RegExp(l.split(' url ')[0]).test(url(path)));assert(line?.includes('/guazi-app/ad-clean.js?v='));}
- for(const line of scripts.filter(l=>!guazi.includes(l)))assert(line.includes('/universal/ad-clean.js?v='));
+ for(const line of scripts.filter(l=>!guazi.includes(l)))assert(!line.includes('/universal/ad-clean.js?v='));
 });
 
 test('Guazi minimal AES vendor has verified provenance and excludes unrelated algorithms',()=>{

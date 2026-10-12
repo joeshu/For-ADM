@@ -56,7 +56,7 @@ HTML 中的内嵌广告入口可在模板中使用 `removeInlineScripts`，提�
 ## 从草稿接入
 
 1. 检查广告身份、源码特征、路径和保护断言，增加首页/播放页/切换线路样本。若仅换域名且结构一致，直接复用现有模板绑定，不新增重复适配器。
-2. 将 `template.json` 追加到 `templates.json` 的 templates。将 `site.json` 的 template 设置为模板 ID、status 改为 source-verified，再追加到 `sites.json` 的 sites。把 fixture.json 复制到 `universal/fixtures/模板ID.json`。
+2. 将 `template.json` 保存为 `templates/模板ID.json`，并将模板 ID 加入 `manifest.json` 的 templateFiles。将 `site.json` 的 template 设置为模板 ID、status 改为 source-verified，再追加到 `sites.json` 的 sites。把 fixture.json 复制到 `universal/fixtures/模板ID.json`。
 3. 运行以下命令；生成文件不要手改：
 
 ```sh
@@ -67,7 +67,7 @@ node scripts/check-ad-clean.mjs
 
 4. 设备端检查首页、播放、选集和线路切换，刷新 Quantumult X 远程规则/脚本缓存。实际通过后才把 status 改为 device-verified。默认日志保持关闭。
 
-`sites.json` 仅存放来源、发布页、样本链接和核验状态；运行时域名与路径仍由 `templates.json` 维护。`SITES.md` 自动生成，pending 项不进入规则。发布页增加新域名时先核验，不自动登记。规则更新失败可恢复上一提交的配置和脚本，或暂时禁用对应重写。
+`sites.json` 仅存放来源、发布页、样本链接和核验状态；运行时域名与路径由 `templates/*.json` 维护。`SITES.md` 自动生成，pending 项不进入规则。发布页增加新域名时先核验，不自动登记。规则更新失败可恢复上一提交的配置和脚本，或暂时禁用对应重写。
 
 内嵌 JS 的局部修改可使用 `replaceInlineScripts`：配置站点 `requires`、至少三个 `scriptRequires` 和 `pairs` 的精确源码/替换内容/预期次数。仅修改真实、无 src 的 script，未知或重复源码保留；用于明确的兼容性修改时保留原脚本其他内容。
 
@@ -77,7 +77,7 @@ node scripts/check-ad-clean.mjs
 
 ## 复用解析器策略
 
-`templates.json` 的 `parserProfiles` 保存解析器广告操作与源码指纹；解析器模板通过 `parserProfile` 引用，并单独维护 `bindings` 域名与路径。构建时展开策略，运行时不联网加载，不自动发现主机。当前策略：
+`manifest.json` 的 `parserProfiles` 保存解析器广告操作与源码指纹；解析器模板通过 `parserProfile` 引用，并单独维护 `bindings` 域名与路径。构建时展开策略，运行时不联网加载，不自动发现主机。当前策略：
 
 | 策略 ID | 内容 |
 | --- | --- |

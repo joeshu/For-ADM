@@ -1,0 +1,688 @@
+{
+  "id": "shared-media",
+  "defaults": {
+    "diagnostics": true,
+    "cacheBustRevision": true
+  },
+  "jsHelpers": {
+    "download": {
+      "marker": "function __forAdmDownloadData(",
+      "source": "function __forAdmDownloadData(raw){if(!raw||typeof raw!=='object'||Array.isArray(raw))return raw;var out={},units={},k;for(k in raw)if(Object.prototype.hasOwnProperty.call(raw,k))out[k]=raw[k];if(raw.units&&typeof raw.units==='object'&&!Array.isArray(raw.units))for(k in raw.units)if(Object.prototype.hasOwnProperty.call(raw.units,k))units[k]=raw.units[k];units.splash=[];units.video=[];units.dhz=[];units.countdown=0;units.type='';out.units=units;return out;}"
+    }
+  },
+  "actions": {
+    "ads-500657ae5e": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "appAdvertisements",
+        "click_advert_",
+        "FSImage",
+        "'banner'"
+      ],
+      "pairs": [
+        [
+          "{{v0}}={{v1}}['appAdvertisements']",
+          "{{v0}}=[]",
+          1
+        ]
+      ]
+    },
+    "ads-a181bf2104": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "0x3e71:function",
+        "/v2/config/units.capi",
+        "/app/announcements",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return {{v0}};}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ]
+    },
+    "ads-b0eb132fe9": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "appAdvertisements",
+        "click_advert_",
+        "FSImage",
+        "'banner'"
+      ],
+      "pairs": [
+        [
+          "{{v0}}={{v1}}['appAdvertisements']",
+          "{{v0}}=[]",
+          1
+        ],
+        [
+          "{{v2}}={{v3}}['appAdvertisements']",
+          "{{v2}}=[]",
+          1
+        ]
+      ]
+    },
+    "ads-625b2e79dd": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "getAdvertiseById",
+        "['ads']['find']",
+        "player"
+      ],
+      "pairs": [
+        [
+          "{{v0}}=function({{v1}},{{v2}}){if({{v2}}){var {{v3}}={{v2}}['ads']['find'](function({{v4}}){return {{v4}}['id']=={{v1}};});if({{v3}}){var {{v5}}={{v6}}['getAdvertiseById']({{v3}}['id']);{{v5}}&&({{v3}}['items']={{v5}}['items']);}return {{v3}}&&{{v3}}['items']&&{{v3}}['items']['length']>0x0?{{v3}}:void 0x0;}}",
+          "{{v0}}=function({{v1}},{{v2}}){return void 0x0;}",
+          1
+        ],
+        [
+          "{{v7}}=function({{v8}},{{v9}}){if({{v9}}){var {{v10}}={{v9}}['ads']['find'](function({{v11}}){return {{v11}}['id']=={{v8}};});if({{v10}}){var {{v12}}={{v13}}['getAdvertiseById']({{v10}}['id']);{{v12}}&&({{v10}}['items']={{v12}}['items']);}return {{v10}}&&{{v10}}['items']&&{{v10}}['items']['length']>0x0?{{v10}}:void 0x0;}}",
+          "{{v7}}=function({{v8}},{{v9}}){return void 0x0;}",
+          1
+        ]
+      ]
+    },
+    "ads-4aef3dade1": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "getAdvertiseById",
+        "['ads']['find']",
+        "player"
+      ],
+      "pairs": [
+        [
+          "{{v0}}=({{v1}},{{v2}})=>{if(!{{v2}})return;const {{v3}}={{v2}}['ads']['find']({{v4}}=>{{v4}}['id']=={{v1}});if({{v3}}){const {{v5}}={{v6}}['getAdvertiseById']({{v3}}['id']);{{v5}}&&({{v3}}['items']={{v5}}['items']);}return {{v3}}&&{{v3}}['items']&&{{v3}}['items']['length']>0x0?{{v3}}:void 0x0;}",
+          "{{v0}}=({{v1}},{{v2}})=>{return void 0x0;}",
+          1
+        ],
+        [
+          "{{v7}}=({{v8}},{{v9}})=>{if(!{{v9}})return;const {{v10}}={{v9}}['ads']['find']({{v11}}=>{{v11}}['id']=={{v8}});if({{v10}}){const {{v12}}={{v13}}['getAdvertiseById']({{v10}}['id']);{{v12}}&&({{v10}}['items']={{v12}}['items']);}return {{v10}}&&{{v10}}['items']&&{{v10}}['items']['length']>0x0?{{v10}}:void 0x0;}",
+          "{{v7}}=({{v8}},{{v9}})=>{return void 0x0;}",
+          1
+        ]
+      ]
+    },
+    "ads-d5e3df450d": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "getAdvertiseById",
+        "['ads']['find']",
+        "player"
+      ],
+      "pairs": [
+        [
+          "{{v0}}=function(){if({{v1}}['detail']&&{{v1}}['detail']['ads']){var {{v2}}={{v1}}['detail']['ads']['find'](function({{v3}}){return {{v3}}['id']=={{v4}}['BA']['VOD_START'];});if({{v2}}){var {{v5}}={{v6}}['getAdvertiseById']({{v2}}['id']);{{v5}}&&({{v2}}['items']={{v5}}['items']);}return {{v2}}&&{{v2}}['items']&&{{v2}}['items']['length']>0x0?{{v2}}:void 0x0;}}",
+          "{{v0}}=function(){return void 0x0;}",
+          1
+        ],
+        [
+          "{{v7}}=function(){if({{v1}}['detail']&&{{v1}}['detail']['ads']){var {{v8}}={{v1}}['detail']['ads']['find'](function({{v9}}){return {{v9}}['id']=={{v4}}['BA']['VOD_PAUSE'];});if({{v8}}){var {{v10}}={{v6}}['getAdvertiseById']({{v8}}['id']);{{v10}}&&({{v8}}['items']={{v10}}['items']);}return {{v8}}&&{{v8}}['items']&&{{v8}}['items']['length']>0x0?{{v8}}:void 0x0;}}",
+          "{{v7}}=function(){return void 0x0;}",
+          1
+        ]
+      ]
+    },
+    "ads-a6d1be18fb": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "getAdvertiseById",
+        "['ads']['find']",
+        "player"
+      ],
+      "pairs": [
+        [
+          "{{v0}}=()=>{if(!{{v1}}['detail']||!{{v1}}['detail']['ads'])return;const {{v2}}={{v1}}['detail']['ads']['find']({{v3}}=>{{v3}}['id']=={{v4}}['BA']['VOD_START']);if({{v2}}){const {{v5}}={{v6}}['getAdvertiseById']({{v2}}['id']);{{v5}}&&({{v2}}['items']={{v5}}['items']);}return {{v2}}&&{{v2}}['items']&&{{v2}}['items']['length']>0x0?{{v2}}:void 0x0;}",
+          "{{v0}}=()=>{return void 0x0;}",
+          1
+        ],
+        [
+          "{{v7}}=()=>{if(!{{v1}}['detail']||!{{v1}}['detail']['ads'])return;const {{v8}}={{v1}}['detail']['ads']['find']({{v9}}=>{{v9}}['id']=={{v4}}['BA']['VOD_PAUSE']);if({{v8}}){const {{v10}}={{v6}}['getAdvertiseById']({{v8}}['id']);{{v10}}&&({{v8}}['items']={{v10}}['items']);}return {{v8}}&&{{v8}}['items']&&{{v8}}['items']['length']>0x0?{{v8}}:void 0x0;}",
+          "{{v7}}=()=>{return void 0x0;}",
+          1
+        ]
+      ]
+    },
+    "ads-ca1f9a4b29": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "网盘下载",
+        "ad_last_shown_time",
+        "['units']['dhz']",
+        "['magnets']",
+        "setNetdisks",
+        "content-wrap",
+        "{{v0}}="
+      ],
+      "pairs": [
+        [
+          "{{v0}}={{v1}}=>{if(!{{v1}}||!{{v1}}['units']||(!{{v1}}['units']['splash']||0x0=={{v1}}['units']['splash']['length'])&&(!{{v1}}['units']['video']||0x0=={{v1}}['units']['video']['length'])&&(!{{v1}}['units']['dhz']||0x0=={{v1}}['units']['dhz']['length']))return;{{v2}}(),{{v3}}=0x3e8*{{v1}}['units']['interval']||{{v3}};const {{v4}}=Date['now'](),{{v5}}=localStorage['getItem']({{v6}});if(!{{v5}})return void {{v7}}({{v4}});const {{v8}}=JSON['parse']({{v5}}),{{v9}}={{v4}}-{{v8}}['timestamp'];'pending'==={{v8}}['status']||{{v9}}>={{v3}}?{{v7}}({{v4}}):(console['log']('广告冷却中，还剩\\x20'+Math['ceil'](({{v3}}-{{v9}})/0x3e8)+'\\x20秒'),{{v10}}['value']=!0x1,{{v2}}());}",
+          "{{v0}}={{v1}}=>{{{v10}}['value']=!0x1,{{v11}}['value']=0x0,{{v2}}();}",
+          1
+        ],
+        [
+          "{{v12}}=({{v13}},{{v14}})=>{if(!{{v14}}||!{{v14}}['type'])return void({{v10}}['value']=!0x1);const {{v15}}={{v14}}['type']['split'](','),{{v16}}=(0x0,{{v17}}['xD'])({{v15}});switch({{v16}}){case'splash':{{v18}}({{v13}},{{v14}}['splash']);break;case'video':{{v19}}({{v13}},{{v14}}['video']);break;case'dhz':{{v20}}({{v13}},{{v14}}['dhz']);break;default:{{v10}}['value']=!0x1;break;}}",
+          "{{v12}}=({{v13}},{{v14}})=>{{{v10}}['value']=!0x1,{{v11}}['value']=0x0,{{v2}}();}",
+          1
+        ]
+      ]
+    },
+    "ads-812222210e": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "网盘下载",
+        "ad_last_shown_time",
+        "['units']['dhz']",
+        "['magnets']",
+        "setNetdisks",
+        "content-wrap",
+        "{{v0}}="
+      ],
+      "pairs": [
+        [
+          "{{v0}}=function({{v1}}){if({{v1}}&&{{v1}}['units']&&({{v1}}['units']['splash']&&0x0!={{v1}}['units']['splash']['length']||{{v1}}['units']['video']&&0x0!={{v1}}['units']['video']['length']||{{v1}}['units']['dhz']&&0x0!={{v1}}['units']['dhz']['length'])){{{v2}}(),{{v3}}=0x3e8*{{v1}}['units']['interval']||{{v3}};var {{v4}}=Date['now'](),{{v5}}=localStorage['getItem']({{v6}});if({{v5}}){var {{v7}}=JSON['parse']({{v5}}),{{v8}}={{v4}}-{{v7}}['timestamp'];'pending'==={{v7}}['status']||{{v8}}>={{v3}}?{{v9}}({{v4}}):(console['log']('广告冷却中，还剩\\x20'['concat'](Math['ceil'](({{v3}}-{{v8}})/0x3e8),'\\x20秒')),{{v10}}['value']=!0x1,{{v2}}());}else {{v9}}({{v4}});}}",
+          "{{v0}}=function({{v1}}){{{v10}}['value']=!0x1,{{v11}}['value']=0x0,{{v2}}();}",
+          1
+        ],
+        [
+          "{{v12}}=function({{v13}},{{v14}}){if({{v14}}&&{{v14}}['type']){var {{v15}}={{v14}}['type']['split'](','),{{v16}}=(0x0,{{v17}}['xD'])({{v15}});switch({{v16}}){case'splash':{{v18}}({{v13}},{{v14}}['splash']);break;case'video':{{v19}}({{v13}},{{v14}}['video']);break;case'dhz':{{v20}}({{v13}},{{v14}}['dhz']);break;default:{{v10}}['value']=!0x1;break;}}else {{v10}}['value']=!0x1;}",
+          "{{v12}}=function({{v13}},{{v14}}){{{v10}}['value']=!0x1,{{v11}}['value']=0x0,{{v2}}();}",
+          1
+        ]
+      ]
+    },
+    "download-f7ffa299ee": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "helper": "download",
+      "requires": [
+        "网盘下载",
+        "ad_last_shown_time",
+        "['magnets']",
+        "setNetdisks",
+        "content-wrap",
+        "{{v0}}['value']"
+      ],
+      "pairs": [
+        [
+          "{{v0}}['value']={{v1}}['data']",
+          "{{v0}}['value']=__forAdmDownloadData({{v1}}['data'])",
+          1
+        ],
+        [
+          "(0x0,{{v2}}['R1'])({{v3}})?",
+          "!0x1?",
+          1
+        ],
+        [
+          "{{v4}}=(0x0,{{v2}}['KR'])(0xa)",
+          "{{v4}}=(0x0,{{v2}}['KR'])(0x0)",
+          1
+        ]
+      ]
+    },
+    "cards-8bcbc8dd67": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "helper": "cards",
+      "requires": [
+        "webpackChunkmovie",
+        "'VodEntra'",
+        "['banners']",
+        "['blocks']"
+      ],
+      "pairs": [
+        [
+          "{{v0}}['reco']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2({{v0}}['reco']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "{{v0}}['reco']['blocks']['length']>0x0",
+          "__forAdmKKCleanV2({{v0}}['reco']['blocks'])['length']>0x0",
+          1
+        ],
+        [
+          "{{v1}}['dataSource']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2({{v1}}['dataSource']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "{{v2}}['reco']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2({{v2}}['reco']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "{{v2}}['reco']['blocks']['length']>0x0",
+          "__forAdmKKCleanV2({{v2}}['reco']['blocks'])['length']>0x0",
+          1
+        ]
+      ]
+    },
+    "cards-519fd9be89": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['searchList'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['searchList']),",
+          1
+        ],
+        [
+          "['pI'])({{v1}}['items'],",
+          "['pI'])(__forAdmKKCleanV2({{v1}}['items']),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-b92398e55c": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['list']),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-655c37ff43": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v1}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v1}}['list']),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-a9a076e509": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodEntra'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['blocks'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['blocks']),",
+          1
+        ],
+        [
+          "['pI'])({{v1}}['banner']['items'],",
+          "['pI'])(__forAdmKKCleanV2({{v1}}['banner']['items']),",
+          1
+        ],
+        [
+          "['pI'])({{v2}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v2}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v3}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v3}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v4}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v4}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v5}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v5}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v6}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v6}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v7}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v7}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v8}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v8}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v8}}['selectedItem']['items'],",
+          "['pI'])(__forAdmKKCleanV2({{v8}}['selectedItem']['items']),",
+          1
+        ],
+        [
+          "['pI'])({{v9}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v9}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v10}}['dataSource'],",
+          "['pI'])(__forAdmKKCleanV2({{v10}}['dataSource']),",
+          1
+        ],
+        [
+          "'data-source':{{v11}}['data']}",
+          "'data-source':__forAdmKKCleanV2({{v11}}['data'])}",
+          1
+        ],
+        [
+          "'data-source':{{v11}}}",
+          "'data-source':__forAdmKKCleanV2({{v11}})}",
+          9
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-3766e9e652": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'ShortsSwiperSlideADItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['list']),",
+          1
+        ],
+        [
+          "'data-source':{{v0}}['collections'],",
+          "'data-source':__forAdmKKCleanV2({{v0}}['collections']),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-7e82bf212b": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['list']),",
+          1
+        ],
+        [
+          "['pI'])({{v1}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v1}}['list']),",
+          1
+        ],
+        [
+          "['pI'])({{v2}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v2}}['list']),",
+          1
+        ],
+        [
+          "['pI'])({{v3}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v3}}['list']),",
+          1
+        ],
+        [
+          "'data-source':{{v4}},",
+          "'data-source':__forAdmKKCleanV2({{v4}}),",
+          1
+        ],
+        [
+          "'dataSource':{{v5}}}",
+          "'dataSource':__forAdmKKCleanV2({{v5}})}",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-02960f4a6f": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "arrangedItems",
+        "webpackChunkmovie",
+        "POSTING_TYPE",
+        "getItemStyle"
+      ],
+      "pairs": [
+        [
+          "for(const {{v0}} of {{v1}}['items'])",
+          "for(const {{v0}} of __forAdmKKCleanV2({{v1}}['items']))",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-d495a3c8bd": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['dataSource']['hd']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['dataSource']['hd']['data']),",
+          1
+        ],
+        [
+          "['pI'])({{v0}}['dataSource']['trailer']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['dataSource']['trailer']['data']),",
+          1
+        ],
+        [
+          "'dataSource':{{v1}},",
+          "'dataSource':__forAdmKKCleanV2({{v1}}),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-4d79b17202": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['list']),",
+          1
+        ],
+        [
+          "['pI'])({{v1}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v1}}['list']),",
+          1
+        ],
+        [
+          "['pI'])({{v2}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v2}}['list']),",
+          1
+        ],
+        [
+          "'data-source':{{v3}},",
+          "'data-source':__forAdmKKCleanV2({{v3}}),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-f1dba9ae29": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['dataSource']['data']),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-5bd6ee6021": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['recoArticles'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['recoArticles']),",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-3c4719ac77": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodEntra'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['dataSource']['blocks'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['dataSource']['blocks']),",
+          1
+        ],
+        [
+          "['pI'])({{v1}}['dataSource'],",
+          "['pI'])(__forAdmKKCleanV2({{v1}}['dataSource']),",
+          1
+        ],
+        [
+          "['pI'])({{v2}}['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2({{v2}}['dataSource']['data']),",
+          1
+        ],
+        [
+          "'dataSource':{{v3}}['reco']['banners']}",
+          "'dataSource':__forAdmKKCleanV2({{v3}}['reco']['banners'])}",
+          1
+        ],
+        [
+          "'dataSource':{{v0}}['dataSource']['banners']}",
+          "'dataSource':__forAdmKKCleanV2({{v0}}['dataSource']['banners'])}",
+          1
+        ],
+        [
+          "'dataSource':{{v4}}}",
+          "'dataSource':__forAdmKKCleanV2({{v4}})}",
+          1
+        ],
+        [
+          "'data-source':{{v4}}['data']}",
+          "'data-source':__forAdmKKCleanV2({{v4}}['data'])}",
+          1
+        ],
+        [
+          "'dataSource':{{v5}},",
+          "'dataSource':__forAdmKKCleanV2({{v5}}),",
+          1
+        ],
+        [
+          "'dataSource':{{v6}}['reco']['banners']}",
+          "'dataSource':__forAdmKKCleanV2({{v6}}['reco']['banners'])}",
+          1
+        ],
+        [
+          "'data-source':{{v6}}['vodHistories']}",
+          "'data-source':__forAdmKKCleanV2({{v6}}['vodHistories'])}",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-e8026dcee9": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "arrangedItems",
+        "webpackChunkmovie",
+        "POSTING_TYPE",
+        "getItemStyle"
+      ],
+      "pairs": [
+        [
+          ")({{v0}}['items'])",
+          ")(__forAdmKKCleanV2({{v0}}['items']))",
+          1
+        ]
+      ],
+      "helper": "cards"
+    },
+    "cards-55ea43445c": {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "webpackChunkmovie",
+        "['pI']"
+      ],
+      "pairs": [
+        [
+          "['pI'])({{v0}}['list'],",
+          "['pI'])(__forAdmKKCleanV2({{v0}}['list']),",
+          2
+        ]
+      ],
+      "helper": "cards"
+    }
+  }
+}

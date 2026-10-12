@@ -1,0 +1,26 @@
+{
+  "id": "qingning-player",
+  "adapter": "declarative",
+  "output": {
+    "script": "qingning-player/ad-clean.js",
+    "conf": "qingning-player/quantumult-x-snippet.conf"
+  },
+  "bindings": [
+    {
+      "domains": {
+        "type": "exact",
+        "names": [
+          "tv.qingning88.com",
+          "tv.qingning77.com"
+        ]
+      },
+      "routes": [
+        {
+          "kind": "html",
+          "path": "/api/publicApi\\.php(?:\\?.*)?$"
+        }
+      ]
+    }
+  ],
+  "parserProfile": "qingning-player"
+}
