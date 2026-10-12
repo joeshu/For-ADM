@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 4cb0ae4a087e. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 3f3d2173d77a. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -189,7 +189,7 @@ function admRun(templates,processors,revision) {
       if(selected){
         var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
-        if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
+        if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0,playbackProtection:output.indexOf('function __forAdmDylsProbe(')>=0,adCacheProtection:output.indexOf('function __forAdmDylsClearAds(')>=0};
       }
     }
   }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
@@ -382,5 +382,5 @@ function cleanGuazi(ctx) {
  return result;
 }
 
-admRun([{"id":"guazi-app","adapter":"guazi","bindings":[{"host":"[\\w.-]+","routes":[{"kind":"json","path":"/App/Resource/Config/getNav(?:\\?|$)"},{"kind":"json","path":"/App/Ad/barsPlayAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/Ad/playAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/IndexPlay/vodAdvertisement(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/showOne(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/vurlDetail(?:\\?|$)"}]}]}],{guazi:cleanGuazi},"4cb0ae4a087e");
+admRun([{"id":"guazi-app","adapter":"guazi","bindings":[{"host":"[\\w.-]+","routes":[{"kind":"json","path":"/App/Resource/Config/getNav(?:\\?|$)"},{"kind":"json","path":"/App/Ad/barsPlayAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/Ad/playAdInfo(?:\\?|$)"},{"kind":"json","path":"/App/IndexPlay/vodAdvertisement(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/showOne(?:\\?|$)"},{"kind":"json","path":"/App/Resource/Vod/vurlDetail(?:\\?|$)"}]}]}],{guazi:cleanGuazi},"3f3d2173d77a");
 })();

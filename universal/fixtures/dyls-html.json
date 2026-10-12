@@ -1,0 +1,12 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/",
+  "body": "<link rel=\"manifest\" href=\"/manifest.json\"><script type=\"module\" src=\"/assets/index-BSCFNKjP.js\"></script><div id=\"root\"></div>",
+  "removed": [
+    "src=\"/assets/index-BSCFNKjP.js\""
+  ],
+  "preserved": [
+    "/manifest.json",
+    "id=\"root\""
+  ]
+}

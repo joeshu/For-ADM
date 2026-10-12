@@ -1,0 +1,12 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/sw.js",
+  "body": "/* DylsWarmAdImages ; async function Pe(e) ; workbox:core:7.4.0 */\nself.addEventListener(`message`,e=>{let t=e.data;t?.type===$&&e.waitUntil(Pe(t.urls))})\n/* caches.keep-ordinary-assets ; account-preserved */",
+  "removed": [
+    "self.addEventListener(`message`,e=>{let t=e.data;t?.type===$&&e.waitUntil(Pe(t.urls))})"
+  ],
+  "preserved": [
+    "caches.keep-ordinary-assets",
+    "account-preserved"
+  ]
+}

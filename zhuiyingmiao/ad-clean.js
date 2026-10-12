@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 127102cabe4f. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 2dfa4e557ca3. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -189,7 +189,7 @@ function admRun(templates,processors,revision) {
       if(selected){
         var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
-        if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
+        if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0,playbackProtection:output.indexOf('function __forAdmDylsProbe(')>=0,adCacheProtection:output.indexOf('function __forAdmDylsClearAds(')>=0};
       }
     }
   }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
@@ -197,5 +197,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"zhuiyingmiao","adapter":"declarative","output":{"script":"zhuiyingmiao/ad-clean.js","conf":"zhuiyingmiao/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeElements","requires":["var maccms=","/mxtheme/js/home.js","zhuiyingmiao5.com"],"selector":{"tag":"div","attr":"class","token":"module-adslist"}}],"bindings":[{"host":"(?:zhuiyingmiao5\\.com|www\\.zhuiyingmiao5\\.com)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"127102cabe4f");
+admRun([{"id":"zhuiyingmiao","adapter":"declarative","output":{"script":"zhuiyingmiao/ad-clean.js","conf":"zhuiyingmiao/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeElements","requires":["var maccms=","/mxtheme/js/home.js","zhuiyingmiao5.com"],"selector":{"tag":"div","attr":"class","token":"module-adslist"}}],"bindings":[{"host":"(?:zhuiyingmiao5\\.com|www\\.zhuiyingmiao5\\.com)","routes":[{"kind":"html","path":"/(?:index\\.html|(?:voddetail|vodtype|vodshow|vodsearch)/[^/?#]+\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"2dfa4e557ca3");
 })();

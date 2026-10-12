@@ -1,0 +1,71 @@
+{
+  "playbackAction": 12,
+  "bridgeAction": 13,
+  "htmlAction": 11,
+  "timeoutHelper": "function __forAdmDylsResume(time){var n=Number(time);return Number.isFinite(n)&&n>0?n:0;}\nfunction __forAdmDylsNaturalEnd(video,started,disposed){return !!(video&&started&&!disposed&&video.ended===true&&!video.error&&!video.seeking&&Number.isFinite(video.duration)&&video.duration>0&&Number.isFinite(video.currentTime)&&video.currentTime>=Math.max(0,video.duration-2));}\nfunction __forAdmDylsProbe(prepare,args,parent,timeout){return new Promise(function(resolve,reject){var controller=typeof AbortController==='function'?new AbortController():null,finished=false,timer=null;function cleanup(){if(timer!==null)clearTimeout(timer);if(parent&&parent.removeEventListener)parent.removeEventListener('abort',abort);}function finish(error,value){if(finished)return;finished=true;cleanup();error?reject(error):resolve(value);}function abort(){if(controller)controller.abort();var error=new Error('Playback request cancelled');error.name='AbortError';finish(error);}if(parent&&parent.aborted){abort();return;}if(parent&&parent.addEventListener)parent.addEventListener('abort',abort,{once:true});timer=setTimeout(function(){if(controller)controller.abort();var error=new Error('Playback source timed out');error.name='TimeoutError';finish(error);},timeout||8000);var values=args.slice();if(controller)values[2]=controller.signal;Promise.resolve().then(function(){if(finished)return;return prepare.apply(null,values);}).then(function(value){finish(null,value);},finish);});}",
+  "cacheHelper": "function __forAdmDylsClearAds(){try{localStorage.removeItem('AdsQuery');localStorage.removeItem('AdsQuery_timestamp');}catch(ignore){}}\n__forAdmDylsClearAds();",
+  "newWorkerPrefix": "/* For-ADM: dyls targeted JS cache v2. */\n(function(){\nvar target=/^\\/assets\\/(?:index|helperService|NewAds|home|explorer|Main|search|playerService|player)-[A-Za-z0-9_-]+\\.js$/;\nfunction known(url){try{var u=new URL(url,self.location.origin);return u.origin===self.location.origin&&target.test(u.pathname)}catch(e){return false}}\nself.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(names){return Promise.all(names.map(function(name){return caches.open(name).then(function(cache){return cache.keys().then(function(keys){return Promise.all(keys.filter(function(key){return known(key.url)}).map(function(key){return cache.delete(key)}))})})}))}).catch(function(){}))});\nself.addEventListener('fetch',function(event){if(event.request.method!=='GET'||!known(event.request.url))return;event.stopImmediatePropagation();event.respondWith((async function(){try{var response=await fetch(event.request,{cache:'no-store'});if(!response.ok)throw Error('Dyls module response '+response.status);if(!/javascript|ecmascript/i.test(response.headers.get('content-type')||''))throw Error('Dyls module is not JavaScript');{try{var cache=await caches.open('for-adm-dyls-js-v2-__ADM_CACHE_REVISION__');await cache.put(event.request,response.clone())}catch(e){}}return response}catch(error){var fallback=await caches.open('for-adm-dyls-js-v2-__ADM_CACHE_REVISION__');var cached=await fallback.match(event.request);if(cached)return cached;throw error}})())});\n})();\ntry {self[`workbox:core:7.4.0`]&&_()}catch{}",
+  "extraPairs": [
+    [
+      "if(n.manual&&De(),!t?.code||!e)return`cancelled`;let r=Ge(t)",
+      "if(n.manual&&De(),!t?.code||!e)return`cancelled`;n.manual&&(__forAdmManualPending.current=!0);let r=Ge(t)",
+      1
+    ],
+    [
+      "let e=await We(t,o,l,u);return le(c)?e&&He(e,c)?",
+      "let e=await __forAdmDylsProbe(We,[t,o,l,__forAdmDylsResume(u)],l,12000);return le(c)?e&&e.preferredEpisodeIndex===o&&He(e,c)?",
+      1
+    ],
+    [
+      "finally{Z(l)}return`failed`",
+      "finally{n.manual&&le(c)&&(__forAdmManualPending.current=!1,ge()),Z(l)}return`failed`",
+      1
+    ],
+    [
+      "O(e),Ce();try{let i=await Ue",
+      "a.current=0,P(0),O(e),Ce();try{let i=await Ue",
+      1
+    ],
+    [
+      "preferredEpisodeIndex:f>=0?f:r,resumeTime:a",
+      "preferredEpisodeIndex:f>=0?f:r,resumeTime:__forAdmDylsResume(a)",
+      1
+    ],
+    [
+      "resumeTime:s>=0&&(t?.current_time||e.last_playback?.current_time)||0",
+      "resumeTime:__forAdmDylsResume(s>=0&&(t?.current_time||e.last_playback?.current_time)||0)",
+      1
+    ],
+    [
+      "p=i?.current_time||r?.current_time||0",
+      "p=__forAdmDylsResume(i?.current_time||r?.current_time||0)",
+      1
+    ],
+    [
+      "M&&K.currentTime>0&&M(K.currentTime)},[K.currentTime,M]",
+      "M&&G.status===`playing`&&K.currentTime>0&&M(K.currentTime,t)},[K.currentTime,M,t,G.status]",
+      1
+    ],
+    [
+      "z=()=>{y(),b(),C({currentTime:Rt(E.currentTime)",
+      "z=()=>{if(!__forAdmDylsNaturalEnd(E,c.current,m.current))return;y(),b(),C({currentTime:Rt(E.currentTime)",
+      1
+    ],
+    [
+      "Ze=async(e,t)=>{let n=new Set",
+      "Ze=async(e,t)=>{if(__forAdmManualPending.current)return null;let n=new Set",
+      1
+    ],
+    [
+      "if(!f||!me.length||o.current)return;let e=u.current",
+      "if(!f||!me.length||o.current||__forAdmManualPending.current)return;let e=u.current",
+      1
+    ],
+    [
+      "if(Y.phase!==`failed`||!he||!f||o.current)return;",
+      "if(Y.phase!==`failed`||!he||!f||o.current||__forAdmManualPending.current)return;",
+      1
+    ]
+  ],
+  "manualExpression": "Xe=async(t,n={})=>{if(n.manual&&De(),!t?.code||!e)return`cancelled`;let r=Ge(t),i=f?.play_from[r]?.list||[],o=n.keepEpisodeIndex?_:0,s=i[o]||i[0]||null,{sessionId:c,signal:l}=Me(n.manual?`source-manual`:`source-auto`,t.code);A(r,s),i.length>0&&(R(i),y(Math.min(o,i.length-1))),n.manual&&(h?.from_code&&h.from_code!==t.code&&ye(h.from_code),be(t.code));let u=n.resumeTime;if(u===void 0){let t=a.current;u=t>0?t:e&&Be(e)?.current_time||0}try{let e=await We(t,o,l,u);return le(c)?e&&He(e,c)?(Ce(),`switched`):(Ne(c,t.code),`failed`):`cancelled`}catch(e){if(Ae(e))return`cancelled`;console.error(`Error switching playback source:`,e),Ne(c,t.code)}finally{Z(l)}return`failed`}"
+}

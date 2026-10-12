@@ -1,7 +1,7 @@
 {
   "template": "dyls",
   "url": "https://dyls1.mbxqnb.cn/assets/player-B4L3j5Ck.js",
-  "body": "/* function Uc(e) ; function Fc({movieId:e ; Error probing playback source: ; source-manual ; resumeAppliedRef ; currentEpisodeNumber */\nc=(0,Q.useRef)(0),u=(0,Q.useRef)({generation:0,status:`idle`,candidate:null})\nhe=(0,Q.useMemo)(()=>me.some\nDe=()=>{c.current+=1,\nCe(),qe(``,`movie-load`)\nfor(let r of me){if(e!==c.current||t?.aborted)return null;\nif(!n.has(r.code)){try{let n=await We(r,_,t);\nif(n)return n}catch(e){if(Ae(e)||t?.aborted)return null;console.error(`Error probing playback source:`,e)}\n$e=e=>He(e,je(`source-auto`,e.sourceCode))?(Ce(),I(!1),\nhandlePlaybackTimeChange:e=>{a.current=e}\nE.currentTime=zt(r,e),a.current=!0\n/* fixture-preserved-player-features */",
+  "body": "/* function Uc(e) ; function Fc({movieId:e ; Error probing playback source: ; source-manual ; resumeAppliedRef ; currentEpisodeNumber */\nc=(0,Q.useRef)(0),u=(0,Q.useRef)({generation:0,status:`idle`,candidate:null})\nhe=(0,Q.useMemo)(()=>me.some\nDe=()=>{c.current+=1,\nCe(),qe(``,`movie-load`)\nfor(let r of me){if(e!==c.current||t?.aborted)return null;\nif(!n.has(r.code)){try{let n=await We(r,_,t);\nif(n)return n}catch(e){if(Ae(e)||t?.aborted)return null;console.error(`Error probing playback source:`,e)}\n$e=e=>He(e,je(`source-auto`,e.sourceCode))?(Ce(),I(!1),\nhandlePlaybackTimeChange:e=>{a.current=e}\nE.currentTime=zt(r,e),a.current=!0\n/* fixture-film.m3u8?sign=keep ; account-keep */",
   "removed": [
     "c=(0,Q.useRef)(0),u=(0,Q.useRef)({generation:0,status:`idle`,candidate:null})",
     "he=(0,Q.useMemo)(()=>me.some",
@@ -14,6 +14,7 @@
     "E.currentTime=zt(r,e),a.current=!0"
   ],
   "preserved": [
-    "fixture-preserved-player-features"
+    "fixture-film.m3u8?sign=keep",
+    "account-keep"
   ]
 }

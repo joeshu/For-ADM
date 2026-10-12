@@ -1,0 +1,22 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/player-B4L3j5Ck.js",
+  "body": "/* function Uc(e) ; function Fc({movieId:e ; Error probing playback source: ; source-manual ; resumeAppliedRef ; currentEpisodeNumber ; function Uc(e) ; function Fc({movieId:e ; source-manual ; preferredEpisodeIndex ; resumeAppliedRef */\nc=(0,Q.useRef)(0),u=(0,Q.useRef)({generation:0,status:`idle`,candidate:null})\nhe=(0,Q.useMemo)(()=>me.some\nDe=()=>{c.current+=1,\nCe(),qe(``,`movie-load`)\nfor(let r of me){if(e!==c.current||t?.aborted)return null;\nif(!n.has(r.code)){try{let n=await We(r,_,t);\nif(n)return n}catch(e){if(Ae(e)||t?.aborted)return null;console.error(`Error probing playback source:`,e)}\n$e=e=>He(e,je(`source-auto`,e.sourceCode))?(Ce(),I(!1),\nhandlePlaybackTimeChange:e=>{a.current=e}\nE.currentTime=zt(r,e),a.current=!0\nif(n.manual&&De(),!t?.code||!e)return`cancelled`;let r=Ge(t)\nlet e=await We(t,o,l,u);return le(c)?e&&He(e,c)?\nfinally{Z(l)}return`failed`\nO(e),Ce();try{let i=await Ue\npreferredEpisodeIndex:f>=0?f:r,resumeTime:a\nresumeTime:s>=0&&(t?.current_time||e.last_playback?.current_time)||0\np=i?.current_time||r?.current_time||0\nM&&K.currentTime>0&&M(K.currentTime)},[K.currentTime,M]\nz=()=>{y(),b(),C({currentTime:Rt(E.currentTime)\nZe=async(e,t)=>{let n=new Set\nif(!f||!me.length||o.current)return;let e=u.current\nif(Y.phase!==`failed`||!he||!f||o.current)return;\n/* fixture-film.m3u8?sign=keep ; account-keep */",
+  "removed": [
+    "if(n.manual&&De(),!t?.code||!e)return`cancelled`;let r=Ge(t)",
+    "let e=await We(t,o,l,u);return le(c)?e&&He(e,c)?",
+    "finally{Z(l)}return`failed`",
+    "preferredEpisodeIndex:f>=0?f:r,resumeTime:a",
+    "resumeTime:s>=0&&(t?.current_time||e.last_playback?.current_time)||0",
+    "p=i?.current_time||r?.current_time||0",
+    "M&&K.currentTime>0&&M(K.currentTime)},[K.currentTime,M]",
+    "z=()=>{y(),b(),C({currentTime:Rt(E.currentTime)",
+    "Ze=async(e,t)=>{let n=new Set",
+    "if(!f||!me.length||o.current)return;let e=u.current",
+    "if(Y.phase!==`failed`||!he||!f||o.current)return;"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-keep"
+  ]
+}

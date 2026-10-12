@@ -1,4 +1,4 @@
-# 网飞猫 / 可可影视 / 好好看诊断与源码检查
+# 影视站诊断与源码检查
 
 默认关闭日志。诊断只在 Quantumult X 中记录站点、脚本版本、JS 路径、替换组数和下载保护标记，不记录查询参数、响应正文、影片地址或账户数据。
 
@@ -47,3 +47,5 @@ node scripts/audit-media-sites.mjs --site=ncat --source-dir=/path/to/sources --o
 此检查验证源码适配能力，不能代替手机广告展示与播放验收。不抓取 API、影片、下载文件或 HLS。
 
 现代/legacy 下载规则加入各自独有的函数与数据变量指纹，避免把另一版未匹配误报成当前版失败。任务脚本更新后需更新 QX 任务脚本缓存；可在任务 URL 后加 `?v=20261012-history` 强制请求新版本。
+
+电影猎手接入 `dyls` 记录。`playbackProtection` 表示响应含超时/续播辅助代码；`adCacheProtection` 表示响应含两个已确认广告缓存键的清理代码。两者不能证明浏览器执行成功。电影猎手源码检查运行 `node scripts/audit-dyls-site.mjs`，或手动运行 “Dyls source audit” 工作流。

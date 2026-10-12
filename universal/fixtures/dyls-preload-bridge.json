@@ -1,0 +1,12 @@
+{
+  "template": "dyls",
+  "url": "https://dyls1.mbxqnb.cn/assets/helperService-ovSFIM0i.js",
+  "body": "/* ./helperService-BjnnVgxU.js ; ensureAdsQueryLoaded ; ensureHeaderTopicsLoaded */\nexport{t as ensureAdsQueryLoaded,e as ensureHeaderTopicsLoaded};\n/* fixture-film.m3u8?sign=keep ; account-keep */",
+  "removed": [
+    "export{t as ensureAdsQueryLoaded,e as ensureHeaderTopicsLoaded};"
+  ],
+  "preserved": [
+    "fixture-film.m3u8?sign=keep",
+    "account-keep"
+  ]
+}
