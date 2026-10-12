@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision e9a2a7ecf103. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 5a1602fde419. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -189,13 +189,13 @@ function admRun(templates,processors,revision) {
       if(selected){
         var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
-        if(debug&&(selected.template.id==='kkapp'||selected.template.id==='ncat'))report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
+        if(debug&&(selected.template.id==='kkapp'||selected.template.id==='ncat'))report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
       }
     }
   }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
-  if(report)try{console.log('[For-ADM] '+JSON.stringify(report));if(report.site)$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.'+report.site);}catch(ignore){}
+  if(report)try{console.log('[For-ADM] '+JSON.stringify(report));if(report.site){$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.'+report.site);var historyKey='ForADM.DebugHistory.'+report.site,history=[];try{history=JSON.parse($prefs.valueForKey(historyKey)||'[]');if(!Array.isArray(history))history=[];}catch(ignore){}history=history.filter(function(item){return item&&!(item.path===report.path&&item.probe===report.probe);});history.push(report);$prefs.setValueForKey(JSON.stringify(history.slice(-16)),historyKey);}}catch(ignore){}
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"auete","adapter":"declarative","output":{"script":"auete/ad-clean.js","conf":"auete/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","bodyPattern":"^(?!\\s*(?:<!doctype|<html|<body)\\b)","value":"/* For-ADM: dedicated Auete page advertising module disabled. */"},{"kind":"html","requires":["Auete","/js/common.js"],"bodyPattern":"<html[\\s>]","op":"removeElements","selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"}}],"bindings":[{"host":"(?:|www\\.)(?:aeete\\.com|au1080\\.top)","routes":[{"kind":"js","path":"/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"e9a2a7ecf103");
+admRun([{"id":"auete","adapter":"declarative","output":{"script":"auete/ad-clean.js","conf":"auete/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"setBody","bodyPattern":"^(?!\\s*(?:<!doctype|<html|<body)\\b)","value":"/* For-ADM: dedicated Auete page advertising module disabled. */"},{"kind":"html","requires":["Auete","/js/common.js"],"bodyPattern":"<html[\\s>]","op":"removeElements","selector":{"tag":"script","attr":"src","pattern":"^(?:https?:)?(?://(?:www\\.)?(?:aeete\\.com|au1080\\.top))?/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:[?#].*)?$"}}],"bindings":[{"host":"(?:|www\\.)(?:aeete\\.com|au1080\\.top)","routes":[{"kind":"js","path":"/js/mcenter/(?:tbxf|tbtl|tlbf|dibu|dbtl)\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:[^?#]*/|[^?#]*\\.html)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"5a1602fde419");
 })();

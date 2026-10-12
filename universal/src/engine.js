@@ -187,10 +187,10 @@ function admRun(templates,processors,revision) {
       if(selected){
         var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
-        if(debug&&(selected.template.id==='kkapp'||selected.template.id==='ncat'))report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
+        if(debug&&(selected.template.id==='kkapp'||selected.template.id==='ncat'))report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
       }
     }
   }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
-  if(report)try{console.log('[For-ADM] '+JSON.stringify(report));if(report.site)$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.'+report.site);}catch(ignore){}
+  if(report)try{console.log('[For-ADM] '+JSON.stringify(report));if(report.site){$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.'+report.site);var historyKey='ForADM.DebugHistory.'+report.site,history=[];try{history=JSON.parse($prefs.valueForKey(historyKey)||'[]');if(!Array.isArray(history))history=[];}catch(ignore){}history=history.filter(function(item){return item&&!(item.path===report.path&&item.probe===report.probe);});history.push(report);$prefs.setValueForKey(JSON.stringify(history.slice(-16)),historyKey);}}catch(ignore){}
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
