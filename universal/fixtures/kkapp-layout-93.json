@@ -1,0 +1,16 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20514/js/9165-legacy.eda9f208.js",
+  "body": "/* webpackChunkmovie ; 'VodEntra' ; ['banners'] ; ['blocks'] */\n_0x1d0801['reco']['banners']['data']['length']>0x0\n_0x1d0801['reco']['blocks']['length']>0x0\n_0x7983fe['dataSource']['banners']['data']['length']>0x0\n_0x49b16a['reco']['banners']['data']['length']>0x0\n_0x49b16a['reco']['blocks']['length']>0x0\n/* loading ; film.m3u8?sign=keep */",
+  "removed": [
+    "_0x1d0801['reco']['banners']['data']['length']>0x0",
+    "_0x1d0801['reco']['blocks']['length']>0x0",
+    "_0x7983fe['dataSource']['banners']['data']['length']>0x0",
+    "_0x49b16a['reco']['banners']['data']['length']>0x0",
+    "_0x49b16a['reco']['blocks']['length']>0x0"
+  ],
+  "preserved": [
+    "loading",
+    "film.m3u8?sign=keep"
+  ]
+}

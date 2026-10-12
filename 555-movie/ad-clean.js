@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 21b85edb8906. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 080a186a22a8. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -138,6 +138,7 @@ function admHtmlAction(body,rule) {
 }
 function cleanDeclarative(ctx,template) {
   var body=ctx.body,helpers=[];
+  var audit=ctx.audit; if(audit){audit.groups=0;audit.changedGroups=0;audit.pairs=0;audit.failedGroups=0;}
   if(ctx.kind==='json') {
     if(!admHas(body,template.jsonRequires))return body;
     var original=JSON.parse(body),cleaned=__admEnvelope(original,ctx.path,template.jsonPolicies||[],template.jsonRootGuard);
@@ -145,10 +146,12 @@ function cleanDeclarative(ctx,template) {
   }
   (template.actions||[]).forEach(function(rule){
     if(rule.kind!==ctx.kind||!admHas(body,rule.requires)||(rule.bodyPattern&&!new RegExp(rule.bodyPattern,'i').test(body)))return;
+    var before=body;if(audit)audit.groups++;
     if(rule.op==='replaceRegex')body=body.replace(new RegExp(rule.pattern,rule.flags||'g'),rule.value);
     else if(rule.op==='replaceGroup'){var next=admGroup(body,rule.pairs);if(next!==body&&rule.helper&&helpers.indexOf(rule.helper)<0)helpers.push(rule.helper);body=next;}
     else if(rule.op==='setQueryParameter'||rule.op==='removeElements'||rule.op==='removeAttributes'||rule.op==='removeInlineScripts'||rule.op==='replaceInlineScripts')body=admHtmlAction(body,rule);
     else if(rule.op==='setBody')body=rule.value;
+    if(audit){if(body!==before){audit.changedGroups++;if(rule.pairs)audit.pairs+=rule.pairs.length;}else if(rule.op==='replaceGroup')audit.failedGroups++;}
   });
   if(ctx.kind==='js')helpers.forEach(function(name){var helper=template.jsHelpers&&template.jsHelpers[name];if(helper&&body.indexOf(helper.marker)<0)body=helper.source+'\n'+body;});
   return body;
@@ -170,8 +173,9 @@ function admJsonRuntime(policies) {
   return [__admRead,__admGuard,__admWrite,__admOps,__admEnvelope].map(function(f){return f.toString();}).join('\n')+
     '\nvar __forAdmYqkPolicies='+JSON.stringify(policies)+';\nfunction __forAdmYqkClean(raw,endpoint){return __admEnvelope(raw,endpoint,__forAdmYqkPolicies);}\n';
 }
-function admRun(templates,processors) {
-  var original=$response.body||'', output=original;
+function admRun(templates,processors,revision) {
+  var original=$response.body||'', output=original,debug=false,report=null;
+  try{debug=typeof $prefs!=='undefined'&&Number($prefs.valueForKey('ForADM.DebugUntil'))>Date.now();}catch(ignore){}
   try {
     var url=($request&&$request.url)||'',method=String(($request&&$request.method)||'').toUpperCase();
     var status=$response.statusCode;
@@ -182,11 +186,16 @@ function admRun(templates,processors) {
         var b=templates[i].bindings[j];if(b.ports&&port!==null&&b.ports.indexOf(port)<0)continue;if(!new RegExp('^'+b.host+'$','i').test(host))continue;
         for(var k=0;k<b.routes.length;k++)if(new RegExp('^'+b.routes[k].path,'i').test(path)){selected={template:templates[i],kind:b.routes[k].kind};break;}
       }
-      if(selected&&admResponseAllowed(selected.kind,original,$response))output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind},selected.template);
+      if(selected){
+        var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
+        if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
+        if(debug&&(selected.template.id==='kkapp'||selected.template.id==='ncat'))report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0};
+      }
     }
-  }catch(_){output=original;}
+  }catch(_){output=original;if(debug)report={status:'runtime-error',revision:revision};}
+  if(report)try{console.log('[For-ADM] '+JSON.stringify(report));if(report.site)$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.'+report.site);}catch(ignore){}
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"555-movie","adapter":"declarative","output":{"script":"555-movie/ad-clean.js","conf":"555-movie/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeInlineScripts","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"scriptRequires":["document.getElementById('d693d6351')","document.getElementById('c2f670cd2')","document.getElementById('c2f670cd')","Object.values(JSON.parse(atob(encodedContent)))","setTimeout(renderContent, 2000)"]},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"script","attr":"id","exact":"d693d6351"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"div","attr":"id","exact":"c2f670cd2"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"div","attr":"id","exact":"c2f670cd"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"script","attr":"id","exact":"iYmIuMjZyeS5"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"div","attr":"class","token":"small-icon-container"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"a","attr":"href","pattern":"^https://(?:55kp2\\.com|55dy23\\.com)/d1/(?:[?#].*)?$"}},{"kind":"js","op":"replaceGroup","requires":["#iYmIuMjZyeS5","JSON.parse(atob(Y))","small-icon-intro-placeholder","Object.keys(H).forEach(B=>"],"pairs":[["var Y=$(\"#iYmIuMjZyeS5\").data(\"encoded\");","var Y=null; /* For-ADM: 555 promotion grid disabled. */",1]]}],"bindings":[{"host":"(?:wu5mv\\.com|www\\.wu5mv\\.com)","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:5dy)\\d+\\.vip","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:55dy)\\d+\\.top","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:555k|55kp)\\d+\\.com","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:eliteres\\.fanruan\\.com)","routes":[{"kind":"js","path":"/office/2026/09/24/5217868f-8244-4d9f-8eae-1028bcc2c2a7\\.js(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative});
+admRun([{"id":"555-movie","adapter":"declarative","output":{"script":"555-movie/ad-clean.js","conf":"555-movie/quantumult-x-snippet.conf"},"actions":[{"kind":"html","op":"removeInlineScripts","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"scriptRequires":["document.getElementById('d693d6351')","document.getElementById('c2f670cd2')","document.getElementById('c2f670cd')","Object.values(JSON.parse(atob(encodedContent)))","setTimeout(renderContent, 2000)"]},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"script","attr":"id","exact":"d693d6351"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"div","attr":"id","exact":"c2f670cd2"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"div","attr":"id","exact":"c2f670cd"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"script","attr":"id","exact":"iYmIuMjZyeS5"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"div","attr":"class","token":"small-icon-container"}},{"kind":"html","op":"removeElements","requires":["var maccms","www.555dy.net","data-cdn-origin-assets"],"selector":{"tag":"a","attr":"href","pattern":"^https://(?:55kp2\\.com|55dy23\\.com)/d1/(?:[?#].*)?$"}},{"kind":"js","op":"replaceGroup","requires":["#iYmIuMjZyeS5","JSON.parse(atob(Y))","small-icon-intro-placeholder","Object.keys(H).forEach(B=>"],"pairs":[["var Y=$(\"#iYmIuMjZyeS5\").data(\"encoded\");","var Y=null; /* For-ADM: 555 promotion grid disabled. */",1]]}],"bindings":[{"host":"(?:wu5mv\\.com|www\\.wu5mv\\.com)","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:5dy)\\d+\\.vip","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:55dy)\\d+\\.top","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:|www\\.)(?:555k|55kp)\\d+\\.com","routes":[{"kind":"html","path":"/(?:[^?#]*\\.html)?(?:\\?.*)?$"}]},{"host":"(?:eliteres\\.fanruan\\.com)","routes":[{"kind":"js","path":"/office/2026/09/24/5217868f-8244-4d9f-8eae-1028bcc2c2a7\\.js(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"080a186a22a8");
 })();

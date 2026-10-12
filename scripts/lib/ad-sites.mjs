@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {resolveMediaTemplate} from './shared-media.mjs';
 import path from 'node:path';
 import vm from 'node:vm';
 import {resolveParserProfile} from './parser-profiles.mjs';
@@ -26,7 +27,7 @@ export function fixtureChecks(code,fixture) {
  return out;
 }
 export function draftCode(root,template) {
- template=resolveParserProfile(template,readJSON(path.join(root,'universal/templates.json')));
+ template=resolveMediaTemplate(resolveParserProfile(template,readJSON(path.join(root,'universal/templates.json'))));
  const engine=fs.readFileSync(path.join(root,'universal/src/engine.js'),'utf8');
  assert.equal(template.adapter,'declarative');
  const runtime={...template,bindings:template.bindings.map(b=>{

@@ -1,5 +1,6 @@
+import {resolveMediaTemplate} from '../scripts/lib/shared-media.mjs';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {test} from 'node:test';import {runCleaner,readJSON} from '../scripts/lib/ad-sites.mjs';
-const manifest=readJSON(new URL('../universal/templates.json',import.meta.url)),t=manifest.templates.find(t=>t.id==='ncat'),sources=readJSON(new URL('./ncat-sources.json',import.meta.url)),code=fs.readFileSync(new URL('../universal/ad-clean.js',import.meta.url),'utf8');
+const manifest=readJSON(new URL('../universal/templates.json',import.meta.url)),t=resolveMediaTemplate(manifest.templates.find(t=>t.id==='ncat')),sources=readJSON(new URL('./ncat-sources.json',import.meta.url)),code=fs.readFileSync(new URL('../universal/ad-clean.js',import.meta.url),'utf8');
 test('NCAT modern and legacy core getters reject cached ads without modifying account data',()=>{
  for(const source of sources.filter(x=>x.kind==='core')){const action=t.actions[source.action],context=vm.createContext({});vm.runInContext('var holder={'+action.pairs[0][1]+'};var '+action.pairs[1][1]+';',context);context.holder.appAdvertisements=[{id:'vodHomeAd1',items:[{url:'ad'}]}];context.holder.user={id:'preserved'};assert.equal(context.holder.getAdvertiseById('vodHomeAd1'),undefined);const key=action.pairs[1][1].split('=')[0];assert.equal(context[key]('vodHomeAd1'),false);assert.equal(context.holder.user.id,'preserved');}
 });

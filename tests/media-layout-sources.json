@@ -1,0 +1,30 @@
+[
+  {
+    "template": "kkapp",
+    "file": "9165-legacy.eda9f208.js",
+    "action": 93,
+    "fixture": "kkapp-layout-93.json",
+    "url": "https://a.kkapp06.com/static/v20514/js/9165-legacy.eda9f208.js"
+  },
+  {
+    "template": "kkapp",
+    "file": "9165.62613367.js",
+    "action": 94,
+    "fixture": "kkapp-layout-94.json",
+    "url": "https://a.kkapp06.com/static/v20514/js/9165.62613367.js"
+  },
+  {
+    "template": "ncat",
+    "file": "9165-legacy.f94c5b3c.js",
+    "action": 93,
+    "fixture": "ncat-layout-93.json",
+    "url": "https://a.napp03.com:51111/static/v20529/js/9165-legacy.f94c5b3c.js"
+  },
+  {
+    "template": "ncat",
+    "file": "9165.62613367.js",
+    "action": 94,
+    "fixture": "ncat-layout-94.json",
+    "url": "https://a.napp03.com:51111/static/v20529/js/9165.62613367.js"
+  }
+]

@@ -1,5 +1,6 @@
+import {resolveMediaTemplate} from '../scripts/lib/shared-media.mjs';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {test} from 'node:test';import {readJSON,runCleaner} from '../scripts/lib/ad-sites.mjs';
-const manifest=readJSON(new URL('../universal/templates.json',import.meta.url)),t=manifest.templates.find(t=>t.id==='ncat'),code=fs.readFileSync(new URL('../universal/ad-clean.js',import.meta.url),'utf8');
+const manifest=readJSON(new URL('../universal/templates.json',import.meta.url)),t=resolveMediaTemplate(manifest.templates.find(t=>t.id==='ncat')),code=fs.readFileSync(new URL('../universal/ad-clean.js',import.meta.url),'utf8');
 function cleaner(){const c=vm.createContext({URL,URLSearchParams,location:{origin:'https://a.napp03.com:51111'}});vm.runInContext(t.jsHelpers.cards.source,c);return c.__forAdmKKCleanV2;}
 test('NCAT double-encoded and movie-labelled promo cards no longer bypass the predicate',()=>{
  const clean=cleaner(),keep=[{title:'film',type:'movie',url:'vod/detail?id=1'},{title:'normal video',type:'video',url:'video/detail?id=2'},{text:'本周国剧',url:'channel/list?id=3'},{title:'media',type:'mp4',coverPath:'cover.jpg',url:'https://cdn.example/file.mp4?sign=untouched'}],ads=[{title:'PG',type:'movie',url:'https://promo.example/'},{title:'promo',type:'video',coverPath:'ad.jpg',url:'https://promo.example/landing'},{text:'promo',url:'browser?url=https%253A%252F%252Fpromo.example%252F'},{title:'promo',url:'web?url=https%253A%252F%252Fpromo.example%252F'}];

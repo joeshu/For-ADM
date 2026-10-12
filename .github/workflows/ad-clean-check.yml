@@ -34,6 +34,8 @@ on:
       - 'tests/ncat-sources.json'
       - 'tests/ncat-download-sources.json'
       - 'tests/download-hardening-sources.json'
+      - 'tests/media-layout-sources.json'
+      - 'scripts/audit-media-sites.mjs'
       - '.github/workflows/ad-clean-check.yml'
   pull_request:
     paths:
@@ -69,6 +71,8 @@ on:
       - 'tests/ncat-sources.json'
       - 'tests/ncat-download-sources.json'
       - 'tests/download-hardening-sources.json'
+      - 'tests/media-layout-sources.json'
+      - 'scripts/audit-media-sites.mjs'
       - '.github/workflows/ad-clean-check.yml'
 permissions:
   contents: read

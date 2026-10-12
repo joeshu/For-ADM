@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {resolveMediaTemplate} from './lib/shared-media.mjs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
@@ -20,11 +21,11 @@ function domains(d){
  const p=prefixes.map(s=>escape(s)+(s?'\\.':''));
  return {host:(p.length>1?'(?:'+p.join('|')+')':p[0])+base,mitm:prefixes.flatMap(p=>mitm.map(s=>(p?p+'.':'')+s))};
 }
-const sources=['universal/src/engine.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
+const sources=['universal/src/engine.js','universal/src/shared-media-cards.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
 const source=sources.map(read).join('\n');
 const revision=crypto.createHash('sha256').update(read('universal/templates.json')+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')+read('scripts/lib/parser-profiles.mjs')).digest('hex').slice(0,12);
 parserProfiles(manifest);
-const templates=manifest.templates.map(t=>resolveParserProfile(t,manifest)).map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
+const templates=manifest.templates.map(t=>resolveMediaTemplate(resolveParserProfile(t,manifest))).map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
 const outputPaths=new Set();
 function validatePairs(pairs){
@@ -105,7 +106,7 @@ function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest
  const scriptVersion=crypto.createHash('sha256').update(selectedSource+JSON.stringify(runtime)+processors).digest('hex').slice(0,12);
  scriptVersions.set(scriptPath,scriptVersion);
  const header='/* GENERATED from universal/templates.json and universal/src; revision '+scriptVersion+'. Do not edit. */\n';
- const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+');\n})();\n';
+ const code=header+'(function(){\n'+selectedSource+'\nadmRun('+JSON.stringify(runtime)+','+processors+','+JSON.stringify(scriptVersion)+');\n})();\n';
  const url=manifest.rawBase+'/'+scriptPath+'?v='+scriptVersion;
  const rules=selected.flatMap(t=>t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+url)));
  const groups=selected.map(t=>'# '+t.id+'\n'+t.bindings.flatMap(b=>b.routes.map(r=>'^https?://'+bindingHost(b)+r.path+' url script-response-body '+url)).join('\n')); 

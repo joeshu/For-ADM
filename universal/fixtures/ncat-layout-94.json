@@ -1,0 +1,16 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20529/js/9165.62613367.js",
+  "body": "/* webpackChunkmovie ; 'VodEntra' ; ['banners'] ; ['blocks'] */\n_0x31484c['reco']['banners']['data']['length']>0x0\n_0x31484c['reco']['blocks']['length']>0x0\n_0xfdf450['dataSource']['banners']['data']['length']>0x0\n_0x22e2d5['reco']['banners']['data']['length']>0x0\n_0x22e2d5['reco']['blocks']['length']>0x0\n/* loading ; film.m3u8?sign=keep */",
+  "removed": [
+    "_0x31484c['reco']['banners']['data']['length']>0x0",
+    "_0x31484c['reco']['blocks']['length']>0x0",
+    "_0xfdf450['dataSource']['banners']['data']['length']>0x0",
+    "_0x22e2d5['reco']['banners']['data']['length']>0x0",
+    "_0x22e2d5['reco']['blocks']['length']>0x0"
+  ],
+  "preserved": [
+    "loading",
+    "film.m3u8?sign=keep"
+  ]
+}
