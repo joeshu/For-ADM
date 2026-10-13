@@ -58,14 +58,19 @@ function admHlsClean(body, policy) {
   return lines.filter(function(_,index){return !drop[index];}).join(newline);
 }
 function admHlsRun(templates) {
-  var original=$response.body,output=original;
+  var original=$response.body,output=original,report=null,debug=false,policy=null;
+  try{debug=typeof $prefs!=='undefined'&&Number($prefs.valueForKey('ForADM.DebugUntil'))>Date.now();}catch(ignore){}
   try {
-    var url=$request.url||'',method=($request.method||'GET').toUpperCase(),status=$response.statusCode;
-    var match=url.match(/^https?:\/\/([^/:?#]+)(\/[^#]*)$/i);
-    if(match&&method==='GET'&&!(typeof status==='number'&&status>=400)) {
-      var policy=templates.filter(function(t){return new RegExp('^'+t.host+'$','i').test(match[1])&&new RegExp('^'+t.path).test(match[2]);})[0];
-      if(policy)output=admHlsClean(original,policy);
+    var url=$request.url||'',method=($request.method||'GET').toUpperCase(),match=url.match(/^https?:\/\/([^/:?#]+)(\/[^#]*)$/i),raw=$response.statusCode!==undefined?$response.statusCode:$response.status;
+    var status=typeof raw==='number'?raw:Number((String(raw||'').match(/^(?:HTTP\/\S+\s+)?(\d{3})(?:\s|$)/)||[])[1]||200),type='',headers=$response.headers||{};
+    Object.keys(headers).forEach(function(k){if(k.toLowerCase()==='content-type')type=String(headers[k]).toLowerCase();});
+    if(match&&method==='GET') {
+      policy=templates.filter(function(t){return new RegExp('^'+t.host+'$','i').test(match[1])&&new RegExp('^'+t.path).test(match[2]);})[0];
+      if(policy){var audit={};if(status>=200&&status<300&&status!==206&&!/html|json|xml/.test(type))output=policy.mode==='stateful-vod'?admHlsStatefulClean(original,policy,url,audit):admHlsClean(original,policy);else audit.reason='response-preserved';
+        if(debug)report={site:'hls-video',policy:policy.id,checkedAt:Date.now(),host:match[1],path:match[2].split('?')[0],status:output!==original?'modified':'preserved',removedSegments:audit.removedSegments||0,removedSeconds:audit.removedSeconds||0,retainedSegments:audit.retainedSegments||0,reason:audit.reason||'legacy-policy'};
+      }
     }
-  }catch(_){output=original;}
+  }catch(_){output=original;if(debug&&policy)report={site:'hls-video',policy:policy.id,checkedAt:Date.now(),status:'runtime-error'};}
+  if(report)try{console.log('[For-ADM] '+JSON.stringify(report));$prefs.setValueForKey(JSON.stringify(report),'ForADM.Debug.hls-video');var history=[];try{history=JSON.parse($prefs.valueForKey('ForADM.DebugHistory.hls-video')||'[]');if(!Array.isArray(history))history=[];}catch(ignore){}history=history.filter(function(r){return !(r.host===report.host&&r.path===report.path);});history.push(report);$prefs.setValueForKey(JSON.stringify(history.slice(-16)),'ForADM.DebugHistory.hls-video');}catch(ignore){}
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }

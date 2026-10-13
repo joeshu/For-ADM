@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-13T11:11:20.937Z",
+  "source": "https://paste.liumingye.cn/26475",
+  "playlist": "https://ckzy3.com/20260103/cKN3v9uG/1100kb/hls/index.m3u8",
+  "httpStatus": 200,
+  "sourceSha256": "9d5fd4e5b48ec735244a4c23f3fdcf1982452912f5a3876326f6ba04c1771100",
+  "outputSha256": "afe2212c47a02274fc40c74c409559f6ea6c88703ba1375bf4209067b7abed02",
+  "inputBytes": 134200,
+  "outputBytes": 132510,
+  "originalSegments": 1704,
+  "removedSegments": 30,
+  "removedSeconds": 75.24,
+  "retainedSegments": 1674,
+  "originalDiscontinuities": 9,
+  "outputDiscontinuities": 9,
+  "firstRetainedOriginalSequence": 6,
+  "firstOutputSequence": 6,
+  "contentUriDurationKeyAndDiscontinuitySnapshotsIdentical": true,
+  "idempotent": true,
+  "mediaAndKeyBytesFetched": false,
+  "devicePlayback": "NOT_RUN",
+  "policy": "ckzy3-plain-jpg-insertions"
+}

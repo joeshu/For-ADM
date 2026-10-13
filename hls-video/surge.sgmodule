@@ -1,0 +1,8 @@
+#!name=For-ADM HLS 切片去广告
+#!desc=独立试用模块，按已登记特征清理 VOD
+[Script]
+ForADM-HLS-0 = type=http-response,pattern=^https?://c\d+\.rrcdnbf\d+\.com/video/[^?#]+\.m3u8(?:\?[^#]*)?$,script-path=https://raw.githubusercontent.com/joeshu/For-ADM/master/hls-video/ad-clean.js?v=b412f2426013,requires-body=true,max-size=3145728,timeout=30
+ForADM-HLS-1 = type=http-response,pattern=^https?://ckzy3\.com/\d{8}/[A-Za-z0-9]+/\d+kb/hls/[A-Za-z0-9_-]+\.m3u8(?:\?[^#]*)?$,script-path=https://raw.githubusercontent.com/joeshu/For-ADM/master/hls-video/ad-clean.js?v=b412f2426013,requires-body=true,max-size=3145728,timeout=30
+
+[MITM]
+hostname = %APPEND% c*.rrcdnbf*.com, ckzy3.com

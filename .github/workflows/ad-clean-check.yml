@@ -5,7 +5,7 @@ on:
       - 'universal/**'
       - 'hls-video/**'
       - 'scripts/build-hls-clean.mjs'
-      - 'tests/hls-clean.test.mjs'
+      - 'tests/hls-*.test.mjs'
       - 'souju-ai/**'
       - 'yqk-qntv/**'
       - 'ycblcw/**'
@@ -48,7 +48,7 @@ on:
       - 'universal/**'
       - 'hls-video/**'
       - 'scripts/build-hls-clean.mjs'
-      - 'tests/hls-clean.test.mjs'
+      - 'tests/hls-*.test.mjs'
       - 'souju-ai/**'
       - 'yqk-qntv/**'
       - 'ycblcw/**'
@@ -101,4 +101,4 @@ jobs:
           package-manager-cache: false
       - run: node scripts/check-ad-clean.mjs
       - run: node scripts/build-hls-clean.mjs --check
-      - run: node --test tests/hls-clean.test.mjs
+      - run: node --test tests/hls-*.test.mjs

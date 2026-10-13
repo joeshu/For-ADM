@@ -130,6 +130,9 @@
       ]
     }
   ],
+  "diagnosticExtras": [
+    "hls-video"
+  ],
   "templates": [
     {
       "id": "yqk-qntv",

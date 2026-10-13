@@ -96,7 +96,8 @@ for(const r of requestRules){
 function bindingHost(b){return b.host+(b.ports?'(?::(?:'+b.ports.join('|')+'))?':'');}
 function requestLines(r,scriptUrl){if(r.mode==='verbatim')return r.lines.map(l=>r.adapter&&scriptUrl&&l.includes(' url script-response-body ')?l.split(' url ')[0]+' url script-response-body '+scriptUrl:l);return r.endpoints.map(p=>'^https?://'+r.host+escape(p)+'(?:\\?.*)?$ url '+r.action);}
 const generated=new Map([['universal/templates.json',manifestText]]),scriptVersions=new Map();
-const diagnosticSites=[...templates.filter(t=>t.diagnostics===true).map(t=>t.id),...requestRules.filter(r=>r.adapter&&r.diagnostics===true).map(r=>r.id)];
+if(manifest.diagnosticExtras!==undefined&&(!Array.isArray(manifest.diagnosticExtras)||manifest.diagnosticExtras.some(id=>typeof id!=='string'||!/^[a-z0-9][a-z0-9-]*$/.test(id)||ids.has(id))||new Set(manifest.diagnosticExtras).size!==manifest.diagnosticExtras.length))throw Error('Invalid extra diagnostic IDs');
+const diagnosticSites=[...templates.filter(t=>t.diagnostics===true).map(t=>t.id),...requestRules.filter(r=>r.adapter&&r.diagnostics===true).map(r=>r.id),...(manifest.diagnosticExtras||[])];
 for(const name of ['debug-on','debug-report','debug-off'])generated.set('universal/'+name+'.js',read('universal/src/'+name+'.js').replaceAll('__ADM_DIAGNOSTIC_SITES__',JSON.stringify(diagnosticSites)));
 function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest=null){
  const requests=onlyRequest?[onlyRequest]:(includeRequests?requestRules:[]);

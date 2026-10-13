@@ -150,5 +150,8 @@
   ],
   "behaviorProfiles": [
     "shared-media"
+  ],
+  "diagnosticExtras": [
+    "hls-video"
   ]
 }

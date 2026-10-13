@@ -6,11 +6,33 @@
       "id": "baofeng-adjump-experimental",
       "host": "c\\d+\\.rrcdnbf\\d+\\.com",
       "path": "/video/[^?#]+\\.m3u8(?:\\?[^#]*)?$",
-      "mitm": ["c*.rrcdnbf*.com"],
+      "mitm": [
+        "c*.rrcdnbf*.com"
+      ],
       "adPath": "/adjump/[^?#]+\\.ts$",
       "maxAdSeconds": 120,
       "maxRemovedFraction": 0.2,
       "evidence": "Yswag/for-own-use js/cmsAdblock.js bfeng path signature; real playback not yet verified"
+    },
+    {
+      "id": "ckzy3-plain-jpg-insertions",
+      "mode": "stateful-vod",
+      "host": "ckzy3\\.com",
+      "path": "/\\d{8}/[A-Za-z0-9]+/\\d+kb/hls/[A-Za-z0-9_-]+\\.m3u8(?:\\?[^#]*)?$",
+      "mitm": [
+        "ckzy3.com"
+      ],
+      "adPath": "^/\\d{8}/[a-f0-9]{16}/seg_\\d{5}\\.jpg$",
+      "contentHosts": [
+        "cklunlicaiji\\.com",
+        "ckzy3\\.com"
+      ],
+      "contentPath": "^/\\d{8}/[A-Za-z0-9]+/\\d+kb/hls/[A-Za-z0-9_-]+\\.(?:jpg|ts)$",
+      "allowPrefix": true,
+      "requireFollowingAES": true,
+      "maxAdSeconds": 120,
+      "maxRemovedFraction": 0.2,
+      "evidence": "https://paste.liumingye.cn/26475; public playlist fetched 2026-10-13: 1704 segments, five NONE-key insertion groups (30 segments) followed by AES-128 content; media/key bytes not fetched"
     }
   ]
 }

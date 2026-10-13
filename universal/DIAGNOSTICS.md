@@ -62,3 +62,5 @@ node scripts/audit-media-sites.mjs --site=ncat --source-dir=/path/to/sources --o
 运行 `node scripts/audit-all-sites.mjs --out=all-sites-audit.json` 可检查整个订阅的独立路由、回归样本和当前线上源码；使用 `--offline` 只检查本地路由与样本。三站现代/legacy 全分包和电影猎手使用专门的完整指纹审计；其余站点检查已登记公开入口和可发现的受控脚本。编号域名只访问登记样本，不遍历无限编号。App 加密响应需要真实设备抓包，报告为 NOT_RUN；可访问入口本身不计为广告源码通过。报告不保存源码正文、查询参数或账号信息。
 
 手动 GitHub Actions 新增 “All subscribed sites source audit”。任何源码变化返回退出码 1；任何部分核验、不可访问或未运行返回 2，并保留逐站报告，不能作为全部线上通过。
+
+可选 HLS 切片模块已接入同一限时开关，记录标记为 hls-video。任务列表现在覆盖 18 个单元（网页/App 17 个，HLS 1 个）；新增任务脚本需刷新缓存。HLS 订阅保持独立安装，详见 [说明](../hls-video/README.md)。
