@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import {loadTemplateManifest} from './lib/template-manifest.mjs';
 import {resolveMediaTemplate} from './lib/shared-media.mjs';
+import {resolveStructuralTemplate} from './lib/media-structural.mjs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
@@ -23,11 +24,11 @@ function domains(d){
  const p=prefixes.map(s=>escape(s)+(s?'\\.':''));
  return {host:(p.length>1?'(?:'+p.join('|')+')':p[0])+base,mitm:prefixes.flatMap(p=>mitm.map(s=>(p?p+'.':'')+s))};
 }
-const sources=['universal/src/engine.js','universal/src/shared-media-cards.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js'];
+const sources=['universal/src/engine.js','universal/src/shared-media-cards.js','universal/src/function-tools.js','universal/src/souju.js','universal/src/yqk.js','universal/src/guazi.js','universal/src/media-structural.js','universal/profiles/media-structural.json','scripts/lib/media-structural.mjs','vendor/acorn/acorn-8.15.0.js','vendor/acorn/LICENSE'];
 const source=sources.map(read).join('\n');
 const revision=crypto.createHash('sha256').update(manifestText+source+(manifest.requestRules||[]).map(r=>(r.sourceFile?read(validateSourcePath(r.sourceFile)):'')+(r.upstreamScript?read(r.upstreamScript):'')+(r.cryptoSource?read(r.cryptoSource):'')).join('')+read('scripts/build-ad-clean.mjs')+read('scripts/lib/rule-import.mjs')+read('scripts/lib/guazi-build.mjs')+read('scripts/lib/host-pattern.mjs')+read('scripts/lib/parser-profiles.mjs')).digest('hex').slice(0,12);
 parserProfiles(manifest);
-const templates=manifest.templates.map(t=>resolveMediaTemplate(resolveParserProfile(t,manifest))).map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
+const templates=manifest.templates.map(t=>resolveStructuralTemplate(resolveMediaTemplate(resolveParserProfile(t,manifest)),root)).map(t=>({...t,bindings:t.bindings.map(b=>({...b,...domains(b.domains)}))}));
 const ids=new Set();
 const outputPaths=new Set();
 function validatePairs(pairs){
@@ -106,6 +107,7 @@ function generate(selected,scriptPath,confPath,includeRequests=false,onlyRequest
  // One runtime owns $done. Adapters return a body; no nested Quantumult globals.
  const adapters=[...new Set(runtime.map(t=>t.adapter))];
  let selectedSource=read('universal/src/engine.js')+(adapters.includes('souju')?'\n'+read('universal/src/function-tools.js')+'\n'+read('universal/src/souju.js'):'')+(adapters.includes('yqk')?'\n'+read('universal/src/yqk.js'):'');
+ if(runtime.some(t=>t.structuralRules))selectedSource+='\nfunction admMediaAcorn(){if(!admMediaAcorn.instance){var exports={},module={exports:exports};\n/*\n'+read('vendor/acorn/LICENSE')+'\n*/\n'+read('vendor/acorn/acorn-8.15.0.js')+'\nadmMediaAcorn.instance=exports;}return admMediaAcorn.instance;}\n'+read('universal/src/media-structural.js');
  if(adapters.includes('guazi')){const r=requests.find(r=>r.adapter==='guazi');selectedSource+='\n'+buildGuaziSource(read('universal/src/guazi.js'),read(r.upstreamScript),read(r.cryptoSource));}
  const names={guazi:'cleanGuazi',souju:'cleanSouju',yqk:'cleanYqk',declarative:'cleanDeclarative'};
  const processors='{'+adapters.map(a=>a+':'+names[a]).join(',')+'}';

@@ -3131,6 +3131,22 @@
       },
       "key": "for_adm",
       "value": "happ-v3-__ADM_CACHE_REVISION__"
+    },
+    {
+      "kind": "html",
+      "op": "setQueryParameter",
+      "requires": [
+        "好好看",
+        "id=\"app\"",
+        "static/v"
+      ],
+      "selector": {
+        "tag": "script",
+        "attr": "src",
+        "pattern": "^static/v[0-9]+/js/app(?:-legacy)?\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+      },
+      "key": "for_adm",
+      "value": "happ-v3-__ADM_CACHE_REVISION__"
     }
   ],
   "jsHelpers": {
@@ -3143,5 +3159,6 @@
       ]
     }
   },
-  "behaviorProfile": "shared-media"
+  "behaviorProfile": "shared-media",
+  "structuralFallback": "shared-media-v1"
 }

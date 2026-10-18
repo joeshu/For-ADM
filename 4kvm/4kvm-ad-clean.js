@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 73e1eb479bf2. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision cc613ff12922. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -153,6 +153,10 @@ function cleanDeclarative(ctx,template) {
     else if(rule.op==='setBody')body=rule.value;
     if(audit){if(body!==before){audit.changedGroups++;if(rule.pairs)audit.pairs+=rule.pairs.length;}else if(rule.op==='replaceGroup')audit.failedGroups++;}
   });
+  if(ctx.kind==='js'&&template.structuralRules&&typeof admMediaStructural==='function'){
+    var structural=admMediaStructural(body,template.structuralRules,audit);body=structural.body;
+    structural.helpers.forEach(function(name){if(helpers.indexOf(name)<0)helpers.push(name);});
+  }
   if(ctx.kind==='js')helpers.forEach(function(name){var helper=template.jsHelpers&&template.jsHelpers[name];if(helper&&body.indexOf(helper.marker)<0)body=helper.source+'\n'+body;});
   return body;
 }
@@ -190,6 +194,7 @@ function admRun(templates,processors,revision) {
         var allowed=admResponseAllowed(selected.kind,original,$response),audit=debug?{}:null;
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
         if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0,playbackProtection:output.indexOf('function __forAdmDylsProbe(')>=0,adCacheProtection:output.indexOf('function __forAdmDylsClearAds(')>=0};
+        if(report&&audit&&audit.structuralStatus){report.structuralStatus=audit.structuralStatus;report.structuralPairs=audit.structuralPairs||0;}
       }
     }
   }catch(_){output=original;if(debug){report={checkedAt:Date.now(),status:'runtime-error',revision:revision};if(selected&&selected.template.diagnostics===true){report.site=selected.template.id;report.host=host;report.path=path.split('?')[0];report.kind=selected.kind;report.probe=/(?:[?&])for_adm_probe=/.test(path);}}}
@@ -197,5 +202,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"4kvm","adapter":"declarative","output":{"script":"4kvm/4kvm-ad-clean.js","conf":"4kvm/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled=!0","value":"this.prerollAdEnabled=!1"},{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled&&","value":"false&&"},{"kind":"html","op":"removeElements","bodyPattern":"<html[\\s>]","selector":{"tag":"div","attr":"class","token":"ad-item"}},{"kind":"html","op":"removeAttributes","bodyPattern":"<html[\\s>]","attributePattern":"^data-preroll-ad-[\\w-]+$"}],"diagnostics":true,"bindings":[{"host":"(?:|www\\.)(?:4kvms\\.org|4kvms\\.com|4kvm\\.top|4kvm\\.cc|4kvm\\.me|4kvm\\.org|4kvm\\.tv|4kvm\\.net|4kvm\\.pro|4kvm\\.com)","routes":[{"kind":"js","path":"/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:play/[^/?]+)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"73e1eb479bf2");
+admRun([{"id":"4kvm","adapter":"declarative","output":{"script":"4kvm/4kvm-ad-clean.js","conf":"4kvm/quantumult-x-snippet.conf"},"actions":[{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled=!0","value":"this.prerollAdEnabled=!1"},{"kind":"js","op":"replaceRegex","requires":["artplayerPluginAds({"],"pattern":"this\\.prerollAdEnabled&&","value":"false&&"},{"kind":"html","op":"removeElements","bodyPattern":"<html[\\s>]","selector":{"tag":"div","attr":"class","token":"ad-item"}},{"kind":"html","op":"removeAttributes","bodyPattern":"<html[\\s>]","attributePattern":"^data-preroll-ad-[\\w-]+$"}],"diagnostics":true,"bindings":[{"host":"(?:|www\\.)(?:4kvms\\.org|4kvms\\.com|4kvm\\.top|4kvm\\.cc|4kvm\\.me|4kvm\\.org|4kvm\\.tv|4kvm\\.net|4kvm\\.pro|4kvm\\.com)","routes":[{"kind":"js","path":"/static/js/dist/app\\.ultra\\.min\\.[^/?]+\\.js(?:\\?.*)?$"},{"kind":"html","path":"/(?:play/[^/?]+)?(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"cc613ff12922");
 })();

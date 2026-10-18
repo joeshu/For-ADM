@@ -1,6 +1,8 @@
 name: KKAPP NCAT and HAPP source audit
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * *'
 permissions:
   contents: read
 jobs:

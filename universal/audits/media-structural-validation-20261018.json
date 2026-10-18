@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-18T11:00:30.548Z",
+  "unchangedCompatibility": 966,
+  "syntheticModules": 744,
+  "syntheticRanges": 552,
+  "syntaxChecked": 966,
+  "failures": [],
+  "timingMs": {
+    "median": 1.77,
+    "max": 275.2
+  },
+  "baselineCommit": "fab5f9a5a199561a53023a966b3f15ccbdb28d13",
+  "structuralTemplates": 39,
+  "runtimeScriptsSha256": {
+    "kkapp": "1a9ddc39a4172188c5aa7dbe2582e3845c4bace9627b9eb77f0ff0cab17ad492",
+    "ncat": "5f3c54a782ab409009a10ab1e68b23423806c0ba65fff3febafc7b75eb0433e4",
+    "happ": "9b42c7b2d0a9562d0191ab26d782c33634839a85d488b60a6ad83b1f03487a45"
+  },
+  "regression": {
+    "passed": 758,
+    "failed": 0
+  },
+  "phoneTested": false
+}

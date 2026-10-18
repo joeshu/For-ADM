@@ -1,0 +1,11 @@
+{
+  "name": "for-adm-media-resilience-research",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test structural.test.mjs"
+  },
+  "dependencies": {
+    "acorn": "8.15.0"
+  }
+}

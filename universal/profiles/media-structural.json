@@ -1,0 +1,497 @@
+{
+  "id": "shared-media-v1",
+  "brands": {
+    "kkapp": "可可影视",
+    "ncat": "网飞猫",
+    "happ": "好好看"
+  },
+  "rules": [
+    {
+      "before": "_0x0=_0x1['appAdvertisements']",
+      "after": "_0x0=[]",
+      "guards": [
+        [
+          "appAdvertisements",
+          "click_advert_",
+          "FSImage",
+          "'banner'"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=function(_0x1,_0x2){if(_0x2){var _0x3=_0x2['ads']['find'](function(_0x4){return _0x4['id']==_0x1;});if(_0x3){var _0x5=_0x6['getAdvertiseById'](_0x3['id']);_0x5&&(_0x3['items']=_0x5['items']);}return _0x3&&_0x3['items']&&_0x3['items']['length']>0x0?_0x3:void 0x0;}}",
+      "after": "_0x0=function(_0x1,_0x2){return void 0x0;}",
+      "guards": [
+        [
+          "getAdvertiseById",
+          "['ads']['find']",
+          "player"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=(_0x1,_0x2)=>{if(!_0x2)return;const _0x3=_0x2['ads']['find'](_0x4=>_0x4['id']==_0x1);if(_0x3){const _0x5=_0x6['getAdvertiseById'](_0x3['id']);_0x5&&(_0x3['items']=_0x5['items']);}return _0x3&&_0x3['items']&&_0x3['items']['length']>0x0?_0x3:void 0x0;}",
+      "after": "_0x0=(_0x1,_0x2)=>{return void 0x0;}",
+      "guards": [
+        [
+          "getAdvertiseById",
+          "['ads']['find']",
+          "player"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=function(){if(_0x1['detail']&&_0x1['detail']['ads']){var _0x2=_0x1['detail']['ads']['find'](function(_0x3){return _0x3['id']==_0x4['BA']['VOD_START'];});if(_0x2){var _0x5=_0x6['getAdvertiseById'](_0x2['id']);_0x5&&(_0x2['items']=_0x5['items']);}return _0x2&&_0x2['items']&&_0x2['items']['length']>0x0?_0x2:void 0x0;}}",
+      "after": "_0x0=function(){return void 0x0;}",
+      "guards": [
+        [
+          "getAdvertiseById",
+          "['ads']['find']",
+          "player"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=function(){if(_0x1['detail']&&_0x1['detail']['ads']){var _0x2=_0x1['detail']['ads']['find'](function(_0x3){return _0x3['id']==_0x4['BA']['VOD_PAUSE'];});if(_0x2){var _0x5=_0x6['getAdvertiseById'](_0x2['id']);_0x5&&(_0x2['items']=_0x5['items']);}return _0x2&&_0x2['items']&&_0x2['items']['length']>0x0?_0x2:void 0x0;}}",
+      "after": "_0x0=function(){return void 0x0;}",
+      "guards": [
+        [
+          "getAdvertiseById",
+          "['ads']['find']",
+          "player"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=()=>{if(!_0x1['detail']||!_0x1['detail']['ads'])return;const _0x2=_0x1['detail']['ads']['find'](_0x3=>_0x3['id']==_0x4['BA']['VOD_START']);if(_0x2){const _0x5=_0x6['getAdvertiseById'](_0x2['id']);_0x5&&(_0x2['items']=_0x5['items']);}return _0x2&&_0x2['items']&&_0x2['items']['length']>0x0?_0x2:void 0x0;}",
+      "after": "_0x0=()=>{return void 0x0;}",
+      "guards": [
+        [
+          "getAdvertiseById",
+          "['ads']['find']",
+          "player"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=()=>{if(!_0x1['detail']||!_0x1['detail']['ads'])return;const _0x2=_0x1['detail']['ads']['find'](_0x3=>_0x3['id']==_0x4['BA']['VOD_PAUSE']);if(_0x2){const _0x5=_0x6['getAdvertiseById'](_0x2['id']);_0x5&&(_0x2['items']=_0x5['items']);}return _0x2&&_0x2['items']&&_0x2['items']['length']>0x0?_0x2:void 0x0;}",
+      "after": "_0x0=()=>{return void 0x0;}",
+      "guards": [
+        [
+          "getAdvertiseById",
+          "['ads']['find']",
+          "player"
+        ]
+      ]
+    },
+    {
+      "before": "'getAdvertiseById':function(_0x0){if(_0x0&&0x0!=_0x0['length']){var _0x1=this['appAdvertisements'];return _0x1&&_0x1['length']>0x0?_0x1['find'](function(_0x2){return _0x2['id']==_0x0;}):void 0x0;}}",
+      "after": "'getAdvertiseById':function(_0x0){return void 0x0;}",
+      "guards": [
+        [
+          "'appName':'{{appName}}'",
+          "'getAdvertiseById'",
+          "'FLOATING_WINDOW'",
+          "'VOD_START'"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=function(_0x1){var _0x2=(0x0,_0x3['P'])(),_0x4=_0x2['appAdvertisements'];return!!(_0x4&&_0x4['length']>0x0&&_0x1&&_0x1['length']>0x0)&&_0x4['some'](function(_0x5){return _0x5['id']==_0x1;});}",
+      "after": "_0x0=function(_0x1){return false;}",
+      "guards": [
+        [
+          "'appName':'{{appName}}'",
+          "'getAdvertiseById'",
+          "'FLOATING_WINDOW'",
+          "'VOD_START'"
+        ]
+      ]
+    },
+    {
+      "before": "'getAdvertiseById'(_0x0){if(!_0x0||0x0==_0x0['length'])return;const _0x1=this['appAdvertisements'];return _0x1&&_0x1['length']>0x0?_0x1['find'](_0x2=>_0x2['id']==_0x0):void 0x0;}",
+      "after": "'getAdvertiseById'(_0x0){return void 0x0;}",
+      "guards": [
+        [
+          "'appName':'{{appName}}'",
+          "'getAdvertiseById'",
+          "'FLOATING_WINDOW'",
+          "'VOD_START'"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0=_0x1=>{const _0x2=(0x0,_0x3['P'])(),_0x4=_0x2['appAdvertisements'];return!!(_0x4&&_0x4['length']>0x0&&_0x1&&_0x1['length']>0x0)&&_0x4['some'](_0x5=>_0x5['id']==_0x1);}",
+      "after": "_0x0=_0x1=>{return false;}",
+      "guards": [
+        [
+          "'appName':'{{appName}}'",
+          "'getAdvertiseById'",
+          "'FLOATING_WINDOW'",
+          "'VOD_START'"
+        ]
+      ]
+    },
+    {
+      "before": "['pI'])(_0x0['searchList'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['searchList']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['items'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['items']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['list'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['list']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ],
+        [
+          "'ShortsSwiperSlideADItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['data'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['data']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['blocks'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['blocks']),",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['banner']['items'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['banner']['items']),",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['dataSource']['data'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['dataSource']['data']),",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ],
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['selectedItem']['items'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['selectedItem']['items']),",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['dataSource'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['dataSource']),",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'data-source':_0x0['data']}",
+      "after": "'data-source':__forAdmKKCleanV2(_0x0['data'])}",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'data-source':_0x0}",
+      "after": "'data-source':__forAdmKKCleanV2(_0x0)}",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'data-source':_0x0['collections'],",
+      "after": "'data-source':__forAdmKKCleanV2(_0x0['collections']),",
+      "guards": [
+        [
+          "'ShortsSwiperSlideADItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'data-source':_0x0,",
+      "after": "'data-source':__forAdmKKCleanV2(_0x0),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'dataSource':_0x0}",
+      "after": "'dataSource':__forAdmKKCleanV2(_0x0)}",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ],
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "for(const _0x0 of _0x1['items'])",
+      "after": "for(const _0x0 of __forAdmKKCleanV2(_0x1['items']))",
+      "guards": [
+        [
+          "arrangedItems",
+          "webpackChunkmovie",
+          "POSTING_TYPE",
+          "getItemStyle"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['dataSource']['hd']['data'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['dataSource']['hd']['data']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['dataSource']['trailer']['data'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['dataSource']['trailer']['data']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'dataSource':_0x0,",
+      "after": "'dataSource':__forAdmKKCleanV2(_0x0),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ],
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['recoArticles'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['recoArticles']),",
+      "guards": [
+        [
+          "'VodVerticalItem'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "['pI'])(_0x0['dataSource']['blocks'],",
+      "after": "['pI'])(__forAdmKKCleanV2(_0x0['dataSource']['blocks']),",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'dataSource':_0x0['reco']['banners']}",
+      "after": "'dataSource':__forAdmKKCleanV2(_0x0['reco']['banners'])}",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'dataSource':_0x0['dataSource']['banners']}",
+      "after": "'dataSource':__forAdmKKCleanV2(_0x0['dataSource']['banners'])}",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "'data-source':_0x0['vodHistories']}",
+      "after": "'data-source':__forAdmKKCleanV2(_0x0['vodHistories'])}",
+      "guards": [
+        [
+          "'VodEntra'",
+          "webpackChunkmovie",
+          "['pI']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": ")(_0x0['items'])",
+      "after": ")(__forAdmKKCleanV2(_0x0['items']))",
+      "guards": [
+        [
+          "arrangedItems",
+          "webpackChunkmovie",
+          "POSTING_TYPE",
+          "getItemStyle"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "}[_0x0]+'.js';",
+      "after": "}[_0x0]+'.js?for_adm={{siteId}}-v3-__ADM_CACHE_REVISION__';",
+      "guards": [
+        [
+          "'appName':'{{appName}}'",
+          "['u']=function",
+          "ChunkLoadError",
+          "webpackChunkmovie"
+        ]
+      ]
+    },
+    {
+      "before": "_0x0['reco']['banners']['data']['length']>0x0",
+      "after": "__forAdmKKCleanV2(_0x0['reco']['banners'])['data']['length']>0x0",
+      "guards": [
+        [
+          "webpackChunkmovie",
+          "'VodEntra'",
+          "['banners']",
+          "['blocks']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "_0x0['reco']['blocks']['length']>0x0",
+      "after": "__forAdmKKCleanV2(_0x0['reco']['blocks'])['length']>0x0",
+      "guards": [
+        [
+          "webpackChunkmovie",
+          "'VodEntra'",
+          "['banners']",
+          "['blocks']"
+        ]
+      ],
+      "helper": "cards"
+    },
+    {
+      "before": "_0x0['dataSource']['banners']['data']['length']>0x0",
+      "after": "__forAdmKKCleanV2(_0x0['dataSource']['banners'])['data']['length']>0x0",
+      "guards": [
+        [
+          "webpackChunkmovie",
+          "'VodEntra'",
+          "['banners']",
+          "['blocks']"
+        ]
+      ],
+      "helper": "cards"
+    }
+  ]
+}

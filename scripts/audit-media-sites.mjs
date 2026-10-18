@@ -1,4 +1,5 @@
 import {loadTemplateManifest} from './lib/template-manifest.mjs';
+import {auditDiscoveredMedia} from './lib/media-discovery.mjs';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>JSON.parse(fs.readFileSync(path.join(root,p),'utf8'));
@@ -13,6 +14,13 @@ async function main(){
  const first=infos[0].url||read('universal/fixtures/'+id+'-0.json').url,base=first.slice(0,first.lastIndexOf('/')+1),site={id,entry:entry.split('?')[0],entryStatus:args['source-dir']?'NOT_RUN':'PASS',modules:[]};report.sites.push(site);
  if(!args['source-dir'])try{const response=await fetch(entry,{signal:AbortSignal.timeout(25000)});if(!response.ok)throw Error('HTTP '+response.status);const html=await response.text(),entries=mainEntries(html);if(!entries.length)throw Error('App entry absent');site.currentEntries=entries;const expected=[...groups.keys()].filter(s=>/^app(?:-legacy)?\./.test(s));if(expected.some(s=>!entries.some(e=>e.split('?')[0].endsWith('/'+s)))||entries.some(e=>!new URL(e,entry).pathname.startsWith(new URL(base).pathname)))site.entryStatus='CHANGED';}catch(e){site.entryStatus='UNAVAILABLE';site.entryError=String(e.message);}
  const work=[...groups.entries()];let cursor=0;await Promise.all(Array.from({length:4},async()=>{while(cursor<work.length){const [file,actions]=work[cursor++];const record={file};site.modules.push(record);try{let body;if(args['source-dir']){const p=path.join(args['source-dir'],file);if(!fs.existsSync(p)){record.status='NOT_RUN';continue;}body=fs.readFileSync(p,'utf8');}else{const response=await fetch(base+file,{signal:AbortSignal.timeout(25000)});if(!response.ok)throw Error('HTTP '+response.status);body=await response.text();if(/^\s*<(?:!doctype|html)/i.test(body))throw Error('HTML response');}Object.assign(record,auditModule(body,actions),{sha256:crypto.createHash('sha256').update(body).digest('hex')});}catch(e){record.status='UNAVAILABLE';record.error=String(e.message);}}}));site.modules.sort((a,b)=>a.file.localeCompare(b.file));site.counts={};for(const m of site.modules)site.counts[m.status]=(site.counts[m.status]||0)+1;site.status=site.entryStatus==='CHANGED'||site.counts.CHANGED?'CHANGED':site.entryStatus==='UNAVAILABLE'||site.counts.UNAVAILABLE||site.counts.NOT_RUN||args['source-dir']||args.files?'PARTIAL':'PASS';
+ }
+ for(const site of report.sites){
+  if(site.entryStatus!=='CHANGED')continue;
+  site.discovery=await auditDiscoveredMedia({entry:site.entry,entries:site.currentEntries,
+   code:fs.readFileSync(path.join(root,site.id,'ad-clean.js'),'utf8'),
+   fetchText:async url=>{const response=await fetch(url,{signal:AbortSignal.timeout(25000)});if(!response.ok)throw Error('HTTP '+response.status);const body=await response.text();if(/^\s*<(?:!doctype|html)/i.test(body))throw Error('HTML response');return body;}});
+  // A successful structural probe never upgrades a changed entry to PASS.
  }
  const output=JSON.stringify(report,null,2)+'\n';if(args.out)fs.writeFileSync(args.out,output);console.log(output);if(report.sites.some(s=>s.status==='CHANGED'))process.exitCode=1;else if(report.sites.some(s=>s.status==='PARTIAL'))process.exitCode=2;
 }

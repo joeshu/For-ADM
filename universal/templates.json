@@ -6277,6 +6277,22 @@
           },
           "key": "for_adm",
           "value": "kkapp-v3-__ADM_CACHE_REVISION__"
+        },
+        {
+          "kind": "html",
+          "op": "setQueryParameter",
+          "requires": [
+            "可可影视",
+            "id=\"app\"",
+            "static/v"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^static/v[0-9]+/js/app(?:-legacy)?\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+          },
+          "key": "for_adm",
+          "value": "kkapp-v3-__ADM_CACHE_REVISION__"
         }
       ],
       "jsHelpers": {
@@ -6292,7 +6308,8 @@
           "marker": "function __forAdmDownloadData(",
           "source": "function __forAdmDownloadData(raw){if(!raw||typeof raw!=='object'||Array.isArray(raw))return raw;var out={},units={},k;for(k in raw)if(Object.prototype.hasOwnProperty.call(raw,k))out[k]=raw[k];if(raw.units&&typeof raw.units==='object'&&!Array.isArray(raw.units))for(k in raw.units)if(Object.prototype.hasOwnProperty.call(raw.units,k))units[k]=raw.units[k];units.splash=[];units.video=[];units.dhz=[];units.countdown=0;units.type='';out.units=units;return out;}"
         }
-      }
+      },
+      "structuralFallback": "shared-media-v1"
     },
     {
       "diagnostics": true,
@@ -10592,6 +10609,22 @@
           },
           "key": "for_adm",
           "value": "ncat-v3-__ADM_CACHE_REVISION__"
+        },
+        {
+          "kind": "html",
+          "op": "setQueryParameter",
+          "requires": [
+            "网飞猫",
+            "id=\"app\"",
+            "static/v"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^static/v[0-9]+/js/app(?:-legacy)?\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+          },
+          "key": "for_adm",
+          "value": "ncat-v3-__ADM_CACHE_REVISION__"
         }
       ],
       "jsHelpers": {
@@ -10606,7 +10639,8 @@
           "marker": "function __forAdmDownloadData(",
           "source": "function __forAdmDownloadData(raw){if(!raw||typeof raw!=='object'||Array.isArray(raw))return raw;var out={},units={},k;for(k in raw)if(Object.prototype.hasOwnProperty.call(raw,k))out[k]=raw[k];if(raw.units&&typeof raw.units==='object'&&!Array.isArray(raw.units))for(k in raw.units)if(Object.prototype.hasOwnProperty.call(raw.units,k))units[k]=raw.units[k];units.splash=[];units.video=[];units.dhz=[];units.countdown=0;units.type='';out.units=units;return out;}"
         }
-      }
+      },
+      "structuralFallback": "shared-media-v1"
     },
     {
       "diagnostics": true,
@@ -15026,6 +15060,22 @@
           },
           "key": "for_adm",
           "value": "happ-v3-__ADM_CACHE_REVISION__"
+        },
+        {
+          "kind": "html",
+          "op": "setQueryParameter",
+          "requires": [
+            "好好看",
+            "id=\"app\"",
+            "static/v"
+          ],
+          "selector": {
+            "tag": "script",
+            "attr": "src",
+            "pattern": "^static/v[0-9]+/js/app(?:-legacy)?\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+          },
+          "key": "for_adm",
+          "value": "happ-v3-__ADM_CACHE_REVISION__"
         }
       ],
       "jsHelpers": {
@@ -15041,7 +15091,8 @@
           "marker": "function __forAdmDownloadData(",
           "source": "function __forAdmDownloadData(raw){if(!raw||typeof raw!=='object'||Array.isArray(raw))return raw;var out={},units={},k;for(k in raw)if(Object.prototype.hasOwnProperty.call(raw,k))out[k]=raw[k];if(raw.units&&typeof raw.units==='object'&&!Array.isArray(raw.units))for(k in raw.units)if(Object.prototype.hasOwnProperty.call(raw.units,k))units[k]=raw.units[k];units.splash=[];units.video=[];units.dhz=[];units.countdown=0;units.type='';out.units=units;return out;}"
         }
-      }
+      },
+      "structuralFallback": "shared-media-v1"
     }
   ]
 }

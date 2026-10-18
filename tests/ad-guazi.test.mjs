@@ -62,7 +62,7 @@ test('Guazi handles Chinese and large responses while rejecting invalid padding 
 test('Guazi and website cache versions change only for their own generated script content',()=>{
  const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),tmp=fs.mkdtempSync(path.join(os.tmpdir(),'guazi-version-'));
  try{
-  for(const dir of ['scripts','universal','guazi-app'])fs.cpSync(path.join(root,dir),path.join(tmp,dir),{recursive:true});
+  for(const dir of ['scripts','universal','guazi-app','vendor'])fs.cpSync(path.join(root,dir),path.join(tmp,dir),{recursive:true});
   const build=()=>execFileSync(process.execPath,['scripts/build-ad-clean.mjs'],{cwd:tmp,stdio:'pipe'});
   const version=file=>fs.readFileSync(path.join(tmp,file),'utf8').split('\n')[0];
   build();const g=version('guazi-app/ad-clean.js'),w=version('universal/ad-clean.js');
