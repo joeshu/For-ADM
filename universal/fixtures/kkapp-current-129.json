@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/3602.cdfffbcb.js",
+  "body": "/* 'ShortsSwiperSlideADItem' ; ['pI'] ; webpackChunkmovie */\n'data-source':_0x8027b6['collections'],;\n\n['pI'])(_0x8027b6['list'],;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "'data-source':_0x8027b6['collections'],",
+    "['pI'])(_0x8027b6['list'],"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

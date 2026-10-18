@@ -1,0 +1,11 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/5230.21a144fe.js",
+  "body": "/* /app/announcements ; /v2/config/units.capi ; 0x3e71:function ; getCacheUrl */\n'so':function(){return _0x43badf;};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "'so':function(){return _0x43badf;}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

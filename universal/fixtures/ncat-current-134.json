@@ -1,0 +1,16 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/4229-legacy.3996280c.js",
+  "body": "/* 'VodVerticalItem' ; ['pI'] ; webpackChunkmovie */\n['pI'])(_0x159cc8['list'],;\n\n['pI'])(_0x189c6c['list'],;\n\n['pI'])(_0x3eb58a['list'],;\n\n['pI'])(_0x228012['list'],;\n\n'data-source':_0x5b090f,;\n\n'dataSource':_0x5c714b};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "['pI'])(_0x159cc8['list'],",
+    "['pI'])(_0x189c6c['list'],",
+    "['pI'])(_0x3eb58a['list'],",
+    "['pI'])(_0x228012['list'],",
+    "'data-source':_0x5b090f,",
+    "'dataSource':_0x5c714b}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

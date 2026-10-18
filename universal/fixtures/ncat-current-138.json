@@ -1,0 +1,12 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/493-legacy.c4383299.js",
+  "body": "/* ['ads']['find'] ; getAdvertiseById ; player */\n_0x5846f3=function(){if(_0x495489['detail']&&_0x495489['detail']['ads']){var _0x39fd6a=_0x495489['detail']['ads']['find'](function(_0xfadfd4){return _0xfadfd4['id']==_0x4f2a88['BA']['VOD_START'];});if(_0x39fd6a){var _0x44ddf2=_0x47da46['getAdvertiseById'](_0x39fd6a['id']);_0x44ddf2&&(_0x39fd6a['items']=_0x44ddf2['items']);}return _0x39fd6a&&_0x39fd6a['items']&&_0x39fd6a['items']['length']>0x0?_0x39fd6a:void 0x0;}};\n\n_0x3ebde6=function(){if(_0x495489['detail']&&_0x495489['detail']['ads']){var _0x34ed48=_0x495489['detail']['ads']['find'](function(_0x388319){return _0x388319['id']==_0x4f2a88['BA']['VOD_PAUSE'];});if(_0x34ed48){var _0x41e3a3=_0x47da46['getAdvertiseById'](_0x34ed48['id']);_0x41e3a3&&(_0x34ed48['items']=_0x41e3a3['items']);}return _0x34ed48&&_0x34ed48['items']&&_0x34ed48['items']['length']>0x0?_0x34ed48:void 0x0;}};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x5846f3=function(){if(_0x495489['detail']&&_0x495489['detail']['ads']){var _0x39fd6a=_0x495489['detail']['ads']['find'](function(_0xfadfd4){return _0xfadfd4['id']==_0x4f2a88['BA']['VOD_START'];});if(_0x39fd6a){var _0x44ddf2=_0x47da46['getAdvertiseById'](_0x39fd6a['id']);_0x44ddf2&&(_0x39fd6a['items']=_0x44ddf2['items']);}return _0x39fd6a&&_0x39fd6a['items']&&_0x39fd6a['items']['length']>0x0?_0x39fd6a:void 0x0;}}",
+    "_0x3ebde6=function(){if(_0x495489['detail']&&_0x495489['detail']['ads']){var _0x34ed48=_0x495489['detail']['ads']['find'](function(_0x388319){return _0x388319['id']==_0x4f2a88['BA']['VOD_PAUSE'];});if(_0x34ed48){var _0x41e3a3=_0x47da46['getAdvertiseById'](_0x34ed48['id']);_0x41e3a3&&(_0x34ed48['items']=_0x41e3a3['items']);}return _0x34ed48&&_0x34ed48['items']&&_0x34ed48['items']['length']>0x0?_0x34ed48:void 0x0;}}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

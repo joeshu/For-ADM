@@ -1,0 +1,14 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20523/js/4493.e38d042a.js",
+  "body": "/* 'VodVerticalItem' ; ['pI'] ; webpackChunkmovie */\n['pI'])(_0x4e8e03['list'],;\n\n['pI'])(_0x47d57a['list'],;\n\n['pI'])(_0x3ed481['list'],;\n\n'data-source':_0x1631b0,;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "['pI'])(_0x4e8e03['list'],",
+    "['pI'])(_0x47d57a['list'],",
+    "['pI'])(_0x3ed481['list'],",
+    "'data-source':_0x1631b0,"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

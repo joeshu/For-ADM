@@ -33,6 +33,8 @@
 
 ## 源码变化检查
 
+2026-10-18 起，三站审计从 `tests/media-current-sources.json` 读取当前版本模块和路径；旧版来源清单保留作回归测试。当前适配为可可影视 2.5.15、网飞猫 2.5.30、好好看 2.5.23。离线源码目录应包含当前清单中的文件名。
+
 仓库提供手动 GitHub Actions：`KKAPP NCAT and HAPP source audit`。在 Actions 页面选择该工作流并点击 Run workflow。结果在日志与工作流摘要中，不自动修改规则。
 
 本地运行：

@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/app-legacy.de7d0bc4.js",
+  "body": "/* 'FLOATING_WINDOW' ; 'VOD_START' ; 'appName':'可可影视' ; 'appVersion':'2.5.15' ; 'getAdvertiseById' ; ChunkLoadError ; ['u']=function ; webpackChunkmovie */\n_0x1baa51=function(_0x37ab4f){var _0x382230=(0x0,_0x4bdc8f['P'])(),_0x50f99f=_0x382230['appAdvertisements'];return!!(_0x50f99f&&_0x50f99f['length']>0x0&&_0x37ab4f&&_0x37ab4f['length']>0x0)&&_0x50f99f['some'](function(_0x5c56a8){return _0x5c56a8['id']==_0x37ab4f;});};\n\n'getAdvertiseById':function(_0x54acaa){if(_0x54acaa&&0x0!=_0x54acaa['length']){var _0xb7ab2=this['appAdvertisements'];return _0xb7ab2&&_0xb7ab2['length']>0x0?_0xb7ab2['find'](function(_0xc7171a){return _0xc7171a['id']==_0x54acaa;}):void 0x0;}};\n\n}[_0x5a2cba]+'.js';;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x1baa51=function(_0x37ab4f){var _0x382230=(0x0,_0x4bdc8f['P'])(),_0x50f99f=_0x382230['appAdvertisements'];return!!(_0x50f99f&&_0x50f99f['length']>0x0&&_0x37ab4f&&_0x37ab4f['length']>0x0)&&_0x50f99f['some'](function(_0x5c56a8){return _0x5c56a8['id']==_0x37ab4f;});}",
+    "'getAdvertiseById':function(_0x54acaa){if(_0x54acaa&&0x0!=_0x54acaa['length']){var _0xb7ab2=this['appAdvertisements'];return _0xb7ab2&&_0xb7ab2['length']>0x0?_0xb7ab2['find'](function(_0xc7171a){return _0xc7171a['id']==_0x54acaa;}):void 0x0;}}",
+    "}[_0x5a2cba]+'.js';"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

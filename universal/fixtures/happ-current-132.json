@@ -1,0 +1,11 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20523/js/4125-legacy.9d9bd5f2.js",
+  "body": "/* 'banner' ; FSImage ; appAdvertisements ; click_advert_ */\n_0x52b827=_0x3a588a['appAdvertisements'];\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x52b827=_0x3a588a['appAdvertisements']"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

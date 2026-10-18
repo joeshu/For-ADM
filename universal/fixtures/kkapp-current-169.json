@@ -1,0 +1,13 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/8489.2a039cc2.js",
+  "body": "/* ['magnets'] ; _0x1f1655['value'] ; ad_last_shown_time ; content-wrap ; setNetdisks ; 网盘下载 */\n_0x1f1655['value']=_0x5331d3['data'];\n\n_0x1ffc96=(0x0,_0x1044c0['KR'])(0xa);\n\n(0x0,_0x1044c0['R1'])(_0x3d7c70)?;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x1f1655['value']=_0x5331d3['data']",
+    "_0x1ffc96=(0x0,_0x1044c0['KR'])(0xa)",
+    "(0x0,_0x1044c0['R1'])(_0x3d7c70)?"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

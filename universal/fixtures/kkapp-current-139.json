@@ -1,0 +1,12 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/493.9ddbdcd9.js",
+  "body": "/* ['ads']['find'] ; getAdvertiseById ; player */\n_0x39664d=()=>{if(!_0x23d2cc['detail']||!_0x23d2cc['detail']['ads'])return;const _0x2c0705=_0x23d2cc['detail']['ads']['find'](_0x3bcf80=>_0x3bcf80['id']==_0x4be2fb['BA']['VOD_START']);if(_0x2c0705){const _0x245068=_0x7f2e7f['getAdvertiseById'](_0x2c0705['id']);_0x245068&&(_0x2c0705['items']=_0x245068['items']);}return _0x2c0705&&_0x2c0705['items']&&_0x2c0705['items']['length']>0x0?_0x2c0705:void 0x0;};\n\n_0x4c1f29=()=>{if(!_0x23d2cc['detail']||!_0x23d2cc['detail']['ads'])return;const _0x119f10=_0x23d2cc['detail']['ads']['find'](_0xd6f666=>_0xd6f666['id']==_0x4be2fb['BA']['VOD_PAUSE']);if(_0x119f10){const _0x58daf2=_0x7f2e7f['getAdvertiseById'](_0x119f10['id']);_0x58daf2&&(_0x119f10['items']=_0x58daf2['items']);}return _0x119f10&&_0x119f10['items']&&_0x119f10['items']['length']>0x0?_0x119f10:void 0x0;};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x39664d=()=>{if(!_0x23d2cc['detail']||!_0x23d2cc['detail']['ads'])return;const _0x2c0705=_0x23d2cc['detail']['ads']['find'](_0x3bcf80=>_0x3bcf80['id']==_0x4be2fb['BA']['VOD_START']);if(_0x2c0705){const _0x245068=_0x7f2e7f['getAdvertiseById'](_0x2c0705['id']);_0x245068&&(_0x2c0705['items']=_0x245068['items']);}return _0x2c0705&&_0x2c0705['items']&&_0x2c0705['items']['length']>0x0?_0x2c0705:void 0x0;}",
+    "_0x4c1f29=()=>{if(!_0x23d2cc['detail']||!_0x23d2cc['detail']['ads'])return;const _0x119f10=_0x23d2cc['detail']['ads']['find'](_0xd6f666=>_0xd6f666['id']==_0x4be2fb['BA']['VOD_PAUSE']);if(_0x119f10){const _0x58daf2=_0x7f2e7f['getAdvertiseById'](_0x119f10['id']);_0x58daf2&&(_0x119f10['items']=_0x58daf2['items']);}return _0x119f10&&_0x119f10['items']&&_0x119f10['items']['length']>0x0?_0x119f10:void 0x0;}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

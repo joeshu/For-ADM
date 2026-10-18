@@ -1,0 +1,11 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/2434-legacy.8b9753d6.js",
+  "body": "/* 'banner' ; FSImage ; appAdvertisements ; click_advert_ */\n_0x2f81b8=_0x5a2bb4['appAdvertisements'];\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x2f81b8=_0x5a2bb4['appAdvertisements']"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/6602.bc7160b9.js",
+  "body": "/* POSTING_TYPE ; arrangedItems ; getItemStyle ; webpackChunkmovie */\nfor(const _0x381ae8 of _0x351094['items']);\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "for(const _0x381ae8 of _0x351094['items'])"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

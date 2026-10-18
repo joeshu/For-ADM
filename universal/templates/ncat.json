@@ -853,6 +853,2164 @@
         "v1": "_0xfdf450",
         "v2": "_0x22e2d5"
       }
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x2b25b4=_0x419c38['appAdvertisements']",
+          "_0x2b25b4=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1075\\-legacy\\.57ab9c14\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x1874bb['searchList'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1874bb['searchList']),",
+          1
+        ],
+        [
+          "['pI'])(_0x1ea453['items'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1ea453['items']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1075\\-legacy\\.57ab9c14\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x8726b0=_0x47549c['appAdvertisements']",
+          "_0x8726b0=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1075\\.43aee5b1\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x3922fd['searchList'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3922fd['searchList']),",
+          1
+        ],
+        [
+          "['pI'])(_0xbdaea['items'],",
+          "['pI'])(__forAdmKKCleanV2(_0xbdaea['items']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1075\\.43aee5b1\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x525ab3=_0x1d68f8['appAdvertisements']",
+          "_0x525ab3=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1910\\-legacy\\.461029c9\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x91261d=_0x5c47e0['appAdvertisements']",
+          "_0x91261d=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1910\\.8ff78120\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x42b8b9['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x42b8b9['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1996\\-legacy\\.4ce09122\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x1f12ae['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1f12ae['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/1996\\.93acd7bd\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['magnets']",
+        "['units']['dhz']",
+        "_0x391cfd=",
+        "ad_last_shown_time",
+        "content-wrap",
+        "setNetdisks",
+        "网盘下载"
+      ],
+      "pairs": [
+        [
+          "_0x391cfd=function(_0xa5f33b){if(_0xa5f33b&&_0xa5f33b['units']&&(_0xa5f33b['units']['splash']&&0x0!=_0xa5f33b['units']['splash']['length']||_0xa5f33b['units']['video']&&0x0!=_0xa5f33b['units']['video']['length']||_0xa5f33b['units']['dhz']&&0x0!=_0xa5f33b['units']['dhz']['length'])){_0x352897(),_0x395d63=0x3e8*_0xa5f33b['units']['interval']||_0x395d63;var _0x1d3ee6=Date['now'](),_0x6fb87c=localStorage['getItem'](_0xd21274);if(_0x6fb87c){var _0x348391=JSON['parse'](_0x6fb87c),_0x2dfddd=_0x1d3ee6-_0x348391['timestamp'];'pending'===_0x348391['status']||_0x2dfddd>=_0x395d63?_0x2e87cb(_0x1d3ee6):(console['log']('广告冷却中，还剩\\x20'['concat'](Math['ceil']((_0x395d63-_0x2dfddd)/0x3e8),'\\x20秒')),_0x446c80['value']=!0x1,_0x352897());}else _0x2e87cb(_0x1d3ee6);}}",
+          "_0x391cfd=function(_0xa5f33b){_0x446c80['value']=!0x1,_0x42dc34['value']=0x0,_0x352897();}",
+          1
+        ],
+        [
+          "_0x20bfa7=function(_0x5738a3,_0xb92427){if(_0xb92427&&_0xb92427['type']){var _0x213b37=_0xb92427['type']['split'](','),_0x14424d=(0x0,_0x569af4['xD'])(_0x213b37);switch(_0x14424d){case'splash':_0x386fb5(_0x5738a3,_0xb92427['splash']);break;case'video':_0x54bcc6(_0x5738a3,_0xb92427['video']);break;case'dhz':_0xf702b5(_0x5738a3,_0xb92427['dhz']);break;default:_0x446c80['value']=!0x1;break;}}else _0x446c80['value']=!0x1;}",
+          "_0x20bfa7=function(_0x5738a3,_0xb92427){_0x446c80['value']=!0x1,_0x42dc34['value']=0x0,_0x352897();}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2131\\-legacy\\.ba7ca1fa\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['magnets']",
+        "_0x5667fd['value']",
+        "ad_last_shown_time",
+        "content-wrap",
+        "setNetdisks",
+        "网盘下载"
+      ],
+      "pairs": [
+        [
+          "_0x5667fd['value']=_0x5cd2eb['data']",
+          "_0x5667fd['value']=__forAdmDownloadData(_0x5cd2eb['data'])",
+          1
+        ],
+        [
+          "_0x3b22f1=(0x0,_0x39c57a['KR'])(0xa)",
+          "_0x3b22f1=(0x0,_0x39c57a['KR'])(0x0)",
+          1
+        ],
+        [
+          "(0x0,_0x39c57a['R1'])(_0x29d68b)?",
+          "!0x1?",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2131\\-legacy\\.ba7ca1fa\\.js(?:\\?.*)?$",
+      "helper": "download"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x3e23c4;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2280\\-legacy\\.68f99410\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x5a9199;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2280\\.90c00b80\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x51b07b=_0x2c9166['appAdvertisements']",
+          "_0x51b07b=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2370\\-legacy\\.688a63e9\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x2f81b8=_0x5a2bb4['appAdvertisements']",
+          "_0x2f81b8=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2434\\-legacy\\.8b9753d6\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x92b57['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x92b57['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2434\\-legacy\\.8b9753d6\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0xba217a=_0x12b5f2['appAdvertisements']",
+          "_0xba217a=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2434\\.0aea6c6d\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x3d248b['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3d248b['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2434\\.0aea6c6d\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x2ac96f=_0x45bd71['appAdvertisements']",
+          "_0x2ac96f=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2574\\-legacy\\.022bac55\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x5e34f7=_0xfb155e['appAdvertisements']",
+          "_0x5e34f7=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/2574\\.8c483793\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x5d99e0=_0x5bb481['appAdvertisements']",
+          "_0x5d99e0=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3114\\-legacy\\.d1c185e8\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x2730a6['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x2730a6['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x126133['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x126133['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3114\\-legacy\\.d1c185e8\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x577549=_0x4e2771['appAdvertisements']",
+          "_0x577549=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3114\\.4c61fdee\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x3fb606['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3fb606['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x52e424['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x52e424['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3114\\.4c61fdee\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x421d77=_0x43839e['appAdvertisements']",
+          "_0x421d77=[]",
+          1
+        ],
+        [
+          "_0x33cdb9=_0x5abb9c['appAdvertisements']",
+          "_0x33cdb9=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3170\\-legacy\\.a3f4c7ec\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodEntra'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x53bfd9['selectedItem']['items'],",
+          "['pI'])(__forAdmKKCleanV2(_0x53bfd9['selectedItem']['items']),",
+          1
+        ],
+        [
+          "['pI'])(_0x4b9840['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4b9840['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x5b128a['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x5b128a['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x127984['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x127984['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x277615['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x277615['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x312d85['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x312d85['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x1eecc6['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1eecc6['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x53bfd9['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x53bfd9['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x241d20['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x241d20['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x3fd67a['banner']['items'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3fd67a['banner']['items']),",
+          1
+        ],
+        [
+          "['pI'])(_0x500ef2['dataSource'],",
+          "['pI'])(__forAdmKKCleanV2(_0x500ef2['dataSource']),",
+          1
+        ],
+        [
+          "'data-source':_0x387221['data']}",
+          "'data-source':__forAdmKKCleanV2(_0x387221['data'])}",
+          1
+        ],
+        [
+          "['pI'])(_0x582134['blocks'],",
+          "['pI'])(__forAdmKKCleanV2(_0x582134['blocks']),",
+          1
+        ],
+        [
+          "'data-source':_0x387221}",
+          "'data-source':__forAdmKKCleanV2(_0x387221)}",
+          9
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3170\\-legacy\\.a3f4c7ec\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0xf2c25a=_0x2f4a1c['appAdvertisements']",
+          "_0xf2c25a=[]",
+          1
+        ],
+        [
+          "_0x254da0=_0x587dfb['appAdvertisements']",
+          "_0x254da0=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3170\\.9ff21f68\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodEntra'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x45936c['selectedItem']['items'],",
+          "['pI'])(__forAdmKKCleanV2(_0x45936c['selectedItem']['items']),",
+          1
+        ],
+        [
+          "['pI'])(_0x4deedb['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4deedb['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x345530['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x345530['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x5dbabc['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x5dbabc['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x5b5553['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x5b5553['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x238ead['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x238ead['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x54b815['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x54b815['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x45936c['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x45936c['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x8de8d9['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x8de8d9['dataSource']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x18eaf0['banner']['items'],",
+          "['pI'])(__forAdmKKCleanV2(_0x18eaf0['banner']['items']),",
+          1
+        ],
+        [
+          "['pI'])(_0x2f7d0d['dataSource'],",
+          "['pI'])(__forAdmKKCleanV2(_0x2f7d0d['dataSource']),",
+          1
+        ],
+        [
+          "'data-source':_0x42ce95['data']}",
+          "'data-source':__forAdmKKCleanV2(_0x42ce95['data'])}",
+          1
+        ],
+        [
+          "['pI'])(_0x63945d['blocks'],",
+          "['pI'])(__forAdmKKCleanV2(_0x63945d['blocks']),",
+          1
+        ],
+        [
+          "'data-source':_0x42ce95}",
+          "'data-source':__forAdmKKCleanV2(_0x42ce95)}",
+          9
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3170\\.9ff21f68\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x315913=_0x314bda['appAdvertisements']",
+          "_0x315913=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3382\\-legacy\\.0d92ea40\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['ads']['find']",
+        "getAdvertiseById",
+        "player"
+      ],
+      "pairs": [
+        [
+          "_0x78e83d=(_0x20c59c,_0x52b35c)=>{if(!_0x52b35c)return;const _0x3bae3b=_0x52b35c['ads']['find'](_0x2f771d=>_0x2f771d['id']==_0x20c59c);if(_0x3bae3b){const _0x3cf3d5=_0x300c11['getAdvertiseById'](_0x3bae3b['id']);_0x3cf3d5&&(_0x3bae3b['items']=_0x3cf3d5['items']);}return _0x3bae3b&&_0x3bae3b['items']&&_0x3bae3b['items']['length']>0x0?_0x3bae3b:void 0x0;}",
+          "_0x78e83d=(_0x20c59c,_0x52b35c)=>{return void 0x0;}",
+          1
+        ],
+        [
+          "_0x4031d0=(_0x43e50c,_0x9494b0)=>{if(!_0x9494b0)return;const _0x325881=_0x9494b0['ads']['find'](_0x16e1da=>_0x16e1da['id']==_0x43e50c);if(_0x325881){const _0x17ad67=_0x61d047['getAdvertiseById'](_0x325881['id']);_0x17ad67&&(_0x325881['items']=_0x17ad67['items']);}return _0x325881&&_0x325881['items']&&_0x325881['items']['length']>0x0?_0x325881:void 0x0;}",
+          "_0x4031d0=(_0x43e50c,_0x9494b0)=>{return void 0x0;}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3409\\.9292d682\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['ads']['find']",
+        "getAdvertiseById",
+        "player"
+      ],
+      "pairs": [
+        [
+          "_0x39447b=function(_0x398d2d,_0x46112f){if(_0x46112f){var _0x197a38=_0x46112f['ads']['find'](function(_0x42155b){return _0x42155b['id']==_0x398d2d;});if(_0x197a38){var _0x2f0f2c=_0x3afc54['getAdvertiseById'](_0x197a38['id']);_0x2f0f2c&&(_0x197a38['items']=_0x2f0f2c['items']);}return _0x197a38&&_0x197a38['items']&&_0x197a38['items']['length']>0x0?_0x197a38:void 0x0;}}",
+          "_0x39447b=function(_0x398d2d,_0x46112f){return void 0x0;}",
+          1
+        ],
+        [
+          "_0x215799=function(_0x501248,_0x15371b){if(_0x15371b){var _0x5bd4e7=_0x15371b['ads']['find'](function(_0xaf7b2a){return _0xaf7b2a['id']==_0x501248;});if(_0x5bd4e7){var _0x5eecf3=_0x124e37['getAdvertiseById'](_0x5bd4e7['id']);_0x5eecf3&&(_0x5bd4e7['items']=_0x5eecf3['items']);}return _0x5bd4e7&&_0x5bd4e7['items']&&_0x5bd4e7['items']['length']>0x0?_0x5bd4e7:void 0x0;}}",
+          "_0x215799=function(_0x501248,_0x15371b){return void 0x0;}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3468\\-legacy\\.5e37bc12\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x3a75ad=_0x27a793['appAdvertisements']",
+          "_0x3a75ad=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3510\\.14160a1d\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x18037d;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3602\\-legacy\\.e807df5f\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'ShortsSwiperSlideADItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "'data-source':_0xc98d9b['collections'],",
+          "'data-source':__forAdmKKCleanV2(_0xc98d9b['collections']),",
+          1
+        ],
+        [
+          "['pI'])(_0xc98d9b['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0xc98d9b['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3602\\-legacy\\.e807df5f\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x1124bf;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3602\\.ecbc5a9d\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'ShortsSwiperSlideADItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "'data-source':_0x9be894['collections'],",
+          "'data-source':__forAdmKKCleanV2(_0x9be894['collections']),",
+          1
+        ],
+        [
+          "['pI'])(_0x9be894['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x9be894['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3602\\.ecbc5a9d\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x272c9b;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3819\\-legacy\\.3f0820e2\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x8392b3;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/3819\\.4df0deeb\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x1b0c29=_0x2ead9d['appAdvertisements']",
+          "_0x1b0c29=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/4125\\-legacy\\.e6b17632\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x350b24=_0x280203['appAdvertisements']",
+          "_0x350b24=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/4125\\.51b470dc\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x159cc8['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x159cc8['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x189c6c['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x189c6c['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x3eb58a['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3eb58a['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x228012['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x228012['list']),",
+          1
+        ],
+        [
+          "'data-source':_0x5b090f,",
+          "'data-source':__forAdmKKCleanV2(_0x5b090f),",
+          1
+        ],
+        [
+          "'dataSource':_0x5c714b}",
+          "'dataSource':__forAdmKKCleanV2(_0x5c714b)}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/4229\\-legacy\\.3996280c\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x33e1c6['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x33e1c6['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x4ab6c5['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4ab6c5['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x528fd4['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x528fd4['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x2db28a['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x2db28a['list']),",
+          1
+        ],
+        [
+          "'data-source':_0x408272,",
+          "'data-source':__forAdmKKCleanV2(_0x408272),",
+          1
+        ],
+        [
+          "'dataSource':_0x35836c}",
+          "'dataSource':__forAdmKKCleanV2(_0x35836c)}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/4229\\.f2ddedb7\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x3a1ea9['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3a1ea9['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x456583['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x456583['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x1cf90f['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1cf90f['list']),",
+          1
+        ],
+        [
+          "'data-source':_0x47bc23,",
+          "'data-source':__forAdmKKCleanV2(_0x47bc23),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/4493\\-legacy\\.f4644846\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x22c982['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x22c982['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x257a71['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x257a71['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x12a0bb['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x12a0bb['list']),",
+          1
+        ],
+        [
+          "'data-source':_0x4a5450,",
+          "'data-source':__forAdmKKCleanV2(_0x4a5450),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/4493\\.e38d042a\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['ads']['find']",
+        "getAdvertiseById",
+        "player"
+      ],
+      "pairs": [
+        [
+          "_0x5846f3=function(){if(_0x495489['detail']&&_0x495489['detail']['ads']){var _0x39fd6a=_0x495489['detail']['ads']['find'](function(_0xfadfd4){return _0xfadfd4['id']==_0x4f2a88['BA']['VOD_START'];});if(_0x39fd6a){var _0x44ddf2=_0x47da46['getAdvertiseById'](_0x39fd6a['id']);_0x44ddf2&&(_0x39fd6a['items']=_0x44ddf2['items']);}return _0x39fd6a&&_0x39fd6a['items']&&_0x39fd6a['items']['length']>0x0?_0x39fd6a:void 0x0;}}",
+          "_0x5846f3=function(){return void 0x0;}",
+          1
+        ],
+        [
+          "_0x3ebde6=function(){if(_0x495489['detail']&&_0x495489['detail']['ads']){var _0x34ed48=_0x495489['detail']['ads']['find'](function(_0x388319){return _0x388319['id']==_0x4f2a88['BA']['VOD_PAUSE'];});if(_0x34ed48){var _0x41e3a3=_0x47da46['getAdvertiseById'](_0x34ed48['id']);_0x41e3a3&&(_0x34ed48['items']=_0x41e3a3['items']);}return _0x34ed48&&_0x34ed48['items']&&_0x34ed48['items']['length']>0x0?_0x34ed48:void 0x0;}}",
+          "_0x3ebde6=function(){return void 0x0;}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/493\\-legacy\\.c4383299\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['ads']['find']",
+        "getAdvertiseById",
+        "player"
+      ],
+      "pairs": [
+        [
+          "_0x3d95b7=()=>{if(!_0x539261['detail']||!_0x539261['detail']['ads'])return;const _0x201b31=_0x539261['detail']['ads']['find'](_0x39f5b2=>_0x39f5b2['id']==_0x4f6efa['BA']['VOD_START']);if(_0x201b31){const _0x3c89e2=_0x50a95f['getAdvertiseById'](_0x201b31['id']);_0x3c89e2&&(_0x201b31['items']=_0x3c89e2['items']);}return _0x201b31&&_0x201b31['items']&&_0x201b31['items']['length']>0x0?_0x201b31:void 0x0;}",
+          "_0x3d95b7=()=>{return void 0x0;}",
+          1
+        ],
+        [
+          "_0x4970a9=()=>{if(!_0x539261['detail']||!_0x539261['detail']['ads'])return;const _0x4caa3e=_0x539261['detail']['ads']['find'](_0x1a07c8=>_0x1a07c8['id']==_0x4f6efa['BA']['VOD_PAUSE']);if(_0x4caa3e){const _0x48b5f3=_0x50a95f['getAdvertiseById'](_0x4caa3e['id']);_0x48b5f3&&(_0x4caa3e['items']=_0x48b5f3['items']);}return _0x4caa3e&&_0x4caa3e['items']&&_0x4caa3e['items']['length']>0x0?_0x4caa3e:void 0x0;}",
+          "_0x4970a9=()=>{return void 0x0;}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/493\\.0756eb4d\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x26c6ef;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/5230\\-legacy\\.af52663f\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x4c5998;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/5230\\.ff0acbf8\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x5bf396;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/5688\\.8212a3dc\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x3cfd0c;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/5805\\-legacy\\.3b109691\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x4ce158['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4ce158['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/5810\\-legacy\\.53b88a3e\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x133836['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x133836['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/5810\\.05cdef49\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x1905df;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6583\\.36c8958b\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "POSTING_TYPE",
+        "arrangedItems",
+        "getItemStyle",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "for(const _0x381ae8 of _0x351094['items'])",
+          "for(const _0x381ae8 of __forAdmKKCleanV2(_0x351094['items']))",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6602\\.bc7160b9\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x3f461f=_0x4d2ed6['appAdvertisements']",
+          "_0x3f461f=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6735\\-legacy\\.cf99deeb\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0xa23a35['dataSource']['trailer']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0xa23a35['dataSource']['trailer']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0xa23a35['dataSource']['hd']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0xa23a35['dataSource']['hd']['data']),",
+          1
+        ],
+        [
+          "'dataSource':_0x4812e6,",
+          "'dataSource':__forAdmKKCleanV2(_0x4812e6),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6735\\-legacy\\.cf99deeb\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x304695=_0x441c52['appAdvertisements']",
+          "_0x304695=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6735\\.66e7cff6\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x4aa4ca['dataSource']['trailer']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4aa4ca['dataSource']['trailer']['data']),",
+          1
+        ],
+        [
+          "['pI'])(_0x4aa4ca['dataSource']['hd']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4aa4ca['dataSource']['hd']['data']),",
+          1
+        ],
+        [
+          "'dataSource':_0x25b40d,",
+          "'dataSource':__forAdmKKCleanV2(_0x25b40d),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6735\\.66e7cff6\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x3d6d9e;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/6958\\-legacy\\.096b919c\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x53a1be['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x53a1be['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7135\\-legacy\\.7d85af03\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x4fc50d['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x4fc50d['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7135\\.0eec1373\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x3e3644=_0x271d2d['appAdvertisements']",
+          "_0x3e3644=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7472\\-legacy\\.c15cdab3\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x1edab3['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1edab3['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0xdf7105['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0xdf7105['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7472\\-legacy\\.c15cdab3\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x2ed517=_0x54d29c['appAdvertisements']",
+          "_0x2ed517=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7472\\.cc805f5f\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x7289b5['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x7289b5['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x47627e['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x47627e['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7472\\.cc805f5f\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x3cdf6f['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3cdf6f['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0xc3ee02['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0xc3ee02['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7481\\-legacy\\.e05fa8b4\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x37c7b9['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x37c7b9['list']),",
+          1
+        ],
+        [
+          "['pI'])(_0x1c4765['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1c4765['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/7481\\.367ee072\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0xd69a34=_0x3a72c0['appAdvertisements']",
+          "_0xd69a34=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/766\\-legacy\\.f5a2e3c4\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x449d97=_0xbd2109['appAdvertisements']",
+          "_0x449d97=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/766\\.042e31e8\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x21a49f['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x21a49f['dataSource']['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/816\\-legacy\\.f4f01297\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x868b6a['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x868b6a['dataSource']['data']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/816\\.f693229f\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x5df63b['recoArticles'],",
+          "['pI'])(__forAdmKKCleanV2(_0x5df63b['recoArticles']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8198\\-legacy\\.8d4a8db1\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x5ee7cf['recoArticles'],",
+          "['pI'])(__forAdmKKCleanV2(_0x5ee7cf['recoArticles']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8198\\.f2fba415\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x1c7b07=_0x414fa4['appAdvertisements']",
+          "_0x1c7b07=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8448\\-legacy\\.1471e47e\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['magnets']",
+        "['units']['dhz']",
+        "_0x11c9f9=",
+        "ad_last_shown_time",
+        "content-wrap",
+        "setNetdisks",
+        "网盘下载"
+      ],
+      "pairs": [
+        [
+          "_0x11c9f9=_0x397a98=>{if(!_0x397a98||!_0x397a98['units']||(!_0x397a98['units']['splash']||0x0==_0x397a98['units']['splash']['length'])&&(!_0x397a98['units']['video']||0x0==_0x397a98['units']['video']['length'])&&(!_0x397a98['units']['dhz']||0x0==_0x397a98['units']['dhz']['length']))return;_0x5d5cba(),_0x589cdf=0x3e8*_0x397a98['units']['interval']||_0x589cdf;const _0x361943=Date['now'](),_0x159c8e=localStorage['getItem'](_0xf5ca8a);if(!_0x159c8e)return void _0x724ad0(_0x361943);const _0x31402a=JSON['parse'](_0x159c8e),_0x1677bf=_0x361943-_0x31402a['timestamp'];'pending'===_0x31402a['status']||_0x1677bf>=_0x589cdf?_0x724ad0(_0x361943):(console['log']('广告冷却中，还剩\\x20'+Math['ceil']((_0x589cdf-_0x1677bf)/0x3e8)+'\\x20秒'),_0x3b6dce['value']=!0x1,_0x5d5cba());}",
+          "_0x11c9f9=_0x397a98=>{_0x3b6dce['value']=!0x1,_0x2838b9['value']=0x0,_0x5d5cba();}",
+          1
+        ],
+        [
+          "_0xeef2bb=(_0x5b992b,_0x1a66aa)=>{if(!_0x1a66aa||!_0x1a66aa['type'])return void(_0x3b6dce['value']=!0x1);const _0x368bba=_0x1a66aa['type']['split'](','),_0x55dc13=(0x0,_0x3e5353['xD'])(_0x368bba);switch(_0x55dc13){case'splash':_0x52b293(_0x5b992b,_0x1a66aa['splash']);break;case'video':_0x53f9f(_0x5b992b,_0x1a66aa['video']);break;case'dhz':_0x3b587e(_0x5b992b,_0x1a66aa['dhz']);break;default:_0x3b6dce['value']=!0x1;break;}}",
+          "_0xeef2bb=(_0x5b992b,_0x1a66aa)=>{_0x3b6dce['value']=!0x1,_0x2838b9['value']=0x0,_0x5d5cba();}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8489\\.2a039cc2\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "['magnets']",
+        "_0x27e969['value']",
+        "ad_last_shown_time",
+        "content-wrap",
+        "setNetdisks",
+        "网盘下载"
+      ],
+      "pairs": [
+        [
+          "_0x27e969['value']=_0x21bd43['data']",
+          "_0x27e969['value']=__forAdmDownloadData(_0x21bd43['data'])",
+          1
+        ],
+        [
+          "_0x3a48a1=(0x0,_0x172c65['KR'])(0xa)",
+          "_0x3a48a1=(0x0,_0x172c65['KR'])(0x0)",
+          1
+        ],
+        [
+          "(0x0,_0x172c65['R1'])(_0x22da3f)?",
+          "!0x1?",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8489\\.2a039cc2\\.js(?:\\?.*)?$",
+      "helper": "download"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0xf3c524['recoArticles'],",
+          "['pI'])(__forAdmKKCleanV2(_0xf3c524['recoArticles']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8710\\-legacy\\.0170b9ba\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x49d455['recoArticles'],",
+          "['pI'])(__forAdmKKCleanV2(_0x49d455['recoArticles']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8710\\.325fb8bb\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x1ae164;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8806\\-legacy\\.5c2a2c8d\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "/app/announcements",
+        "/v2/config/units.capi",
+        "0x3e71:function",
+        "getCacheUrl"
+      ],
+      "pairs": [
+        [
+          "'so':function(){return _0x4ef997;}",
+          "'so':function(){return function(){return Promise.resolve({data:[]});};}",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8806\\.aee18599\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x523abc['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x523abc['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8864\\-legacy\\.c2bd9a74\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x7ba423['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x7ba423['list']),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8864\\.cab80092\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x57cf0a=_0x267d0e['appAdvertisements']",
+          "_0x57cf0a=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/8992\\.27c6114b\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodEntra'",
+        "['banners']",
+        "['blocks']",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "_0x258b02['dataSource']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2(_0x258b02['dataSource']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "_0x3c320d['reco']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2(_0x3c320d['reco']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "_0x2fd9cd['reco']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2(_0x2fd9cd['reco']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "'dataSource':_0x258b02['dataSource']['banners']}",
+          "'dataSource':__forAdmKKCleanV2(_0x258b02['dataSource']['banners'])}",
+          1
+        ],
+        [
+          "['pI'])(_0x258b02['dataSource']['blocks'],",
+          "['pI'])(__forAdmKKCleanV2(_0x258b02['dataSource']['blocks']),",
+          1
+        ],
+        [
+          "'dataSource':_0x3c320d['reco']['banners']}",
+          "'dataSource':__forAdmKKCleanV2(_0x3c320d['reco']['banners'])}",
+          1
+        ],
+        [
+          "'dataSource':_0x2fd9cd['reco']['banners']}",
+          "'dataSource':__forAdmKKCleanV2(_0x2fd9cd['reco']['banners'])}",
+          1
+        ],
+        [
+          "_0x3c320d['reco']['blocks']['length']>0x0",
+          "__forAdmKKCleanV2(_0x3c320d['reco']['blocks'])['length']>0x0",
+          1
+        ],
+        [
+          "_0x2fd9cd['reco']['blocks']['length']>0x0",
+          "__forAdmKKCleanV2(_0x2fd9cd['reco']['blocks'])['length']>0x0",
+          1
+        ],
+        [
+          "['pI'])(_0x25affb['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x25affb['dataSource']['data']),",
+          1
+        ],
+        [
+          "'data-source':_0x2fd9cd['vodHistories']}",
+          "'data-source':__forAdmKKCleanV2(_0x2fd9cd['vodHistories'])}",
+          1
+        ],
+        [
+          "['pI'])(_0x36e567['dataSource'],",
+          "['pI'])(__forAdmKKCleanV2(_0x36e567['dataSource']),",
+          1
+        ],
+        [
+          "'data-source':_0x32c3a3['data']}",
+          "'data-source':__forAdmKKCleanV2(_0x32c3a3['data'])}",
+          1
+        ],
+        [
+          "'dataSource':_0x32c3a3}",
+          "'dataSource':__forAdmKKCleanV2(_0x32c3a3)}",
+          1
+        ],
+        [
+          "'dataSource':_0x36641f,",
+          "'dataSource':__forAdmKKCleanV2(_0x36641f),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/9165\\-legacy\\.f94c5b3c\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodEntra'",
+        "['banners']",
+        "['blocks']",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "_0x3fbce9['dataSource']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2(_0x3fbce9['dataSource']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "_0x772d24['reco']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2(_0x772d24['reco']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "_0xeb6ade['reco']['banners']['data']['length']>0x0",
+          "__forAdmKKCleanV2(_0xeb6ade['reco']['banners'])['data']['length']>0x0",
+          1
+        ],
+        [
+          "'dataSource':_0x3fbce9['dataSource']['banners']}",
+          "'dataSource':__forAdmKKCleanV2(_0x3fbce9['dataSource']['banners'])}",
+          1
+        ],
+        [
+          "['pI'])(_0x3fbce9['dataSource']['blocks'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3fbce9['dataSource']['blocks']),",
+          1
+        ],
+        [
+          "'dataSource':_0x772d24['reco']['banners']}",
+          "'dataSource':__forAdmKKCleanV2(_0x772d24['reco']['banners'])}",
+          1
+        ],
+        [
+          "'dataSource':_0xeb6ade['reco']['banners']}",
+          "'dataSource':__forAdmKKCleanV2(_0xeb6ade['reco']['banners'])}",
+          1
+        ],
+        [
+          "_0x772d24['reco']['blocks']['length']>0x0",
+          "__forAdmKKCleanV2(_0x772d24['reco']['blocks'])['length']>0x0",
+          1
+        ],
+        [
+          "_0xeb6ade['reco']['blocks']['length']>0x0",
+          "__forAdmKKCleanV2(_0xeb6ade['reco']['blocks'])['length']>0x0",
+          1
+        ],
+        [
+          "['pI'])(_0x16f420['dataSource']['data'],",
+          "['pI'])(__forAdmKKCleanV2(_0x16f420['dataSource']['data']),",
+          1
+        ],
+        [
+          "'data-source':_0xeb6ade['vodHistories']}",
+          "'data-source':__forAdmKKCleanV2(_0xeb6ade['vodHistories'])}",
+          1
+        ],
+        [
+          "['pI'])(_0x3f2073['dataSource'],",
+          "['pI'])(__forAdmKKCleanV2(_0x3f2073['dataSource']),",
+          1
+        ],
+        [
+          "'data-source':_0x448c31['data']}",
+          "'data-source':__forAdmKKCleanV2(_0x448c31['data'])}",
+          1
+        ],
+        [
+          "'dataSource':_0x448c31}",
+          "'dataSource':__forAdmKKCleanV2(_0x448c31)}",
+          1
+        ],
+        [
+          "'dataSource':_0x2d7a1f,",
+          "'dataSource':__forAdmKKCleanV2(_0x2d7a1f),",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/9165\\.62613367\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "POSTING_TYPE",
+        "arrangedItems",
+        "getItemStyle",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          ")(_0x3dc42d['items'])",
+          ")(__forAdmKKCleanV2(_0x3dc42d['items']))",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/9516\\-legacy\\.21a8139c\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'banner'",
+        "FSImage",
+        "appAdvertisements",
+        "click_advert_"
+      ],
+      "pairs": [
+        [
+          "_0x4beddb=_0x514362['appAdvertisements']",
+          "_0x4beddb=[]",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/9700\\.6f29bc18\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x392172['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x392172['list']),",
+          2
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/9955\\-legacy\\.a269e091\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'VodVerticalItem'",
+        "['pI']",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "['pI'])(_0x1f6c40['list'],",
+          "['pI'])(__forAdmKKCleanV2(_0x1f6c40['list']),",
+          2
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/9955\\.4dbafd1e\\.js(?:\\?.*)?$",
+      "helper": "cards"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'appName':'网飞猫'",
+        "'appVersion':'2.5.30'",
+        "ChunkLoadError",
+        "FLOATING_WINDOW",
+        "VOD_START",
+        "['u']=function",
+        "getAdvertiseById",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "_0x366570=function(_0x26f2e5){var _0x485143=(0x0,_0x25e52b['P'])(),_0x16e8d5=_0x485143['appAdvertisements'];return!!(_0x16e8d5&&_0x16e8d5['length']>0x0&&_0x26f2e5&&_0x26f2e5['length']>0x0)&&_0x16e8d5['some'](function(_0xc016d){return _0xc016d['id']==_0x26f2e5;});}",
+          "_0x366570=function(_0x26f2e5){return false;}",
+          1
+        ],
+        [
+          "'getAdvertiseById':function(_0x1c3e9a){if(_0x1c3e9a&&0x0!=_0x1c3e9a['length']){var _0x1df515=this['appAdvertisements'];return _0x1df515&&_0x1df515['length']>0x0?_0x1df515['find'](function(_0x3f6e83){return _0x3f6e83['id']==_0x1c3e9a;}):void 0x0;}}",
+          "'getAdvertiseById':function(_0x1c3e9a){return void 0x0;}",
+          1
+        ],
+        [
+          "}[_0x4e9bde]+'.js';",
+          "}[_0x4e9bde]+'.js?for_adm=ncat-v3-__ADM_CACHE_REVISION__';",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/app\\-legacy\\.aa84deae\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "js",
+      "op": "replaceGroup",
+      "requires": [
+        "'appName':'网飞猫'",
+        "'appVersion':'2.5.30'",
+        "ChunkLoadError",
+        "FLOATING_WINDOW",
+        "VOD_START",
+        "['u']=function",
+        "getAdvertiseById",
+        "webpackChunkmovie"
+      ],
+      "pairs": [
+        [
+          "_0x1c0168=_0xa90108=>{const _0x521b52=(0x0,_0x49d73a['P'])(),_0x1c064a=_0x521b52['appAdvertisements'];return!!(_0x1c064a&&_0x1c064a['length']>0x0&&_0xa90108&&_0xa90108['length']>0x0)&&_0x1c064a['some'](_0x5abacc=>_0x5abacc['id']==_0xa90108);}",
+          "_0x1c0168=_0xa90108=>{return false;}",
+          1
+        ],
+        [
+          "'getAdvertiseById'(_0x591ba7){if(!_0x591ba7||0x0==_0x591ba7['length'])return;const _0xe5e013=this['appAdvertisements'];return _0xe5e013&&_0xe5e013['length']>0x0?_0xe5e013['find'](_0x3143ff=>_0x3143ff['id']==_0x591ba7):void 0x0;}",
+          "'getAdvertiseById'(_0x591ba7){return void 0x0;}",
+          1
+        ],
+        [
+          "}[_0x3e10ad]+'.js';",
+          "}[_0x3e10ad]+'.js?for_adm=ncat-v3-__ADM_CACHE_REVISION__';",
+          1
+        ]
+      ],
+      "pathPattern": "^/static/v20530/js/app\\.d647c7be\\.js(?:\\?.*)?$"
+    },
+    {
+      "kind": "html",
+      "op": "setQueryParameter",
+      "requires": [
+        "网飞猫",
+        "static/v20530/js/app.d647c7be.js",
+        "id=\"app\""
+      ],
+      "selector": {
+        "tag": "script",
+        "attr": "src",
+        "pattern": "^static/v[0-9]+/js/app(?:-legacy)?\\.[a-f0-9]{8}\\.js(?:\\?.*)?$"
+      },
+      "key": "for_adm",
+      "value": "ncat-v3-__ADM_CACHE_REVISION__"
     }
   ],
   "jsHelpers": {

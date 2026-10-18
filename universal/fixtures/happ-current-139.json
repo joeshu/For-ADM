@@ -1,0 +1,12 @@
+{
+  "template": "happ",
+  "url": "https://a.happ3.com:51111/static/v20523/js/493.e7a963e1.js",
+  "body": "/* ['ads']['find'] ; getAdvertiseById ; player */\n_0x3ba1ac=()=>{if(!_0x1ffae3['detail']||!_0x1ffae3['detail']['ads'])return;const _0x4511d4=_0x1ffae3['detail']['ads']['find'](_0x5a4119=>_0x5a4119['id']==_0x16c3db['BA']['VOD_START']);if(_0x4511d4){const _0x3a07b0=_0x2c34c2['getAdvertiseById'](_0x4511d4['id']);_0x3a07b0&&(_0x4511d4['items']=_0x3a07b0['items']);}return _0x4511d4&&_0x4511d4['items']&&_0x4511d4['items']['length']>0x0?_0x4511d4:void 0x0;};\n\n_0x7a8567=()=>{if(!_0x1ffae3['detail']||!_0x1ffae3['detail']['ads'])return;const _0x54606e=_0x1ffae3['detail']['ads']['find'](_0x369b3b=>_0x369b3b['id']==_0x16c3db['BA']['VOD_PAUSE']);if(_0x54606e){const _0x1dd869=_0x2c34c2['getAdvertiseById'](_0x54606e['id']);_0x1dd869&&(_0x54606e['items']=_0x1dd869['items']);}return _0x54606e&&_0x54606e['items']&&_0x54606e['items']['length']>0x0?_0x54606e:void 0x0;};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x3ba1ac=()=>{if(!_0x1ffae3['detail']||!_0x1ffae3['detail']['ads'])return;const _0x4511d4=_0x1ffae3['detail']['ads']['find'](_0x5a4119=>_0x5a4119['id']==_0x16c3db['BA']['VOD_START']);if(_0x4511d4){const _0x3a07b0=_0x2c34c2['getAdvertiseById'](_0x4511d4['id']);_0x3a07b0&&(_0x4511d4['items']=_0x3a07b0['items']);}return _0x4511d4&&_0x4511d4['items']&&_0x4511d4['items']['length']>0x0?_0x4511d4:void 0x0;}",
+    "_0x7a8567=()=>{if(!_0x1ffae3['detail']||!_0x1ffae3['detail']['ads'])return;const _0x54606e=_0x1ffae3['detail']['ads']['find'](_0x369b3b=>_0x369b3b['id']==_0x16c3db['BA']['VOD_PAUSE']);if(_0x54606e){const _0x1dd869=_0x2c34c2['getAdvertiseById'](_0x54606e['id']);_0x1dd869&&(_0x54606e['items']=_0x1dd869['items']);}return _0x54606e&&_0x54606e['items']&&_0x54606e['items']['length']>0x0?_0x54606e:void 0x0;}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/4229-legacy.76d400bc.js",
+  "body": "/* 'VodVerticalItem' ; ['pI'] ; webpackChunkmovie */\n['pI'])(_0x634f34['list'],;\n\n['pI'])(_0x3c2d0b['list'],;\n\n['pI'])(_0x349b30['list'],;\n\n['pI'])(_0x4806d7['list'],;\n\n'data-source':_0x2ed4f3,;\n\n'dataSource':_0x44074a};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "['pI'])(_0x634f34['list'],",
+    "['pI'])(_0x3c2d0b['list'],",
+    "['pI'])(_0x349b30['list'],",
+    "['pI'])(_0x4806d7['list'],",
+    "'data-source':_0x2ed4f3,",
+    "'dataSource':_0x44074a}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/2280.90c00b80.js",
+  "body": "/* /app/announcements ; /v2/config/units.capi ; 0x3e71:function ; getCacheUrl */\n'so':function(){return _0x5a9199;};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "'so':function(){return _0x5a9199;}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

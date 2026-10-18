@@ -1,0 +1,11 @@
+{
+  "template": "kkapp",
+  "url": "https://a.kkapp06.com/static/v20515/js/9516-legacy.d992a3ca.js",
+  "body": "/* POSTING_TYPE ; arrangedItems ; getItemStyle ; webpackChunkmovie */\n)(_0x114a9c['items']);\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    ")(_0x114a9c['items'])"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

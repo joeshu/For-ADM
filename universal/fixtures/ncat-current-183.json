@@ -1,0 +1,13 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/app-legacy.aa84deae.js",
+  "body": "/* 'appName':'网飞猫' ; 'appVersion':'2.5.30' ; ChunkLoadError ; FLOATING_WINDOW ; VOD_START ; ['u']=function ; getAdvertiseById ; webpackChunkmovie */\n_0x366570=function(_0x26f2e5){var _0x485143=(0x0,_0x25e52b['P'])(),_0x16e8d5=_0x485143['appAdvertisements'];return!!(_0x16e8d5&&_0x16e8d5['length']>0x0&&_0x26f2e5&&_0x26f2e5['length']>0x0)&&_0x16e8d5['some'](function(_0xc016d){return _0xc016d['id']==_0x26f2e5;});};\n\n'getAdvertiseById':function(_0x1c3e9a){if(_0x1c3e9a&&0x0!=_0x1c3e9a['length']){var _0x1df515=this['appAdvertisements'];return _0x1df515&&_0x1df515['length']>0x0?_0x1df515['find'](function(_0x3f6e83){return _0x3f6e83['id']==_0x1c3e9a;}):void 0x0;}};\n\n}[_0x4e9bde]+'.js';;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x366570=function(_0x26f2e5){var _0x485143=(0x0,_0x25e52b['P'])(),_0x16e8d5=_0x485143['appAdvertisements'];return!!(_0x16e8d5&&_0x16e8d5['length']>0x0&&_0x26f2e5&&_0x26f2e5['length']>0x0)&&_0x16e8d5['some'](function(_0xc016d){return _0xc016d['id']==_0x26f2e5;});}",
+    "'getAdvertiseById':function(_0x1c3e9a){if(_0x1c3e9a&&0x0!=_0x1c3e9a['length']){var _0x1df515=this['appAdvertisements'];return _0x1df515&&_0x1df515['length']>0x0?_0x1df515['find'](function(_0x3f6e83){return _0x3f6e83['id']==_0x1c3e9a;}):void 0x0;}}",
+    "}[_0x4e9bde]+'.js';"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

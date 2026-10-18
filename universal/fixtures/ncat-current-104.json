@@ -1,0 +1,13 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/2131-legacy.ba7ca1fa.js",
+  "body": "/* ['magnets'] ; _0x5667fd['value'] ; ad_last_shown_time ; content-wrap ; setNetdisks ; 网盘下载 */\n_0x5667fd['value']=_0x5cd2eb['data'];\n\n_0x3b22f1=(0x0,_0x39c57a['KR'])(0xa);\n\n(0x0,_0x39c57a['R1'])(_0x29d68b)?;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x5667fd['value']=_0x5cd2eb['data']",
+    "_0x3b22f1=(0x0,_0x39c57a['KR'])(0xa)",
+    "(0x0,_0x39c57a['R1'])(_0x29d68b)?"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

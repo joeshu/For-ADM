@@ -1,0 +1,24 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/3170-legacy.a3f4c7ec.js",
+  "body": "/* 'VodEntra' ; ['pI'] ; webpackChunkmovie */\n['pI'])(_0x53bfd9['selectedItem']['items'],;\n\n['pI'])(_0x4b9840['dataSource']['data'],;\n\n['pI'])(_0x5b128a['dataSource']['data'],;\n\n['pI'])(_0x127984['dataSource']['data'],;\n\n['pI'])(_0x277615['dataSource']['data'],;\n\n['pI'])(_0x312d85['dataSource']['data'],;\n\n['pI'])(_0x1eecc6['dataSource']['data'],;\n\n['pI'])(_0x53bfd9['dataSource']['data'],;\n\n['pI'])(_0x241d20['dataSource']['data'],;\n\n['pI'])(_0x3fd67a['banner']['items'],;\n\n['pI'])(_0x500ef2['dataSource'],;\n\n'data-source':_0x387221['data']};\n\n['pI'])(_0x582134['blocks'],;\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n'data-source':_0x387221};\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "['pI'])(_0x53bfd9['selectedItem']['items'],",
+    "['pI'])(_0x4b9840['dataSource']['data'],",
+    "['pI'])(_0x5b128a['dataSource']['data'],",
+    "['pI'])(_0x127984['dataSource']['data'],",
+    "['pI'])(_0x277615['dataSource']['data'],",
+    "['pI'])(_0x312d85['dataSource']['data'],",
+    "['pI'])(_0x1eecc6['dataSource']['data'],",
+    "['pI'])(_0x53bfd9['dataSource']['data'],",
+    "['pI'])(_0x241d20['dataSource']['data'],",
+    "['pI'])(_0x3fd67a['banner']['items'],",
+    "['pI'])(_0x500ef2['dataSource'],",
+    "'data-source':_0x387221['data']}",
+    "['pI'])(_0x582134['blocks'],",
+    "'data-source':_0x387221}"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}

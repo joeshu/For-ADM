@@ -1,0 +1,25 @@
+{
+  "template": "ncat",
+  "url": "https://a.napp03.com:51111/static/v20530/js/9165-legacy.f94c5b3c.js",
+  "body": "/* 'VodEntra' ; ['banners'] ; ['blocks'] ; ['pI'] ; webpackChunkmovie */\n_0x258b02['dataSource']['banners']['data']['length']>0x0;\n\n_0x3c320d['reco']['banners']['data']['length']>0x0;\n\n_0x2fd9cd['reco']['banners']['data']['length']>0x0;\n\n'dataSource':_0x258b02['dataSource']['banners']};\n\n['pI'])(_0x258b02['dataSource']['blocks'],;\n\n'dataSource':_0x3c320d['reco']['banners']};\n\n'dataSource':_0x2fd9cd['reco']['banners']};\n\n_0x3c320d['reco']['blocks']['length']>0x0;\n\n_0x2fd9cd['reco']['blocks']['length']>0x0;\n\n['pI'])(_0x25affb['dataSource']['data'],;\n\n'data-source':_0x2fd9cd['vodHistories']};\n\n['pI'])(_0x36e567['dataSource'],;\n\n'data-source':_0x32c3a3['data']};\n\n'dataSource':_0x32c3a3};\n\n'dataSource':_0x36641f,;\n\n/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */",
+  "removed": [
+    "_0x258b02['dataSource']['banners']['data']['length']>0x0",
+    "_0x3c320d['reco']['banners']['data']['length']>0x0",
+    "_0x2fd9cd['reco']['banners']['data']['length']>0x0",
+    "'dataSource':_0x258b02['dataSource']['banners']}",
+    "['pI'])(_0x258b02['dataSource']['blocks'],",
+    "'dataSource':_0x3c320d['reco']['banners']}",
+    "'dataSource':_0x2fd9cd['reco']['banners']}",
+    "_0x3c320d['reco']['blocks']['length']>0x0",
+    "_0x2fd9cd['reco']['blocks']['length']>0x0",
+    "['pI'])(_0x25affb['dataSource']['data'],",
+    "'data-source':_0x2fd9cd['vodHistories']}",
+    "['pI'])(_0x36e567['dataSource'],",
+    "'data-source':_0x32c3a3['data']}",
+    "'dataSource':_0x32c3a3}",
+    "'dataSource':_0x36641f,"
+  ],
+  "preserved": [
+    "/* protected: /app/announcements /user/login /vod/detail /v2/config/init.capi https://media.example/film.m3u8?sign=preserved */"
+  ]
+}
