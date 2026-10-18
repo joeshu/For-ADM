@@ -2,6 +2,8 @@
 
 仅研究工具，不接入 QX 构建或运行时。结论见 [研究报告](../../universal/MEDIA-RESILIENCE-20261018.md)。
 
+原研究使用的 966 个原版 JS 已保存在 [sources/](sources/README.md)，含更新前后分站、分版本目录及来源和 SHA-256 清单。可直接使用 `sources/before`、`sources/after` 作为下述命令的输入目录。
+
 ## 复现
 
 需要 Node.js 24，依赖仅在本目录安装：
