@@ -105,3 +105,24 @@ test('dot and bracket lookups clean identically without generalizing optional or
   for (const body of [JSON.stringify(dotted), '/* ' + dotted + ' */',
     '/* self.webpackChunkmovie=[]; */' + banner]) assert.equal(runCleaner(code, url, body), body);
 });
+
+test('completed token scan skips redundant AST work but keeps unmatched ad branches pending', () => {
+  const template = resolveStructuralTemplate(resolveMediaTemplate(loadTemplateManifest(fileURLToPath(root)).templates.find(t => t.id === 'kkapp')), fileURLToPath(root));
+  const acorn = createRequire(import.meta.url)('../vendor/acorn/acorn-8.15.0.js');let parses = 0;
+  const context = {admMediaAcorn: () => ({tokenizer: acorn.tokenizer, parse(...args) {parses++;return acorn.parse(...args);}})};
+  vm.createContext(context);
+  for (const file of ['media-structural.js', 'media-semantic.js']) vm.runInContext(fs.readFileSync(new URL('universal/src/' + file, root), 'utf8'), context);
+  const getter = "var store={'getAdvertiseById'(id){if(!id||0==id['length'])return;const ads=this['appAdvertisements'];return ads&&ads['length']>0?ads['find'](item=>item['id']==id):void 0;}};";
+  const predicate = "var exists=id=>{const state=(0,shared['P'])(),ads=state['appAdvertisements'];return!!(ads&&ads['length']>0&&id&&id['length']>0)&&ads['some'](item=>item['id']==id);};";
+  const input = boot + "var info={'appName':'可可影视'};var hints=['FLOATING_WINDOW','VOD_START'];" + getter + predicate + 'var state={};state.appAdvertisements=[];';
+  const cleaned = context.admMediaStructural(input, template.structuralRules, {});
+  assert.equal(cleaned.adReadsRemaining, false);
+  assert.equal(context.admMediaSemantic(cleaned.body, {}, 'kkapp', cleaned.adReadsRemaining).body, cleaned.body);
+  assert.equal(parses, 0, 'known completed cleanup should not parse the full main bundle again');
+  const unknown = input + predicate.replace('var exists=', 'var extra=').replace("['P']", "['changedExport']");
+  const partial = context.admMediaStructural(unknown, template.structuralRules, {});
+  assert.equal(partial.adReadsRemaining, true);
+  const audit = {}, result = context.admMediaSemantic(partial.body, audit, 'kkapp', partial.adReadsRemaining);
+  assert.equal(parses, 1);assert.equal(audit.semanticAdFunctions, 1);
+  assert.ok(result.body.includes("shared['changedExport']"));assert.notEqual(result.body, partial.body);
+});

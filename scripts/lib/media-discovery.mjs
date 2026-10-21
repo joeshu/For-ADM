@@ -64,6 +64,7 @@ export function probeMediaSource(code, url, body) {
     structuralPairs: record?.structuralPairs || 0,
     semanticStatus: record?.semanticStatus || 'not-applicable',
     semanticUnits: record?.semanticUnits || 0,
+    semanticAdFunctions: record?.semanticAdFunctions || 0,
     semanticDownloadGroups: record?.semanticDownloadGroups || 0,
     exactPairs: record?.pairs || 0};
 }

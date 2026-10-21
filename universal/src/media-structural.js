@@ -67,8 +67,19 @@ function admMediaStructural(body,config,audit){
     if(Date.now()-started>budget)throw Error('budget');
     all.sort(function(a,b){return a.s-b.s;});
     for(var j=1;j<all.length;j++)if(all[j].s<all[j-1].e)throw Error('overlap');
+    // A completed token scan can prove there are no remaining static ad
+    // collection reads. Assignments and object definitions are not reads.
+    // Covered ranges count only when the replacement drops the field too.
+    var adReads=index['string:"appAdvertisements"']||[];
+    var adReadsRemaining=adReads.some(function(at,i){
+      if(i%64===0&&Date.now()-started>budget)throw Error('budget');
+      if(!tokens[at-1]||tokens[at-1].k!=='[:undefined'||!tokens[at+1]||tokens[at+1].k!==']:undefined')return false;
+      if(tokens[at+2]&&tokens[at+2].k==='=:'+JSON.stringify('='))return false;
+      return !all.some(function(edit){return edit.s<=tokens[at].s&&edit.e>=tokens[at].e&&edit.r.indexOf('appAdvertisements')<0;});
+    });
     var out=body;for(var n=all.length-1;n>=0;n--)out=out.slice(0,all[n].s)+all[n].r+out.slice(all[n].e);
-    result.body=out;
+    if(Date.now()-started>budget)throw Error('budget');
+    result.adReadsRemaining=adReadsRemaining;result.body=out;
     return done(all.length?'modified':'no-match',all.length);
   }catch(error){result.helpers=[];return done(error.message==='budget'?'budget-limit':'rejected');}
 }

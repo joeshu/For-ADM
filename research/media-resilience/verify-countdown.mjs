@@ -13,7 +13,7 @@ const scripts = new Map(['kkapp', 'ncat', 'happ'].map(id => [id,
 const baseline = args.baseline ? new Map(['kkapp', 'ncat', 'happ'].map(id => [id,
   new vm.Script(fs.readFileSync(path.resolve(args.baseline, id, 'ad-clean.js'), 'utf8'))])) : null;
 const normalizeRevision = body => body.replace(/for_adm=(?:kkapp|ncat|happ)-v3-[a-f0-9]{12}/g, 'for_adm=SITE_REVISION');
-const report = {checkedAt: new Date().toISOString(), files: 0, semanticUnits: 0, semanticDownloadGroups: 0,
+const report = {checkedAt: new Date().toISOString(), files: 0, semanticUnits: 0, semanticDownloadGroups: 0, semanticAdFunctions: 0,
   idempotent: 0, syntaxChecked: 0, protectedLiteralsChecked: 0, failures: [], timings: []};
 if (baseline) report.baselineEquivalent = 0;
 function clean(id, url, body, runtime = scripts) {
@@ -45,6 +45,7 @@ for (const entry of manifest.files) {
       if (body.split(match[0]).length > out.body.split(match[0]).length) throw Error('Protected literal removed');
       report.protectedLiteralsChecked++;
     }
+    report.semanticAdFunctions += out.record.semanticAdFunctions || 0;
     report.semanticUnits += out.record.semanticUnits || 0;
     report.semanticDownloadGroups += out.record.semanticDownloadGroups || 0;
     report.files++;

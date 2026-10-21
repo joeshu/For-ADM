@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import crypto from 'node:crypto';
 import {performance} from 'node:perf_hooks';
 import {fileURLToPath} from 'node:url';
-import {canonical, mutate, scenarios} from './update-mutations.mjs';
+import {canonical, mutate, scenarios, parseSource, walk} from './update-mutations.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const args = Object.fromEntries(process.argv.slice(2).map(s => {const [k, ...v] = s.replace(/^--/, '').split('=');return [k, v.join('=')];}));
 if (!args.out || Object.keys(args).some(k => !['out', 'runtime-dir'].includes(k))) throw Error('Use --out=FILE [--runtime-dir=DIR]');
@@ -36,6 +36,29 @@ function run(site, url, body) {
   const out = result.body ?? body;new vm.Script(out);
   return {body: out, diagnostic, timeMs: +(performance.now() - start).toFixed(2)};
 }
+function adPredicateContract(input, output) {
+  function functions(body) {
+    const out=[];walk(parseSource(body), node => {
+      if(node.type==='VariableDeclarator'&&['FunctionExpression','ArrowFunctionExpression'].includes(node.init?.type))out.push(node);
+    });return out;
+  }
+  const before=functions(input).filter(node=>{
+    if(node.init.params.length!==1||node.init.body.type!=='BlockStatement')return false;
+    const fields=new Set();walk(node.init.body,n=>{
+      if(n.type==='MemberExpression')fields.add(n.computed?n.property.value:n.property.name);
+    });return fields.has('appAdvertisements')&&fields.has('some');
+  });
+  if(before.length!==1)throw Error('Reviewed ad predicate not found uniquely');
+  const after=functions(output).find(node=>node.id.name===before[0].id.name);
+  const statements=after?.init.body.body;
+  const disabled=!!statements&&[1,2].includes(statements.length)&&statements.at(-1).type==='ReturnStatement'&&
+    statements.at(-1).argument?.type==='Literal'&&statements.at(-1).argument.value===false&&
+    (statements.length===1||statements[0].type==='ExpressionStatement');
+  const call=before[0].init.body.body[0].declarations[0].init;
+  const preserved=disabled&&statements.length===2&&canonical(input.slice(call.start,call.end)+';')===
+    canonical(output.slice(statements[0].expression.start,statements[0].expression.end)+';');
+  return {disabled,sharedInitializationPreserved:preserved};
+}
 const baselines = records.map(record => {
   const source = fs.readFileSync(path.join(root, 'research/media-resilience/sources', record.archive), 'utf8');
   if (crypto.createHash('sha256').update(source).digest('hex') !== record.sha256) throw Error('Archive hash differs');
@@ -56,8 +79,10 @@ for (const scenario of scenarios) {
       result.idempotent = run(record.site, url, actual.body).body === actual.body;
       if (!result.idempotent) throw Error('Second pass changes output');
       Object.assign(result, {timeMs: actual.timeMs, structuralPairs: actual.diagnostic.structuralPairs || 0,
+        semanticAdFunctions: actual.diagnostic.semanticAdFunctions || 0,
         semanticUnits: actual.diagnostic.semanticUnits || 0, semanticDownloadGroups: actual.diagnostic.semanticDownloadGroups || 0,
         baselinePairs: baseline.diagnostic.structuralPairs || 0});
+      if(record.kind==='app')result.adPredicateContract=adPredicateContract(input,actual.body);
       if (result.equivalent) summary.equivalent++;else summary.misses++;
       if (!scenario.compatible) {
         result.declined = scenario.id === 'webpack-global' ? !result.structuralPairs && !result.semanticUnits && !result.semanticDownloadGroups

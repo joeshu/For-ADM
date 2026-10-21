@@ -1,9 +1,10 @@
 // Static syntax inspection only. No page function or API response is executed.
-function admMediaSemantic(body,audit){
-  var result={body:body,helpers:[]},started=Date.now(),visited=0,units=0,downloads=0,edits=[];
-  function done(status){if(audit){audit.semanticStatus=status;audit.semanticUnits=units;audit.semanticDownloadGroups=downloads;audit.semanticEdits=edits.length;}return result;}
+function admMediaSemantic(body,audit,siteId,adReadsRemaining){
+  var result={body:body,helpers:[]},started=Date.now(),visited=0,units=0,downloads=0,adFunctions=0,edits=[];
+  function done(status){if(audit){audit.semanticStatus=status;audit.semanticUnits=units;audit.semanticDownloadGroups=downloads;audit.semanticAdFunctions=adFunctions;audit.semanticEdits=edits.length;}return result;}
   if(body.length>2097152)return done('size-limit');
-  if(body.indexOf('webpackChunkmovie')<0||(body.indexOf('/v2/config/units.capi')<0&&body.indexOf('ad_last_shown_time')<0))return done('not-applicable');
+  var brand={kkapp:'可可影视',ncat:'网飞猫',happ:'好好看'}[siteId],adProbe=brand&&adReadsRemaining!==false&&body.indexOf('appAdvertisements')>=0&&body.indexOf('getAdvertiseById')>=0;
+  if(body.indexOf('webpackChunkmovie')<0||(!adProbe&&body.indexOf('/v2/config/units.capi')<0&&body.indexOf('ad_last_shown_time')<0))return done('not-applicable');
   function fn(n){return n&&(n.type==='FunctionExpression'||n.type==='ArrowFunctionExpression'||n.type==='FunctionDeclaration');}
   function walk(root,visit,own){
     var stack=[root];while(stack.length){var node=stack.pop();if(!node||typeof node!=='object')continue;
@@ -33,14 +34,82 @@ function admMediaSemantic(body,audit){
   }
   function sameFactory(a,b){var key=factoryKey(a);return key!==null&&key===factoryKey(b);}
 
+  function ident(n,name){return n&&n.type==='Identifier'&&n.name===name;}
+  function zero(n){return literal(n,0);}
+  function lengthPositive(n,name){return n&&n.type==='BinaryExpression'&&n.operator==='>'&&isPath(n.left,name,['length'])&&zero(n.right);}
+  function sameId(callback,id){
+    if(!fn(callback)||callback.async||callback.generator||callback.params.length!==1||callback.params[0].type!=='Identifier')return false;
+    var item=callback.params[0].name;if(item===id||callback.id&&[id,item].indexOf(callback.id.name)>=0)return false;
+    var expression=callback.body;
+    if(expression.type==='BlockStatement'){
+      if(expression.body.length!==1||expression.body[0].type!=='ReturnStatement')return false;
+      expression=expression.body[0].argument;
+    }
+    return expression&&expression.type==='BinaryExpression'&&['==','==='].indexOf(expression.operator)>=0&&
+      ((isPath(expression.left,item,['id'])&&ident(expression.right,id))||(isPath(expression.right,item,['id'])&&ident(expression.left,id)));
+  }
+  function adLookup(n,list,method,id){return n&&n.type==='CallExpression'&&!n.optional&&isPath(n.callee,list,[method])&&n.arguments.length===1&&sameId(n.arguments[0],id);}
+  function conjunction(n){return n&&n.type==='LogicalExpression'&&n.operator==='&&'?conjunction(n.left).concat(conjunction(n.right)):[n];}
+  function adPredicate(f){
+    var statements=f.body.body;if(statements.length<2||statements.length>3||statements[statements.length-1].type!=='ReturnStatement')return null;
+    var declarations=[];
+    for(var i=0;i<statements.length-1;i++){
+      if(statements[i].type!=='VariableDeclaration')return null;
+      declarations=declarations.concat(statements[i].declarations);
+    }
+    if(declarations.length!==2||declarations.some(function(d){return d.id.type!=='Identifier'||!d.init;}))return null;
+    var id=f.params[0].name,store=declarations[0],ads=declarations[1],key=factoryKey(store.init);
+    if(!key||store.init.arguments.length!==0||!isPath(ads.init,store.id.name,['appAdvertisements'])||
+      (id===store.id.name||id===ads.id.name||store.id.name===ads.id.name)||[store.id.name,ads.id.name].indexOf(JSON.parse(key)[1])>=0)return null;
+    var returned=statements[statements.length-1].argument;
+    if(!returned||returned.type!=='LogicalExpression'||returned.operator!=='&&'||!adLookup(returned.right,ads.id.name,'some',id))return null;
+    var test=returned.left;
+    if(test.type!=='UnaryExpression'||test.operator!=='!'||test.argument.type!=='UnaryExpression'||test.argument.operator!=='!')return null;
+    var terms=conjunction(test.argument.argument);
+    if(terms.length!==4||!ident(terms[0],ads.id.name)||!lengthPositive(terms[1],ads.id.name)||!ident(terms[2],id)||!lengthPositive(terms[3],id))return null;
+    // Keep the original store call: its shared initialization is not proven
+    // ad-exclusive. Remove only the confirmed advertisement read/lookup.
+    return '{'+body.slice(store.init.start,store.init.end)+';return false;}';
+  }
+  function lengthCompare(n,id,operators){return n&&n.type==='BinaryExpression'&&operators.indexOf(n.operator)>=0&&
+    ((zero(n.left)&&isPath(n.right,id,['length']))||(isPath(n.left,id,['length'])&&zero(n.right)));}
+  function adGetter(f){
+    var statements=f.body.body,id=f.params[0].name,guard=statements[0];if(!guard||guard.type!=='IfStatement'||guard.alternate)return null;
+    if(statements.length===1){
+      if(guard.test.type!=='LogicalExpression'||guard.test.operator!=='&&'||!ident(guard.test.left,id)||!lengthCompare(guard.test.right,id,['!=','!=='])||guard.consequent.type!=='BlockStatement')return null;
+      statements=guard.consequent.body;
+    }else{
+      if(statements.length!==3||guard.test.type!=='LogicalExpression'||guard.test.operator!=='||'||guard.test.left.type!=='UnaryExpression'||guard.test.left.operator!=='!'||!ident(guard.test.left.argument,id)||!lengthCompare(guard.test.right,id,['==','==='])||guard.consequent.type!=='ReturnStatement'||guard.consequent.argument)return null;
+      statements=statements.slice(1);
+    }
+    if(statements.length!==2||statements[0].type!=='VariableDeclaration'||statements[0].declarations.length!==1||statements[1].type!=='ReturnStatement')return null;
+    var declaration=statements[0].declarations[0],read=declaration.init,returned=statements[1].argument;
+    if(declaration.id.type!=='Identifier'||declaration.id.name===id||!read||read.type!=='MemberExpression'||read.object.type!=='ThisExpression'||prop(read)!=='appAdvertisements'||!returned||returned.type!=='ConditionalExpression')return null;
+    var list=declaration.id.name,terms=conjunction(returned.test),fallback=returned.alternate;
+    if(terms.length!==2||!ident(terms[0],list)||!lengthPositive(terms[1],list)||!adLookup(returned.consequent,list,'find',id)||!fallback||fallback.type!=='UnaryExpression'||fallback.operator!=='void'||!zero(fallback.argument))return null;
+    return '{return void 0;}';
+  }
   function shadows(f,names){return f.id&&names.indexOf(f.id.name)>=0||(f.params||[]).some(function(p){return p.type!=='Identifier'||names.indexOf(p.name)>=0;})||nodes(f.body,function(n){return (n.type==='VariableDeclarator'||n.type==='FunctionDeclaration')&&n.id&&n.id.type==='Identifier'&&names.indexOf(n.id.name)>=0;},false).length>0;}
   function patch(node,text){edits.push({s:node.start,e:node.end,r:text});}
   try{
-    var ast=admMediaAcorn().parse(body,{ecmaVersion:'latest'}),functions=[],webpack=false;
-    walk(ast,function(n){if(fn(n))functions.push(n);if(n.type==='MemberExpression'&&n.object.type==='Identifier'&&n.object.name==='self'&&prop(n)==='webpackChunkmovie')webpack=true;});
+    var ast=admMediaAcorn().parse(body,{ecmaVersion:'latest'}),functions=[],webpack=false,adGetters=[],brandFound=false,adWords=Object.create(null);
+    walk(ast,function(n){if(fn(n))functions.push(n);
+      if(adProbe){
+        if(n.type==='Property'&&!n.computed&&prop(n)==='appName'&&literal(n.value,brand))brandFound=true;
+        if(n.type==='Literal'&&typeof n.value==='string')adWords[n.value]=true;
+        if((n.type==='Property'||n.type==='MemberExpression')&&typeof prop(n)==='string')adWords[prop(n)]=true;
+        if(n.type==='Property'&&!n.computed&&n.kind==='init'&&prop(n)==='getAdvertiseById'&&fn(n.value))adGetters.push(n.value);
+      }if(n.type==='MemberExpression'&&n.object.type==='Identifier'&&n.object.name==='self'&&prop(n)==='webpackChunkmovie')webpack=true;});
     if(!webpack)return done('not-applicable');
+    var adGuard=adProbe&&brandFound&&adGetters.length>0&&adWords.FLOATING_WINDOW&&adWords.VOD_START;
     functions.forEach(function(f){
+      if(adGuard&&!f.async&&!f.generator&&f.body.type==='BlockStatement'&&f.params.length===1&&f.params[0].type==='Identifier'){
+        var replacement=adGetters.indexOf(f)>=0?adGetter(f):adPredicate(f);
+        if(replacement){patch(f.body,replacement);adFunctions++;return;}
+      }
       if(f.async||f.generator||f.type==='FunctionDeclaration'||f.body.type!=='BlockStatement')return;
+      var text=body.slice(f.body.start,f.body.end);
+      if(text.indexOf('/v2/config/units.capi')<0&&text.indexOf('ad_last_shown_time')<0)return;
       var own=nodes(f.body,function(){return true;},true),bindings=directDeclarations(f);
       // Locate the actual HTTP function through its own URL/method bindings,
       // never through a webpack export alias such as "so".
@@ -99,5 +168,5 @@ function admMediaSemantic(body,audit){
     edits.sort(function(a,b){return a.s-b.s;});for(var i=1;i<edits.length;i++)if(edits[i].s<edits[i-1].e)throw Error('overlap');
     var out=body;for(var j=edits.length-1;j>=0;j--)out=out.slice(0,edits[j].s)+edits[j].r+out.slice(edits[j].e);
     result.body=out;return done(edits.length?'modified':'no-match');
-  }catch(error){result.helpers=[];units=0;downloads=0;edits=[];return done(error.message==='budget'?'budget-limit':'rejected');}
+  }catch(error){result.helpers=[];units=0;downloads=0;adFunctions=0;edits=[];return done(error.message==='budget'?'budget-limit':'rejected');}
 }

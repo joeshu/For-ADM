@@ -58,3 +58,7 @@ node research/media-resilience/simulate-updates.mjs --out=/tmp/media-update-simu
 ```
 
 不是所有场景都已支持。报告 `failures` 为空只表示实验执行及保护检查通过；具体兼容范围看 `equivalent/misses`。完整方法、基线复现及后续数据入口方案见第二轮研究。
+
+## 专用广告分支后备
+
+详见 [实现与保留边界](../../universal/MEDIA-AD-BRANCHES-20261021.md)。更新模拟现在另报主脚本 `adPredicateContract`，区分“专用广告判断已切断且共享初始化保留”与“输出完全等同旧版空函数”；不忽略真实调用来提高 AST 等价数字。

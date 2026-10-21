@@ -70,3 +70,5 @@ node scripts/audit-media-sites.mjs --site=ncat --source-dir=/path/to/sources --o
 手动 GitHub Actions 新增 “All subscribed sites source audit”。任何源码变化返回退出码 1；任何部分核验、不可访问或未运行返回 2，并保留逐站报告，不能作为全部线上通过。
 
 可选 HLS 切片模块已接入同一限时开关，记录标记为 hls-video。任务列表现在覆盖 18 个单元（网页/App 17 个，HLS 1 个）；新增任务脚本需刷新缓存。HLS 订阅保持独立安装，详见 [说明](../hls-video/README.md)。
+
+专用广告分支后备新增 `semanticAdFunctions`：本次语义阶段完整核验并剔除函数体的广告专用函数数量。结构阶段已经清理的函数不重复计数；预算、解析或冲突退出时为 0。边界和行为验证见 [专用广告分支说明](MEDIA-AD-BRANCHES-20261021.md)。
