@@ -2,6 +2,8 @@
 
 三站已增加结构后备诊断字段及每日新分包检查，参见 [结构后备说明](MEDIA-STRUCTURAL.md)。原有诊断开关与任务地址不变。
 
+启动/下载倒计时语义适配增加 `semanticStatus`、`semanticUnits`、`semanticDownloadGroups`、`semanticEdits`，见 [修复说明](MEDIA-COUNTDOWN-20261021.md)。JS 记录的 `semanticUnits` 表示按真实请求绑定识别的广告配置函数数，`semanticDownloadGroups` 表示完整确认引用并清理的下载模块数；不是手机页面已经执行的证明。
+
 默认关闭日志。诊断只在 Quantumult X 中记录站点、脚本版本、JS 路径、替换组数和下载保护标记，不记录查询参数、响应正文、影片地址或账户数据。
 
 ## 手机检查
@@ -35,7 +37,7 @@
 
 ## 源码变化检查
 
-2026-10-18 起，三站审计从 `tests/media-current-sources.json` 读取当前版本模块和路径；旧版来源清单保留作回归测试。当前适配为可可影视 2.5.15、网飞猫 2.5.30、好好看 2.5.23。离线源码目录应包含当前清单中的文件名。
+2026-10-21 起，三站审计读取 `tests/media-reviewed-sources.json` 的当前已核验源码和清理行为清单，版本为可可影视 2.5.16、网飞猫 2.5.31、好好看 2.5.24。`media-current-sources.json` 和更早的来源清单继续用于历史回归。离线源码目录应包含当前清单中的文件名。
 
 仓库提供手动 GitHub Actions：`KKAPP NCAT and HAPP source audit`。在 Actions 页面选择该工作流并点击 Run workflow。结果在日志与工作流摘要中，不自动修改规则。
 

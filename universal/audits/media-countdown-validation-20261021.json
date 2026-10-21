@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-21T15:41:25.831Z",
+  "files": 1710,
+  "semanticUnits": 126,
+  "semanticDownloadGroups": 6,
+  "idempotent": 1710,
+  "syntaxChecked": 1710,
+  "protectedLiteralsChecked": 1842,
+  "failures": [],
+  "timingMs": {
+    "median": 2.02,
+    "max": 484.15
+  }
+}

@@ -41,6 +41,10 @@ on:
       - 'tests/ncat-download-sources.json'
       - 'tests/download-hardening-sources.json'
       - 'tests/media-layout-sources.json'
+      - 'tests/media-*.json'
+      - 'research/media-resilience/sources/**'
+      - 'scripts/verify-media-archive.mjs'
+      - 'vendor/acorn/**'
       - 'scripts/audit-media-sites.mjs'
       - '.github/workflows/ad-clean-check.yml'
   pull_request:
@@ -84,6 +88,10 @@ on:
       - 'tests/ncat-download-sources.json'
       - 'tests/download-hardening-sources.json'
       - 'tests/media-layout-sources.json'
+      - 'tests/media-*.json'
+      - 'research/media-resilience/sources/**'
+      - 'scripts/verify-media-archive.mjs'
+      - 'vendor/acorn/**'
       - 'scripts/audit-media-sites.mjs'
       - '.github/workflows/ad-clean-check.yml'
 permissions:

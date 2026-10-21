@@ -1,4 +1,4 @@
-/* GENERATED from universal/templates.json and universal/src; revision 5ebe57611491. Do not edit. */
+/* GENERATED from universal/templates.json and universal/src; revision 579c888bf2d4. Do not edit. */
 (function(){
 // Shared operations. No host discovery, logging, network calls or player interception.
 function __admRead(root, path) {
@@ -156,6 +156,8 @@ function cleanDeclarative(ctx,template) {
   if(ctx.kind==='js'&&template.structuralRules&&typeof admMediaStructural==='function'){
     var structural=admMediaStructural(body,template.structuralRules,audit);body=structural.body;
     structural.helpers.forEach(function(name){if(helpers.indexOf(name)<0)helpers.push(name);});
+    var semantic=admMediaSemantic(body,audit);body=semantic.body;
+    semantic.helpers.forEach(function(name){if(helpers.indexOf(name)<0)helpers.push(name);});
   }
   if(ctx.kind==='js')helpers.forEach(function(name){var helper=template.jsHelpers&&template.jsHelpers[name];if(helper&&body.indexOf(helper.marker)<0)body=helper.source+'\n'+body;});
   return body;
@@ -195,6 +197,7 @@ function admRun(templates,processors,revision) {
         if(allowed)output=processors[selected.template.adapter]({body:original,url:url,host:host,path:path,kind:selected.kind,audit:audit},selected.template);
         if(debug&&selected.template.diagnostics===true)report={checkedAt:Date.now(),site:selected.template.id,revision:revision,host:host,path:path.split('?')[0],probe:/(?:[?&])for_adm_probe=/.test(path),kind:selected.kind,status:allowed?(output!==original?'modified':'unchanged'):'response-preserved',groups:audit&&audit.groups||0,changedGroups:audit&&audit.changedGroups||0,pairs:audit&&audit.pairs||0,failedGroups:audit&&audit.failedGroups||0,downloadProtection:output.indexOf('function __forAdmDownloadData(')>=0,playbackProtection:output.indexOf('function __forAdmDylsProbe(')>=0,adCacheProtection:output.indexOf('function __forAdmDylsClearAds(')>=0};
         if(report&&audit&&audit.structuralStatus){report.structuralStatus=audit.structuralStatus;report.structuralPairs=audit.structuralPairs||0;}
+        if(report&&audit&&audit.semanticStatus){report.semanticStatus=audit.semanticStatus;report.semanticUnits=audit.semanticUnits||0;report.semanticDownloadGroups=audit.semanticDownloadGroups||0;report.semanticEdits=audit.semanticEdits||0;}
       }
     }
   }catch(_){output=original;if(debug){report={checkedAt:Date.now(),status:'runtime-error',revision:revision};if(selected&&selected.template.diagnostics===true){report.site=selected.template.id;report.host=host;report.path=path.split('?')[0];report.kind=selected.kind;report.probe=/(?:[?&])for_adm_probe=/.test(path);}}}
@@ -202,5 +205,5 @@ function admRun(templates,processors,revision) {
   $done(typeof output==='string'&&output!==original?{body:output}:{});
 }
 
-admRun([{"id":"qlplayer","adapter":"declarative","output":{"script":"qlplayer/ad-clean.js","conf":"qlplayer/quantumult-x-snippet.conf"},"diagnostics":true,"actions":[{"kind":"js","op":"replaceGroup","requires":["async function init()","function showPreRoll()","function showPauseAd()","const { url, type } = await resolveVideo();","initPlayer(url, type);"],"pairs":[["if (playerConfig.ads.pre_roll.enabled) {","if (false /* For-ADM: pre-roll disabled */) {",1],["if (playerConfig.ads.pause.enabled) {","if (false /* For-ADM: pause ad disabled */) {",1]]}],"bindings":[{"host":"(?:svip\\.qlplayer\\.cyou)","routes":[{"kind":"js","path":"/assets/player\\.js(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"5ebe57611491");
+admRun([{"id":"qlplayer","adapter":"declarative","output":{"script":"qlplayer/ad-clean.js","conf":"qlplayer/quantumult-x-snippet.conf"},"diagnostics":true,"actions":[{"kind":"js","op":"replaceGroup","requires":["async function init()","function showPreRoll()","function showPauseAd()","const { url, type } = await resolveVideo();","initPlayer(url, type);"],"pairs":[["if (playerConfig.ads.pre_roll.enabled) {","if (false /* For-ADM: pre-roll disabled */) {",1],["if (playerConfig.ads.pause.enabled) {","if (false /* For-ADM: pause ad disabled */) {",1]]}],"bindings":[{"host":"(?:svip\\.qlplayer\\.cyou)","routes":[{"kind":"js","path":"/assets/player\\.js(?:\\?.*)?$"}]}]}],{declarative:cleanDeclarative},"579c888bf2d4");
 })();

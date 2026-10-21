@@ -1,0 +1,134 @@
+[
+  {
+    "site": "happ",
+    "url": "https://a.happ3.com:51111/static/v20524/js/1946.f92fdeed.js",
+    "archive": "2026-10-21/happ/2.5.24/js/1946.f92fdeed.js",
+    "sha256": "6a5365a9dac8ce4c42310a8e4d5b1f39b3aad8826a4e817f702b97dfd8a4a1b3",
+    "kind": "startup",
+    "api": "_0xe9d4fa",
+    "consumer": {
+      "start": 9937,
+      "end": 10304
+    }
+  },
+  {
+    "site": "happ",
+    "url": "https://a.happ3.com:51111/static/v20524/js/2131-legacy.ec3d50c5.js",
+    "archive": "2026-10-21/happ/2.5.24/js/2131-legacy.ec3d50c5.js",
+    "sha256": "0205dd9560a6ce8bc48b4bb54864a88f99f45943247eb7555cb2f6d37ed6ec0f",
+    "kind": "download",
+    "factory": "_0x5006d7",
+    "initializer": "_0x5d3cb0",
+    "dispatcher": "_0x40fe4a"
+  },
+  {
+    "site": "happ",
+    "url": "https://a.happ3.com:51111/static/v20524/js/5805-legacy.4b6203ae.js",
+    "archive": "2026-10-21/happ/2.5.24/js/5805-legacy.4b6203ae.js",
+    "sha256": "09d6a296d68e86561ab8e527856bee25b83b543c0e5632764fa5300e7ac4b153",
+    "kind": "startup",
+    "api": "_0x1e7786",
+    "consumer": {
+      "start": 11142,
+      "end": 11535
+    }
+  },
+  {
+    "site": "happ",
+    "url": "https://a.happ3.com:51111/static/v20524/js/6360.2ba4f855.js",
+    "archive": "2026-10-21/happ/2.5.24/js/6360.2ba4f855.js",
+    "sha256": "07ad1499407a78673139c4f731623b2be93240bbe98bedb8c83d442f232af8ac",
+    "kind": "download",
+    "factory": "_0x9f1f99",
+    "initializer": "_0x3c4d81",
+    "dispatcher": "_0x44af19"
+  },
+  {
+    "site": "kkapp",
+    "url": "https://a.kkapp06.com/static/v20516/js/1946.b46dad83.js",
+    "archive": "2026-10-21/kkapp/2.5.16/js/1946.b46dad83.js",
+    "sha256": "297683d4fb2e671ae5cfdd30bb264bef4c3fa5b85e0dd721313781f44c38799e",
+    "kind": "startup",
+    "api": "_0x4ac69d",
+    "consumer": {
+      "start": 9936,
+      "end": 10303
+    }
+  },
+  {
+    "site": "kkapp",
+    "url": "https://a.kkapp06.com/static/v20516/js/2131-legacy.0b5b324a.js",
+    "archive": "2026-10-21/kkapp/2.5.16/js/2131-legacy.0b5b324a.js",
+    "sha256": "938672eb79e0f720e239c96d673eaa91b9b5e7b0343bf8c777e2882a89217def",
+    "kind": "download",
+    "factory": "_0x1532ea",
+    "initializer": "_0x87b45",
+    "dispatcher": "_0x38f59a"
+  },
+  {
+    "site": "kkapp",
+    "url": "https://a.kkapp06.com/static/v20516/js/5805-legacy.d5f2b094.js",
+    "archive": "2026-10-21/kkapp/2.5.16/js/5805-legacy.d5f2b094.js",
+    "sha256": "ff569e16e5943eb91a861e611fb2a390a5d87216c611cbe79d1e5fb72e7c8fb4",
+    "kind": "startup",
+    "api": "_0x2c831a",
+    "consumer": {
+      "start": 11113,
+      "end": 11506
+    }
+  },
+  {
+    "site": "kkapp",
+    "url": "https://a.kkapp06.com/static/v20516/js/6360.2ba4f855.js",
+    "archive": "2026-10-21/kkapp/2.5.16/js/6360.2ba4f855.js",
+    "sha256": "cf422348eb46e0331cf35c0ebc45f64db91650b287656f64b9b6b66586343c40",
+    "kind": "download",
+    "factory": "_0x4053e8",
+    "initializer": "_0x50862c",
+    "dispatcher": "_0x577219"
+  },
+  {
+    "site": "ncat",
+    "url": "https://a.napp03.com:51111/static/v20531/js/1946.b9b04eb3.js",
+    "archive": "2026-10-21/ncat/2.5.31/js/1946.b9b04eb3.js",
+    "sha256": "631f4fa8ef1ea52ed9442f8b31275f8b5b76d50ccf258ef2c100f2f4de0d9a17",
+    "kind": "startup",
+    "api": "_0x3beb2c",
+    "consumer": {
+      "start": 9904,
+      "end": 10271
+    }
+  },
+  {
+    "site": "ncat",
+    "url": "https://a.napp03.com:51111/static/v20531/js/2131-legacy.7133a2f2.js",
+    "archive": "2026-10-21/ncat/2.5.31/js/2131-legacy.7133a2f2.js",
+    "sha256": "70d57a9b94f3d603e755190b5fe8d997206f8aa84117344667ffe12204de0a9b",
+    "kind": "download",
+    "factory": "_0x132184",
+    "initializer": "_0x2f87f5",
+    "dispatcher": "_0x6c7603"
+  },
+  {
+    "site": "ncat",
+    "url": "https://a.napp03.com:51111/static/v20531/js/5805-legacy.4fb3cefe.js",
+    "archive": "2026-10-21/ncat/2.5.31/js/5805-legacy.4fb3cefe.js",
+    "sha256": "674e89a3d73f12b715db7a19bd675adb1d5f7cd86709c747fc1c4dec10d85441",
+    "kind": "startup",
+    "api": "_0x33ca44",
+    "consumer": {
+      "start": 11144,
+      "end": 11537
+    }
+  },
+  {
+    "site": "ncat",
+    "url": "https://a.napp03.com:51111/static/v20531/js/6360.2ba4f855.js",
+    "archive": "2026-10-21/ncat/2.5.31/js/6360.2ba4f855.js",
+    "sha256": "e8a24d0c3ecd08d57d5ee6eb51a6cc8f2284c53bb8aa2b85c784725630e17757",
+    "kind": "download",
+    "factory": "_0x3aae85",
+    "initializer": "_0x5fda5b",
+    "dispatcher": "_0x1a775e"
+  }
+]

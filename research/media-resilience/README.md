@@ -4,6 +4,8 @@
 
 原研究使用的 966 个原版 JS 已保存在 [sources/](sources/README.md)，含更新前后分站、分版本目录及来源和 SHA-256 清单。可直接使用 `sources/before`、`sources/after` 作为下述命令的输入目录。
 
+2026-10-21 又归档 744 个新版 JS，位于 `sources/2026-10-21`。原 `before/after` 数据未覆盖。
+
 ## 复现
 
 需要 Node.js 24，依赖仅在本目录安装：
@@ -28,6 +30,13 @@ node research/media-resilience/compare.mjs \
 ## 正式运行时的独立回归
 
 `verify-runtime.mjs` 使用独立的研究匹配器作为改写对照，验证正式运行时的原始源码与模拟改名源码。需要当前已构建脚本，以及接入前的独立脚本基线：
+
+此实验对照对应 2026-10-18 的结构方案，不包含后来新增的 AST 语义改写。对当前脚本运行会出现预期的新增改写差异；当前版本使用下述完整性/语法/幂等性检查与 `ad-media-countdown.test.mjs` 中的真实模块行为测试：
+
+```sh
+node research/media-resilience/verify-countdown.mjs --out=/tmp/media-countdown-validation.json
+node --test tests/ad-media-countdown.test.mjs
+```
 
 ```sh
 mkdir -p /path/to/baseline
