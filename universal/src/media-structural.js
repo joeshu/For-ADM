@@ -6,14 +6,31 @@ function admMediaStructural(body,config,audit){
   if(body.indexOf('webpackChunkmovie')<0||!config.probes.some(function(p){return body.indexOf(p)>=0;}))return done('not-applicable');
   try{
     var lexer=admMediaAcorn().tokenizer(body,{ecmaVersion:'latest'}),tokens=[],index=Object.create(null),texts=[],token;
+    function append(label,value,start,end){
+      var key=label+':'+JSON.stringify(value),at=tokens.length;
+      if(!index[key])index[key]=[];index[key].push(at);
+      tokens.push({k:key,n:label==='name'?value:null,s:start,e:end});
+      if((label==='name'||label==='string')&&typeof value==='string')texts.push(value);
+    }
+    var dot=null;
     while((token=lexer.getToken()).type.label!=='eof'){
       if(tokens.length>=250000||tokens.length%1024===0&&Date.now()-started>budget)return done('budget-limit');
+      // A non-optional .IdentifierName and ["IdentifierName"] use the same
+      // lookup. Normalize matching tokens only; retain original byte ranges.
+      // Private fields, dynamic keys and optional chains are not generalized.
+      if(dot){
+        if(token.type.label==='name'||token.type.keyword){
+          append('[',undefined,dot.start,dot.end);
+          append('string',token.value,token.start,token.end);
+          append(']',undefined,token.end,token.end);dot=null;continue;
+        }
+        append('.',undefined,dot.start,dot.end);dot=null;
+      }
+      if(token.type.label==='.'){dot=token;continue;}
       var value=token.type.label==='regexp'?[token.value.pattern,token.value.flags]:token.value;
-      var key=token.type.label+':'+JSON.stringify(value),at=tokens.length;
-      if(!index[key])index[key]=[];index[key].push(at);
-      tokens.push({k:key,n:token.type.label==='name'?token.value:null,s:token.start,e:token.end});
-      if((token.type.label==='name'||token.type.label==='string')&&typeof value==='string')texts.push(value);
+      append(token.type.label,value,token.start,token.end);
     }
+    if(dot)append('.',undefined,dot.start,dot.end);
     // Genuine webpack membership is required, not a marker in comments or strings.
     var movie=index['string:"webpackChunkmovie"']||[],module=false;
     movie.forEach(function(i){if(i>=2&&tokens[i-2].n==='self'&&tokens[i-1].k==='[:undefined'&&tokens[i+1]&&tokens[i+1].k===']:undefined')module=true;});

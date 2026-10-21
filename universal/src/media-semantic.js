@@ -22,7 +22,17 @@ function admMediaSemantic(body,audit){
   function calls(root,predicate,own){return nodes(root,function(n){return n.type==='CallExpression'&&predicate(n);},own);}
   function directDeclarations(f){var map=Object.create(null);if(!f.body||f.body.type!=='BlockStatement')return map;
     f.body.body.forEach(function(s){if(s.type==='VariableDeclaration')s.declarations.forEach(function(d){if(d.id.type==='Identifier'){map[d.id.name]=map[d.id.name]?{ambiguous:true}:d;}});});return map;}
-  function sameFactory(a,b){return a&&b&&a.type==='CallExpression'&&b.type==='CallExpression'&&body.slice(a.callee.start,a.callee.end)===body.slice(b.callee.start,b.callee.end);}
+  function factoryKey(n){
+    if(!n||n.type!=='CallExpression'||n.optional)return null;
+    var callee=n.callee,unbound=false;
+    if(callee.type==='SequenceExpression'){
+      if(callee.expressions.length!==2||!literal(callee.expressions[0],0))return null;
+      callee=callee.expressions[1];unbound=true;
+    }
+    var p=chain(callee);return p?JSON.stringify([unbound,p.name,p.keys]):null;
+  }
+  function sameFactory(a,b){var key=factoryKey(a);return key!==null&&key===factoryKey(b);}
+
   function shadows(f,names){return f.id&&names.indexOf(f.id.name)>=0||(f.params||[]).some(function(p){return p.type!=='Identifier'||names.indexOf(p.name)>=0;})||nodes(f.body,function(n){return (n.type==='VariableDeclarator'||n.type==='FunctionDeclaration')&&n.id&&n.id.type==='Identifier'&&names.indexOf(n.id.name)>=0;},false).length>0;}
   function patch(node,text){edits.push({s:node.start,e:node.end,r:text});}
   try{

@@ -1,6 +1,6 @@
 # 三站更新兼容性离线实验
 
-仅研究工具，不接入 QX 构建或运行时。结论见 [研究报告](../../universal/MEDIA-RESILIENCE-20261018.md)。
+本目录为离线研究工具，不直接打包进 QX；验证通过的改进另在 `universal/src/` 实现。结论见 [首轮研究](../../universal/MEDIA-RESILIENCE-20261018.md) 与 [第二轮更新模拟](../../universal/MEDIA-RESILIENCE-20261021.md)。
 
 原研究使用的 966 个原版 JS 已保存在 [sources/](sources/README.md)，含更新前后分站、分版本目录及来源和 SHA-256 清单。可直接使用 `sources/before`、`sources/after` 作为下述命令的输入目录。
 
@@ -47,3 +47,14 @@ node research/media-resilience/verify-runtime.mjs \
 ```
 
 验证不执行网站业务。改名语料仅用于语法与结构兼容性验证，不代表改名后整个网站可以运行。
+
+## 更新模拟（2026-10-21）
+
+`simulate-updates.mjs` 对三站 24 个真实模块施加 13 类变换，比较正式脚本清理结果与已核验结果的完整 AST；同时核验语法、幂等性和拒绝边界。默认使用当前脚本，`--runtime-dir` 可指定已发布基线。
+
+```sh
+node --test research/media-resilience/updates.test.mjs
+node research/media-resilience/simulate-updates.mjs --out=/tmp/media-update-simulation.json
+```
+
+不是所有场景都已支持。报告 `failures` 为空只表示实验执行及保护检查通过；具体兼容范围看 `equivalent/misses`。完整方法、基线复现及后续数据入口方案见第二轮研究。

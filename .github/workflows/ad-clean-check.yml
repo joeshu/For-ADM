@@ -43,6 +43,7 @@ on:
       - 'tests/media-layout-sources.json'
       - 'tests/media-*.json'
       - 'research/media-resilience/sources/**'
+      - 'research/media-resilience/*.mjs'
       - 'scripts/verify-media-archive.mjs'
       - 'vendor/acorn/**'
       - 'scripts/audit-media-sites.mjs'
@@ -90,6 +91,7 @@ on:
       - 'tests/media-layout-sources.json'
       - 'tests/media-*.json'
       - 'research/media-resilience/sources/**'
+      - 'research/media-resilience/*.mjs'
       - 'scripts/verify-media-archive.mjs'
       - 'vendor/acorn/**'
       - 'scripts/audit-media-sites.mjs'
@@ -108,5 +110,6 @@ jobs:
           node-version: 24
           package-manager-cache: false
       - run: node scripts/check-ad-clean.mjs
+      - run: node --test research/media-resilience/updates.test.mjs
       - run: node scripts/build-hls-clean.mjs --check
       - run: node --test tests/hls-*.test.mjs

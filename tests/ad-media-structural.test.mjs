@@ -91,3 +91,17 @@ test('a consumed time budget preserves the original and does not leak helpers', 
   assert.equal(result.helpers.length, 0);
   assert.equal(audit.structuralStatus, 'budget-limit');
 });
+
+test('dot and bracket lookups clean identically without generalizing optional or dynamic access', () => {
+  const dotted = "self.webpackChunkmovie=self.webpackChunkmovie||[];var hints=['FSImage','click_advert_','banner'];var visible=store.appAdvertisements;" + protectedCode;
+  const output = runCleaner(code, url, dotted);
+  assert.ok(output.includes('visible=[]'));
+  assert.ok(output.includes(protectedCode));
+  assert.equal(runCleaner(code, url, output), output);
+  for (const changed of [dotted.replace('store.appAdvertisements', 'store?.appAdvertisements'),
+    dotted.replace('store.appAdvertisements', 'store[field]'),
+    dotted.replace('store.appAdvertisements', 'store.user'),
+    dotted.replaceAll('self.webpackChunkmovie', 'self[someKey]')]) assert.equal(runCleaner(code, url, changed), changed);
+  for (const body of [JSON.stringify(dotted), '/* ' + dotted + ' */',
+    '/* self.webpackChunkmovie=[]; */' + banner]) assert.equal(runCleaner(code, url, body), body);
+});
