@@ -9,7 +9,7 @@ const waitLoaded=()=>page.waitForSelector('.hero, .notice',{timeout:60000});
 try{
  await page.goto('http://127.0.0.1:4173/');await page.waitForSelector('.hero',{timeout:60000});await page.waitForFunction(()=>[...document.images].filter(i=>i.complete&&i.naturalWidth>0).length>=3,{},{timeout:45000});await page.screenshot({path:out+'/Sanyuan-home.png'});
  assert.ok(await page.locator('.card').count()>5);
- await page.locator('[data-act="page"][data-id="browse"]').click();await page.waitForSelector('.filters select',{timeout:45000});await page.waitForSelector('.card',{timeout:45000});
+ await page.locator('[data-act="page"][data-id="browse"]').click();await page.waitForSelector('.filters .filter-chip',{timeout:45000});await page.waitForSelector('.card',{timeout:45000});
  await page.locator('.card').first().click();await page.waitForSelector('.detailcover',{timeout:45000});await page.waitForSelector('.episode',{timeout:45000});
  await page.locator('[data-act="favorite-detail"]').click();assert.match(await page.locator('[data-act="favorite-detail"]').innerText(),/已收藏/);await page.screenshot({path:out+'/Sanyuan-detail.png'});
  await page.locator('[data-act="page"][data-id="saved"]').click();assert.equal(await page.locator('.card').count(),1);
