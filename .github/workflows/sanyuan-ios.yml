@@ -32,6 +32,7 @@ jobs:
         working-directory: ios-app
         run: bash tools/simulator-smoke.sh
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: Sanyuan-unsigned-ipa
           path: |
@@ -39,4 +40,5 @@ jobs:
             ios-app/dist/build-report.json
             ios-app/dist/simulator-smoke.json
             ios-app/dist/simulator-home.png
+            ios-app/dist/simulator-failure.png
           if-no-files-found: error

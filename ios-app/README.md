@@ -26,6 +26,8 @@ bash tools/build-macos.sh
 
 仓库的 `Sanyuan unsigned iOS app` GitHub Actions 工作流也会使用 macOS 构建并上传 IPA 构建附件。
 
+完成 SDK 构建后，可在 macOS 执行 `bash tools/simulator-smoke.sh`。它另行编译并签名模拟器专用程序，验证本地 WebKit 界面、原生网络桥、真实首页与海报，输出 `simulator-smoke.json` 和截图；分发用 IPA 始终不签名。该检查依赖原站网络可用。
+
 该脚本使用真实 iPhoneOS SDK 编译，无需开发者证书，生成 unsigned IPA，并校验文件结构、架构及签名缺失状态。
 
 ### Linux 交叉构建
@@ -51,6 +53,8 @@ npm run build:web
 NODE_USE_ENV_PROXY=1 npm run preview
 # 另一个终端，需安装 Chromium：
 NODE_USE_ENV_PROXY=1 node tools/browser-check.mjs
+# 使用固定响应测试系统播放器切换及资源拒绝处理：
+node tools/playback-ui-check.mjs
 # 实际访问三站；--with-guest 会按原站协议创建临时访客会话
 NODE_USE_ENV_PROXY=1 node tools/live-probe.mjs --with-guest
 ```

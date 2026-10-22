@@ -1,0 +1,29 @@
+import {chromium}from'playwright-core';import assert from'node:assert/strict';
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+try{
+ const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('https://**',r=>r.abort());
+ await page.route('**/__transport',async route=>{
+  const request=route.request().postDataJSON(),path=new URL(request.url).pathname;
+  let data;
+  if(path==='/config/prod/appInit.html')data={urls:{cache:['https://test.example'],logic:['https://test.example']},vodTabs:[],groups:[]};
+  else if(path==='/v5/vod/home.capi')data={blocks:[{header:{title:'影片'},data:[{title:'测试影片',url:'vod/detail?vodId=1'}]}]};
+  else if(path==='/v2/vod/detail.capi')data={id:1,title:'测试影片',playSources:[{siteId:2,name:'线路',list:[{id:10,title:'第一集',open:true,playUrls:[{url:'https://test.example/first.m3u8'}]},{id:11,title:'第二集',open:false,playUrls:[{url:'https://test.example/closed.m3u8'}]}]}]};
+  else if(path==='/vod/episodePlayUrl')data={code:40401,message:'请登录后播放'};
+  else throw Error('Unexpected endpoint '+path);
+  await route.fulfill({contentType:'application/json',body:JSON.stringify({status:200,bodyBase64:Buffer.from(JSON.stringify(data)).toString('base64')})});
+ });
+ await page.goto('http://127.0.0.1:4173/');await page.locator('.hero [data-act="detail"]').click();await page.locator('[data-act="episode"][data-id="0"]').click();await page.waitForSelector('#video');
+ await page.evaluate(()=>{
+  HTMLMediaElement.prototype.pause=function(){window.__paused=true;};
+  window.webkit={messageHandlers:{native:{postMessage(message){
+   if(message.type==='play'){
+    window.__nativePlay={url:message.url,wasPaused:window.__paused};
+    window.NativeTransport.deliver({id:message.id,ok:true});
+   }
+  }}}};
+ });
+ await page.locator('[data-act="native-player"]').click();const played=await page.evaluate(()=>window.__nativePlay);assert.equal(played.wasPaused,true);assert.equal(played.url,'https://test.example/first.m3u8');await page.evaluate(()=>delete window.webkit);
+ await page.locator('[data-act="episode"][data-id="1"]').click();await page.getByText('请登录后播放',{exact:true}).waitFor();assert.equal(await page.locator('#video').count(),0);
+ const history=await page.evaluate(()=>JSON.parse(localStorage.getItem('sanyuan:history')));assert.equal(history[0].episodeId,10);assert.deepEqual(errors,[]);console.log('Playback UI passed: native player pauses inline player; denied episode removes stale video and preserves correct history.');
+}finally{await browser.close();}
