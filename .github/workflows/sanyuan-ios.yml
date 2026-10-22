@@ -1,0 +1,37 @@
+name: Sanyuan unsigned iOS app
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ios-app/**'
+      - '.github/workflows/sanyuan-ios.yml'
+  pull_request:
+    paths:
+      - 'ios-app/**'
+      - '.github/workflows/sanyuan-ios.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: ios-app/package-lock.json
+      - name: Install dependencies and test adapters
+        working-directory: ios-app
+        run: npm ci && npm test
+      - name: Compile with iPhoneOS SDK and package without signing
+        working-directory: ios-app
+        run: bash tools/build-macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sanyuan-unsigned-ipa
+          path: |
+            ios-app/dist/Sanyuan-0.1.0-unsigned.ipa
+            ios-app/dist/build-report.json
+          if-no-files-found: error

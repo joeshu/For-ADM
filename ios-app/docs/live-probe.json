@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-10-22T00:48:15.900Z",
+  "note": "Only public metadata; guest tokens remain in memory and are never written.",
+  "results": [
+    {
+      "site": "kkapp",
+      "bootstrap": true,
+      "categories": 7,
+      "homeSections": 11,
+      "channel": true,
+      "detail": true,
+      "playSources": 18,
+      "episodes": 14,
+      "guestSearchResults": 22
+    },
+    {
+      "site": "ncat",
+      "bootstrap": true,
+      "categories": 7,
+      "homeSections": 11,
+      "channel": true,
+      "detail": true,
+      "playSources": 18,
+      "episodes": 14,
+      "guestSearchResults": 22
+    },
+    {
+      "site": "happ",
+      "bootstrap": true,
+      "categories": 7,
+      "homeSections": 11,
+      "channel": true,
+      "detail": true,
+      "playSources": 18,
+      "episodes": 14,
+      "guestSearchResults": 22
+    }
+  ]
+}

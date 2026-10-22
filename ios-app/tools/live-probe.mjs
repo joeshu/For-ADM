@@ -1,0 +1,8 @@
+import fs from 'node:fs';import {createRequire} from 'node:module';
+globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
+const {SiteClient}=await import('../Web/site-api.mjs');const {homeSections,categories}=await import('../Web/model.mjs');const sites=JSON.parse(fs.readFileSync(new URL('../Web/sites.json',import.meta.url)));
+const transport=async({signal,...request})=>{const r=await fetch(request.url,{...request,signal:signal||AbortSignal.timeout(18000)});return {status:r.status,bodyBase64:Buffer.from(await r.arrayBuffer()).toString('base64')};};
+const results=[];
+for(const site of sites){const row={site:site.id};try{const c=new SiteClient(site,transport,{getItem(){return null;},setItem(){}}),config=await c.bootstrap(),home=await c.home(),cats=categories(config),sections=homeSections(home);Object.assign(row,{bootstrap:true,categories:cats.length,homeSections:sections.length});const list=await c.channel(cats[0].id);row.channel=Array.isArray(list.items);const movie=sections[0].items[0],d=await c.detail(movie.id);row.detail=!!d.id;row.playSources=d.playSources.length;const episodes=await c.episodes(d.id,d.playSources[0]);row.episodes=episodes.length;if(process.argv.includes('--with-guest')){await c.anonymous();const search=await c.search('流浪地球');row.guestSearchResults=search.items?.length||0;await c.logout();}}catch(e){row.error=e.message;row.code=e.code;}results.push(row);console.log(row);}
+fs.writeFileSync(new URL('../docs/live-probe.json',import.meta.url),JSON.stringify({checkedAt:new Date().toISOString(),note:'Only public metadata; guest tokens remain in memory and are never written.',results},null,2)+'\n');
+if(results.some(x=>x.error))process.exitCode=1;
