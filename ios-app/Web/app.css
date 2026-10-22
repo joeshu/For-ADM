@@ -41,3 +41,7 @@
 img[data-image]:not([src]){visibility:hidden}
 
 .settinggroup input[type=checkbox]{width:24px;height:24px;margin:0;accent-color:var(--accent)}
+
+/* Home shelves stay one row tall; browsing an entire section uses its real list. */
+.shelf{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(104px,29vw,150px);gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 0 10px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.shelf>.card{scroll-snap-align:start;min-width:0}.shelf .poster{aspect-ratio:2/2.9}.home-section{min-width:0}.home-section .sectiontop{margin-top:18px}.route-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:2px 0 8px;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.route-card{flex:0 0 auto;max-width:160px;min-height:44px;padding:8px 12px;border-radius:9px;gap:4px;scroll-snap-align:start}.route-card strong{font-size:12px}.route-card span{font-size:9px}.route-help{font-size:11px;margin-bottom:9px}.collection-content{padding-top:1px}.collection-group{margin-bottom:24px}
+@media(min-width:650px){.shelf{grid-auto-columns:150px;gap:16px}.route-grid{display:flex}.route-card{max-width:190px}}

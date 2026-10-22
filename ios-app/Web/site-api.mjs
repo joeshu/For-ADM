@@ -88,6 +88,11 @@ export class SiteClient {
   recordHealth(url,kind,ms,ok){this.health=this.health.filter(x=>!(x.url===url&&x.kind===kind));this.health.push({url,kind,ms,ok});}
   home(signal){return this.request('/v5/vod/home.capi',{},'cache',signal);}
   channel(channelId,filters={},next='page=1',signal){return this.request('/vod/channel/list.capi',{channelId,category:'',sort:'3',area:'',year:'',language:'',...filters,next},'cache',signal);}
+  collection(route,next='page=1',signal){
+    const endpoints={topic:['/v2/vod/specialTopic/vods.capi','specialTopicId'],topics:['/vod/specialTopic/categoryTopics.capi','topicCategoryId'],timeline:['/vod/timeline.capi','timelineId']},entry=endpoints[route?.kind];
+    if(!entry||!/^\d+$/.test(String(route.id)))throw new ServiceError('无效栏目');
+    return this.request(entry[0],{[entry[1]]:route.id,next},'cache',signal);
+  }
   search(k,next='page=1',signal){return this.sessionRequest('/vod/search/query',{k,type:'title',channelId:0,next},signal);}
   detail(id,signal){return this.request('/v2/vod/detail.capi',{vodId:id},'cache',signal);}
   episodes(id,source,signal){return this.request('/v2/vod/episodes.capi',{vodId:id,siteId:source.siteId,episodeVodId:source.episodeVodId||0},'cache',signal);}
