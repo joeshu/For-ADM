@@ -11,9 +11,9 @@ function post(type,options={}){
   });
 }
 export const NativeTransport={
-  deliver(message){const item=pending.get(message.id);if(!item)return;pending.delete(message.id);clearTimeout(item.timeout);item.signal?.removeEventListener('abort',item.abort);message.error?item.reject(Error(message.error)):item.resolve(message);},
+  deliver(message){const item=pending.get(message.id);if(!item)return;pending.delete(message.id);clearTimeout(item.timeout);item.signal?.removeEventListener('abort',item.abort);if(message.error){const error=Error(message.error);error.code=message.errorCode;item.reject(error);}else item.resolve(message);},
   async request(options){if(native())return post('request',options);const {signal,...payload}=options;const response=await fetch('/__transport',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});if(!response.ok)throw Error('本地预览服务不可用');const data=await response.json();if(data.error)throw Error(data.error);return data;},
-  async play(url,headers={}){if(native())return post('play',{url,headers});return false;},
+  async play(url,headers={},options={}){if(native())return post('play',{url,headers,...options});return false;},
   native,
   vault:{async get(key){if(!native())return memory.get(key)||null;const result=await post('vaultGet',{key});try{return JSON.parse(result.value)||null;}catch{return null;}},async put(key,user){if(!native()){memory.set(key,user);return;}await post('vaultPut',{key,value:JSON.stringify(user)});},async remove(key){if(!native()){memory.delete(key);return;}await post('vaultDelete',{key});}},
 };

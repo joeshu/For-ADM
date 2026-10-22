@@ -6,9 +6,11 @@ try{
  await page.route('**/__transport',async route=>{
   const request=route.request().postDataJSON(),path=new URL(request.url).pathname;
   let data;
+  if(path.endsWith('.m3u8')){await route.fulfill({contentType:'application/json',body:JSON.stringify({status:200,bodyBase64:Buffer.from('#EXTM3U\n#EXTINF:5,\nsegment.ts\n').toString('base64')})});return;}
   if(path==='/config/prod/appInit.html')data={urls:{cache:['https://test.example'],logic:['https://test.example']},vodTabs:[],groups:[]};
   else if(path==='/v5/vod/home.capi')data={blocks:[{header:{title:'影片'},data:[{title:'测试影片',url:'vod/detail?vodId=1'}]}]};
   else if(path==='/v2/vod/detail.capi')data={id:1,title:'测试影片',playSources:[{siteId:2,name:'线路',list:[{id:10,title:'第一集',open:true,playUrls:[{url:'https://test.example/first.m3u8'}]},{id:11,title:'第二集',open:false,playUrls:[{url:'https://test.example/closed.m3u8'}]}]}]};
+  else if(path==='/user/anonymous')data={id:123,token:'test-only'};
   else if(path==='/vod/episodePlayUrl')data={code:40401,message:'请登录后播放'};
   else throw Error('Unexpected endpoint '+path);
   await route.fulfill({contentType:'application/json',body:JSON.stringify({status:200,bodyBase64:Buffer.from(JSON.stringify(data)).toString('base64')})});

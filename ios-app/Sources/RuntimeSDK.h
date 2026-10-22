@@ -11,7 +11,13 @@
 #define SYMainQueue() dispatch_get_main_queue()
 #else
 typedef unsigned long NSUInteger;
+struct dispatch_queue_s;
+typedef struct {long long value;int timescale;unsigned int flags;long long epoch;} CMTime;
+extern CMTime CMTimeMakeWithSeconds(double,int);
+extern double CMTimeGetSeconds(CMTime);
 typedef long NSInteger;
+typedef NSInteger UIStatusBarStyle;
+typedef NSInteger WKNavigationActionPolicy;
 typedef double CGFloat;
 typedef signed char BOOL;
 #define YES ((BOOL)1)
@@ -32,6 +38,9 @@ __attribute__((objc_root_class))
 + (Class)class;
 - (instancetype)init;
 - (BOOL)isKindOfClass:(Class)cls;
+- (void)addObserver:(NSObject*)observer forKeyPath:(NSString*)keyPath options:(NSUInteger)options context:(void*)context;
+- (void)removeObserver:(NSObject*)observer forKeyPath:(NSString*)keyPath context:(void*)context;
+- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context;
 @end
 @interface NSString:NSObject
 @property(readonly) NSUInteger length;
@@ -48,6 +57,8 @@ __attribute__((objc_root_class))
 + (NSNumber*)numberWithInt:(int)value;
 + (NSNumber*)numberWithInteger:(NSInteger)value;
 + (NSNumber*)numberWithBool:(BOOL)value;
++ (NSNumber*)numberWithDouble:(double)value;
+- (double)doubleValue;
 @end
 @interface NSArray:NSObject
 + (instancetype)arrayWithObjects:(const id[])objects count:(NSUInteger)count;
@@ -77,6 +88,7 @@ __attribute__((objc_root_class))
 @property(readonly) NSString*scheme;
 @property(readonly) NSString*host;
 @property(readonly) NSString*path;
+@property(readonly) NSString*absoluteString;
 @property(readonly) BOOL isFileURL;
 @end
 @interface NSURLRequest:NSObject
@@ -91,8 +103,11 @@ __attribute__((objc_root_class))
 @end
 @interface NSError:NSObject
 @property(readonly) NSString*localizedDescription;
+@property(readonly) NSInteger code;
 @end
-@interface NSURLResponse:NSObject @end
+@interface NSURLResponse:NSObject
+@property(readonly) NSURL*URL;
+@end
 @interface NSHTTPURLResponse:NSURLResponse
 @property(readonly) NSInteger statusCode;
 @property(readonly) NSDictionary*allHeaderFields;
@@ -128,6 +143,8 @@ __attribute__((objc_root_class))
 @property(strong) UIView*view;
 - (void)viewDidLoad;
 - (void)viewDidLayoutSubviews;
+- (void)viewDidDisappear:(BOOL)animated;
+- (void)dismissViewControllerAnimated:(BOOL)animated completion:(void(^)(void))completion;
 - (void)presentViewController:(UIViewController*)controller animated:(BOOL)animated completion:(void(^)(void))completion;
 @end
 @interface UIScreen:NSObject
@@ -178,13 +195,26 @@ extern NSString*NSStringFromClass(Class);
 @end
 @interface AVPlayerItem:NSObject
 + (instancetype)playerItemWithAsset:(AVURLAsset*)asset;
+@property(readonly) NSInteger status;
+@property(readonly) NSError*error;
+@property(readonly) CMTime duration;
 @end
 @interface AVPlayer:NSObject
 + (instancetype)playerWithPlayerItem:(AVPlayerItem*)item;
 - (void)play;
+- (void)pause;
+- (void)seekToTime:(CMTime)time;
+@property(readonly) CMTime currentTime;
+- (id)addPeriodicTimeObserverForInterval:(CMTime)time queue:(struct dispatch_queue_s*)queue usingBlock:(void(^)(CMTime))block;
+- (void)removeTimeObserver:(id)observer;
 @end
 @interface AVPlayerViewController:UIViewController
 @property(strong) AVPlayer*player;
+@end
+@interface NSNotificationCenter:NSObject
++ (instancetype)defaultCenter;
+- (id)addObserverForName:(NSString*)name object:(id)object queue:(id)queue usingBlock:(void(^)(id))block;
+- (void)removeObserver:(id)observer;
 @end
 typedef const void* CFTypeRef;
 typedef const void* CFDictionaryRef;

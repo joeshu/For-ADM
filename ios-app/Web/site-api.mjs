@@ -17,7 +17,7 @@ export class SiteClient {
   constructor(site,transport,storage=globalThis.localStorage){
     this.site=site;this.transport=transport;this.storage=storage;this.key='sanyuan:'+site.id+':';
     this.device=read(storage,this.key+'device',null)||{id:globalThis.crypto?.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const n=Math.random()*16|0;return(c==='x'?n:(n&3|8)).toString(16);}),created:Date.now()};
-    storage.setItem(this.key+'device',JSON.stringify(this.device));this.user=null;this.sessionLoaded=false;this.vault=globalThis.NativeTransport?.vault;this.config=null;this.health=[];this.preferred={};
+    storage.setItem(this.key+'device',JSON.stringify(this.device));this.user=null;this.sessionLoaded=false;this.sessionKind="none";this.guestPending=null;this.vault=globalThis.NativeTransport?.vault;this.config=null;this.health=[];this.preferred={};
   }
   buildRequest(base,path,params={},method='get'){
     const site=this.site,user=this.user,timestamp=Date.now(),get=method.toLowerCase()==='get';
@@ -38,10 +38,37 @@ export class SiteClient {
     return unwrap(data);
   }
   async bootstrap(signal){
-    if(!this.sessionLoaded){this.sessionLoaded=true;if(this.vault)this.user=await this.vault.get(this.site.id);}
+    await this.restoreSession();
     const config=await this.requestAt(this.site.origin,'/config/prod/appInit.html',{},'GET',signal);
     if(!Array.isArray(config?.urls?.cache)||!Array.isArray(config?.urls?.logic))throw new ServiceError('站点初始化数据格式已变化');
     this.config=config;return config;
+  }
+  async restoreSession(){
+    if(!this.sessionLoad)this.sessionLoad=(async()=>{try{if(this.vault){const saved=await this.vault.get(this.site.id);this.user=saved?.schema===1?saved.user:saved;this.sessionKind=saved?.schema===1?saved.kind:this.user&&['bindLogin','bindPhone','bindEmail','bindAccount'].every(k=>this.user[k]===false||this.user[k]===0)?'guest':this.user?'account':'none';}}catch{this.sessionWarning='会话仅在本次使用期间有效';}this.sessionLoaded=true;})();
+    await this.sessionLoad;
+  }
+  async saveSession(kind){
+    this.sessionKind=kind;
+    if(this.vault)try{await this.vault.put(this.site.id,{schema:1,kind,user:this.user});}catch{this.sessionWarning='会话未能保存，本次仍可正常使用';}
+  }
+  async ensureSession(signal){
+    if(!this.config)await this.bootstrap(signal);else await this.restoreSession();
+    if(!this.user?.id||!this.user?.token){
+      if(!this.guestPending)this.guestPending=this.anonymous().finally(()=>{this.guestPending=null;});
+      await this.guestPending;
+    }
+    if(signal?.aborted)throw new DOMException('请求取消','AbortError');
+    return this.user;
+  }
+  async sessionRequest(path,params,signal){
+    await this.ensureSession(signal);const user=this.user;
+    try{return await this.request(path,params,'logic',signal);}
+    catch(error){
+      // Only renew a known guest session once; never replace an account or retry VIP denials.
+      if(Number(error.code)!==40401||this.sessionKind!=='guest'||this.user!==user)throw error;
+      this.user=null;await this.ensureSession(signal);
+      return this.request(path,params,'logic',signal);
+    }
   }
   async request(path,params={},kind='cache',signal,method='get'){
     if(!this.config)await this.bootstrap(signal);
@@ -61,11 +88,11 @@ export class SiteClient {
   recordHealth(url,kind,ms,ok){this.health=this.health.filter(x=>!(x.url===url&&x.kind===kind));this.health.push({url,kind,ms,ok});}
   home(signal){return this.request('/v5/vod/home.capi',{},'cache',signal);}
   channel(channelId,filters={},next='page=1',signal){return this.request('/vod/channel/list.capi',{channelId,category:'',sort:'3',area:'',year:'',language:'',...filters,next},'cache',signal);}
-  search(k,next='page=1',signal){return this.request('/vod/search/query',{k,type:'title',channelId:0,next},'logic',signal);}
+  search(k,next='page=1',signal){return this.sessionRequest('/vod/search/query',{k,type:'title',channelId:0,next},signal);}
   detail(id,signal){return this.request('/v2/vod/detail.capi',{vodId:id},'cache',signal);}
   episodes(id,source,signal){return this.request('/v2/vod/episodes.capi',{vodId:id,siteId:source.siteId,episodeVodId:source.episodeVodId||0},'cache',signal);}
-  play(params,signal){return this.request('/vod/episodePlayUrl',params,'logic',signal);}
-  async login(account,password,signal){const user=await this.request('/user/loginAccount',{account,password},'logic',signal,'post');this.user=user;if(this.vault)await this.vault.put(this.site.id,user);return user;}
-  async logout(){this.user=null;if(this.vault)await this.vault.remove(this.site.id);}
-  async anonymous(signal){this.user=await this.request('/user/anonymous',{},'logic',signal,'post');if(this.vault)await this.vault.put(this.site.id,this.user);return this.user;}
+  play(params,signal){return this.sessionRequest('/vod/episodePlayUrl',params,signal);}
+  async login(account,password,signal){const user=await this.request('/user/loginAccount',{account,password},'logic',signal,'post');this.user=user;await this.saveSession('account');return user;}
+  async logout(){this.user=null;this.sessionKind='none';if(this.vault)await this.vault.remove(this.site.id);}
+  async anonymous(signal){this.user=await this.request('/user/anonymous',{},'logic',signal,'post');await this.saveSession('guest');return this.user;}
 }

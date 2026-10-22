@@ -1,28 +1,47 @@
 {
-  "checkedAt": "2026-10-22T00:50:31.670Z",
-  "source": "kkapp",
+  "checkedAt": "2026-10-22T05:05:40.085Z",
   "results": [
     {
-      "line": "超清2",
-      "addresses": 1,
-      "error": "ERR_TLS_CERT_ALTNAME_INVALID"
+      "source": "kkapp",
+      "attemptedLines": [
+        "超清2",
+        "极速蓝光",
+        "优质1",
+        "蓝光1"
+      ],
+      "selectedLine": "蓝光1",
+      "episode": "第2集",
+      "automaticGuest": true,
+      "manifestValidated": true,
+      "switched": true
     },
     {
-      "line": "极速蓝光",
-      "addresses": 1,
-      "error": "ERR_TLS_CERT_ALTNAME_INVALID"
+      "source": "ncat",
+      "attemptedLines": [
+        "超清2",
+        "极速蓝光",
+        "优质1",
+        "蓝光1"
+      ],
+      "selectedLine": "蓝光1",
+      "episode": "第2集",
+      "automaticGuest": true,
+      "manifestValidated": true,
+      "switched": true
     },
     {
-      "line": "优质1",
-      "addresses": 1,
-      "httpStatus": 403,
-      "hlsPlaylist": false
-    },
-    {
-      "line": "蓝光1",
-      "addresses": 1,
-      "httpStatus": 200,
-      "hlsPlaylist": true
+      "source": "happ",
+      "attemptedLines": [
+        "超清2",
+        "极速蓝光",
+        "优质1",
+        "蓝光1"
+      ],
+      "selectedLine": "蓝光1",
+      "episode": "第2集",
+      "automaticGuest": true,
+      "manifestValidated": true,
+      "switched": true
     }
   ],
   "segmentsFetched": 0,

@@ -47,7 +47,7 @@ test('Episode API retains source identifiers; abort prevents network requests',a
 test('Sessions use the vault, do not leak into localStorage, remain isolated by source',async()=>{
  const saved=new Map(),store=storage();globalThis.NativeTransport={vault:{get:async k=>saved.get(k)||null,put:async(k,v)=>saved.set(k,v),remove:async k=>saved.delete(k)}};
  const c=new SiteClient(site,async()=>response({id:1,token:'test-only-token'}),store);c.config={urls:{logic:['https://api.example']}};
- await c.anonymous();assert.equal(saved.get('test').token,'test-only-token');assert.ok([...store.map.values()].every(v=>!v.includes('token')));
+ await c.anonymous();assert.equal(saved.get('test').user.token,'test-only-token');assert.ok([...store.map.values()].every(v=>!v.includes('token')));
  const other=new SiteClient({...site,id:'other'},()=>{},store);assert.equal(other.user,null);await c.logout();assert.equal(c.user,null);assert.equal(saved.size,0);delete globalThis.NativeTransport;
 });
 test('Image decoder accepts real image headers, rejects HTML and oversized bodies',async()=>{

@@ -13,7 +13,7 @@ try{
  await page.locator('.card').first().click();await page.waitForSelector('.detailcover',{timeout:45000});await page.waitForSelector('.episode',{timeout:45000});
  await page.locator('[data-act="favorite-detail"]').click();assert.match(await page.locator('[data-act="favorite-detail"]').innerText(),/已收藏/);await page.screenshot({path:out+'/Sanyuan-detail.png'});
  await page.locator('[data-act="page"][data-id="saved"]').click();assert.equal(await page.locator('.card').count(),1);
- await page.locator('[data-act="page"][data-id="settings"]').click();await page.locator('[data-act="anonymous"]').click();await page.waitForSelector('[data-act="logout"]',{timeout:45000});
+ await page.locator('[data-act="page"][data-id="settings"]').click();await page.locator('[data-act="anonymous"]').click();await page.getByText('访客会话已连接',{exact:false}).waitFor({timeout:45000});
  await page.locator('#search-query').fill('流浪地球');await page.locator('#search-form button[type="submit"]').click();await page.waitForSelector('.card',{timeout:45000});const results=await page.locator('.card').count();assert.ok(results>0);
  for(const id of ['ncat','happ']){await page.locator('[data-act="page"][data-id="home"]').click();await page.locator('[data-act="source"][data-id="'+id+'"]').click();await page.waitForSelector('.hero',{timeout:60000});assert.ok(await page.locator('.card').count()>0);}
  await page.setViewportSize({width:1024,height:1366});await page.screenshot({path:out+'/Sanyuan-iPad.png'});
