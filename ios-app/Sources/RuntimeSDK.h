@@ -144,6 +144,7 @@ __attribute__((objc_root_class))
 - (void)viewDidLoad;
 - (void)viewDidLayoutSubviews;
 - (void)viewDidDisappear:(BOOL)animated;
+- (void)viewDidAppear:(BOOL)animated;
 - (void)dismissViewControllerAnimated:(BOOL)animated completion:(void(^)(void))completion;
 - (void)presentViewController:(UIViewController*)controller animated:(BOOL)animated completion:(void(^)(void))completion;
 @end
@@ -151,8 +152,14 @@ __attribute__((objc_root_class))
 + (UIScreen*)mainScreen;
 @property(readonly) CGRect bounds;
 @end
+@interface UIScene:NSObject @end
+@interface UIWindowScene:UIScene @end
+@interface UISceneSession:NSObject @end
+@interface UISceneConnectionOptions:NSObject @end
+@protocol UIWindowSceneDelegate<NSObject> @end
 @interface UIWindow:UIView
 - (instancetype)initWithFrame:(CGRect)frame;
+- (instancetype)initWithWindowScene:(UIWindowScene*)scene;
 @property(strong) UIViewController*rootViewController;
 - (void)makeKeyAndVisible;
 @end
@@ -198,18 +205,43 @@ extern NSString*NSStringFromClass(Class);
 @property(readonly) NSInteger status;
 @property(readonly) NSError*error;
 @property(readonly) CMTime duration;
+@property double preferredForwardBufferDuration;
+@property(copy) NSString*audioTimePitchAlgorithm;
+@property(copy) NSArray*externalMetadata;
 @end
 @interface AVPlayer:NSObject
 + (instancetype)playerWithPlayerItem:(AVPlayerItem*)item;
 - (void)play;
 - (void)pause;
+@property float rate;
 - (void)seekToTime:(CMTime)time;
 @property(readonly) CMTime currentTime;
 - (id)addPeriodicTimeObserverForInterval:(CMTime)time queue:(struct dispatch_queue_s*)queue usingBlock:(void(^)(CMTime))block;
 - (void)removeTimeObserver:(id)observer;
 @end
+@protocol AVPlayerViewControllerDelegate<NSObject> @end
 @interface AVPlayerViewController:UIViewController
 @property(strong) AVPlayer*player;
+@property(weak) id<AVPlayerViewControllerDelegate>delegate;
+@property BOOL allowsPictureInPicturePlayback;
+@property BOOL updatesNowPlayingInfoCenter;
+@property BOOL canStartPictureInPictureAutomaticallyFromInline;
+@property(copy) NSString*videoGravity;
+@end
+extern NSString*const AVLayerVideoGravityResizeAspect;
+extern NSString*const AVAudioSessionCategoryPlayback;
+extern NSString*const AVAudioTimePitchAlgorithmTimeDomain;
+extern NSString*const AVMetadataCommonIdentifierTitle;
+@interface AVAudioSession:NSObject
++ (instancetype)sharedInstance;
+- (BOOL)setCategory:(NSString*)category error:(NSError**)error;
+- (BOOL)setActive:(BOOL)active error:(NSError**)error;
+- (BOOL)setActive:(BOOL)active withOptions:(NSUInteger)options error:(NSError**)error;
+@end
+@interface AVMutableMetadataItem:NSObject
++ (instancetype)metadataItem;
+@property(copy) NSString*identifier;
+@property(copy) id value;
 @end
 @interface NSNotificationCenter:NSObject
 + (instancetype)defaultCenter;

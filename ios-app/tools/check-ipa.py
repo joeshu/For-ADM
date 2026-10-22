@@ -8,6 +8,8 @@ with zipfile.ZipFile(path) as z:
     info=plistlib.loads(z.read(base+'Info.plist'));binary=z.read(base+info['CFBundleExecutable']);meta=inspect(binary)
     assert info['MinimumOSVersion']=='15.0' and info['CFBundlePackageType']=='APPL'
     assert meta['cpu']==0x100000c and meta['kind']==2 and meta['platform'][0]==2
+    assert 0x80000034 not in meta['commands'], 'Chained fixups can be incompatible with older signing tools'
+    assert info['UIApplicationSceneManifest']['UISceneConfigurations']['UIWindowSceneSessionRoleApplication'][0]['UISceneDelegateClassName']=='SYSceneDelegate'
     assert not meta['signed'] and not any('_CodeSignature/' in n or n.endswith('embedded.mobileprovision') for n in names)
     assert z.getinfo(base+'Sanyuan').external_attr>>16&0o111
     for resource in ['Web/index.html','Web/app.js','Web/app.css','Web/vendor/crypto-js.js']:

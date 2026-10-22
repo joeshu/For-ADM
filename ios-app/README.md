@@ -7,6 +7,7 @@
 - 统一首页、站点切换、动态分类、地区/年份等筛选、搜索、详情、分集及播放线路选择。
 - HTTPS 数据线路故障自动切换，支持查看检测结果、手动指定优先线路。
 - 本机收藏与观看历史；支持续播、上一集/下一集和长剧集分页。iOS 默认使用系统播放器，携带原站 Referer，并每 5 秒记录进度。
+- “我的 → 播放设置”可选择 0.5×、0.75×、1×、1.25×、1.5×、2× 默认倍速；播放器展示影片与集名，并支持系统画中画、AirPlay 和后台音频。退出播放器后释放音频会话。画中画及后台行为仍需真机确认。
 - 播放前校验 HTTPS 地址和 HLS 清单；证书、CDN 或清单故障时自动尝试最多 5 条同集线路。只按明确的集数或片名对应切换，不使用其他集凑数。
 - 选集的 `open=false` 仅表示点击时需要调用地址接口，界面不再将其标记为“需授权”；真实的账号、会员限制仍显示原站错误。
 - 海报栏数可设置为自动、2、3、4 栏；选择后保存在本机。
@@ -18,7 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.1-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。
+产物：`dist/Sanyuan-0.2.2-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+
+0.2.2 使用标准 UIScene 生命周期，关闭 chained fixups 并预留 Mach-O 头部空间，以改善现代 iOS 启动及第三方重签名兼容性。这是兼容性修正，未经手机崩溃日志确认，不能据此判断此前闪退的具体根因。
 
 ### macOS + Xcode（推荐重新构建方式）
 
@@ -34,7 +37,7 @@ bash tools/build-macos.sh
 
 该脚本使用真实 iPhoneOS SDK 编译，无需开发者证书，生成 unsigned IPA，并校验文件结构、架构及签名缺失状态。
 
-### Linux 交叉构建
+### Linux 开发研究（不用于分发）
 
 需要 LLVM 19 的 clang、ld64.lld 和其运行库：
 
@@ -42,10 +45,10 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.1-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.2-unsigned.ipa
 ```
 
-`Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译的包完成静态校验，但不能据此保证真机启动或媒体播放；正式使用前应真机验证。
+`Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
 
 ## 验证和预览
 

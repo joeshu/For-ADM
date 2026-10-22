@@ -1,11 +1,20 @@
 #import "RuntimeSDK.h"
 @class SYController;
 static char SYPlaybackStatus;
-@interface SYPlayerViewController:AVPlayerViewController
+@interface SYPlayerViewController:AVPlayerViewController<AVPlayerViewControllerDelegate>
 @property(nonatomic,copy) void(^onClose)(void);
+@property(nonatomic,copy) void(^onRestore)(void(^)(BOOL));
+@property(nonatomic) BOOL pictureInPicture;
+@property(nonatomic) BOOL playerVisible;
 @end
 @implementation SYPlayerViewController
-- (void)viewDidDisappear:(BOOL)animated {[super viewDidDisappear:animated];[self.player pause];if(self.onClose)self.onClose();}
+- (void)viewDidAppear:(BOOL)animated {[super viewDidAppear:animated];self.playerVisible=YES;}
+- (void)viewDidDisappear:(BOOL)animated {[super viewDidDisappear:animated];self.playerVisible=NO;if(!self.pictureInPicture){[self.player pause];if(self.onClose)self.onClose();}}
+- (void)playerViewControllerWillStartPictureInPicture:(AVPlayerViewController*)controller {self.pictureInPicture=YES;}
+- (void)playerViewController:(AVPlayerViewController*)controller failedToStartPictureInPictureWithError:(NSError*)error {self.pictureInPicture=NO;if(!self.playerVisible&&self.onRestore)self.onRestore(^(BOOL restored){if(!restored){[self.player pause];if(self.onClose)self.onClose();}});}
+- (void)playerViewControllerDidStopPictureInPicture:(AVPlayerViewController*)controller {self.pictureInPicture=NO;if(!self.playerVisible){[self.player pause];if(self.onClose)self.onClose();}}
+- (BOOL)playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart:(AVPlayerViewController*)controller {return YES;}
+- (void)playerViewController:(AVPlayerViewController*)controller restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void(^)(BOOL))handler {if(self.onRestore)self.onRestore(handler);else handler(NO);}
 @end
 @interface SYBridge:NSObject<WKScriptMessageHandler>
 @property(nonatomic,weak) SYController*owner;
@@ -100,7 +109,8 @@ static char SYPlaybackStatus;
   if(self.nativeItem){[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];self.nativeItem=nil;}
   if(self.timeObserver){[self.nativePlayer.player removeTimeObserver:self.timeObserver];self.timeObserver=nil;}
   if(self.endObserver){[NSNotificationCenter.defaultCenter removeObserver:self.endObserver];self.endObserver=nil;}
-  [self.nativePlayer.player pause];self.nativePlayer=nil;
+  [self.nativePlayer.player pause];self.nativePlayer.player=nil;self.nativePlayer=nil;
+  [AVAudioSession.sharedInstance setActive:NO withOptions:1 error:NULL];
 }
 - (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
   if(context!=&SYPlaybackStatus){[super observeValueForKeyPath:path ofObject:object change:change context:context];return;}
@@ -152,13 +162,18 @@ static char SYPlaybackStatus;
     NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:url options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     [self stopNativePlayback];
+    [AVAudioSession.sharedInstance setCategory:AVAudioSessionCategoryPlayback error:NULL];
+    [AVAudioSession.sharedInstance setActive:YES error:NULL];
     SYPlayerViewController*player=[SYPlayerViewController new];self.nativePlayer=player;
-    AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];self.nativeItem=item;
+    player.delegate=player;player.updatesNowPlayingInfoCenter=YES;player.allowsPictureInPicturePlayback=YES;player.canStartPictureInPictureAutomaticallyFromInline=YES;player.videoGravity=AVLayerVideoGravityResizeAspect;
+    AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];self.nativeItem=item;item.preferredForwardBufferDuration=6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
+    if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
     player.player=[AVPlayer playerWithPlayerItem:item];[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
     __weak SYController*owner=self;__weak SYPlayerViewController*weakPlayer=player;
     NSString*playContext=self.playContext;
     player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};
+    player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}[strongOwner presentViewController:weakPlayer animated:YES completion:^{handler(YES);}];};
     self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
       SYController*strongOwner=owner;if(!strongOwner||strongOwner.nativePlayer!=weakPlayer)return;
       double seconds=CMTimeGetSeconds(time);if(!__builtin_isfinite(seconds)||seconds<0)return;
@@ -168,7 +183,8 @@ static char SYPlaybackStatus;
       dispatch_async(SYMainQueue(),^{SYController*strongOwner=owner;if(strongOwner.nativePlayer!=weakPlayer)return;[weakPlayer dismissViewControllerAnimated:YES completion:^{[strongOwner sendPlayback:@{@"context":playContext,@"status":@"ended"}];}];});
     }];
     double start=[body[@"startAt"] doubleValue];if(__builtin_isfinite(start)&&start>0)[player.player seekToTime:CMTimeMakeWithSeconds(start,600)];
-    [self presentViewController:player animated:YES completion:^{[player.player play];}];
+    double requestedRate=[body[@"rate"] doubleValue];float rate=(requestedRate>=0.5&&requestedRate<=2)?(float)requestedRate:1;
+    [self presentViewController:player animated:YES completion:^{[player.player play];player.player.rate=rate;}];
     [self deliver:@{@"id":identifier,@"ok":@YES}];return;
   }
   if(![type isEqualToString:@"request"])return;
@@ -192,12 +208,20 @@ static char SYPlaybackStatus;
   handler(action.request.URL.isFileURL?1:0);
 }
 @end
-@interface SYAppDelegate:NSObject<UIApplicationDelegate>
+@interface SYSceneDelegate:NSObject<UIWindowSceneDelegate>
 @property(nonatomic,strong) UIWindow*window;
 @end
-@implementation SYAppDelegate
-- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)options {
-  self.window=[[UIWindow alloc]initWithFrame:UIScreen.mainScreen.bounds];self.window.rootViewController=[SYController new];[self.window makeKeyAndVisible];return YES;
+@implementation SYSceneDelegate
+- (void)scene:(UIScene*)scene willConnectToSession:(UISceneSession*)session options:(UISceneConnectionOptions*)options {
+  if(![scene isKindOfClass:UIWindowScene.class])return;
+  self.window=[[UIWindow alloc]initWithWindowScene:(UIWindowScene*)scene];
+  self.window.rootViewController=[SYController new];
+  [self.window makeKeyAndVisible];
 }
+@end
+@interface SYAppDelegate:NSObject<UIApplicationDelegate>
+@end
+@implementation SYAppDelegate
+- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)options {return YES;}
 @end
 int main(int argc,char**argv){@autoreleasepool{return UIApplicationMain(argc,argv,nil,NSStringFromClass(SYAppDelegate.class));}}
