@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies and test adapters
         working-directory: ios-app
         run: npm ci && npm test
+      - name: Verify native HLS cleaning transport
+        working-directory: ios-app
+        run: npm run build:web && bash tools/check-hls-macos.sh
       - name: Compile with iPhoneOS SDK and package without signing
         working-directory: ios-app
         run: bash tools/build-macos.sh

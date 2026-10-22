@@ -37,6 +37,7 @@ static char SYPlaybackStatus;
 #if defined(SY_SIMULATOR_SMOKE)
 @property(nonatomic) NSInteger smokeAttempts;
 @property(nonatomic) BOOL smokePlayerReady;
+@property(nonatomic) BOOL smokeProxyActive;
 #endif
 - (void)receive:(WKScriptMessage*)message;
 @end
@@ -110,7 +111,7 @@ static char SYPlaybackStatus;
 #if defined(SY_SIMULATOR_SMOKE)
   if([event[@"status"] isEqualToString:@"ready"])self.smokePlayerReady=YES;
   if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1){
-    NSDictionary*result=@{@"nativePlayerReady":@YES,@"inlinePlayback":@(self.nativePlayer.parentViewController==self&&self.presentedViewController==nil&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
+    NSDictionary*result=@{@"nativePlayerReady":@YES,@"hlsProxyActive":@(self.smokeProxyActive),@"removedAdSegments":@(self.hlsProxy.removed),@"inlinePlayback":@(self.nativePlayer.parentViewController==self&&self.presentedViewController==nil&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
     NSData*report=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
     [report writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke.json"] atomically:YES];
     [self.nativePlayer.player pause];
@@ -184,6 +185,9 @@ static char SYPlaybackStatus;
   if([type isEqualToString:@"play"]){
     NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
     NSURL*playURL=[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
+    #if defined(SY_SIMULATOR_SMOKE)
+    self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
+#endif
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     [self stopNativePlayback];
     [AVAudioSession.sharedInstance setCategory:AVAudioSessionCategoryPlayback error:NULL];

@@ -32,6 +32,7 @@ for attempt in $(seq 1 80); do
     cp "$sim_data/Library/Caches/sanyuan-playback-smoke.json" dist/simulator-playback-smoke.json
     xcrun simctl io "$sim_device" screenshot dist/simulator-playback.png
     cat dist/simulator-smoke.json dist/simulator-playback-smoke.json
+    python3 -c 'import json; d=json.load(open("dist/simulator-playback-smoke.json")); assert d["hlsProxyActive"] and d["inlinePlayback"], d'
     exit 0
   fi
   if [ -f "$sim_data/Library/Caches/sanyuan-playback-error.json" ]; then
