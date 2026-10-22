@@ -1,4 +1,5 @@
 #import "RuntimeSDK.h"
+#import "HLSProxy.h"
 @class SYController;
 static char SYPlaybackStatus;
 @interface SYPlayerViewController:AVPlayerViewController<AVPlayerViewControllerDelegate>
@@ -24,6 +25,7 @@ static char SYPlaybackStatus;
 @end
 @interface SYController:UIViewController<WKNavigationDelegate>
 @property(nonatomic,strong) WKWebView*web;
+@property(nonatomic,strong) SYHLSProxy*hlsProxy;
 @property(nonatomic,strong) SYBridge*bridge;
 @property(nonatomic,strong) NSURLSession*session;
 @property(nonatomic,strong) NSMutableDictionary*tasks;
@@ -45,7 +47,7 @@ static char SYPlaybackStatus;
 - (void)viewDidLoad {
   [super viewDidLoad];
   self.view.backgroundColor=[UIColor colorWithRed:0.035 green:0.055 blue:0.09 alpha:1];
-  self.tasks=[NSMutableDictionary dictionary];
+  self.tasks=[NSMutableDictionary dictionary];self.hlsProxy=[SYHLSProxy new];
   NSURLSessionConfiguration*sessionConfig=[NSURLSessionConfiguration ephemeralSessionConfiguration];
   sessionConfig.timeoutIntervalForRequest=18;sessionConfig.HTTPMaximumConnectionsPerHost=4;
   self.session=[NSURLSession sessionWithConfiguration:sessionConfig];
@@ -181,7 +183,8 @@ static char SYPlaybackStatus;
   if(![url.scheme.lowercaseString isEqualToString:@"https"]||!url.host.length){[self deliver:@{@"id":identifier,@"error":@"仅支持有效 HTTPS 地址"}];return;}
   if([type isEqualToString:@"play"]){
     NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
-    AVURLAsset*asset=[AVURLAsset URLAssetWithURL:url options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
+    NSURL*playURL=[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
+    AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     [self stopNativePlayback];
     [AVAudioSession.sharedInstance setCategory:AVAudioSessionCategoryPlayback error:NULL];
     [AVAudioSession.sharedInstance setActive:YES error:NULL];

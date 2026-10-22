@@ -39,3 +39,5 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
 
 img[data-image]:not([src]){visibility:hidden}
+
+.settinggroup input[type=checkbox]{width:24px;height:24px;margin:0;accent-color:var(--accent)}
