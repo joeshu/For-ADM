@@ -6,14 +6,17 @@ static char SYPlaybackStatus;
 @property(nonatomic,copy) void(^onRestore)(void(^)(BOOL));
 @property(nonatomic) BOOL pictureInPicture;
 @property(nonatomic) BOOL playerVisible;
+@property(nonatomic) BOOL fullScreen;
 @end
 @implementation SYPlayerViewController
 - (void)viewDidAppear:(BOOL)animated {[super viewDidAppear:animated];self.playerVisible=YES;}
-- (void)viewDidDisappear:(BOOL)animated {[super viewDidDisappear:animated];self.playerVisible=NO;if(!self.pictureInPicture){[self.player pause];if(self.onClose)self.onClose();}}
+- (void)viewDidDisappear:(BOOL)animated {[super viewDidDisappear:animated];self.playerVisible=NO;if(!self.parentViewController&&!self.pictureInPicture){[self.player pause];if(self.onClose)self.onClose();}}
+- (void)playerViewController:(AVPlayerViewController*)controller willBeginFullScreenPresentationWithAnimationCoordinator:(id)coordinator {self.fullScreen=YES;}
+- (void)playerViewController:(AVPlayerViewController*)controller willEndFullScreenPresentationWithAnimationCoordinator:(id)coordinator {self.fullScreen=NO;}
 - (void)playerViewControllerWillStartPictureInPicture:(AVPlayerViewController*)controller {self.pictureInPicture=YES;}
 - (void)playerViewController:(AVPlayerViewController*)controller failedToStartPictureInPictureWithError:(NSError*)error {self.pictureInPicture=NO;if(!self.playerVisible&&self.onRestore)self.onRestore(^(BOOL restored){if(!restored){[self.player pause];if(self.onClose)self.onClose();}});}
-- (void)playerViewControllerDidStopPictureInPicture:(AVPlayerViewController*)controller {self.pictureInPicture=NO;if(!self.playerVisible){[self.player pause];if(self.onClose)self.onClose();}}
-- (BOOL)playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart:(AVPlayerViewController*)controller {return YES;}
+- (void)playerViewControllerDidStopPictureInPicture:(AVPlayerViewController*)controller {self.pictureInPicture=NO;if(!self.playerVisible&&!self.parentViewController){[self.player pause];if(self.onClose)self.onClose();}}
+- (BOOL)playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart:(AVPlayerViewController*)controller {return NO;}
 - (void)playerViewController:(AVPlayerViewController*)controller restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void(^)(BOOL))handler {if(self.onRestore)self.onRestore(handler);else handler(NO);}
 @end
 @interface SYBridge:NSObject<WKScriptMessageHandler>
@@ -80,6 +83,20 @@ static char SYPlaybackStatus;
 }
 #endif
 - (void)viewDidLayoutSubviews {[super viewDidLayoutSubviews];self.web.frame=self.view.bounds;}
+- (void)layoutPlayer:(NSDictionary*)frame {
+  if(!self.nativePlayer||self.nativePlayer.fullScreen)return;
+  if(![frame[@"visible"] boolValue]){
+    if(!self.nativePlayer.pictureInPicture)[self stopNativePlayback];
+    return;
+  }
+  double width=[frame[@"width"] doubleValue],height=[frame[@"height"] doubleValue];
+  double x=[frame[@"x"] doubleValue],y=[frame[@"y"] doubleValue];
+  double viewport=[frame[@"viewportWidth"] doubleValue];
+  if(!__builtin_isfinite(width)||!__builtin_isfinite(height)||!__builtin_isfinite(x)||!__builtin_isfinite(y)||!__builtin_isfinite(viewport)||width<=0||height<=0||viewport<=0)return;
+  double scale=self.web.bounds.size.width/viewport;
+  CGRect rect={{x*scale,y*scale},{width*scale,height*scale}};
+  self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.web.scrollView];
+}
 - (UIStatusBarStyle)preferredStatusBarStyle {return 1;}
 - (void)deliver:(NSDictionary*)result {
   NSData*data=[NSJSONSerialization dataWithJSONObject:result options:0 error:NULL];
@@ -91,7 +108,7 @@ static char SYPlaybackStatus;
 #if defined(SY_SIMULATOR_SMOKE)
   if([event[@"status"] isEqualToString:@"ready"])self.smokePlayerReady=YES;
   if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1){
-    NSDictionary*result=@{@"nativePlayerReady":@YES,@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
+    NSDictionary*result=@{@"nativePlayerReady":@YES,@"inlinePlayback":@(self.nativePlayer.parentViewController==self&&self.presentedViewController==nil&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
     NSData*report=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
     [report writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke.json"] atomically:YES];
     [self.nativePlayer.player pause];
@@ -109,7 +126,7 @@ static char SYPlaybackStatus;
   if(self.nativeItem){[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];self.nativeItem=nil;}
   if(self.timeObserver){[self.nativePlayer.player removeTimeObserver:self.timeObserver];self.timeObserver=nil;}
   if(self.endObserver){[NSNotificationCenter.defaultCenter removeObserver:self.endObserver];self.endObserver=nil;}
-  [self.nativePlayer.player pause];self.nativePlayer.player=nil;self.nativePlayer=nil;
+  [self.nativePlayer.player pause];self.nativePlayer.player=nil;[self.nativePlayer willMoveToParentViewController:nil];[self.nativePlayer.view removeFromSuperview];[self.nativePlayer removeFromParentViewController];self.nativePlayer=nil;
   [AVAudioSession.sharedInstance setActive:NO withOptions:1 error:NULL];
 }
 - (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
@@ -119,7 +136,7 @@ static char SYPlaybackStatus;
     if(self.nativeItem.status==1)[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"ready"}];
     else if(self.nativeItem.status==2){
       [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"failed",@"error":self.nativeItem.error.localizedDescription?:@"视频解码失败，请切换线路"}];
-      [self.nativePlayer dismissViewControllerAnimated:YES completion:nil];
+      [self stopNativePlayback];
     }
   });
 }
@@ -155,6 +172,10 @@ static char SYPlaybackStatus;
     }
     [self deliver:status==0?@{@"id":identifier,@"ok":@YES}:@{@"id":identifier,@"error":@"无法保存登录会话"}];return;
   }
+  if([type isEqualToString:@"playerLayout"]){
+    if([body[@"context"] isEqualToString:self.playContext]&&[body[@"frame"] isKindOfClass:NSDictionary.class])[self layoutPlayer:body[@"frame"]];
+    return;
+  }
   if(![body[@"url"] isKindOfClass:NSString.class])return;
   NSURL*url=[NSURL URLWithString:body[@"url"]];
   if(![url.scheme.lowercaseString isEqualToString:@"https"]||!url.host.length){[self deliver:@{@"id":identifier,@"error":@"仅支持有效 HTTPS 地址"}];return;}
@@ -165,7 +186,7 @@ static char SYPlaybackStatus;
     [AVAudioSession.sharedInstance setCategory:AVAudioSessionCategoryPlayback error:NULL];
     [AVAudioSession.sharedInstance setActive:YES error:NULL];
     SYPlayerViewController*player=[SYPlayerViewController new];self.nativePlayer=player;
-    player.delegate=player;player.updatesNowPlayingInfoCenter=YES;player.allowsPictureInPicturePlayback=YES;player.canStartPictureInPictureAutomaticallyFromInline=YES;player.videoGravity=AVLayerVideoGravityResizeAspect;
+    player.entersFullScreenWhenPlaybackBegins=NO;player.exitsFullScreenWhenPlaybackEnds=NO;player.delegate=player;player.updatesNowPlayingInfoCenter=YES;player.allowsPictureInPicturePlayback=YES;player.canStartPictureInPictureAutomaticallyFromInline=YES;player.videoGravity=AVLayerVideoGravityResizeAspect;
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];self.nativeItem=item;item.preferredForwardBufferDuration=6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
@@ -173,18 +194,22 @@ static char SYPlaybackStatus;
     __weak SYController*owner=self;__weak SYPlayerViewController*weakPlayer=player;
     NSString*playContext=self.playContext;
     player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};
-    player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}[strongOwner presentViewController:weakPlayer animated:YES completion:^{handler(YES);}];};
+    player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}handler(weakPlayer.parentViewController==strongOwner);};
     self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
       SYController*strongOwner=owner;if(!strongOwner||strongOwner.nativePlayer!=weakPlayer)return;
       double seconds=CMTimeGetSeconds(time);if(!__builtin_isfinite(seconds)||seconds<0)return;
       [strongOwner sendPlayback:@{@"context":playContext,@"status":@"progress",@"time":@(seconds)}];
     }];
     self.endObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemDidPlayToEndTimeNotification" object:item queue:nil usingBlock:^(id notification){
-      dispatch_async(SYMainQueue(),^{SYController*strongOwner=owner;if(strongOwner.nativePlayer!=weakPlayer)return;[weakPlayer dismissViewControllerAnimated:YES completion:^{[strongOwner sendPlayback:@{@"context":playContext,@"status":@"ended"}];}];});
+      dispatch_async(SYMainQueue(),^{SYController*strongOwner=owner;if(strongOwner.nativePlayer!=weakPlayer)return;[strongOwner sendPlayback:@{@"context":playContext,@"status":@"ended"}];});
     }];
     double start=[body[@"startAt"] doubleValue];if(__builtin_isfinite(start)&&start>0)[player.player seekToTime:CMTimeMakeWithSeconds(start,600)];
     double requestedRate=[body[@"rate"] doubleValue];float rate=(requestedRate>=0.5&&requestedRate<=2)?(float)requestedRate:1;
-    [self presentViewController:player animated:YES completion:^{[player.player play];player.player.rate=rate;}];
+    [self addChildViewController:player];
+    player.view.frame=(CGRect){{0,0},{0,0}};
+    [self.web.scrollView addSubview:player.view];[player didMoveToParentViewController:self];
+    if([body[@"frame"] isKindOfClass:NSDictionary.class])[self layoutPlayer:body[@"frame"]];
+    [player.player play];player.player.rate=rate;
     [self deliver:@{@"id":identifier,@"ok":@YES}];return;
   }
   if(![type isEqualToString:@"request"])return;

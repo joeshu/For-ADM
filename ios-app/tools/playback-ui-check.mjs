@@ -19,13 +19,17 @@ try{
  await page.evaluate(()=>{
   HTMLMediaElement.prototype.pause=function(){window.__paused=true;};
   window.webkit={messageHandlers:{native:{postMessage(message){
+   if(message.type==='request'){
+    fetch('/__transport',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(message)}).then(r=>r.json()).then(data=>window.NativeTransport.deliver({id:message.id,...data}));
+   }
    if(message.type==='play'){
-    window.__nativePlay={url:message.url,wasPaused:window.__paused,rate:message.rate,title:message.title};
+    window.__nativePlay={url:message.url,wasPaused:window.__paused,rate:message.rate,title:message.title,frame:message.frame};
     window.NativeTransport.deliver({id:message.id,ok:true});
    }
   }}}};
  });
- await page.locator('[data-act="native-player"]').click();const played=await page.evaluate(()=>window.__nativePlay);assert.equal(played.wasPaused,true);assert.equal(played.rate,1.5);assert.equal(played.title,'测试影片 · 第一集');assert.equal(played.url,'https://test.example/first.m3u8');await page.evaluate(()=>delete window.webkit);
+ await page.locator('[data-act="favorite-detail"]').click();await page.locator('#native-player-slot').waitFor();
+ await page.locator('[data-act="episode"][data-id="0"]').click();await page.waitForFunction(()=>!!window.__nativePlay);const played=await page.evaluate(()=>window.__nativePlay);assert.equal(played.frame.visible,true);assert.equal(played.frame.width,390);assert.ok(Math.abs(played.frame.height/played.frame.width-9/16)<0.01);assert.equal(await page.locator('.playtoolbar [data-act="native-player"]').count(),0);assert.equal(played.rate,1.5);assert.equal(played.title,'测试影片 · 第一集');assert.equal(played.url,'https://test.example/first.m3u8');await page.evaluate(()=>delete window.webkit);
  await page.locator('[data-act="episode"][data-id="1"]').click();await page.getByText('请登录后播放',{exact:true}).waitFor();assert.equal(await page.locator('#video').count(),0);
- const history=await page.evaluate(()=>JSON.parse(localStorage.getItem('sanyuan:history')));assert.equal(history[0].episodeId,10);assert.deepEqual(errors,[]);console.log('Playback UI passed: native player pauses inline player; denied episode removes stale video and preserves correct history.');
+ const history=await page.evaluate(()=>JSON.parse(localStorage.getItem('sanyuan:history')));assert.equal(history[0].episodeId,10);assert.deepEqual(errors,[]);console.log('Playback UI passed: native player receives an inline 16:9 frame without forced fullscreen; denied episode removes stale video and preserves correct history.');
 }finally{await browser.close();}

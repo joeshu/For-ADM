@@ -19,7 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.2-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.3-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+
+0.2.3 默认在详情页内嵌原生播放器，点击选集不再强制全屏；使用画面内的系统按钮切换全屏。
 
 0.2.2 使用标准 UIScene 生命周期，关闭 chained fixups 并预留 Mach-O 头部空间，以改善现代 iOS 启动及第三方重签名兼容性。这是兼容性修正，未经手机崩溃日志确认，不能据此判断此前闪退的具体根因。
 
@@ -45,7 +47,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.2-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.3-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

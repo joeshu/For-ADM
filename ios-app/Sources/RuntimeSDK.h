@@ -138,9 +138,18 @@ __attribute__((objc_root_class))
 @property NSUInteger autoresizingMask;
 @property(strong) UIColor*backgroundColor;
 - (void)addSubview:(UIView*)view;
+- (void)removeFromSuperview;
+- (CGRect)convertRect:(CGRect)rect toView:(UIView*)view;
 @end
+@interface UIScrollView:UIView @end
 @interface UIViewController:NSObject
 @property(strong) UIView*view;
+@property(readonly) UIViewController*parentViewController;
+@property(readonly) UIViewController*presentedViewController;
+- (void)addChildViewController:(UIViewController*)controller;
+- (void)willMoveToParentViewController:(UIViewController*)controller;
+- (void)didMoveToParentViewController:(UIViewController*)controller;
+- (void)removeFromParentViewController;
 - (void)viewDidLoad;
 - (void)viewDidLayoutSubviews;
 - (void)viewDidDisappear:(BOOL)animated;
@@ -189,6 +198,7 @@ extern NSString*NSStringFromClass(Class);
 @property(readonly) WKFrameInfo*frameInfo;
 @end
 @interface WKWebView:UIView
+@property(readonly) UIScrollView*scrollView;
 - (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration*)configuration;
 @property(weak) id<WKNavigationDelegate>navigationDelegate;
 - (id)loadFileURL:(NSURL*)url allowingReadAccessToURL:(NSURL*)directory;
@@ -224,6 +234,8 @@ extern NSString*NSStringFromClass(Class);
 @property(strong) AVPlayer*player;
 @property(weak) id<AVPlayerViewControllerDelegate>delegate;
 @property BOOL allowsPictureInPicturePlayback;
+@property BOOL entersFullScreenWhenPlaybackBegins;
+@property BOOL exitsFullScreenWhenPlaybackEnds;
 @property BOOL updatesNowPlayingInfoCenter;
 @property BOOL canStartPictureInPictureAutomaticallyFromInline;
 @property(copy) NSString*videoGravity;
