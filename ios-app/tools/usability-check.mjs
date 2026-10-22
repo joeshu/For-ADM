@@ -35,7 +35,7 @@ try{
  await page.locator('[data-act="filters-reset"]').click();await page.waitForFunction(()=>!document.querySelector('.selected-filters')&&document.querySelectorAll('.card').length>0);
  await page.locator('.card').first().click();await page.locator('.route-card').first().waitFor();
  await page.locator('[data-act="episode"][data-id="1"]').click();await page.locator('#video').waitFor();
- await page.locator('[data-act="play-source"][data-id="1"]').click();await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/c.m3u8'));
+ await page.getByLabel('切换播放源',{exact:true}).selectOption('1');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/c.m3u8'));
  assert.match(await page.locator('.episode.active').innerText(),/第2集/);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-lines.png'});
  for(const width of [320,390,768,1024]){
