@@ -38,6 +38,7 @@
  }
  return self;
 }
+- (void)dealloc {if(_listener)nw_listener_cancel(_listener);[_session invalidateAndCancel];}
 - (NSURL*)mapped:(NSURL*)url {
  if(![url.scheme.lowercaseString isEqualToString:@"https"])return nil;
  NSString*path=self.paths[url.absoluteString];
@@ -95,7 +96,7 @@
  NSURL*url=parts.count>=2?self.resources[parts[1]]:nil;
  if(!url||(!head&&![parts[0] isEqual:@"GET"])){[self reply:connection status:404 headers:@{} data:[NSData data] head:head];return;}
  NSMutableURLRequest*upstream=[NSMutableURLRequest requestWithURL:url];upstream.allHTTPHeaderFields=self.headers;upstream.HTTPMethod=head?@"HEAD":@"GET";
- for(NSString*line in lines)if([line.lowercaseString hasPrefix:@"range:"])[upstream setValue:[[line substringFromIndex:6] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet] forHTTPHeaderField:@"Range"];
+ for(NSString*line in lines)if(![url.path.lowercaseString hasSuffix:@".m3u8"]&&[line.lowercaseString hasPrefix:@"range:"])[upstream setValue:[[line substringFromIndex:6] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet] forHTTPHeaderField:@"Range"];
  NSString*token=self.token;
  __weak SYHLSProxy*weak=self;
  [[self.session dataTaskWithRequest:upstream completionHandler:^(NSData*body,NSURLResponse*response,NSError*error){

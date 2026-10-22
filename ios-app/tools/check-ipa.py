@@ -12,7 +12,7 @@ with zipfile.ZipFile(path) as z:
     assert info['UIApplicationSceneManifest']['UISceneConfigurations']['UIWindowSceneSessionRoleApplication'][0]['UISceneDelegateClassName']=='SYSceneDelegate'
     assert not meta['signed'] and not any('_CodeSignature/' in n or n.endswith('embedded.mobileprovision') for n in names)
     assert z.getinfo(base+'Sanyuan').external_attr>>16&0o111
-    for resource in ['Web/index.html','Web/app.js','Web/app.css','Web/vendor/crypto-js.js']:
+    for resource in ['Web/index.html','Web/app.js','Web/app.css','Web/hls-cleaner.js','Web/vendor/crypto-js.js']:
         assert len(z.read(base+resource))>100
     assert b'<script type="module"' not in z.read(base+'Web/index.html')
 print(json.dumps({'validUnsignedIPA':True,'bundleId':info['CFBundleIdentifier'],'architecture':'arm64','minimumOS':info['MinimumOSVersion'],'deviceLaunchTested':False,'sha256':hashlib.sha256(open(path,'rb').read()).hexdigest()},indent=2))
