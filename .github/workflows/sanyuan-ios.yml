@@ -28,10 +28,15 @@ jobs:
       - name: Compile with iPhoneOS SDK and package without signing
         working-directory: ios-app
         run: bash tools/build-macos.sh
+      - name: Launch in iOS simulator and verify native bridge, home and images
+        working-directory: ios-app
+        run: bash tools/simulator-smoke.sh
       - uses: actions/upload-artifact@v4
         with:
           name: Sanyuan-unsigned-ipa
           path: |
             ios-app/dist/Sanyuan-0.1.0-unsigned.ipa
             ios-app/dist/build-report.json
+            ios-app/dist/simulator-smoke.json
+            ios-app/dist/simulator-home.png
           if-no-files-found: error

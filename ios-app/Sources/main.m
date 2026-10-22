@@ -8,6 +8,9 @@
 @property(nonatomic,strong) SYBridge*bridge;
 @property(nonatomic,strong) NSURLSession*session;
 @property(nonatomic,strong) NSMutableDictionary*tasks;
+#if defined(SY_SIMULATOR_SMOKE)
+@property(nonatomic) NSInteger smokeAttempts;
+#endif
 - (void)receive:(WKScriptMessage*)message;
 @end
 @implementation SYBridge
@@ -31,7 +34,24 @@
   NSString*root=[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Web"];
   [self.web loadFileURL:[NSURL fileURLWithPath:[root stringByAppendingPathComponent:@"index.html"] isDirectory:NO]
     allowingReadAccessToURL:[NSURL fileURLWithPath:root isDirectory:YES]];
+#if defined(SY_SIMULATOR_SMOKE)
+  [self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:2];
+#endif
 }
+#if defined(SY_SIMULATOR_SMOKE)
+// Compiled only into the simulator test executable, never into the delivered IPA.
+- (void)runSmokeCheck {
+  self.smokeAttempts++;
+  [self.web evaluateJavaScript:@"({interfaceLoaded:!!document.querySelector('.sources'),transportReady:!!window.NativeTransport&&window.NativeTransport.native(),homeLoaded:!!document.querySelector('.hero'),posterImages:Array.from(document.images).filter(i=>i.complete&&i.naturalWidth>0).length})" completionHandler:^(id result,NSError*error){
+    if([result isKindOfClass:NSDictionary.class]&&[result[@"interfaceLoaded"] boolValue]&&[result[@"transportReady"] boolValue]&&[result[@"homeLoaded"] boolValue]&&[result[@"posterImages"] integerValue]>0){
+      NSData*data=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
+      NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-smoke.json"];
+      [data writeToFile:path atomically:YES];return;
+    }
+    if(self.smokeAttempts<30)[self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:2];
+  }];
+}
+#endif
 - (void)viewDidLayoutSubviews {[super viewDidLayoutSubviews];self.web.frame=self.view.bounds;}
 - (NSInteger)preferredStatusBarStyle {return 1;}
 - (void)deliver:(NSDictionary*)result {
