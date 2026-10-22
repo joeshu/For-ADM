@@ -37,7 +37,7 @@ else:
     for provider in groups:
         link+=['-l'+provider] if provider in ('System','objc') else ['-framework',provider]
     subprocess.run(link,check=True);os.chmod(app/'Sanyuan',0o755)
-info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.1.0',CFBundleVersion='1',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleLightContent',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsLocalNetworking':False},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
+info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.2.0',CFBundleVersion='2',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleLightContent',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsLocalNetworking':False},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
 info['CFBundleIcons~ipad']={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon76x76','AppIcon83.5x83.5']}}
 with (app/'Info.plist').open('wb') as f:plistlib.dump(info,f)
 (app/'PkgInfo').write_bytes(b'APPL????')
@@ -46,7 +46,7 @@ for icon in (root/'Resources').glob('*.png') if (root/'Resources').exists() else
 metadata=inspect((app/'Sanyuan').read_bytes())
 assert metadata['cpu']==0x100000c and metadata['kind']==2 and metadata['platform'][0]==2 and not metadata['signed']
 assert not (app/'embedded.mobileprovision').exists() and not (app/'_CodeSignature').exists()
-ipa=out/'Sanyuan-0.1.0-unsigned.ipa'
+ipa=out/'Sanyuan-0.2.0-unsigned.ipa'
 with zipfile.ZipFile(ipa,'w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted((out/'Payload').rglob('*')):
         if f.is_file():z.write(f,f.relative_to(out))
