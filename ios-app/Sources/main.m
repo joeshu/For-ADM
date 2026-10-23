@@ -34,6 +34,7 @@ static char SYPlaybackStatus;
 @property(nonatomic,strong) id timeObserver;
 @property(nonatomic,strong) id endObserver;
 @property(nonatomic,copy) NSString*playContext;
+@property(nonatomic) BOOL detailStatusStyle;
 #if defined(SY_SIMULATOR_SMOKE)
 @property(nonatomic) NSInteger smokeAttempts;
 @property(nonatomic) BOOL smokePlayerReady;
@@ -100,7 +101,7 @@ static char SYPlaybackStatus;
   CGRect rect={{x*scale,y*scale},{width*scale,height*scale}};
   self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.web.scrollView];
 }
-- (UIStatusBarStyle)preferredStatusBarStyle {return 1;}
+- (UIStatusBarStyle)preferredStatusBarStyle {return self.detailStatusStyle?1:0;}
 - (void)deliver:(NSDictionary*)result {
   NSData*data=[NSJSONSerialization dataWithJSONObject:result options:0 error:NULL];
   if(!data)return;
@@ -150,6 +151,7 @@ static char SYPlaybackStatus;
   if(!message.frameInfo.isMainFrame||!message.frameInfo.request.URL.isFileURL||![[message.frameInfo.request.URL.path stringByStandardizingPath] hasPrefix:trustedPrefix]||![message.body isKindOfClass:NSDictionary.class])return;
   NSDictionary*body=message.body;NSString*identifier=body[@"id"],*type=body[@"type"];
   if(![identifier isKindOfClass:NSString.class]||identifier.length>100)return;
+  if([type isEqualToString:@"statusStyle"]){self.detailStatusStyle=[body[@"dark"] boolValue];[self setNeedsStatusBarAppearanceUpdate];return;}
   if([type isEqualToString:@"cancel"]){[self.tasks[identifier] cancel];[self.tasks removeObjectForKey:identifier];return;}
   if([type hasPrefix:@"vault"]){
     NSString*key=body[@"key"];
