@@ -244,8 +244,8 @@ static char SYPlaybackStatus;
   [config.userContentController addScriptMessageHandler:self.bridge name:@"native"];
   self.web=[[WKWebView alloc]initWithFrame:self.view.bounds configuration:config];
   self.web.autoresizingMask=18;self.web.navigationDelegate=self;
-  self.web.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.web];self.web.hidden=YES;
-  self.appScreen=[SYAppScreenController new];self.appScreen.owner=self;[self addChildViewController:self.appScreen];self.appScreen.view.frame=self.view.bounds;self.appScreen.view.autoresizingMask=18;[self.view addSubview:self.appScreen.view];[self.appScreen didMoveToParentViewController:self];[self.appScreen applyState:@{@"page":@"home"}];
+  self.web.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.web];
+  self.appScreen=[SYAppScreenController new];self.appScreen.owner=self;[self addChildViewController:self.appScreen];self.appScreen.view.frame=self.view.bounds;self.appScreen.view.autoresizingMask=18;[self.view addSubview:self.appScreen.view];[self.view sendSubviewToBack:self.web];[self.appScreen didMoveToParentViewController:self];[self.appScreen applyState:@{@"page":@"home"}];
   NSString*root=[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Web"];
   [self.web loadFileURL:[NSURL fileURLWithPath:[root stringByAppendingPathComponent:@"index.html"] isDirectory:NO]
     allowingReadAccessToURL:[NSURL fileURLWithPath:root isDirectory:YES]];

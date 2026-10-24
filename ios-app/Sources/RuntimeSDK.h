@@ -201,6 +201,7 @@ extern CGFloat UIFontWeightMedium;
 @property(readonly) UIView*superview;
 @property(readonly) NSArray*subviews;
 - (void)addSubview:(UIView*)view;
+- (void)sendSubviewToBack:(UIView*)view;
 - (void)bringSubviewToFront:(UIView*)view;
 - (void)removeFromSuperview;
 - (void)setNeedsLayout;
