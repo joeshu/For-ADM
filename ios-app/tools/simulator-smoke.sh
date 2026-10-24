@@ -16,7 +16,7 @@ d['CFBundleSupportedPlatforms']=['iPhoneSimulator'];d.pop('UIRequiredDeviceCapab
 with open(p,'wb') as f:plistlib.dump(d,f)
 PY
 codesign --force --sign - --timestamp=none "$sim_app"
-sim_device="$(xcrun simctl list devices available --json | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(x["udid"] for k,v in d["devices"].items() if ".iOS-" in k for x in v if x.get("isAvailable") and x["name"].startswith("iPhone")))')"
+sim_device="${SIMULATOR_UDID:-$(xcrun simctl list devices available --json | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(x["udid"] for k,v in d["devices"].items() if ".iOS-" in k for x in v if x.get("isAvailable") and x["name"].startswith("iPhone")))')}"
 # Fresh GitHub runners normally have no booted device.
 xcrun simctl boot "$sim_device" || true
 xcrun simctl bootstatus "$sim_device" -b

@@ -14,9 +14,14 @@ permissions:
 jobs:
   build:
     runs-on: macos-15-intel
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Begin iOS simulator first boot
+        run: |
+          sim_device="$(xcrun simctl list devices available --json | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(x["udid"] for k,v in d["devices"].items() if ".iOS-" in k for x in v if x.get("isAvailable") and x["name"].startswith("iPhone")))')"
+          echo "SIMULATOR_UDID=$sim_device" >> "$GITHUB_ENV"
+          xcrun simctl boot "$sim_device" || true
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
