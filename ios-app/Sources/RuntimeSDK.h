@@ -199,6 +199,8 @@ extern CGFloat UIFontWeightMedium;
 @property NSUInteger autoresizingMask;
 @property BOOL hidden;
 @property BOOL userInteractionEnabled;
+@property NSInteger tag;
+@property(copy) NSString*accessibilityIdentifier;
 @property(strong) UIColor*backgroundColor;
 @property BOOL clipsToBounds;
 @property(readonly) CALayer*layer;
@@ -243,12 +245,16 @@ extern CGFloat UIFontWeightMedium;
 @property NSInteger clearButtonMode;
 @property BOOL secureTextEntry;
 @end
+@protocol UIScrollViewDelegate<NSObject> @end
 @interface UIScrollView:UIView
 @property CGSize contentSize;
+@property CGPoint contentOffset;
+@property(weak) id delegate;
 @property BOOL showsVerticalScrollIndicator;
 @property BOOL showsHorizontalScrollIndicator;
 @property BOOL alwaysBounceVertical;
 @property BOOL alwaysBounceHorizontal;
+- (void)setContentOffset:(CGPoint)offset animated:(BOOL)animated;
 @end
 @interface UIImage:NSObject
 + (instancetype)imageWithData:(NSData*)data;
