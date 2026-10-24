@@ -256,9 +256,12 @@ extern NSString*const AVMetadataCommonIdentifierTitle;
 @property(copy) NSString*identifier;
 @property(copy) id value;
 @end
+@interface NSNotification:NSObject
+@property(readonly) NSDictionary*userInfo;
+@end
 @interface NSNotificationCenter:NSObject
 + (instancetype)defaultCenter;
-- (id)addObserverForName:(NSString*)name object:(id)object queue:(id)queue usingBlock:(void(^)(id))block;
+- (id)addObserverForName:(NSString*)name object:(id)object queue:(id)queue usingBlock:(void(^)(NSNotification*))block;
 - (void)removeObserver:(id)observer;
 @end
 typedef const void* CFTypeRef;
