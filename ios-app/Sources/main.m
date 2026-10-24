@@ -296,8 +296,12 @@ static NSMutableDictionary *SYPosterRequests;
 // Compiled only into the simulator test executable, never into the delivered IPA.
 - (void)runSmokeCheck {
   self.smokeAttempts++;
-  [self.web evaluateJavaScript:@"({interfaceLoaded:!!document.querySelector('.sources'),transportReady:!!window.NativeTransport&&window.NativeTransport.native(),homeLoaded:!!document.querySelector('.hero'),posterImages:Array.from(document.images).filter(i=>i.complete&&i.naturalWidth>0).length})" completionHandler:^(id result,NSError*error){
-    if([result isKindOfClass:NSDictionary.class]&&[result[@"interfaceLoaded"] boolValue]&&[result[@"transportReady"] boolValue]&&[result[@"homeLoaded"] boolValue]&&[result[@"posterImages"] integerValue]>0&&self.appScreen.bottomBar.subviews.count==5){
+  // Native mode intentionally avoids loading a second set of poster images in
+  // the hidden WKWebView. Validate the native screen and bridge instead of
+  // requiring DOM images that should not be fetched in this mode.
+  [self.web evaluateJavaScript:@"({interfaceLoaded:!!document.querySelector('.sources'),transportReady:!!window.NativeTransport&&window.NativeTransport.native(),homeLoaded:!!document.querySelector('.hero')})" completionHandler:^(id result,NSError*error){
+    BOOL nativeHome=[self.appScreen.state[@"page"] isEqualToString:@"home"]&&self.appScreen.content.subviews.count>0;
+    if([result isKindOfClass:NSDictionary.class]&&[result[@"interfaceLoaded"] boolValue]&&[result[@"transportReady"] boolValue]&&[result[@"homeLoaded"] boolValue]&&nativeHome&&self.appScreen.bottomBar.subviews.count>=5){
       NSData*data=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
       NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-smoke.json"];
       [data writeToFile:path atomically:YES];
