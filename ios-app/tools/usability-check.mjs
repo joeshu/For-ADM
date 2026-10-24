@@ -11,9 +11,9 @@ try{
   if(path.endsWith('/interface.m3u')){const body='#EXTM3U x-tvg-url="https://fnipv.69574517.xyz/shiju19880215/playback.xml"\n#EXTINF:-1 tvg-id="CCTV1综合" tvg-name="CCTV1综合" group-title="央视频",CCTV1综合\nhttps://fnipv.69574517.xyz/relay/one.m3u8\n#EXTINF:-1 tvg-id="CCTV1综合" tvg-name="CCTV1综合备用" group-title="央视频",CCTV1综合备用\nhttps://fnipv.69574517.xyz/relay/two.m3u8\n#EXTINF:-1 tvg-id="CCTV5体育" group-title="体育",CCTV5体育\nhttp://fnipv.69574517.xyz/relay/five.m3u8\n';await route.fulfill({json:{status:200,bodyBase64:Buffer.from(body).toString('base64')}});return;}
   if(path.endsWith('/playback.xml')){const body='<tv><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1综合"><title>综合新闻</title></programme></tv>';await route.fulfill({json:{status:200,bodyBase64:Buffer.from(body).toString('base64')}});return;}
   if(path.endsWith('.m3u8')){await route.fulfill({json:{status:200,bodyBase64:Buffer.from('#EXTM3U\n#EXTINF:5,\nsegment.ts\n').toString('base64')}});return;}
-  const films=Array.from({length:12},(_,i)=>({title:'测试影片'+(i+1),url:'vod/detail?vodId='+(i+1)}));
+  const films=Array.from({length:12},(_,i)=>({title:'测试影片'+(i+1),url:'vod/detail?vodId='+(i+1)})),longFilms=Array.from({length:20},(_,i)=>({title:'第二栏目影片'+(i+1),url:'vod/detail?vodId='+(i+201)}));
   if(path==='/config/prod/appInit.html')data={urls:{cache:['https://test.example'],logic:['https://test.example']},vodTabs:[{type:'category',channelId:1,text:'电影'},{type:'category',channelId:2,text:'剧集'}],groups:[],channelListQuery:[1,2].map(channelId=>({channelId,items:[{query:'sort',selected:'3',data:[{id:'3',name:'最新'},{id:'1',name:'最热'}]},{query:'area',selected:'',data:[{id:'',name:'全部'},{id:'cn',name:'中国'},{id:'us',name:'美国'}]}]}))};
-  else if(path==='/v5/vod/home.capi')data={blocks:[{header:{title:'精选片库',url:'specialTopic/vods?specialTopicId=12'},data:films},{header:{title:'第二片库',url:'specialTopic/vods?specialTopicId=13'},data:films}]};
+  else if(path==='/v5/vod/home.capi')data={blocks:[{header:{title:'精选片库',url:'specialTopic/vods?specialTopicId=12'},data:films},{header:{title:'第二片库',url:'specialTopic/vods?specialTopicId=13'},data:longFilms}]};
   else if(path==='/v2/vod/specialTopic/vods.capi')data=url.searchParams.get('specialTopicId')==='13'?{items:[{title:'专属栏目影片',url:'vod/detail?vodId=130'}]}:{items:url.searchParams.get('next')==='page=2'?[{title:'后续影片',url:'vod/detail?vodId=100'}]:films,next:url.searchParams.get('next')==='page=2'?'':'page=2'};
   else if(path.endsWith('/vod/channel/list.capi')){queries.push(url.searchParams);data=url.searchParams.get('next')==='page=2'?{items:[{title:'后续影片',url:'vod/detail?vodId=101'}],next:0}:{items:films,next:'page=2'};}
   else if(path==='/v2/vod/detail.capi')data={id:1,title:'测试影片1',channelId:2,playSources:[{siteId:1,name:'线路一',list:[{id:10,title:'第1集',open:true,playUrls:[{url:'https://test.example/a.m3u8'}]},{id:11,title:'第2集',open:true,playUrls:[{url:'https://test.example/b.m3u8'}]}]},{siteId:2,name:'线路二',list:[{id:21,title:'第2集',open:true,playUrls:[{url:'https://test.example/c.m3u8'}]},{id:20,title:'第1集',open:true,playUrls:[{url:'https://test.example/d.m3u8'}]}]}]};
@@ -28,8 +28,8 @@ try{
  await page.evaluate(()=>window.NativePageAction('page','games'));
  assert.equal(await page.locator('html').getAttribute('data-page'),'home');
  await page.locator('[data-act="hero-pick"][data-id="1"]').click();assert.match(await page.locator('.hero h1').innerText(),/测试影片2/);
- assert.equal(await page.locator('.home-section .card').count(),24);
- assert.deepEqual(await page.locator('.home-section .section-count').allTextContents(),['12 部','12 部']);
+ assert.equal(await page.locator('.home-section .card').count(),32);
+ assert.deepEqual(await page.locator('.home-section .section-count').allTextContents(),['12 部','20 部']);
  assert.equal(await page.locator('.shelf').first().evaluate(row=>row.scrollWidth>row.clientWidth),true);
  await page.locator('.shelf').first().evaluate(row=>row.scrollLeft=240);
  await page.locator('.home-section [data-act="collection-link"]').first().click();await page.locator('.collection-content .card').first().waitFor();
