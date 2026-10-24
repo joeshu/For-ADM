@@ -55,6 +55,7 @@ __attribute__((objc_root_class))
 - (instancetype)init;
 - (BOOL)isKindOfClass:(Class)cls;
 - (BOOL)isEqual:(id)object;
+- (id)mutableCopy;
 - (BOOL)respondsToSelector:(SEL)selector;
 - (NSString*)description;
 - (void)addObserver:(NSObject*)observer forKeyPath:(NSString*)keyPath options:(NSUInteger)options context:(void*)context;
