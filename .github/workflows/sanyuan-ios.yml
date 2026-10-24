@@ -34,6 +34,10 @@ jobs:
       - name: Launch in iOS simulator and verify native media playback
         working-directory: ios-app
         run: bash tools/simulator-smoke.sh
+      - name: Describe simulator failure screen
+        if: failure()
+        working-directory: ios-app
+        run: swift tools/describe-simulator-failure.swift
       - uses: actions/upload-artifact@v4
         if: always()
         with:
