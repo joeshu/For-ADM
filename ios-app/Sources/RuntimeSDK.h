@@ -156,6 +156,7 @@ __attribute__((objc_root_class))
 @property BOOL clipsToBounds;
 @property(readonly) NSArray*subviews;
 - (void)addSubview:(UIView*)view;
+- (void)bringSubviewToFront:(UIView*)view;
 - (void)removeFromSuperview;
 - (CGRect)convertRect:(CGRect)rect toView:(UIView*)view;
 @end

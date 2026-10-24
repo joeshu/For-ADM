@@ -32,6 +32,7 @@ static char SYPlaybackStatus;
 @interface SYLiveScreenController:UIViewController
 @property(nonatomic,weak) SYController*owner;
 @property(nonatomic,strong) UIView*playerHost;
+@property(nonatomic,strong) AVRoutePickerView*routePicker;
 @property(nonatomic,strong) UIScrollView*content;
 @property(nonatomic,strong) UITextField*urlField;
 @property(nonatomic,strong) UITextField*searchField;
@@ -59,6 +60,8 @@ static char SYPlaybackStatus;
 @property(nonatomic) NSInteger smokeAttempts;
 @property(nonatomic) BOOL smokePlayerReady;
 @property(nonatomic) BOOL smokeProxyActive;
+@property(nonatomic) NSInteger smokeLiveAttempts;
+@property(nonatomic) BOOL smokeLiveStarted;
 #endif
 - (void)receive:(WKScriptMessage*)message;
 - (void)sendLiveActionScript:(NSString*)script;
@@ -79,12 +82,14 @@ static char SYPlaybackStatus;
  UIButton*back=[UIButton buttonWithType:0];back.frame=CGRectMake(14,43,48,42);[back setTitle:@"‹" forState:UIControlStateNormal];[back setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];back.titleLabel.font=[UIFont systemFontOfSize:34];[back addTarget:self action:@selector(goBack) forControlEvents:UIControlEventTouchUpInside];[self.view addSubview:back];
  UILabel*title=[self label:@"直播" size:18 bold:YES];title.frame=CGRectMake(74,46,220,36);title.textAlignment=1;[self.view addSubview:title];
  self.playerHost=[[UIView alloc]initWithFrame:CGRectMake(0,0,0,0)];self.playerHost.backgroundColor=UIColor.blackColor;self.playerHost.clipsToBounds=YES;[self.view addSubview:self.playerHost];
+ self.routePicker=[[AVRoutePickerView alloc]initWithFrame:CGRectMake(0,0,48,44)];self.routePicker.tintColor=UIColor.whiteColor;self.routePicker.activeTintColor=[UIColor systemBlueColor];[self.playerHost addSubview:self.routePicker];
  self.content=[[UIScrollView alloc]initWithFrame:CGRectMake(0,0,0,0)];self.content.backgroundColor=self.view.backgroundColor;self.content.alwaysBounceVertical=YES;self.content.showsVerticalScrollIndicator=YES;[self.view addSubview:self.content];
  [self applyState:self.state?:@{}];
 }
 - (void)viewDidLayoutSubviews {
  [super viewDidLayoutSubviews];CGFloat width=self.view.bounds.size.width;CGFloat top=88;CGFloat playerHeight=width*9.0/16.0;
  self.playerHost.frame=CGRectMake(0,top,width,playerHeight);self.content.frame=CGRectMake(0,top+playerHeight,width,self.view.bounds.size.height-top-playerHeight);
+ self.routePicker.frame=CGRectMake(width-58,8,48,44);[self.playerHost bringSubviewToFront:self.routePicker];
 }
 - (void)actionPressed:(SYLiveActionButton*)sender {
  if([sender.action isEqualToString:@"live-import"]){[self sendAction:sender.action value:self.urlField.text?:@""];return;}
@@ -105,6 +110,8 @@ static char SYPlaybackStatus;
  UILabel*status=[self label:self.state[@"title"]?:@"直播" size:17 bold:YES];status.frame=CGRectMake(16,y,inner,27);[self.content addSubview:status];y+=31;
  NSString*subtitle=[NSString stringWithFormat:@"%@ · %@",self.state[@"group"]?:@"请选择频道",self.state[@"status"]?:@""];
  UILabel*info=[self label:subtitle size:12 bold:NO];info.textColor=[UIColor colorWithRed:.68 green:.76 blue:.76 alpha:1];info.frame=CGRectMake(16,y,inner,23);[self.content addSubview:info];y+=30;
+ SYLiveActionButton*favorite=[self button:[self.state[@"favoriteCurrent"] boolValue]?@"♥ 已收藏":@"♡ 收藏当前频道" action:@"live-favorite-current" value:@"" frame:CGRectMake(12,y,inner*.48,38)];[self.content addSubview:favorite];
+ [self.content addSubview:[self button:@"频道信息" action:@"live-channel-info" value:@"" frame:CGRectMake(20+inner*.48,y,inner*.48,38)]];y+=46;
  self.urlField=[[UITextField alloc]initWithFrame:CGRectMake(12,y,inner-100,42)];self.urlField.text=self.state[@"url"]?:@"";self.urlField.placeholder=@"M3U / M3U8 HTTPS 地址";self.urlField.font=[UIFont systemFontOfSize:13];self.urlField.textColor=UIColor.whiteColor;self.urlField.backgroundColor=[UIColor colorWithRed:.10 green:.14 blue:.15 alpha:1];self.urlField.clearButtonMode=1;[self.content addSubview:self.urlField];
  SYLiveActionButton*import=[self button:[self.state[@"loading"] boolValue]?@"导入中…":@"导入 / 更新" action:@"live-import" value:@"" frame:CGRectMake(width-102,y,90,42)];[self.content addSubview:import];y+=52;
  NSArray*tabs=@[@[@"频道",@"channels"],@[@"分类",@"categories"],@[@"节目",@"programs"],@[@"线路",@"routes"]];CGFloat tabW=inner/4;for(NSUInteger i=0;i<tabs.count;i++){NSArray*tab=tabs[i];SYLiveActionButton*b=[self button:tab[0] action:@"live-panel" value:tab[1] frame:CGRectMake(12+i*tabW,y,tabW-4,38)];if([self.state[@"panel"] isEqualToString:tab[1]])b.backgroundColor=[UIColor systemBlueColor];[self.content addSubview:b];}y+=48;
@@ -112,14 +119,19 @@ static char SYPlaybackStatus;
  if([panel isEqualToString:@"categories"]){items=self.state[@"groups"]?:@[];action=@"live-category";}
  else if([panel isEqualToString:@"routes"]){items=self.state[@"routes"]?:@[];}
  else if([panel isEqualToString:@"programs"]){
+  if(![self.state[@"hasEPG"] boolValue]){UILabel*empty=[self label:@"此播放列表没有提供节目单地址。" size:14 bold:NO];empty.frame=CGRectMake(16,y,inner,34);[self.content addSubview:empty];y+=40;}
+  else {
   NSArray*days=self.state[@"days"]?:@[];NSUInteger shown=days.count<6?days.count:6;CGFloat dayWidth=inner/(shown?shown:1);
   for(NSUInteger i=0;i<shown;i++){NSString*day=days[i];NSString*titleText=day.length>=10?[day substringFromIndex:5]:day;SYLiveActionButton*date=[self button:titleText action:@"live-date" value:day frame:CGRectMake(12+i*dayWidth,y,dayWidth-4,36)];if([day isEqualToString:self.state[@"selectedDate"]])date.backgroundColor=[UIColor systemBlueColor];[self.content addSubview:date];}y+=42;
-  [self addAction:[self.state[@"epgLoading"] boolValue]?@"正在刷新节目单…":@"刷新节目单" action:@"live-epg-refresh" value:@"" y:y width:inner];y+=48;items=self.state[@"programs"]?:@[];
- }
- else {
+  [self addAction:[self.state[@"epgLoading"] boolValue]?@"正在刷新节目单…":@"刷新节目单" action:@"live-epg-refresh" value:@"" y:y width:inner];y+=48;
+  if([self.state[@"hasEPG"] boolValue]){[self addAction:@"节目单来源与匹配详情" action:@"live-epg-info" value:@"" y:y width:inner];y+=48;}
+  items=self.state[@"programs"]?:@[];
+  }
+ } else {
   self.searchField=[[UITextField alloc]initWithFrame:CGRectMake(12,y,inner-82,40)];self.searchField.placeholder=@"搜索频道名称、分组";self.searchField.text=self.state[@"search"]?:@"";self.searchField.font=[UIFont systemFontOfSize:14];self.searchField.textColor=UIColor.whiteColor;self.searchField.backgroundColor=[UIColor colorWithRed:.10 green:.14 blue:.15 alpha:1];[self.content addSubview:self.searchField];
   [self.content addSubview:[self button:@"搜索" action:@"live-search" value:@"" frame:CGRectMake(width-94,y,82,40)]];y+=48;items=self.state[@"channels"]?:@[];
  }
+ if(items.count==0&&![panel isEqualToString:@"programs"]){NSString*emptyText=[panel isEqualToString:@"categories"]?@"暂无频道分类。导入 M3U 播放列表后即可浏览。":([panel isEqualToString:@"routes"]?@"当前频道没有可用的 HTTPS 备用线路。":([self.state[@"loading"] boolValue]?@"正在加载频道…":@"尚无频道，请先导入 M3U 播放列表。"));UILabel*empty=[self label:emptyText size:14 bold:NO];empty.frame=CGRectMake(16,y,inner,48);empty.numberOfLines=2;[self.content addSubview:empty];y+=54;}
  for(id object in items){NSString*titleText=@"";NSString*itemAction=action;NSString*value=@"";
   if([object isKindOfClass:NSDictionary.class]){
    if([panel isEqualToString:@"channels"]){
@@ -127,13 +139,20 @@ static char SYPlaybackStatus;
     NSString*channelIndex=[object[@"index"] stringValue];[self addAction:channelTitle action:@"live-channel" value:channelIndex y:y width:inner];
     SYLiveActionButton*favorite=[self button:[object[@"favorite"] boolValue]?@"♥":@"♡" action:@"live-favorite" value:channelIndex frame:CGRectMake(width-65,y,50,42)];[self.content addSubview:favorite];y+=48;continue;
    }
-   if([panel isEqualToString:@"routes"]){titleText=[NSString stringWithFormat:@"%@%@ · %@",[object[@"active"] boolValue]?@"✓ ":@"",object[@"name"]?:@"线路",object[@"group"]?:@""];itemAction=@"live-native-route";value=[object[@"index"] stringValue];}
+   if([panel isEqualToString:@"routes"]){titleText=[NSString stringWithFormat:@"%@%@ · %@",[object[@"active"] boolValue]?@"✓ ":@"",object[@"name"]?:@"线路",object[@"group"]?:@""];itemAction=@"live-route";value=[object[@"index"] stringValue];}
    else if([panel isEqualToString:@"programs"]){titleText=[NSString stringWithFormat:@"%@  %@",object[@"start"]?:@"",object[@"title"]?:@"节目"];itemAction=@"live-program";value=[object[@"index"] stringValue];}
    else {titleText=[NSString stringWithFormat:@"%@  %@ · %@%@",[object[@"active"] boolValue]?@"▶":@"",object[@"name"]?:@"频道",object[@"group"]?:@"",[object[@"secure"] boolValue]?@"":@" · HTTP 已停用"];itemAction=@"live-channel";value=[object[@"index"] stringValue];}
-  }else {titleText=[NSString stringWithFormat:@"%@  ·  %@ 个频道",object[@"name"]?:@"分类",object[@"count"]?:@0];value=object[@"name"]?:@"";}
+  }else {titleText=[NSString stringWithFormat:@"%@  ·  %@ 个频道",object[@"name"]?:@"分类",object[@"count"]?:@0];value=object[@"value"]?:object[@"name"]?:@"";}
   if(itemAction.length)[self addAction:titleText action:itemAction value:value y:y width:inner];else {UILabel*label=[self label:titleText size:14 bold:NO];label.frame=CGRectMake(16,y+8,inner,26);[self.content addSubview:label];}
   y+=48;
  }
+ NSDictionary*selectedProgram=self.state[@"selectedProgram"];
+ if([panel isEqualToString:@"programs"]&&[selectedProgram isKindOfClass:NSDictionary.class]){UILabel*detail=[self label:[NSString stringWithFormat:@"%@ · %@–%@\n%@",selectedProgram[@"title"]?:@"",selectedProgram[@"start"]?:@"",selectedProgram[@"stop"]?:@"",selectedProgram[@"description"]?:selectedProgram[@"subtitle"]?:@""] size:14 bold:YES];detail.frame=CGRectMake(16,y+4,inner,80);detail.numberOfLines=3;[self.content addSubview:detail];y+=88;}
+ NSString*sheet=self.state[@"sheet"]?:@"";
+ if([sheet isEqualToString:@"channel"]){NSDictionary*detail=self.state[@"channelInfo"]?:@{};NSString*text=[NSString stringWithFormat:@"频道信息 · %@\nID %@ · 分组 %@\nEPG %@\n%@",detail[@"name"]?:@"",detail[@"tvgId"]?:@"",detail[@"group"]?:@"",detail[@"epgUrl"]?:@"",detail[@"url"]?:@""];UILabel*label=[self label:text size:12 bold:NO];label.frame=CGRectMake(16,y,inner,100);label.numberOfLines=4;[self.content addSubview:label];y+=104;[self addAction:@"关闭频道信息" action:@"live-sheet-dismiss" value:@"" y:y width:inner];y+=48;}
+ else if([sheet isEqualToString:@"guide"]){[self addAction:[NSString stringWithFormat:@"节目单 %@ · 当前频道 %@",self.state[@"epgUrl"]?:@"未提供",self.state[@"title"]?:@"" ] action:@"live-sheet-dismiss" value:@"" y:y width:inner];y+=48;}
+ else if([sheet isEqualToString:@"program"]&&[selectedProgram isKindOfClass:NSDictionary.class]){[self addAction:[NSString stringWithFormat:@"%@ · %@–%@",selectedProgram[@"title"]?:@"节目",selectedProgram[@"start"]?:@"",selectedProgram[@"stop"]?:@""] action:@"live-program-dismiss" value:@"" y:y width:inner];y+=48;}
+ else if([sheet isEqualToString:@"route"]&&[self.state[@"selectedRoute"] isKindOfClass:NSDictionary.class]){NSDictionary*route=self.state[@"selectedRoute"];[self addAction:[NSString stringWithFormat:@"切换到 %@ · %@",route[@"name"]?:@"线路",route[@"group"]?:@""] action:@"live-route-system" value:@"" y:y width:inner];y+=48;[self addAction:@"在 VLC 播放" action:@"live-route-vlc" value:@"" y:y width:inner];y+=48;[self addAction:@"复制线路地址" action:@"live-route-copy" value:@"" y:y width:inner];y+=48;[self addAction:@"关闭线路菜单" action:@"live-sheet-dismiss" value:@"" y:y width:inner];y+=48;}
  if([self.state[@"hasMore"] boolValue]){[self addAction:@"加载更多频道" action:@"live-more" value:@"" y:y width:inner];y+=48;}
  self.content.contentSize=CGSizeMake(width,y+20);
 }
@@ -182,7 +201,7 @@ static char SYPlaybackStatus;
 - (void)viewDidLayoutSubviews {[super viewDidLayoutSubviews];self.web.frame=self.view.bounds;}
 - (void)layoutPlayer:(NSDictionary*)frame {
   if(!self.nativePlayer||self.nativePlayer.fullScreen)return;
-  if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;return;}
+  if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;[self.liveScreen.playerHost bringSubviewToFront:self.liveScreen.routePicker];return;}
   if(![frame[@"visible"] boolValue]){
     if(!self.nativePlayer.pictureInPicture)[self stopNativePlayback];
     return;
@@ -193,7 +212,7 @@ static char SYPlaybackStatus;
   if(!__builtin_isfinite(width)||!__builtin_isfinite(height)||!__builtin_isfinite(x)||!__builtin_isfinite(y)||!__builtin_isfinite(viewport)||width<=0||height<=0||viewport<=0)return;
   double scale=self.web.bounds.size.width/viewport;
   CGRect rect={{x*scale,y*scale},{width*scale,height*scale}};
-  if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;}
+  if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;[self.liveScreen.playerHost bringSubviewToFront:self.liveScreen.routePicker];}
   else if([self.playContext hasPrefix:@"live:"])self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.view];
   else self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.web.scrollView];
 }
@@ -217,11 +236,14 @@ static char SYPlaybackStatus;
 - (void)sendPlayback:(NSDictionary*)event {
 #if defined(SY_SIMULATOR_SMOKE)
   if([event[@"status"] isEqualToString:@"ready"])self.smokePlayerReady=YES;
-  if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1){
+  if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1&&!self.smokeLiveStarted){
+    self.smokeLiveStarted=YES;
     NSDictionary*result=@{@"nativePlayerReady":@YES,@"hlsProxyActive":@(self.smokeProxyActive),@"removedAdSegments":@(self.hlsProxy.removed),@"inlinePlayback":@(self.nativePlayer.parentViewController==self&&self.presentedViewController==nil&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
     NSData*report=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
     [report writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke.json"] atomically:YES];
     [self.nativePlayer.player pause];
+    [self.web evaluateJavaScript:@"window.NativeLiveAction&&window.NativeLiveAction('page','live')" completionHandler:nil];
+    [self performSelector:@selector(runLiveScreenSmoke) withObject:nil afterDelay:2];
   }
   if([event[@"status"] isEqualToString:@"failed"]){
     NSData*report=[NSJSONSerialization dataWithJSONObject:event options:NSJSONWritingPrettyPrinted error:NULL];
@@ -232,6 +254,21 @@ static char SYPlaybackStatus;
   NSString*json=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
   dispatch_async(SYMainQueue(),^{[self.web evaluateJavaScript:[NSString stringWithFormat:@"window.NativeTransport&&window.NativeTransport.onPlaybackEvent&&window.NativeTransport.onPlaybackEvent(%@)",json] completionHandler:nil];});
 }
+#if defined(SY_SIMULATOR_SMOKE)
+- (void)runLiveScreenSmoke {
+  self.smokeLiveAttempts++;
+  if(!self.liveScreen&&self.smokeLiveAttempts<20){[self performSelector:@selector(runLiveScreenSmoke) withObject:nil afterDelay:1];return;}
+  if(!self.liveScreen)return;
+  [self.web evaluateJavaScript:@"window.NativeLiveAction&&window.NativeLiveAction('live-panel','categories')" completionHandler:nil];
+  [self performSelector:@selector(finishLiveScreenSmoke) withObject:nil afterDelay:1];
+}
+- (void)finishLiveScreenSmoke {
+  BOOL ready=self.liveScreen&&self.liveScreen.playerHost&&self.liveScreen.content.subviews.count>=8&&[self.liveSnapshot[@"panel"] isEqualToString:@"categories"];
+  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":([(self.liveSnapshot[@"panel"]?:@"") isEqualToString:@"categories"]?@YES:@NO)};
+  NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
+  [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
+}
+#endif
 - (void)stopNativePlayback {
   if(self.nativeItem){[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];self.nativeItem=nil;}
   if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
