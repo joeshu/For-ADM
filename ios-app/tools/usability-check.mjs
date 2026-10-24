@@ -65,10 +65,10 @@ try{
  await page.getByLabel('切换播放源',{exact:true}).selectOption('0');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/b.m3u8'));
  await page.locator('#episode-list').evaluate(section=>section.scrollIntoView({block:'start',behavior:'instant'}));await page.waitForFunction(()=>document.querySelector('.playerbox')?.classList.contains('is-compact'));await page.evaluate(()=>new Promise(requestAnimationFrame));
  await page.locator('.episode').first().evaluate(button=>button.scrollIntoView({block:'center',behavior:'instant'}));await page.evaluate(()=>new Promise(requestAnimationFrame));
- assert.ok(await page.locator('.episode').first().evaluate(button=>button.getBoundingClientRect().bottom<innerHeight));
+ await page.waitForFunction(()=>document.querySelector('.episode')?.getBoundingClientRect().bottom<innerHeight,undefined,{timeout:5000});
  assert.ok(await page.locator('.route-card').first().evaluate(card=>card.getBoundingClientRect().height)<65);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-lines.png'});
- await page.locator('[data-act="back"]').click();await page.locator('.browse-heading').waitFor();
+ await page.locator('[data-act="back"]').evaluate(button=>button.click());await page.waitForFunction(()=>document.documentElement.dataset.page==='browse',{timeout:5000});
  await page.locator('[data-act="page"][data-id="live"]').click();await page.locator('.live-channel-list').waitFor();
  assert.equal(await page.locator('.live-channel-row').count(),2);assert.match(await page.locator('.live-now-copy').innerText(),/CCTV1综合/);
  await page.locator('.live-channel-row').nth(1).locator('[data-act="live-channel"]').click();await page.locator('#live-video').waitFor();
@@ -83,6 +83,14 @@ try{
   await page.setViewportSize({width,height:900});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'horizontal overflow at '+width);
  }
+ await page.locator('[data-act="page"][data-id="me"]').click();
+ await page.locator('[data-act="me-tab"][data-id="settings"]').click();
+ await page.locator('[data-act="theme"][data-id="black"]').click();
+ assert.equal(await page.locator('html').getAttribute('data-theme'),'black');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('sanyuan:theme')),'black');
+ await page.locator('[data-act="theme"][data-id="white"]').click();
+ assert.equal(await page.locator('html').getAttribute('data-theme'),'white');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('sanyuan:theme')),'white');
  assert.deepEqual(errors,[]);
- console.log('Usability passed: horizontal shelves, real section lists and pagination, sticky detail/player controls, origin-page restoration, compact route row, category filters, same-episode switching, M3U import, live channel switching, route selection, EPG and categories, 320–1024px layout.');
+ console.log('Usability passed: horizontal shelves, real section lists and pagination, sticky detail/player controls, origin-page restoration, compact route row, category filters, same-episode switching, M3U import, live channel switching, route selection, EPG and categories, persisted global themes, 320–1024px layout.');
 }finally{await browser.close();}
