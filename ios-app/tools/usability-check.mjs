@@ -31,6 +31,12 @@ try{
  await page.locator('[data-act="back"]').click();assert.equal(await page.locator('.collection-content .card').count(),13);
  await page.locator('[data-act="collection-back"]').click();assert.ok(await page.locator('.shelf').evaluate(row=>row.scrollLeft)>0);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-home.png'});
+ await page.evaluate(()=>window.__cachedHomeHero=document.querySelector('.hero'));
+ await page.locator('[data-act="page"][data-id="browse"]').click();await page.locator('.browse-heading').waitFor();
+ await page.evaluate(()=>window.scrollTo(0,180));await page.evaluate(()=>new Promise(requestAnimationFrame));const browseY=await page.evaluate(()=>window.scrollY);
+ await page.locator('[data-act="page"][data-id="home"]').click();await page.locator('.hero').waitFor();assert.equal(await page.evaluate(()=>document.querySelector('.hero')===window.__cachedHomeHero),true);
+ await page.locator('[data-act="page"][data-id="browse"]').click();await page.locator('.browse-heading').waitFor();await page.evaluate(()=>new Promise(requestAnimationFrame));
+ assert.ok(await page.evaluate(y=>Math.abs(window.scrollY-y)<3,browseY));
  await page.locator('[data-act="category"][data-id="1"]').click();await page.locator('.filter-chip').first().waitFor();
  await page.locator('[data-act="filter-option"][data-key="area"][data-id="cn"]').click();await page.locator('.selected-filters button').waitFor();
  assert.match(await page.locator('.selected-filters').innerText(),/中国/);
@@ -51,6 +57,13 @@ try{
  await page.locator('[data-act="episode"][data-id="1"]').click();await page.locator('#video').waitFor();
  await page.getByLabel('切换播放源',{exact:true}).selectOption('1');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/c.m3u8'));
  assert.match(await page.locator('.episode.active').innerText(),/第2集/);
+ await page.evaluate(()=>window.scrollTo(0,700));await page.waitForFunction(()=>document.querySelector('.playerbox')?.classList.contains('is-compact'));
+ await page.waitForFunction(()=>Math.abs(document.querySelector('.playerbox')?.getBoundingClientRect().top-58)<3);
+ assert.ok(await page.getByLabel('切换播放源',{exact:true}).evaluate(select=>select.getBoundingClientRect().bottom<innerHeight));
+ await page.getByLabel('切换播放源',{exact:true}).selectOption('0');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/b.m3u8'));
+ await page.locator('#episode-list').evaluate(section=>section.scrollIntoView({block:'start',behavior:'instant'}));await page.waitForFunction(()=>document.querySelector('.playerbox')?.classList.contains('is-compact'));await page.evaluate(()=>new Promise(requestAnimationFrame));
+ assert.ok(await page.locator('#episode-list').evaluate(section=>section.getBoundingClientRect().top>=document.querySelector('.playerbox').getBoundingClientRect().bottom));
+ assert.ok(await page.locator('.episode').first().evaluate(button=>button.getBoundingClientRect().bottom<innerHeight));
  assert.equal(await page.locator('.route-grid').evaluate(row=>getComputedStyle(row).flexWrap),'nowrap');
  assert.ok(await page.locator('.route-card').first().evaluate(card=>card.getBoundingClientRect().height)<65);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-lines.png'});
@@ -59,5 +72,5 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'horizontal overflow at '+width);
  }
  assert.deepEqual(errors,[]);
- console.log('Usability passed: horizontal shelves, real section lists and pagination, detail/player sticky header, origin-page and scroll restoration, compact source row, category-scoped filters, reset, column layout, same-episode switching with reordered sources, 320–1024px layout.');
+ console.log('Usability passed: horizontal shelves, real section lists and pagination, detail/player sticky header, route selection from compact sticky playback, origin-page and scroll restoration, cached tab transitions, compact source row, category-scoped filters, reset, column layout, same-episode switching with reordered sources, 320–1024px layout.');
 }finally{await browser.close();}

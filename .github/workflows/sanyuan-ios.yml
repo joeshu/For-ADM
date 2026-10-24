@@ -39,7 +39,7 @@ jobs:
         with:
           name: Sanyuan-unsigned-ipa
           path: |
-            ios-app/dist/Sanyuan-0.2.12-unsigned.ipa
+            ios-app/dist/Sanyuan-0.2.13-unsigned.ipa
             ios-app/dist/build-report.json
             ios-app/dist/simulator-smoke.json
             ios-app/dist/simulator-playback*.json
