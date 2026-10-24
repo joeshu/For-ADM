@@ -24,9 +24,10 @@
 .agegate p{font-size:14px;line-height:1.9;color:#b9c5d5}
 .agegate button{display:block;width:100%;margin-top:12px}
 .playing-title{min-width:0;max-width:36%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-[data-columns="2"]{--grid-cols:2;--grid-cols-wide:3}
-[data-columns="3"]{--grid-cols:3;--grid-cols-wide:5}
-[data-columns="4"]{--grid-cols:4;--grid-cols-wide:5}
+[data-columns="3"]{--grid-cols:3;--grid-cols-wide:3}
+[data-columns="4"]{--grid-cols:4;--grid-cols-wide:4}
+[data-columns="5"]{--grid-cols:5;--grid-cols-wide:5}
+[data-columns="6"]{--grid-cols:6;--grid-cols-wide:6}
 @media(min-width:650px){.episodes{grid-template-columns:repeat(7,minmax(0,1fr))}.grid{grid-template-columns:repeat(var(--grid-cols-wide,5),minmax(0,1fr))}}
 
 .native-card{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:radial-gradient(ellipse at center,#1a3940,#070d15);color:var(--accent)}.native-card .icon{width:42px;height:42px}.native-card strong{font-size:18px}.native-card span{font-size:12px;color:var(--muted)}.playback-status{text-align:center}
@@ -228,3 +229,16 @@ html[data-theme="white"] .detail-content .native-card{background:radial-gradient
 html[data-theme="white"] .detail-content .notice{background:#fff;color:#666e7e}
 html[data-theme="white"] .detail-content .notice h3{color:#202431}
 .sources{overflow-x:auto;scrollbar-width:none}.sources::-webkit-scrollbar{display:none}.sources button{flex:1 0 auto;min-width:96px;white-space:nowrap;padding-left:12px;padding-right:12px}.discover-sources button{white-space:nowrap}
+
+/* Film shelves wrap like catalog grids; only source and filter controls scroll sideways. */
+.shelf{display:grid;grid-auto-flow:row;grid-auto-columns:unset;grid-template-columns:repeat(var(--grid-cols,3),minmax(0,1fr));gap:18px 12px;overflow:visible;overscroll-behavior-x:auto;scroll-snap-type:none;padding:2px 0 10px;-webkit-overflow-scrolling:auto}
+.shelf>.card{scroll-snap-align:none}
+@media(min-width:650px){.grid,.shelf{grid-template-columns:repeat(var(--grid-cols-wide,3),minmax(0,1fr));gap:25px 18px}}
+
+/* Keep cards and swipeable option rows inside their own layout bounds. */
+.content,.top,.home-section,.collection-group,.sectiontop,.browse-heading,.filters,.filterrow,.settinggroup{min-width:0;max-width:100%}
+.grid,.shelf{min-width:0;max-width:100%}
+.card{width:100%;min-width:0;max-width:100%;overflow:hidden}
+.sectiontop h2,.browse-heading .heading{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sources,.quickcats,.filter-options,.route-grid,.detail-tags,.cast-list,.live-date-tabs{width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.layout-options{width:100%;min-width:0;max-width:100%;overflow-x:hidden;flex-wrap:wrap}

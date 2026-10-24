@@ -30,14 +30,16 @@ try{
  await page.locator('[data-act="hero-pick"][data-id="1"]').click();assert.match(await page.locator('.hero h1').innerText(),/测试影片2/);
  assert.equal(await page.locator('.home-section .card').count(),32);
  assert.deepEqual(await page.locator('.home-section .section-count').allTextContents(),['12 部','20 部']);
- assert.equal(await page.locator('.shelf').first().evaluate(row=>row.scrollWidth>row.clientWidth),true);
- await page.locator('.shelf').first().evaluate(row=>row.scrollLeft=240);
+ assert.equal(await page.locator('.shelf').first().evaluate(row=>getComputedStyle(row).display), 'grid');
+ assert.equal(await page.locator('.shelf').first().evaluate(row=>getComputedStyle(row).gridTemplateColumns.split(' ').length),3);
+ assert.equal(await page.locator('.shelf').first().evaluate(row=>row.scrollWidth>row.clientWidth),false);
+ assert.equal(await page.locator('.shelf').first().evaluate(row=>[...row.children].every(card=>{const r=card.getBoundingClientRect(),p=row.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;})),true);
  await page.locator('.home-section [data-act="collection-link"]').first().click();await page.locator('.collection-content .card').first().waitFor();
  assert.equal(await page.locator('.collection-content .card').count(),12);
  await page.locator('[data-act="more"]').click();await page.waitForFunction(()=>document.querySelectorAll('.collection-content .card').length===13);
  await page.locator('.collection-content .card').first().click();await page.locator('.detail-hero').waitFor();
  await page.locator('[data-act="back"]').click();assert.equal(await page.locator('.collection-content .card').count(),13);
- await page.locator('[data-act="collection-back"]').click();assert.ok(await page.locator('.shelf').first().evaluate(row=>row.scrollLeft)>0);
+ await page.locator('[data-act="collection-back"]').click();assert.equal(await page.locator('.shelf').first().evaluate(row=>getComputedStyle(row).gridTemplateColumns.split(' ').length),3);
  await page.evaluate(()=>window.NativePageAction('collection-link',{route:'specialTopic/vods?specialTopicId=13',title:'第二片库'}));await page.locator('.collection-content .card').waitFor();assert.match(await page.locator('.collection-content').innerText(),/专属栏目影片/);assert.match(await page.locator('.collection-content h1').innerText(),/第二片库/);
  await page.locator('[data-act="collection-back"]').click();
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-home.png'});
@@ -57,7 +59,9 @@ try{
  assert.equal(await page.locator('.selected-filters').count(),0);
  await page.locator('[data-act="category"][data-id="1"]').click();await page.locator('.selected-filters button').waitFor();
  assert.match(await page.locator('.selected-filters').innerText(),/中国/);
- await page.getByLabel('海报分栏',{exact:true}).selectOption('2');assert.equal(await page.locator('html').getAttribute('data-columns'),'2');
+ await page.getByLabel('海报分栏',{exact:true}).selectOption('6');assert.equal(await page.locator('html').getAttribute('data-columns'),'6');
+ assert.equal(await page.locator('.grid').first().evaluate(row=>getComputedStyle(row).gridTemplateColumns.split(' ').length),6);
+ assert.equal(await page.locator('.grid').first().evaluate(row=>[...row.children].every(card=>{const r=card.getBoundingClientRect(),p=row.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;})),true);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-filters.png'});
  await page.locator('[data-act="filters-reset"]').click();await page.waitForFunction(()=>!document.querySelector('.selected-filters')&&document.querySelectorAll('.card').length>0);
  await page.locator('.content [data-act="more"]').waitFor();const browsePageCount=await page.locator('.content .card').count();await page.evaluate(()=>window.NativePageAction('more'));await page.waitForFunction(count=>document.querySelectorAll('.content .card').length===count+1,browsePageCount);assert.match(await page.locator('.content').innerText(),/后续影片/);assert.equal(await page.locator('.content [data-act="more"]').count(),0);
@@ -103,6 +107,14 @@ try{
  await page.locator('[data-act="theme"][data-id="white"]').click();
  assert.equal(await page.locator('html').getAttribute('data-theme'),'white');
  assert.equal(await page.evaluate(()=>localStorage.getItem('sanyuan:theme')),'white');
+ for(const columns of ['3','4','5','6']){
+  await page.locator(`[data-act="columns"][data-id="${columns}"]`).click();
+  assert.equal(await page.locator('html').getAttribute('data-columns'),columns);
+  assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--grid-cols').trim()),columns);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('sanyuan:columns')),columns);
+ }
+ await page.locator('[data-act="page"][data-id="home"]').click();await page.locator('.shelf').first().waitFor();
+ assert.equal(await page.locator('.shelf').first().evaluate(row=>getComputedStyle(row).gridTemplateColumns.split(' ').length),6);
  assert.deepEqual(errors,[]);
- console.log('Usability passed: horizontal shelves, real section lists and pagination, sticky detail/player controls, origin-page restoration, compact route row, category filters, same-episode switching, M3U import, live channel switching, route selection, EPG and categories, persisted global themes, 320–1024px layout.');
+ console.log('Usability passed: configurable three-to-six-column film grids, real section lists and pagination, sticky detail/player controls, origin-page restoration, compact route row, category filters, same-episode switching, M3U import, live channel switching, route selection, EPG and categories, persisted global themes, 320–1024px layout.');
 }finally{await browser.close();}
