@@ -30,6 +30,7 @@ static char SYPlaybackStatus;
 @property(nonatomic,strong) NSURLSession*session;
 @property(nonatomic,strong) NSMutableDictionary*tasks;
 @property(nonatomic,strong) SYPlayerViewController*nativePlayer;
+@property(nonatomic,strong) AVRoutePickerView*airplayPicker;
 @property(nonatomic,strong) AVPlayerItem*nativeItem;
 @property(nonatomic,strong) id timeObserver;
 @property(nonatomic,strong) id endObserver;
@@ -185,6 +186,19 @@ static char SYPlaybackStatus;
     if([body[@"context"] isEqualToString:self.playContext]&&[body[@"frame"] isKindOfClass:NSDictionary.class])[self layoutPlayer:body[@"frame"]];
     return;
   }
+  if([type isEqualToString:@"airplay"]){
+    NSDictionary*frame=[body[@"frame"] isKindOfClass:NSDictionary.class]?body[@"frame"]:@{};
+    double width=[frame[@"width"] doubleValue],height=[frame[@"height"] doubleValue],viewport=[frame[@"viewportWidth"] doubleValue];
+    if(width<=0||height<=0||viewport<=0)return;
+    double scale=self.web.bounds.size.width/viewport;
+    CGRect rect=CGRectMake([frame[@"x"] doubleValue]*scale,[frame[@"y"] doubleValue]*scale,width*scale,height*scale);
+    rect=[self.web convertRect:rect toView:self.view];
+    [self.airplayPicker removeFromSuperview];AVRoutePickerView*picker=[[AVRoutePickerView alloc]initWithFrame:rect];picker.alpha=0.02;picker.backgroundColor=UIColor.clearColor;self.airplayPicker=picker;[self.view addSubview:picker];
+    for(UIView*child in picker.subviews)if([child isKindOfClass:UIControl.class])[(UIControl*)child sendActionsForControlEvents:UIControlEventTouchUpInside];
+    __weak SYController*weakSelf=self;dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(2*NSEC_PER_SEC)),dispatch_get_main_queue(),^{if(weakSelf.airplayPicker==picker){[picker removeFromSuperview];weakSelf.airplayPicker=nil;}});return;
+  }
+  if([type isEqualToString:@"copyText"]){NSString*text=[body[@"text"] isKindOfClass:NSString.class]?body[@"text"]:@"";if(!text.length||text.length>4096){[self deliver:@{@"id":identifier,@"error":@"无法复制此内容"}];return;}UIPasteboard.generalPasteboard.string=text;[self deliver:@{@"id":identifier,@"ok":@YES}];return;}
+  if([type isEqualToString:@"openExternal"]){NSURL*stream=[NSURL URLWithString:[body[@"url"] isKindOfClass:NSString.class]?body[@"url"]:@""];if(![stream.scheme.lowercaseString isEqualToString:@"https"]||!stream.host.length){[self deliver:@{@"id":identifier,@"error":@"仅支持安全 HTTPS 播放地址"}];return;}NSURLComponents*target=[NSURLComponents new];target.scheme=@"vlc-x-callback";target.host=@"x-callback-url";target.path=@"/stream";target.queryItems=@[[NSURLQueryItem queryItemWithName:@"url" value:stream.absoluteString]];NSURL*external=target.URL;if(!external||![UIApplication.sharedApplication canOpenURL:external]){[self deliver:@{@"id":identifier,@"error":@"未检测到 VLC，请先安装 VLC"}];return;}[UIApplication.sharedApplication openURL:external options:@{} completionHandler:^(BOOL success){[self deliver:success?@{@"id":identifier,@"ok":@YES}:@{@"id":identifier,@"error":@"无法打开 VLC"}];}];return;}
   if(![body[@"url"] isKindOfClass:NSString.class])return;
   NSURL*url=[NSURL URLWithString:body[@"url"]];
   if(![url.scheme.lowercaseString isEqualToString:@"https"]||!url.host.length){[self deliver:@{@"id":identifier,@"error":@"仅支持有效 HTTPS 地址"}];return;}

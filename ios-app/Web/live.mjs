@@ -24,7 +24,8 @@ export function parseM3U(text,playlistURL){
   const comma=pending.search(/,(?=(?:[^"']|"[^"]*"|'[^']*')*$)/),title=comma>=0?pending.slice(comma+1).trim():'';
   const name=attribute(pending,'tvg-name')||title||attribute(pending,'tvg-id')||`频道 ${channels.length+1}`;
   const tvgId=attribute(pending,'tvg-id');let logo='';try{const candidate=new URL(attribute(pending,'tvg-logo'),base);if(candidate.protocol==='https:')logo=candidate.href;}catch{}
-  channels.push({index:channels.length,name,tvgId,logo,group:attribute(pending,'group-title')||group||'未分类',url:stream.href,secure:stream.protocol==='https:',identity:channelIdentity({tvgId,name})});
+  const tvgName=attribute(pending,'tvg-name')||title||name;
+  channels.push({index:channels.length,name,tvgName,tvgId,logo,group:attribute(pending,'group-title')||group||'未分类',url:stream.href,secure:stream.protocol==='https:',identity:channelIdentity({tvgId,name})});
   pending='';group='';
  }
  if(!channels.length)throw Error('M3U 列表里没有可用频道');
@@ -48,8 +49,9 @@ export function parseXMLTV(xml,channelId){
  const wanted=channelId.trim(),rows=[],programmes=/<programme\b([^>]*)>([\s\S]*?)<\/programme\s*>/gi;let match;
  while((match=programmes.exec(xml))){const attrs=match[1];if(xmlAttribute(attrs,'channel')!==wanted)continue;
   const start=xmlTime(xmlAttribute(attrs,'start')),stop=xmlTime(xmlAttribute(attrs,'stop')),
-   titleMatch=match[2].match(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/i),title=titleMatch?xmlText(titleMatch[1]).trim():'';
-  if(start&&stop>start&&title)rows.push({start,stop,title});
+   tag=name=>{const found=match[2].match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}\\s*>`,'i'));return found?xmlText(found[1]).trim():'';},
+   title=tag('title'),subtitle=tag('sub-title'),description=tag('desc'),categories=[...match[2].matchAll(/<category\b[^>]*>([\s\S]*?)<\/category\s*>/gi)].map(row=>xmlText(row[1]).trim()).filter(Boolean);
+  if(start&&stop>start&&title)rows.push({start,stop,title,subtitle,description,categories});
  }
  return rows.sort((a,b)=>a.start-b.start);
 }

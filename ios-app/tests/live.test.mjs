@@ -11,6 +11,7 @@ test('parses M3U metadata, groups, relative URLs and keeps insecure entries disa
  assert.equal(parsed.epgUrl,'https://guide.example/guide.xml');
  assert.deepEqual(parsed.groups,['央视频','测试, 分组']);
  assert.equal(parsed.channels[0].name,'中央电视台一套');
+ assert.equal(parsed.channels[0].tvgName,'中央电视台一套');
  assert.equal(parsed.channels[0].logo,'https://list.example/logos/cctv.png');
  assert.equal(parsed.channels[0].url,'https://list.example/lists/relay/cctv1.m3u8');
  assert.equal(parsed.channels[0].secure,true);
@@ -28,11 +29,14 @@ test('matches secure alternate relays by TVG identity',()=>{
 });
 
 test('parses XMLTV offsets, entities and current channel programs',()=>{
- const xml='<tv><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1综合"><title>新闻 &amp; 焦点</title></programme>'+
+ const xml='<tv><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1综合"><title>新闻 &amp; 焦点</title><sub-title>早间新闻</sub-title><desc>今日资讯 &lt;摘要&gt;</desc><category>新闻</category></programme>'+
   '<programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="other"><title>不匹配</title></programme></tv>';
  const rows=parseXMLTV(xml,'CCTV1综合');
  assert.equal(rows.length,1);
  assert.equal(rows[0].title,'新闻 & 焦点');
+ assert.equal(rows[0].subtitle,'早间新闻');
+ assert.equal(rows[0].description,'今日资讯 <摘要>');
+ assert.deepEqual(rows[0].categories,['新闻']);
  assert.equal(new Date(rows[0].start).toISOString(),'2026-10-24T01:00:00.000Z');
 });
 
