@@ -42,8 +42,5 @@ jobs:
             ios-app/dist/Sanyuan-0.2.10-unsigned.ipa
             ios-app/dist/build-report.json
             ios-app/dist/simulator-smoke.json
-            ios-app/dist/simulator-home.png
-            ios-app/dist/simulator-failure.png
             ios-app/dist/simulator-playback*.json
-            ios-app/dist/simulator-playback.png
           if-no-files-found: error
