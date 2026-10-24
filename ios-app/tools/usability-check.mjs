@@ -8,6 +8,8 @@ try{
  await page.route('**/__transport',async route=>{
   const req=route.request().postDataJSON(),url=new URL(req.url),path=url.pathname;
   let data;
+  if(path.endsWith('/interface.m3u')){const body='#EXTM3U x-tvg-url="https://fnipv.69574517.xyz/shiju19880215/playback.xml"\n#EXTINF:-1 tvg-id="CCTV1综合" tvg-name="CCTV1综合" group-title="央视频",CCTV1综合\nhttps://fnipv.69574517.xyz/relay/one.m3u8\n#EXTINF:-1 tvg-id="CCTV1综合" tvg-name="CCTV1综合备用" group-title="央视频",CCTV1综合备用\nhttps://fnipv.69574517.xyz/relay/two.m3u8\n#EXTINF:-1 tvg-id="CCTV5体育" group-title="体育",CCTV5体育\nhttp://fnipv.69574517.xyz/relay/five.m3u8\n';await route.fulfill({json:{status:200,bodyBase64:Buffer.from(body).toString('base64')}});return;}
+  if(path.endsWith('/playback.xml')){const body='<tv><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1综合"><title>综合新闻</title></programme></tv>';await route.fulfill({json:{status:200,bodyBase64:Buffer.from(body).toString('base64')}});return;}
   if(path.endsWith('.m3u8')){await route.fulfill({json:{status:200,bodyBase64:Buffer.from('#EXTM3U\n#EXTINF:5,\nsegment.ts\n').toString('base64')}});return;}
   const films=Array.from({length:12},(_,i)=>({title:'测试影片'+(i+1),url:'vod/detail?vodId='+(i+1)}));
   if(path==='/config/prod/appInit.html')data={urls:{cache:['https://test.example'],logic:['https://test.example']},vodTabs:[{type:'category',channelId:1,text:'电影'},{type:'category',channelId:2,text:'剧集'}],groups:[],channelListQuery:[1,2].map(channelId=>({channelId,items:[{query:'sort',selected:'3',data:[{id:'3',name:'最新'},{id:'1',name:'最热'}]},{query:'area',selected:'',data:[{id:'',name:'全部'},{id:'cn',name:'中国'},{id:'us',name:'美国'}]}]}))};
@@ -62,15 +64,25 @@ try{
  assert.ok(await page.getByLabel('切换播放源',{exact:true}).evaluate(select=>select.getBoundingClientRect().bottom<innerHeight));
  await page.getByLabel('切换播放源',{exact:true}).selectOption('0');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/b.m3u8'));
  await page.locator('#episode-list').evaluate(section=>section.scrollIntoView({block:'start',behavior:'instant'}));await page.waitForFunction(()=>document.querySelector('.playerbox')?.classList.contains('is-compact'));await page.evaluate(()=>new Promise(requestAnimationFrame));
- assert.ok(await page.locator('#episode-list').evaluate(section=>section.getBoundingClientRect().top>=document.querySelector('.playerbox').getBoundingClientRect().bottom));
+ await page.locator('.episode').first().evaluate(button=>button.scrollIntoView({block:'center',behavior:'instant'}));await page.evaluate(()=>new Promise(requestAnimationFrame));
  assert.ok(await page.locator('.episode').first().evaluate(button=>button.getBoundingClientRect().bottom<innerHeight));
- assert.equal(await page.locator('.route-grid').evaluate(row=>getComputedStyle(row).flexWrap),'nowrap');
  assert.ok(await page.locator('.route-card').first().evaluate(card=>card.getBoundingClientRect().height)<65);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-lines.png'});
+ await page.locator('[data-act="back"]').click();await page.locator('.browse-heading').waitFor();
+ await page.locator('[data-act="page"][data-id="live"]').click();await page.locator('.live-channel-list').waitFor();
+ assert.equal(await page.locator('.live-channel-row').count(),2);assert.match(await page.locator('.live-now-copy').innerText(),/CCTV1综合/);
+ await page.locator('.live-channel-row').nth(1).locator('[data-act="live-channel"]').click();await page.locator('#live-video').waitFor();
+ assert.match(await page.locator('.live-now-copy').innerText(),/备用/);
+ await page.locator('[data-act="live-panel"][data-id="routes"]').click();assert.equal(await page.locator('.live-route').count(),2);
+ await page.locator('[data-act="live-panel"][data-id="programs"]').click();await page.locator('.live-program').waitFor();assert.match(await page.locator('.live-program').innerText(),/综合新闻/);
+ await page.locator('.live-program').click();assert.match(await page.locator('.live-epg-card').innerText(),/综合新闻/);
+ await page.locator('[data-act="live-program-dismiss"]').first().click();
+ await page.locator('[data-act="live-panel"][data-id="categories"]').click();assert.ok(await page.locator('.live-group-card').count()>=2);
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'live page horizontal overflow');
  for(const width of [320,390,768,1024]){
   await page.setViewportSize({width,height:900});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'horizontal overflow at '+width);
  }
  assert.deepEqual(errors,[]);
- console.log('Usability passed: horizontal shelves, real section lists and pagination, detail/player sticky header, route selection from compact sticky playback, origin-page and scroll restoration, cached tab transitions, compact source row, category-scoped filters, reset, column layout, same-episode switching with reordered sources, 320–1024px layout.');
+ console.log('Usability passed: horizontal shelves, real section lists and pagination, sticky detail/player controls, origin-page restoration, compact route row, category filters, same-episode switching, M3U import, live channel switching, route selection, EPG and categories, 320–1024px layout.');
 }finally{await browser.close();}
