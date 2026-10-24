@@ -19,7 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.21-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.22-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+
+0.2.22 将首页、发现、分类筛选、片单、设置、专题和影视详情选集迁到 UIKit 原生控件。WebKit 保留为隐藏的数据与业务引擎，播放器固定在原生详情页顶部，直播继续使用原生界面。
 
 0.2.21 将直播页控件统一为应用浅色主题；切台改为轻量状态更新并复用 AVPlayer，降低切台等待和闪屏，直播流使用更短启动缓冲。
 
@@ -65,7 +67,7 @@ bash tools/build-macos.sh
 
 仓库的 `Sanyuan unsigned iOS app` GitHub Actions 工作流也会使用 macOS 构建并上传 IPA 构建附件。
 
-完成 SDK 构建后，可在 macOS 执行 `bash tools/simulator-smoke.sh`。它另行编译并签名模拟器专用程序，验证本地 WebKit 界面、原生网络桥、真实首页与海报，并实际启动 AVPlayer，等待播放时间超过 1 秒，输出首页、播放结果 JSON 和截图；分发用 IPA 始终不签名。该检查依赖原站网络可用。
+完成 SDK 构建后，可在 macOS 执行 `bash tools/simulator-smoke.sh`。它另行编译并签名模拟器专用程序，验证隐藏 WebKit 数据引擎、UIKit 页面容器与原生网络桥，并实际启动 AVPlayer，等待播放时间超过 1 秒，输出原生页面、播放结果 JSON 和截图；分发用 IPA 始终不签名。该检查依赖原站网络可用。
 
 该脚本使用真实 iPhoneOS SDK 编译，无需开发者证书，生成 unsigned IPA，并校验文件结构、架构及签名缺失状态。
 
@@ -77,7 +79,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.21-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.22-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
@@ -113,8 +115,8 @@ NODE_USE_ENV_PROXY=1 node tools/live-probe.mjs --with-guest
 
 ## 文件结构与维护
 
-- `Sources/main.m`：UIKit 容器、本地 WebKit 界面、HTTPS 网络桥、Keychain 会话、AVPlayer。
-- `Web/app.mjs` / `app.css`：统一界面及交互；`app.js` 是供本地 WebKit 加载的构建产物。
+- `Sources/main.m`：UIKit 原生页面、隐藏的本地 WebKit 数据引擎、HTTPS 网络桥、Keychain 会话、AVPlayer。
+- `Web/app.mjs` / `app.css`：站点数据与交互逻辑；`app.js` 是供隐藏 WebKit 引擎加载的构建产物。
 - `Web/site-api.mjs`：签名、解码、路由、会话与服务端权限处理。
 - `Web/sites.json`：从仓库已归档原版客户端提取的公开协议常量，含版本和源文件 SHA-256；不是用户密钥。不得在此放入账号密码或会话令牌。
 - `Web/model.mjs`：影片、分类、图片与播放地址的展示模型。

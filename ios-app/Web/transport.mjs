@@ -22,6 +22,7 @@ export const NativeTransport={
   openLive(){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'live-open',type:'liveOpen'});},
   closeLive(){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'live-close',type:'liveClose'});},
   syncLive(state,{fast=false}={}){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:fast?'live-state-fast':'live-state',type:fast?'liveStateFast':'liveState',state});},
+  syncPage(state){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'page-state',type:'pageState',state});},
   showAirPlay(frame){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'airplay',type:'airplay',frame});},
   layoutPlayer(context,frame){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:"layout",type:"playerLayout",context,frame});},
   statusStyle(dark){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:"theme",type:"statusStyle",dark:!!dark});},

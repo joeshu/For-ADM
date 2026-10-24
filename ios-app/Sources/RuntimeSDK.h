@@ -28,11 +28,21 @@ typedef signed char BOOL;
 #define UIControlEventTouchUpInside (1UL<<6)
 #define UIControlStateNormal 0
 #define UIControlStateSelected 4
+#define UIButtonTypeSystem 1
+#define UIViewContentModeScaleAspectFill 2
+#define UITextBorderStyleRoundedRect 3
+#define NSTextAlignmentLeft 0
+#define NSTextAlignmentCenter 1
+#define NSLineBreakByTruncatingTail 4
 typedef struct {CGFloat x,y;} CGPoint;
 typedef struct {CGFloat width,height;} CGSize;
 typedef struct {CGPoint origin;CGSize size;} CGRect;
+typedef struct {CGFloat top,left,bottom,right;} UIEdgeInsets;
 #define CGRectMake(x,y,w,h) ((CGRect){{(x),(y)},{(w),(h)}})
 #define CGSizeMake(w,h) ((CGSize){(w),(h)})
+#define UIEdgeInsetsMake(t,l,b,r) ((UIEdgeInsets){(t),(l),(b),(r)})
+#define MIN(a,b) ((a)<(b)?(a):(b))
+#define MAX(a,b) ((a)>(b)?(a):(b))
 typedef NSUInteger NSStringEncoding;
 enum {NSUTF8StringEncoding=4};
 @class NSString,NSArray,NSDictionary,NSData,NSURL,NSError;
@@ -44,6 +54,8 @@ __attribute__((objc_root_class))
 + (Class)class;
 - (instancetype)init;
 - (BOOL)isKindOfClass:(Class)cls;
+- (BOOL)respondsToSelector:(SEL)selector;
+- (NSString*)description;
 - (void)addObserver:(NSObject*)observer forKeyPath:(NSString*)keyPath options:(NSUInteger)options context:(void*)context;
 - (void)removeObserver:(NSObject*)observer forKeyPath:(NSString*)keyPath context:(void*)context;
 - (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context;
@@ -59,6 +71,8 @@ __attribute__((objc_root_class))
 - (NSString*)lowercaseString;
 - (NSString*)stringByStandardizingPath;
 - (NSString*)substringFromIndex:(NSUInteger)index;
+- (CGSize)sizeWithAttributes:(NSDictionary*)attributes;
+- (NSString*)componentsJoinedByString:(NSString*)separator;
 @end
 @interface NSNumber:NSObject
 + (NSNumber*)numberWithInt:(int)value;
@@ -67,11 +81,13 @@ __attribute__((objc_root_class))
 + (NSNumber*)numberWithDouble:(double)value;
 - (double)doubleValue;
 - (NSInteger)integerValue;
+- (NSUInteger)unsignedIntegerValue;
 - (NSString*)stringValue;
 @end
 @interface NSArray:NSObject
 + (instancetype)arrayWithObjects:(const id[])objects count:(NSUInteger)count;
 @property(readonly) NSUInteger count;
+@property(readonly) id firstObject;
 @end
 @interface NSDictionary:NSObject
 + (instancetype)dictionaryWithObjects:(const id[])objects forKeys:(const id[])keys count:(NSUInteger)count;
@@ -79,8 +95,13 @@ __attribute__((objc_root_class))
 @end
 @interface NSMutableDictionary:NSDictionary
 + (instancetype)dictionary;
++ (instancetype)dictionaryWithObject:(id)object forKey:(id)key;
 - (void)setObject:(id)object forKeyedSubscript:(id)key;
 - (void)removeObjectForKey:(id)key;
+@end
+@interface NSMutableArray:NSArray
++ (instancetype)array;
+- (void)addObject:(id)object;
 @end
 @interface NSData:NSObject
 + (instancetype)dataWithContentsOfFile:(NSString*)path;
@@ -134,8 +155,10 @@ __attribute__((objc_root_class))
 - (void)cancel;
 @end
 @interface NSURLSession:NSObject
++ (instancetype)sharedSession;
 + (instancetype)sessionWithConfiguration:(NSURLSessionConfiguration*)configuration;
 - (NSURLSessionDataTask*)dataTaskWithRequest:(NSURLRequest*)request completionHandler:(void(^)(NSData*,NSURLResponse*,NSError*))completion;
+- (NSURLSessionDataTask*)dataTaskWithURL:(NSURL*)url completionHandler:(void(^)(NSData*,NSURLResponse*,NSError*))completion;
 @end
 @interface NSJSONSerialization:NSObject
 + (NSData*)dataWithJSONObject:(id)object options:(NSUInteger)options error:(NSError**)error;
@@ -146,22 +169,41 @@ __attribute__((objc_root_class))
 + (UIColor*)whiteColor;
 + (UIColor*)blackColor;
 + (UIColor*)systemBlueColor;
++ (UIColor*)clearColor;
+- (void*)CGColor;
+- (UIColor*)colorWithAlphaComponent:(CGFloat)alpha;
 @end
 @interface UIFont:NSObject
 + (instancetype)systemFontOfSize:(CGFloat)size;
++ (instancetype)systemFontOfSize:(CGFloat)size weight:(CGFloat)weight;
 + (instancetype)boldSystemFontOfSize:(CGFloat)size;
+@end
+extern CGFloat UIFontWeightMedium;
+@interface CALayer:NSObject
+@property CGFloat cornerRadius;
+@property CGFloat borderWidth;
+@property void*borderColor;
+@property CGFloat shadowOpacity;
+@property CGFloat shadowRadius;
+@property void*shadowColor;
+@property CGSize shadowOffset;
 @end
 @interface UIView:NSObject
 - (instancetype)initWithFrame:(CGRect)frame;
 @property CGRect frame;
 @property CGRect bounds;
+@property UIEdgeInsets safeAreaInsets;
 @property NSUInteger autoresizingMask;
+@property BOOL hidden;
 @property(strong) UIColor*backgroundColor;
 @property BOOL clipsToBounds;
+@property(readonly) CALayer*layer;
+@property(readonly) UIView*superview;
 @property(readonly) NSArray*subviews;
 - (void)addSubview:(UIView*)view;
 - (void)bringSubviewToFront:(UIView*)view;
 - (void)removeFromSuperview;
+- (void)setNeedsLayout;
 - (CGRect)convertRect:(CGRect)rect toView:(UIView*)view;
 @end
 @interface UIControl:UIView
@@ -175,9 +217,13 @@ __attribute__((objc_root_class))
 @property(strong) UIColor*textColor;
 @property NSInteger numberOfLines;
 @property NSInteger textAlignment;
+@property NSInteger lineBreakMode;
+@property(strong) UIColor*shadowColor;
+@property CGSize shadowOffset;
 @end
 @interface UIButton:UIControl
 @property(readonly) UILabel*titleLabel;
+@property UIEdgeInsets contentEdgeInsets;
 + (instancetype)buttonWithType:(NSInteger)type;
 - (void)setTitle:(NSString*)title forState:(NSUInteger)state;
 - (void)setTitleColor:(UIColor*)color forState:(NSUInteger)state;
@@ -190,12 +236,21 @@ __attribute__((objc_root_class))
 @property NSInteger borderStyle;
 @property NSInteger keyboardType;
 @property NSInteger clearButtonMode;
+@property BOOL secureTextEntry;
 @end
 @interface UIScrollView:UIView
 @property CGSize contentSize;
 @property BOOL showsVerticalScrollIndicator;
 @property BOOL showsHorizontalScrollIndicator;
 @property BOOL alwaysBounceVertical;
+@property BOOL alwaysBounceHorizontal;
+@end
+@interface UIImage:NSObject
++ (instancetype)imageWithData:(NSData*)data;
+@end
+@interface UIImageView:UIView
+@property(strong) UIImage*image;
+@property NSInteger contentMode;
 @end
 @interface UIViewController:NSObject
 @property(strong) UIView*view;
