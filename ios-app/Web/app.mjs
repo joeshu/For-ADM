@@ -186,6 +186,7 @@ window.NativeLiveSnapshot=nativeLiveSnapshot;
 window.NativeLiveAction=(act,id='')=>{
  if(act==='live-import'){void loadLivePlaylist(String(id||''));return;}
  if(act==='live-search'){state.liveSearch=String(id||'').trim();state.liveVisibleCount=80;state.liveNativeVisibleCount=40;render();return;}
+ if(act==='live-panel'){state.livePanel=String(id||'channels');render();if(state.livePanel==='programs')loadLiveGuide();return;}
  if(act==='live-native-route'){state.liveTriedURLs.clear();state.liveError='';void playLiveVariant(Number(id));return;}
  if(act==='live-more'){state.liveNativeVisibleCount+=40;render();return;}
  const button=document.createElement('button');button.dataset.act=act;if(id!==undefined&&id!==null)button.dataset.id=String(id);button.hidden=true;root.append(button);button.click();button.remove();
