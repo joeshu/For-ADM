@@ -1,9 +1,6 @@
 #import "RuntimeSDK.h"
 #import "HLSProxy.h"
 @class SYController;
-@interface SYController (LiveActions)
-- (void)sendLiveActionScript:(NSString*)script;
-@end
 static char SYPlaybackStatus;
 @interface SYPlayerViewController:AVPlayerViewController<AVPlayerViewControllerDelegate>
 @property(nonatomic,copy) void(^onClose)(void);
@@ -62,6 +59,7 @@ static char SYPlaybackStatus;
 @property(nonatomic) BOOL smokeProxyActive;
 #endif
 - (void)receive:(WKScriptMessage*)message;
+- (void)sendLiveActionScript:(NSString*)script;
 @end
 @implementation SYBridge
 - (void)userContentController:(id)controller didReceiveScriptMessage:(WKScriptMessage*)message { [self.owner receive:message]; }
