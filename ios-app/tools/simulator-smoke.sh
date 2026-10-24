@@ -37,7 +37,7 @@ for attempt in $(seq 1 80); do
   fi
   if [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ]; then
     cat dist/simulator-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json
-    python3 -c 'import json; p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); assert p["hlsProxyActive"] and p["inlinePlayback"], p; assert l["nativeLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["categoryActionReachedBridge"], l'
+    python3 -c 'import json; p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); assert p["hlsProxyActive"] and p["inlinePlayback"], p; assert l["nativeLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["categoryActionReachedBridge"] and l["fastSwitchUpdatesWithoutRebuild"], l'
     exit 0
   fi
   if [ -f "$sim_data/Library/Caches/sanyuan-playback-error.json" ]; then

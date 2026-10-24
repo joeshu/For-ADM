@@ -26,6 +26,7 @@ static char SYPlaybackStatus;
 @interface SYLiveActionButton:UIButton
 @property(nonatomic,copy) NSString*action;
 @property(nonatomic,copy) NSString*value;
+@property(nonatomic,copy) NSString*baseTitle;
 @end
 @implementation SYLiveActionButton
 @end
@@ -36,8 +37,12 @@ static char SYPlaybackStatus;
 @property(nonatomic,strong) UIScrollView*content;
 @property(nonatomic,strong) UITextField*urlField;
 @property(nonatomic,strong) UITextField*searchField;
+@property(nonatomic,strong) UILabel*liveTitleLabel;
+@property(nonatomic,strong) UILabel*liveStatusLabel;
+@property(nonatomic,strong) UILabel*liveInfoLabel;
 @property(nonatomic,strong) NSDictionary*state;
 - (void)applyState:(NSDictionary*)state;
+- (void)applyFastState:(NSDictionary*)state;
 @end
 @interface SYController:UIViewController<WKNavigationDelegate>
 @property(nonatomic,strong) WKWebView*web;
@@ -62,6 +67,8 @@ static char SYPlaybackStatus;
 @property(nonatomic) BOOL smokeProxyActive;
 @property(nonatomic) NSInteger smokeLiveAttempts;
 @property(nonatomic) BOOL smokeLiveStarted;
+@property(nonatomic) NSUInteger smokeLiveSubviewsBeforeFast;
+@property(nonatomic) BOOL smokeLiveFastStateApplied;
 #endif
 - (void)receive:(WKScriptMessage*)message;
 - (void)sendLiveActionScript:(NSString*)script;
@@ -75,19 +82,19 @@ static char SYPlaybackStatus;
   UILabel*label=[[UILabel alloc]initWithFrame:CGRectMake(16,0,340,30)];label.text=text;label.textColor=[UIColor colorWithRed:.12 green:.14 blue:.19 alpha:1];label.font=bold?[UIFont boldSystemFontOfSize:size]:[UIFont systemFontOfSize:size];return label;
 }
 - (SYLiveActionButton*)button:(NSString*)title action:(NSString*)action value:(NSString*)value frame:(CGRect)frame {
-  SYLiveActionButton*button=[[SYLiveActionButton alloc]initWithFrame:frame];button.action=action;button.value=value?:@"";button.backgroundColor=UIColor.whiteColor;[button setTitle:title forState:UIControlStateNormal];[button setTitleColor:[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1] forState:UIControlStateNormal];button.titleLabel.font=[UIFont systemFontOfSize:14];[button addTarget:self action:@selector(actionPressed:) forControlEvents:UIControlEventTouchUpInside];return button;
+  SYLiveActionButton*button=[[SYLiveActionButton alloc]initWithFrame:frame];button.action=action;button.value=value?:@"";button.baseTitle=title;button.backgroundColor=UIColor.whiteColor;button.layer.cornerRadius=12;button.layer.borderWidth=.5;button.layer.borderColor=[UIColor colorWithRed:.07 green:.09 blue:.13 alpha:.08].CGColor;[button setTitle:title forState:UIControlStateNormal];[button setTitleColor:[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1] forState:UIControlStateNormal];button.titleLabel.font=[UIFont systemFontOfSize:13 weight:UIFontWeightMedium];button.titleLabel.lineBreakMode=NSLineBreakByTruncatingTail;button.contentEdgeInsets=UIEdgeInsetsMake(0,9,0,9);[button addTarget:self action:@selector(actionPressed:) forControlEvents:UIControlEventTouchUpInside];return button;
 }
 - (void)viewDidLoad {
  [super viewDidLoad];self.view.backgroundColor=[UIColor colorWithRed:.953 green:.957 blue:.973 alpha:1];
- UIButton*back=[UIButton buttonWithType:0];back.frame=CGRectMake(14,43,48,42);[back setTitle:@"‹" forState:UIControlStateNormal];[back setTitleColor:[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1] forState:UIControlStateNormal];back.titleLabel.font=[UIFont systemFontOfSize:34];[self.view addSubview:back];back.backgroundColor=UIColor.whiteColor;[back addTarget:self action:@selector(goBack) forControlEvents:UIControlEventTouchUpInside];
- UILabel*title=[self label:@"直播" size:18 bold:YES];title.frame=CGRectMake(74,46,220,36);title.textAlignment=1;[self.view addSubview:title];
- self.playerHost=[[UIView alloc]initWithFrame:CGRectMake(0,0,0,0)];self.playerHost.backgroundColor=UIColor.blackColor;self.playerHost.clipsToBounds=YES;[self.view addSubview:self.playerHost];
+ UIButton*back=[UIButton buttonWithType:0];back.frame=CGRectMake(14,43,42,38);[back setTitle:@"‹" forState:UIControlStateNormal];[back setTitleColor:[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1] forState:UIControlStateNormal];back.titleLabel.font=[UIFont systemFontOfSize:32 weight:UIFontWeightRegular];[self.view addSubview:back];back.backgroundColor=UIColor.whiteColor;back.layer.cornerRadius=13;back.layer.borderWidth=.5;back.layer.borderColor=[UIColor colorWithRed:.07 green:.09 blue:.13 alpha:.08].CGColor;[back addTarget:self action:@selector(goBack) forControlEvents:UIControlEventTouchUpInside];
+ self.liveTitleLabel=[self label:@"直播" size:17 bold:YES];self.liveTitleLabel.frame=CGRectMake(66,45,250,32);self.liveTitleLabel.textAlignment=1;[self.view addSubview:self.liveTitleLabel];
+ self.playerHost=[[UIView alloc]initWithFrame:CGRectMake(0,0,0,0)];self.playerHost.backgroundColor=UIColor.blackColor;self.playerHost.clipsToBounds=YES;self.playerHost.layer.cornerRadius=15;[self.view addSubview:self.playerHost];
  self.routePicker=[[AVRoutePickerView alloc]initWithFrame:CGRectMake(0,0,48,44)];self.routePicker.tintColor=UIColor.whiteColor;self.routePicker.activeTintColor=[UIColor systemBlueColor];[self.playerHost addSubview:self.routePicker];
  self.content=[[UIScrollView alloc]initWithFrame:CGRectMake(0,0,0,0)];self.content.backgroundColor=self.view.backgroundColor;self.content.alwaysBounceVertical=YES;self.content.showsVerticalScrollIndicator=YES;[self.view addSubview:self.content];
  [self applyState:self.state?:@{}];
 }
 - (void)viewDidLayoutSubviews {
- [super viewDidLayoutSubviews];CGFloat width=self.view.bounds.size.width;CGFloat top=88;CGFloat playerHeight=width*9.0/16.0;
+ [super viewDidLayoutSubviews];CGFloat width=self.view.bounds.size.width;CGFloat top=MAX(76,self.view.safeAreaInsets.top+29);CGFloat headerTop=top-45;self.liveTitleLabel.frame=CGRectMake(66,headerTop+2,width-132,34);CGFloat playerHeight=width*9.0/16.0;
  self.playerHost.frame=CGRectMake(0,top,width,playerHeight);self.content.frame=CGRectMake(0,top+playerHeight,width,self.view.bounds.size.height-top-playerHeight);
  self.routePicker.frame=CGRectMake(width-58,8,48,44);[self.playerHost bringSubviewToFront:self.routePicker];
 }
@@ -97,25 +104,31 @@ static char SYPlaybackStatus;
  [self sendAction:sender.action value:sender.value];
 }
 - (void)goBack {[self sendAction:@"live-back" value:@""];}
+- (void)styleButton:(SYLiveActionButton*)button selected:(BOOL)selected {
+ UIColor*blue=[UIColor colorWithRed:.157 green:.471 blue:.941 alpha:1];
+ button.backgroundColor=selected?[UIColor colorWithRed:.91 green:.947 blue:1 alpha:1]:UIColor.whiteColor;
+ button.layer.borderColor=(selected?[blue colorWithAlphaComponent:.25]:[UIColor colorWithRed:.07 green:.09 blue:.13 alpha:.08]).CGColor;
+ [button setTitleColor:selected?blue:[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1] forState:UIControlStateNormal];
+}
 - (void)sendAction:(NSString*)action value:(NSString*)value {
  SYController*owner=self.owner;if(!owner||!action)return;NSArray*args=@[action,value?:@""];NSData*data=[NSJSONSerialization dataWithJSONObject:args options:0 error:NULL];NSString*json=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
  [owner sendLiveActionScript:[NSString stringWithFormat:@"window.NativeLiveAction&&window.NativeLiveAction.apply(null,%@)",json]];
 }
-- (void)addAction:(NSString*)title action:(NSString*)action value:(NSString*)value y:(CGFloat)y width:(CGFloat)width {
- CGFloat available=[action isEqualToString:@"live-channel"]?width-58:width;SYLiveActionButton*button=[self button:title action:action value:value frame:CGRectMake(12,y,available,42)];[self.content addSubview:button];
+- (SYLiveActionButton*)addAction:(NSString*)title action:(NSString*)action value:(NSString*)value y:(CGFloat)y width:(CGFloat)width {
+ CGFloat available=[action isEqualToString:@"live-channel"]?width-58:width;SYLiveActionButton*button=[self button:title action:action value:value frame:CGRectMake(12,y,available,42)];[self.content addSubview:button];return button;
 }
 - (void)applyState:(NSDictionary*)state {
  self.state=[state isKindOfClass:NSDictionary.class]?state:@{};
  for(UIView*view in self.content.subviews)[view removeFromSuperview];CGFloat width=self.view.bounds.size.width,inner=width-24,y=12;
- UILabel*status=[self label:self.state[@"title"]?:@"直播" size:17 bold:YES];status.frame=CGRectMake(16,y,inner,27);[self.content addSubview:status];y+=31;
+ UILabel*status=[self label:self.state[@"title"]?:@"直播" size:17 bold:YES];status.frame=CGRectMake(16,y,inner,27);self.liveStatusLabel=status;[self.content addSubview:status];y+=31;
  NSString*subtitle=[NSString stringWithFormat:@"%@ · %@",self.state[@"group"]?:@"请选择频道",self.state[@"status"]?:@""];
- UILabel*info=[self label:subtitle size:12 bold:NO];info.textColor=[UIColor colorWithRed:.45 green:.48 blue:.55 alpha:1];info.frame=CGRectMake(16,y,inner,23);[self.content addSubview:info];y+=30;
+ UILabel*info=[self label:subtitle size:12 bold:NO];info.textColor=[UIColor colorWithRed:.45 green:.48 blue:.55 alpha:1];info.frame=CGRectMake(16,y,inner,23);self.liveInfoLabel=info;[self.content addSubview:info];y+=30;
  SYLiveActionButton*favorite=[self button:[self.state[@"favoriteCurrent"] boolValue]?@"♥ 已收藏":@"♡ 收藏当前频道" action:@"live-favorite-current" value:@"" frame:CGRectMake(12,y,inner*.48,38)];[self.content addSubview:favorite];
  [self.content addSubview:[self button:@"频道信息" action:@"live-channel-info" value:@"" frame:CGRectMake(20+inner*.48,y,inner*.48,38)]];y+=46;
- self.urlField=[[UITextField alloc]initWithFrame:CGRectMake(12,y,inner-100,42)];self.urlField.text=self.state[@"url"]?:@"";self.urlField.placeholder=@"HTTP / HTTPS M3U 地址";self.urlField.font=[UIFont systemFontOfSize:13];self.urlField.textColor=[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1];self.urlField.backgroundColor=UIColor.whiteColor;self.urlField.borderStyle=3;self.urlField.clearButtonMode=1;[self.content addSubview:self.urlField];
+ self.urlField=[[UITextField alloc]initWithFrame:CGRectMake(12,y,inner-100,42)];self.urlField.text=self.state[@"url"]?:@"";self.urlField.placeholder=@"HTTP / HTTPS M3U 地址";self.urlField.font=[UIFont systemFontOfSize:13];self.urlField.textColor=[UIColor colorWithRed:.15 green:.18 blue:.24 alpha:1];self.urlField.backgroundColor=UIColor.whiteColor;self.urlField.borderStyle=3;self.urlField.layer.cornerRadius=11;self.urlField.clipsToBounds=YES;self.urlField.clearButtonMode=1;[self.content addSubview:self.urlField];
  NSString*importTitle=[self.state[@"loading"] boolValue]?@"导入中…":([self.state[@"channelCount"] integerValue]>0?@"手动更新":@"导入 M3U");SYLiveActionButton*import=[self button:importTitle action:@"live-import" value:@"" frame:CGRectMake(width-102,y,90,42)];[self.content addSubview:import];y+=46;
  UILabel*hint=[self label:@"导入后保存到本机；手动更新才重新下载。HTTP 未加密，建议优先使用 HTTPS。" size:11 bold:NO];hint.textColor=[UIColor colorWithRed:.46 green:.49 blue:.56 alpha:1];hint.frame=CGRectMake(16,y,inner,32);hint.numberOfLines=2;[self.content addSubview:hint];y+=36;
- NSArray*tabs=@[@[@"频道",@"channels"],@[@"分类",@"categories"],@[@"节目",@"programs"],@[@"线路",@"routes"]];CGFloat tabW=inner/4;for(NSUInteger i=0;i<tabs.count;i++){NSArray*tab=tabs[i];SYLiveActionButton*b=[self button:tab[0] action:@"live-panel" value:tab[1] frame:CGRectMake(12+i*tabW,y,tabW-4,38)];if([self.state[@"panel"] isEqualToString:tab[1]]){b.backgroundColor=[UIColor colorWithRed:.157 green:.471 blue:.941 alpha:1];[b setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];}[self.content addSubview:b];}y+=48;
+ NSArray*tabs=@[@[@"频道",@"channels"],@[@"分类",@"categories"],@[@"节目",@"programs"],@[@"线路",@"routes"]];CGFloat tabW=inner/4;for(NSUInteger i=0;i<tabs.count;i++){NSArray*tab=tabs[i];SYLiveActionButton*b=[self button:tab[0] action:@"live-panel" value:tab[1] frame:CGRectMake(12+i*tabW,y,tabW-4,38)];[self styleButton:b selected:[self.state[@"panel"] isEqualToString:tab[1]]];[self.content addSubview:b];}y+=48;
  NSString*panel=self.state[@"panel"]?:@"channels";NSArray*items=@[];NSString*action=@"";
  if([panel isEqualToString:@"categories"]){items=self.state[@"groups"]?:@[];action=@"live-category";}
  else if([panel isEqualToString:@"routes"]){items=self.state[@"routes"]?:@[];}
@@ -137,14 +150,14 @@ static char SYPlaybackStatus;
   if([object isKindOfClass:NSDictionary.class]){
    if([panel isEqualToString:@"channels"]){
     NSString*channelTitle=[NSString stringWithFormat:@"%@  %@ · %@%@",[object[@"active"] boolValue]?@"▶":@"",object[@"name"]?:@"频道",object[@"group"]?:@"",[object[@"secure"] boolValue]?@"":@" · HTTP 未加密"];
-    NSString*channelIndex=[object[@"index"] stringValue];[self addAction:channelTitle action:@"live-channel" value:channelIndex y:y width:inner];
+    NSString*channelIndex=[object[@"index"] stringValue];SYLiveActionButton*channelButton=[self addAction:channelTitle action:@"live-channel" value:channelIndex y:y width:inner];[self styleButton:channelButton selected:[object[@"active"] boolValue]];
     SYLiveActionButton*favorite=[self button:[object[@"favorite"] boolValue]?@"♥":@"♡" action:@"live-favorite" value:channelIndex frame:CGRectMake(width-65,y,50,42)];[self.content addSubview:favorite];y+=48;continue;
    }
    if([panel isEqualToString:@"routes"]){titleText=[NSString stringWithFormat:@"%@%@ · %@ · %@",[object[@"active"] boolValue]?@"✓ ":@"",object[@"name"]?:@"线路",object[@"group"]?:@"",[object[@"secure"] boolValue]?@"HTTPS":@"HTTP 未加密"];itemAction=@"live-route";value=[object[@"index"] stringValue];}
    else if([panel isEqualToString:@"programs"]){titleText=[NSString stringWithFormat:@"%@  %@",object[@"start"]?:@"",object[@"title"]?:@"节目"];itemAction=@"live-program";value=[object[@"index"] stringValue];}
    else {titleText=[NSString stringWithFormat:@"%@  %@ · %@%@",[object[@"active"] boolValue]?@"▶":@"",object[@"name"]?:@"频道",object[@"group"]?:@"",[object[@"secure"] boolValue]?@"":@" · HTTP 未加密"];itemAction=@"live-channel";value=[object[@"index"] stringValue];}
   }else {titleText=[NSString stringWithFormat:@"%@  ·  %@ 个频道",object[@"name"]?:@"分类",object[@"count"]?:@0];value=object[@"value"]?:object[@"name"]?:@"";}
-  if(itemAction.length)[self addAction:titleText action:itemAction value:value y:y width:inner];else {UILabel*label=[self label:titleText size:14 bold:NO];label.frame=CGRectMake(16,y+8,inner,26);[self.content addSubview:label];}
+   if(itemAction.length){SYLiveActionButton*itemButton=[self addAction:titleText action:itemAction value:value y:y width:inner];if([itemAction isEqualToString:@"live-route"])[self styleButton:itemButton selected:[object[@"active"] boolValue]];}else {UILabel*label=[self label:titleText size:14 bold:NO];label.frame=CGRectMake(16,y+8,inner,26);[self.content addSubview:label];}
   y+=48;
  }
  NSDictionary*selectedProgram=self.state[@"selectedProgram"];
@@ -156,6 +169,19 @@ static char SYPlaybackStatus;
  else if([sheet isEqualToString:@"route"]&&[self.state[@"selectedRoute"] isKindOfClass:NSDictionary.class]){NSDictionary*route=self.state[@"selectedRoute"];NSString*routeKind=[route[@"secure"] boolValue]?@"HTTPS":@"HTTP 未加密";[self addAction:[NSString stringWithFormat:@"切换到 %@ · %@ · %@",route[@"name"]?:@"线路",route[@"group"]?:@"",routeKind] action:@"live-route-system" value:@"" y:y width:inner];y+=48;[self addAction:@"在 VLC 播放" action:@"live-route-vlc" value:@"" y:y width:inner];y+=48;[self addAction:@"复制线路地址" action:@"live-route-copy" value:@"" y:y width:inner];y+=48;[self addAction:@"关闭线路菜单" action:@"live-sheet-dismiss" value:@"" y:y width:inner];y+=48;}
  if([self.state[@"hasMore"] boolValue]){[self addAction:@"加载更多频道" action:@"live-more" value:@"" y:y width:inner];y+=48;}
  self.content.contentSize=CGSizeMake(width,y+20);
+}
+- (void)applyFastState:(NSDictionary*)state {
+ self.state=[state isKindOfClass:NSDictionary.class]?state:@{};
+ NSString*title=self.state[@"title"]?:@"直播";NSString*group=self.state[@"group"]?:@"请选择频道";NSString*status=self.state[@"status"]?:@"";
+ self.liveTitleLabel.text=title;self.liveStatusLabel.text=title;self.liveInfoLabel.text=[NSString stringWithFormat:@"%@ · %@",group,status];
+ NSString*channelIndex=[self.state[@"channelIndex"] stringValue];
+ for(UIView*view in self.content.subviews){if(![view isKindOfClass:SYLiveActionButton.class])continue;SYLiveActionButton*button=(SYLiveActionButton*)view;
+  if([button.action isEqualToString:@"live-panel"]){[self styleButton:button selected:[button.value isEqualToString:self.state[@"panel"]]];continue;}
+  if([button.action isEqualToString:@"live-favorite-current"]){[button setTitle:[self.state[@"favoriteCurrent"] boolValue]?@"♥ 已收藏":@"♡ 收藏当前频道" forState:UIControlStateNormal];continue;}
+  if([button.action isEqualToString:@"live-channel"]){NSDictionary*channel=nil;for(NSDictionary*item in self.state[@"channels"])if([[item[@"index"] stringValue] isEqualToString:button.value]){channel=item;break;}if(!channel)continue;BOOL selected=[button.value isEqualToString:channelIndex];NSString*name=channel[@"name"]?:@"频道",*groupName=channel[@"group"]?:@"",*security=[channel[@"secure"] boolValue]?@"":@" · HTTP 未加密";NSString*rowTitle=[NSString stringWithFormat:@"%@%@ · %@%@",selected?@"▶  ":@"  ",name,groupName,security];button.baseTitle=rowTitle;[button setTitle:rowTitle forState:UIControlStateNormal];[self styleButton:button selected:selected];continue;}
+  if([button.action isEqualToString:@"live-route"]){NSDictionary*route=nil;for(NSDictionary*item in self.state[@"routes"])if([[item[@"index"] stringValue] isEqualToString:button.value]){route=item;break;}if(!route)continue;BOOL selected=[route[@"active"] boolValue];NSString*rowTitle=[NSString stringWithFormat:@"%@%@ · %@ · %@",selected?@"✓  ":@"",route[@"name"]?:@"线路",route[@"group"]?:@"",[route[@"secure"] boolValue]?@"HTTPS":@"HTTP 未加密"];button.baseTitle=rowTitle;[button setTitle:rowTitle forState:UIControlStateNormal];[self styleButton:button selected:selected];continue;}
+  if([button.action isEqualToString:@"live-date"])[self styleButton:button selected:[button.value isEqualToString:self.state[@"selectedDate"]]];
+ }
 }
 @end
 @implementation SYController
@@ -261,11 +287,19 @@ static char SYPlaybackStatus;
   if(!self.liveScreen&&self.smokeLiveAttempts<20){[self performSelector:@selector(runLiveScreenSmoke) withObject:nil afterDelay:1];return;}
   if(!self.liveScreen)return;
   [self.web evaluateJavaScript:@"window.NativeLiveAction&&window.NativeLiveAction('live-panel','categories')" completionHandler:nil];
-  [self performSelector:@selector(finishLiveScreenSmoke) withObject:nil afterDelay:1];
+  [self performSelector:@selector(runFastLiveScreenSmoke) withObject:nil afterDelay:1];
+}
+- (void)runFastLiveScreenSmoke {
+  if(!self.liveScreen)return;
+  self.smokeLiveSubviewsBeforeFast=self.liveScreen.content.subviews.count;
+  [self.web evaluateJavaScript:@"(()=>{const s=window.NativeLiveSnapshot();s.title='切台响应测试';s.status='正在连接…';window.NativeTransport.syncLive(s,{fast:true});})()" completionHandler:^(id result,NSError*error){
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(),^{[self finishLiveScreenSmoke];});
+  }];
 }
 - (void)finishLiveScreenSmoke {
   BOOL ready=self.liveScreen&&self.liveScreen.playerHost&&self.liveScreen.content.subviews.count>=8&&[self.liveSnapshot[@"panel"] isEqualToString:@"categories"];
-  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":([(self.liveSnapshot[@"panel"]?:@"") isEqualToString:@"categories"]?@YES:@NO)};
+  self.smokeLiveFastStateApplied=self.liveScreen.content.subviews.count==self.smokeLiveSubviewsBeforeFast&&[self.liveScreen.liveTitleLabel.text isEqualToString:@"切台响应测试"];
+  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":([(self.liveSnapshot[@"panel"]?:@"") isEqualToString:@"categories"]?@YES:@NO),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
   NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
   [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
 }
@@ -301,7 +335,7 @@ static char SYPlaybackStatus;
   if([type isEqualToString:@"statusStyle"]){self.detailStatusStyle=[body[@"dark"] boolValue];[self setNeedsStatusBarAppearanceUpdate];return;}
   if([type isEqualToString:@"liveOpen"]){[self openLiveScreen];return;}
   if([type isEqualToString:@"liveClose"]){[self closeLiveScreen];return;}
-  if([type isEqualToString:@"liveState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.liveSnapshot=body[@"state"];[self.liveScreen applyState:self.liveSnapshot];}return;}
+  if([type isEqualToString:@"liveState"]||[type isEqualToString:@"liveStateFast"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.liveSnapshot=body[@"state"];if([type isEqualToString:@"liveStateFast"])[self.liveScreen applyFastState:self.liveSnapshot];else [self.liveScreen applyState:self.liveSnapshot];}return;}
   if([type isEqualToString:@"stopLive"]){if([self.playContext hasPrefix:@"live:"])[self stopNativePlayback];return;}
   if([type isEqualToString:@"cancel"]){[self.tasks[identifier] cancel];[self.tasks removeObjectForKey:identifier];return;}
   if([type isEqualToString:@"liveCacheGet"]){NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Documents/sanyuan-live-cache.json"];NSData*data=[NSData dataWithContentsOfFile:path];id cached=data?[NSJSONSerialization JSONObjectWithData:data options:0 error:NULL]:nil;[self deliver:@{@"id":identifier,@"cache":[cached isKindOfClass:NSDictionary.class]?cached:@{}}];return;}
@@ -355,16 +389,18 @@ static char SYPlaybackStatus;
   if((!https&&!liveHTTPRequest&&!liveHTTPPlayback)||!url.host.length){[self deliver:@{@"id":identifier,@"error":@"普通数据请求需使用 HTTPS；HTTP 仅用于直播列表、节目单和直播流"}];return;}
   if([type isEqualToString:@"play"]){
     NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
-    NSURL*playURL=[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
+    NSString*requestedContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
+    BOOL livePlayback=[requestedContext hasPrefix:@"live:"];
+    NSURL*playURL=livePlayback?url:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
     #if defined(SY_SIMULATOR_SMOKE)
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
 #endif
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
-    AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];item.preferredForwardBufferDuration=6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
-    NSString*requestedContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
+    AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];item.preferredForwardBufferDuration=livePlayback?1:6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
     // Keep one live AVPlayerViewController across channel and mirror changes.
     // Swapping only the item avoids a view teardown and black flash.
     if([requestedContext hasPrefix:@"live:"]&&[self.playContext hasPrefix:@"live:"]&&self.nativePlayer&&self.nativePlayer.player){
+      self.nativePlayer.player.automaticallyWaitsToMinimizeStalling=NO;
       AVPlayerItem*old=self.nativeItem;if(old){@try{[old removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}}
       if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
       if(self.failedObserver){[NSNotificationCenter.defaultCenter removeObserver:self.failedObserver];self.failedObserver=nil;}
@@ -390,7 +426,7 @@ static char SYPlaybackStatus;
     self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
-    player.player=[AVPlayer playerWithPlayerItem:item];[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
+    player.player=[AVPlayer playerWithPlayerItem:item];player.player.automaticallyWaitsToMinimizeStalling=livePlayback?NO:YES;[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
     __weak SYController*owner=self;__weak SYPlayerViewController*weakPlayer=player;
     NSString*playContext=self.playContext;
     player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};

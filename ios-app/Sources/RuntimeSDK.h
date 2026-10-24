@@ -275,6 +275,7 @@ extern NSString*NSHomeDirectory(void);
 @property(readonly) NSError*error;
 @property(readonly) CMTime duration;
 @property double preferredForwardBufferDuration;
+@property BOOL automaticallyWaitsToMinimizeStalling;
 @property(copy) NSString*audioTimePitchAlgorithm;
 @property(copy) NSArray*externalMetadata;
 @end
