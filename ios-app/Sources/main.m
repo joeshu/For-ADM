@@ -501,11 +501,15 @@ static NSMutableDictionary *SYPosterRequests;
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
 #endif
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
-    AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];item.preferredForwardBufferDuration=livePlayback?1:6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
+    AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];
+    // Live playlists must keep enough media queued to survive segment jitter.
+    // Starting with a one-second buffer and disabling automatic waiting made
+    // AVPlayer freeze on the first decoded frame on slower relay servers.
+    item.preferredForwardBufferDuration=livePlayback?4:6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
     // Keep one live AVPlayerViewController across channel and mirror changes.
     // Swapping only the item avoids a view teardown and black flash.
     if([requestedContext hasPrefix:@"live:"]&&[self.playContext hasPrefix:@"live:"]&&self.nativePlayer&&self.nativePlayer.player){
-      self.nativePlayer.player.automaticallyWaitsToMinimizeStalling=NO;
+      self.nativePlayer.player.automaticallyWaitsToMinimizeStalling=YES;
       AVPlayerItem*old=self.nativeItem;if(old){@try{[old removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}}
       if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
       if(self.failedObserver){[NSNotificationCenter.defaultCenter removeObserver:self.failedObserver];self.failedObserver=nil;}
@@ -531,12 +535,12 @@ static NSMutableDictionary *SYPosterRequests;
     self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
-    player.player=[AVPlayer playerWithPlayerItem:item];if(livePlayback)player.player.automaticallyWaitsToMinimizeStalling=NO;[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
+    player.player=[AVPlayer playerWithPlayerItem:item];if(livePlayback)player.player.automaticallyWaitsToMinimizeStalling=YES;[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
     __weak SYController*owner=self;__weak SYPlayerViewController*weakPlayer=player;
     NSString*playContext=self.playContext;
     player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};
     player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}handler(weakPlayer.parentViewController==strongOwner||weakPlayer.parentViewController==strongOwner.appScreen||weakPlayer.parentViewController==strongOwner.liveScreen);};
-    if(![playContext hasPrefix:@"live:"])self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
+    self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(livePlayback?3:5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
       SYController*strongOwner=owner;if(!strongOwner||strongOwner.nativePlayer!=weakPlayer)return;
       double seconds=CMTimeGetSeconds(time);if(!__builtin_isfinite(seconds)||seconds<0)return;
       [strongOwner sendPlayback:@{@"context":playContext,@"status":@"progress",@"time":@(seconds)}];
