@@ -245,9 +245,9 @@ static NSMutableDictionary *SYPosterRequests;
 - (void)loadVisiblePostersInShelf:(UIScrollView*)shelf {
  if(!shelf||shelf.tag!=9301)return;
  CGRect shelfRect=[shelf convertRect:shelf.bounds toView:self.content];CGFloat top=self.content.contentOffset.y,bottom=top+self.content.bounds.size.height;
- if(CGRectGetMaxY(shelfRect)<top||CGRectGetMinY(shelfRect)>bottom)return;
+ if(shelfRect.origin.y+shelfRect.size.height<top||shelfRect.origin.y>bottom)return;
  CGFloat left=MAX(0,shelf.contentOffset.x-124),right=shelf.contentOffset.x+shelf.bounds.size.width+124;
- for(UIView*card in shelf.subviews){if(CGRectGetMaxX(card.frame)<left||CGRectGetMinX(card.frame)>right)continue;for(UIView*child in card.subviews)if([child isKindOfClass:UIImageView.class]){UIImageView*poster=(UIImageView*)child;if(!poster.image&&poster.accessibilityIdentifier.length)[self loadPoster:poster.accessibilityIdentifier into:poster];}}
+ for(UIView*card in shelf.subviews){if(card.frame.origin.x+card.frame.size.width<left||card.frame.origin.x>right)continue;for(UIView*child in card.subviews)if([child isKindOfClass:UIImageView.class]){UIImageView*poster=(UIImageView*)child;if(!poster.image&&poster.accessibilityIdentifier.length)[self loadPoster:poster.accessibilityIdentifier into:poster];}}
 }
 - (void)scrollViewDidScroll:(UIScrollView*)scrollView {if(scrollView.tag==9301)[self loadVisiblePostersInShelf:scrollView];else if(scrollView==self.content)for(UIView*view in self.content.subviews)if([view isKindOfClass:UIScrollView.class]&&view.tag==9301)[self loadVisiblePostersInShelf:(UIScrollView*)view];}
 - (void)addHeroCard:(NSDictionary*)movie y:(CGFloat)y {
