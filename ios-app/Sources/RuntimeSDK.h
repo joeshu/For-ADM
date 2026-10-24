@@ -275,7 +275,6 @@ extern NSString*NSHomeDirectory(void);
 @property(readonly) NSError*error;
 @property(readonly) CMTime duration;
 @property double preferredForwardBufferDuration;
-@property BOOL automaticallyWaitsToMinimizeStalling;
 @property(copy) NSString*audioTimePitchAlgorithm;
 @property(copy) NSArray*externalMetadata;
 @end
@@ -285,6 +284,7 @@ extern NSString*NSHomeDirectory(void);
 - (void)play;
 - (void)pause;
 @property float rate;
+@property BOOL automaticallyWaitsToMinimizeStalling;
 - (void)seekToTime:(CMTime)time;
 @property(readonly) CMTime currentTime;
 - (id)addPeriodicTimeObserverForInterval:(CMTime)time queue:(struct dispatch_queue_s*)queue usingBlock:(void(^)(CMTime))block;
