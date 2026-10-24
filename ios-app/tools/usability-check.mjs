@@ -75,8 +75,8 @@ try{
  assert.match(await page.locator('.live-now-copy').innerText(),/备用/);
  await page.locator('[data-act="live-panel"][data-id="routes"]').click();assert.equal(await page.locator('.live-route').count(),2);
  await page.locator('[data-act="live-panel"][data-id="programs"]').click();await page.locator('.live-program').waitFor();assert.match(await page.locator('.live-program').innerText(),/综合新闻/);
- await page.locator('.live-program').click();assert.match(await page.locator('.live-epg-card').innerText(),/综合新闻/);
- await page.locator('[data-act="live-program-dismiss"]').first().click();
+ await page.locator('.live-program').click();assert.match(await page.locator('.live-sheet-card').innerText(),/综合新闻/);
+ await page.locator('[data-act="live-sheet-dismiss"]').last().click();
  await page.locator('[data-act="live-panel"][data-id="categories"]').click();assert.ok(await page.locator('.live-group-card').count()>=2);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'live page horizontal overflow');
  for(const width of [320,390,768,1024]){

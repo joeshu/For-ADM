@@ -102,7 +102,8 @@ static char SYPlaybackStatus;
   if(!__builtin_isfinite(width)||!__builtin_isfinite(height)||!__builtin_isfinite(x)||!__builtin_isfinite(y)||!__builtin_isfinite(viewport)||width<=0||height<=0||viewport<=0)return;
   double scale=self.web.bounds.size.width/viewport;
   CGRect rect={{x*scale,y*scale},{width*scale,height*scale}};
-  self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.web.scrollView];
+  if([self.playContext hasPrefix:@"live:"])self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.view];
+  else self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.web.scrollView];
 }
 - (UIStatusBarStyle)preferredStatusBarStyle {return self.detailStatusStyle?1:0;}
 - (void)deliver:(NSDictionary*)result {
@@ -144,8 +145,9 @@ static char SYPlaybackStatus;
     if(object!=self.nativeItem)return;
     if(self.nativeItem.status==1)[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"ready"}];
     else if(self.nativeItem.status==2){
+      BOOL live=[self.playContext hasPrefix:@"live:"];
       [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"failed",@"error":self.nativeItem.error.localizedDescription?:@"视频解码失败，请切换线路"}];
-      [self stopNativePlayback];
+      if(!live)[self stopNativePlayback];
     }
   });
 }
@@ -212,14 +214,14 @@ static char SYPlaybackStatus;
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];item.preferredForwardBufferDuration=6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
     NSString*requestedContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
-    // Same-channel live mirrors share a stable context. Retain the AVPlayerViewController
-    // and its frame while swapping the item, avoiding the black flash from view teardown.
-    if([requestedContext hasPrefix:@"live:"]&&[requestedContext isEqualToString:self.playContext]&&self.nativePlayer&&self.nativePlayer.player){
+    // Keep one live AVPlayerViewController across channel and mirror changes.
+    // Swapping only the item avoids a view teardown and black flash.
+    if([requestedContext hasPrefix:@"live:"]&&[self.playContext hasPrefix:@"live:"]&&self.nativePlayer&&self.nativePlayer.player){
       AVPlayerItem*old=self.nativeItem;if(old){@try{[old removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}}
       if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
       if(self.failedObserver){[NSNotificationCenter.defaultCenter removeObserver:self.failedObserver];self.failedObserver=nil;}
       if(self.endObserver){[NSNotificationCenter.defaultCenter removeObserver:self.endObserver];self.endObserver=nil;}
-      self.nativeItem=item;
+      self.nativeItem=item;self.playContext=requestedContext;
       if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
       [item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
       __weak SYController*weakOwner=self;__weak AVPlayerItem*weakItem=item;NSString*liveContext=requestedContext;
@@ -245,7 +247,7 @@ static char SYPlaybackStatus;
     NSString*playContext=self.playContext;
     player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};
     player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}handler(weakPlayer.parentViewController==strongOwner);};
-    self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
+    if(![playContext hasPrefix:@"live:"])self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
       SYController*strongOwner=owner;if(!strongOwner||strongOwner.nativePlayer!=weakPlayer)return;
       double seconds=CMTimeGetSeconds(time);if(!__builtin_isfinite(seconds)||seconds<0)return;
       [strongOwner sendPlayback:@{@"context":playContext,@"status":@"progress",@"time":@(seconds)}];
@@ -257,7 +259,9 @@ static char SYPlaybackStatus;
     double requestedRate=[body[@"rate"] doubleValue];float rate=(requestedRate>=0.5&&requestedRate<=2)?(float)requestedRate:1;
     [self addChildViewController:player];
     player.view.frame=(CGRect){{0,0},{0,0}};
-    [self.web.scrollView addSubview:player.view];[player didMoveToParentViewController:self];
+    if([self.playContext hasPrefix:@"live:"]) [self.view addSubview:player.view];
+    else [self.web.scrollView addSubview:player.view];
+    [player didMoveToParentViewController:self];
     if([body[@"frame"] isKindOfClass:NSDictionary.class])[self layoutPlayer:body[@"frame"]];
     [player.player play];player.player.rate=rate;
     [self deliver:@{@"id":identifier,@"ok":@YES}];return;

@@ -10,27 +10,40 @@ export function decodePlaylist(base64){
  return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/,'');
 }
 
-export function parseM3U(text,playlistURL){
- if(typeof text!=='string'||!/^\s*#EXTM3U(?:\s|$)/i.test(text))throw Error('这个地址没有返回有效的 M3U 播放列表');
- const base=new URL(playlistURL),channels=[];let pending='',group='',epgUrl='';
- for(const raw of text.split(/\r?\n/)){
-  const line=raw.trim();if(!line)continue;
-  if(/^#EXTM3U\b/i.test(line)){const value=attribute(line,'x-tvg-url');if(value){try{const url=new URL(value,base);if(url.protocol==='https:')epgUrl=url.href;}catch{}}continue;}
-  if(/^#EXTGRP:/i.test(line)){group=line.slice(line.indexOf(':')+1).trim()||'未分类';continue;}
-  if(/^#EXTINF:/i.test(line)){pending=line;group=attribute(line,'group-title')||group||'未分类';continue;}
-  if(line.startsWith('#')||!pending)continue;
-  let stream;try{stream=new URL(line,base);}catch{pending='';continue;}
-  if(!['https:','http:'].includes(stream.protocol)){pending='';continue;}
+function createM3UParser(playlistURL){
+ const base=new URL(playlistURL),channels=[];let pending='',group='',epgUrl='',started=false;
+ const addLine=raw=>{
+ const line=raw.trim();if(!line)return;
+  if(/^#EXTM3U\b/i.test(line)){started=true;const value=attribute(line,'x-tvg-url');if(value){try{const url=new URL(value,base);if(url.protocol==='https:')epgUrl=url.href;}catch{}}return;}
+  if(!started)return;
+  if(/^#EXTGRP:/i.test(line)){group=line.slice(line.indexOf(':')+1).trim()||'未分类';return;}
+  if(/^#EXTINF:/i.test(line)){pending=line;group=attribute(line,'group-title')||group||'未分类';return;}
+  if(line.startsWith('#')||!pending)return;
+  let stream;try{stream=new URL(line,base);}catch{pending='';return;}
+  if(!['https:','http:'].includes(stream.protocol)){pending='';return;}
   const comma=pending.search(/,(?=(?:[^"']|"[^"]*"|'[^']*')*$)/),title=comma>=0?pending.slice(comma+1).trim():'';
   const name=attribute(pending,'tvg-name')||title||attribute(pending,'tvg-id')||`频道 ${channels.length+1}`;
   const tvgId=attribute(pending,'tvg-id');let logo='';try{const candidate=new URL(attribute(pending,'tvg-logo'),base);if(candidate.protocol==='https:')logo=candidate.href;}catch{}
   const tvgName=attribute(pending,'tvg-name')||title||name;
   channels.push({index:channels.length,name,tvgName,tvgId,logo,group:attribute(pending,'group-title')||group||'未分类',url:stream.href,secure:stream.protocol==='https:',identity:channelIdentity({tvgId,name})});
   pending='';group='';
+ };
+ return {addLine,finish(){if(!started)throw Error('这个地址没有返回有效的 M3U 播放列表');if(!channels.length)throw Error('M3U 列表里没有可用频道');return {channels,groups:[...new Set(channels.map(channel=>channel.group))],epgUrl};}};
+}
+export function parseM3U(text,playlistURL){
+ if(typeof text!=='string'||!/^(?:\uFEFF)?\s*#EXTM3U(?:\s|$)/i.test(text))throw Error('这个地址没有返回有效的 M3U 播放列表');
+ const parser=createM3UParser(playlistURL);for(const raw of text.split(/\r?\n/))parser.addLine(raw);return parser.finish();
+}
+export async function parseM3UIncremental(text,playlistURL,{signal,batchLines=1200}={}){
+ if(typeof text!=='string'||!/^(?:\uFEFF)?\s*#EXTM3U(?:\s|$)/i.test(text))throw Error('这个地址没有返回有效的 M3U 播放列表');
+ if(signal?.aborted)throw new DOMException('请求取消','AbortError');
+ const parser=createM3UParser(playlistURL),limit=Math.max(100,Math.min(5000,Number(batchLines)||1200));let start=0,processed=0;
+ while(start<text.length){
+  if(signal?.aborted)throw new DOMException('请求取消','AbortError');
+  let end=text.indexOf('\n',start);if(end<0)end=text.length;const raw=text.slice(start,end);parser.addLine(raw);start=end+1;
+  if(++processed>=limit){processed=0;await new Promise(resolve=>setTimeout(resolve,0));}
  }
- if(!channels.length)throw Error('M3U 列表里没有可用频道');
- const groups=[...new Set(channels.map(channel=>channel.group))];
- return {channels,groups,epgUrl};
+ return parser.finish();
 }
 
 function xmlAttribute(text,name){return attribute(text,name);}
@@ -56,7 +69,10 @@ export function parseXMLTV(xml,channelId){
  return rows.sort((a,b)=>a.start-b.start);
 }
 
-export function channelAlternates(channels,channel){
+export function indexChannelAlternates(channels){
+ const index=new Map();for(const channel of channels){if(!channel.secure)continue;const list=index.get(channel.identity)||[];list.push(channel);index.set(channel.identity,list);}return index;
+}
+export function channelAlternates(channels,channel,index){
  if(!channel)return [];
- return channels.filter(candidate=>candidate.secure&&candidate.identity===channel.identity);
+ return index?.get(channel.identity)||channels.filter(candidate=>candidate.secure&&candidate.identity===channel.identity);
 }

@@ -30,7 +30,7 @@ try{
  assert.equal(await page.locator('.live-top-actions button').count(),3);
  await page.locator('[data-act="live-channel-info"]').click();assert.match(await page.locator('.live-sheet-card').innerText(),/节目单 ID/);await page.locator('[data-act="live-sheet-dismiss"]').last().click();
  await page.locator('.live-channel-row').nth(1).locator('[data-act="live-channel"]').click();await page.locator('#live-video').waitFor();assert.match(await page.locator('.live-now-copy').innerText(),/备用/);
- await page.locator('[data-act="live-panel"][data-id="routes"]').click();assert.match(await page.locator('.live-panel-tabs').innerText(),/2\/2 线路/);
+ await page.locator('[data-act="live-panel"][data-id="routes"]').click();assert.match(await page.locator('.live-panel-tabs').innerText(),/1\/2 线路/);
  await page.locator('.live-route').nth(1).click();assert.match(await page.locator('.live-sheet-card').innerText(),/自动硬件解码/);await page.locator('[data-act="live-route-system"]').click();
  await page.locator('[data-act="live-panel"][data-id="programs"]').click();await page.locator('.live-program').waitFor();assert.match(await page.locator('.live-program').innerText(),/综合新闻/);
  await page.locator('.live-program-footer [data-act="live-epg-info"]').click();assert.match(await page.locator('.live-sheet-card').innerText(),/EPG 来源/);await page.locator('[data-act="live-sheet-dismiss"]').last().click();

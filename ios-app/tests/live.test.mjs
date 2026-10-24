@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseM3U,parseXMLTV,channelAlternates} from '../Web/live.mjs';
+import {parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates} from '../Web/live.mjs';
 
 test('parses M3U metadata, groups, relative URLs and keeps insecure entries disabled',()=>{
  const source='#EXTM3U x-tvg-url="https://guide.example/guide.xml"\n'+
@@ -26,6 +26,23 @@ test('matches secure alternate relays by TVG identity',()=>{
   '#EXTINF:-1 tvg-id="one" group-title="C",One insecure\nhttp://c.example/one.m3u8\n',
   'https://list.example/list.m3u').channels;
  assert.deepEqual(channelAlternates(channels,channels[0]).map(channel=>channel.index),[0,1]);
+});
+
+test('large M3U imports parse incrementally and preindex secure alternate routes',async()=>{
+ const rows=Array.from({length:800},(_,i)=>'#EXTINF:-1 tvg-id="station-'+(i%4)+'" group-title="Group '+(i%4)+'",Channel '+i+'\nhttps://cdn.example/'+i+'.m3u8').join('\n');
+ const source='#EXTM3U x-tvg-url="https://guide.example/guide.xml"\n'+rows;
+ let timerFired=false;const timer=new Promise(resolve=>setTimeout(()=>{timerFired=true;resolve();},0));
+ const incremental=await parseM3UIncremental(source,'https://list.example/live.m3u',{batchLines:100});await timer;
+ assert.equal(timerFired,true);assert.deepEqual(incremental,parseM3U(source,'https://list.example/live.m3u'));
+ const index=indexChannelAlternates(incremental.channels),routes=channelAlternates(incremental.channels,incremental.channels[12],index);
+ assert.equal(routes.length,200);assert.equal(routes[0].index,0);assert.ok(routes.some(channel=>channel.index===12));
+});
+
+test('incremental M3U parsing honors cancellation between batches',async()=>{
+ const controller=new AbortController(),rows=Array.from({length:800},(_,i)=>'#EXTINF:-1,Channel '+i+'\nhttps://cdn.example/'+i+'.m3u8').join('\n');
+ const parsing=parseM3UIncremental('#EXTM3U\n'+rows,'https://list.example/live.m3u',{signal:controller.signal,batchLines:100});
+ setTimeout(()=>controller.abort(),0);
+ await assert.rejects(parsing,{name:'AbortError'});
 });
 
 test('parses XMLTV offsets, entities and current channel programs',()=>{
