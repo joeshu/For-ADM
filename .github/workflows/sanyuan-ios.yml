@@ -46,6 +46,7 @@ jobs:
             ios-app/dist/Sanyuan-0.2.22-unsigned.ipa
             ios-app/dist/build-report.json
             ios-app/dist/simulator-smoke.json
+            ios-app/dist/simulator-discover-smoke.json
             ios-app/dist/simulator-playback*.json
             ios-app/dist/simulator-live-smoke.json
             ios-app/dist/simulator-failure.png

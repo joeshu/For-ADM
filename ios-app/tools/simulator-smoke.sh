@@ -28,6 +28,9 @@ for attempt in $(seq 1 80); do
     cp "$sim_data/Library/Caches/sanyuan-smoke.json" dist/simulator-smoke.json
     xcrun simctl io "$sim_device" screenshot dist/simulator-home.png
   fi
+  if [ -f "$sim_data/Library/Caches/sanyuan-discover-smoke.json" ]; then
+    cp "$sim_data/Library/Caches/sanyuan-discover-smoke.json" dist/simulator-discover-smoke.json
+  fi
   if [ -f "$sim_data/Library/Caches/sanyuan-playback-smoke.json" ]; then
     [ -f dist/simulator-playback-smoke.json ] || cp "$sim_data/Library/Caches/sanyuan-playback-smoke.json" dist/simulator-playback-smoke.json
     [ -f dist/simulator-playback.png ] || xcrun simctl io "$sim_device" screenshot dist/simulator-playback.png
@@ -35,9 +38,9 @@ for attempt in $(seq 1 80); do
   if [ -f "$sim_data/Library/Caches/sanyuan-live-smoke.json" ]; then
     cp "$sim_data/Library/Caches/sanyuan-live-smoke.json" dist/simulator-live-smoke.json
   fi
-  if [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ]; then
-    cat dist/simulator-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json
-    python3 -c 'import json; p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); assert p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["categoryActionReachedBridge"] and l["fastSwitchUpdatesWithoutRebuild"], l'
+  if [ -f dist/simulator-discover-smoke.json ] && [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ]; then
+    cat dist/simulator-smoke.json dist/simulator-discover-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json
+    python3 -c 'import json; d=json.load(open("dist/simulator-discover-smoke.json")); p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); assert d["nativeDiscoverPage"] and d["bottomNavigationItems"]>=5 and d["paginationCursorIsString"], d; assert p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["categoryActionReachedBridge"] and l["fastSwitchUpdatesWithoutRebuild"], l'
     exit 0
   fi
   if [ -f "$sim_data/Library/Caches/sanyuan-playback-error.json" ]; then
