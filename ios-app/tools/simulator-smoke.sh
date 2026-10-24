@@ -21,7 +21,7 @@ sim_arch="$(uname -m)"
 mkdir -p dist/simulator
 cp -R dist/Payload/Sanyuan.app dist/simulator/
 sim_app="$PWD/dist/simulator/Sanyuan.app"
-xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -target "$sim_arch-apple-ios15.0-simulator" -DSY_SIMULATOR_SMOKE=1 -fobjc-arc -fblocks -Oz Sources/main.m -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation -framework CoreMedia -framework Security -framework Network -framework JavaScriptCore -o "$sim_app/Sanyuan"
+xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -target "$sim_arch-apple-ios15.0-simulator" -DSY_SIMULATOR_SMOKE=1 -fobjc-arc -fblocks -Oz Sources/main.m -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore -o "$sim_app/Sanyuan"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
