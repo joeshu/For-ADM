@@ -19,9 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.8-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.9-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
 
-0.2.8 播放过程中遇到线路中断时自动检查备用地址，并按同一集切换备用线路；播放器反馈加载失败与播放中断状态。线路探测只更新状态提示，避免整页重复绘制。首页栏目与合集分组使用一致的横向浏览样式。
+0.2.9 收紧首页栏目卡片与选集布局，分类筛选默认折叠次要条件并记住展开状态；播放过程中遇到线路中断时自动检查备用地址，并按同一集切换备用线路；播放器反馈加载失败与播放中断状态。线路探测只更新状态提示，避免整页重复绘制。首页栏目与合集分组使用一致的横向浏览样式。
 
 0.2.7 参考 One 的公开界面截图重新整理主题与布局：首页、分类和片单采用浅色样式，影视详情改为沉浸深色封面与清晰的播放、收藏、简介、主演和选集分区。保留内嵌播放器及手动全屏选择，并同步切换 iOS 状态栏文字颜色。
 
@@ -57,7 +57,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.8-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.9-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

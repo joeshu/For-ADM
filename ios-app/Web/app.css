@@ -116,3 +116,14 @@ html[data-page="detail"] body{background:var(--bg);color:var(--text)}
 .detail-content .playerbox{box-shadow:0 9px 26px #0004}.playtoolbar .playing-title{font-size:12px;font-weight:600}.playback-section .route-card{min-width:104px;max-width:180px}.playback-section .episode{transition:background .14s ease,border-color .14s ease}.playback-section .episode:active{border-color:#88e1ce80}
 @media(min-width:650px){.grid{gap:28px 18px}.collection-shelf{grid-auto-columns:150px}.collection-group{padding-bottom:26px}.browse-heading .heading{font-size:26px}.detail-content .playerbox{margin-left:35px;margin-right:35px;border-radius:16px}}
 @media(prefers-reduced-motion:reduce){.card,.poster img,.episode{transition:none!important}}
+
+/* Compact the repeated browse controls while keeping touch targets clear. */
+.shelf{grid-auto-columns:clamp(98px,25.5vw,132px);gap:10px;padding-bottom:7px}.shelf .poster{aspect-ratio:2/2.75}
+.home-section .sectiontop{margin-top:15px;margin-bottom:8px}.home-section .card strong{font-size:12px;margin-top:7px}.home-section .card small{font-size:9px}
+.filter-expand{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:42px;margin-top:5px;border-top:1px solid #1118270c;color:#286bd3;font-size:12px;font-weight:650}.filter-expand span{font-size:14px}
+.filters .filterrow{padding:2px 0}.filters .filter-chip{min-height:40px;padding:8px 11px}.filters .filter-options{scrollbar-width:none}.filters .filter-label{padding-top:12px}
+.episode-pages{width:100%;min-height:44px;padding:0 10px;border-radius:11px;background:#ffffff0a}.episode-pages span{white-space:nowrap}.episode-pages select{flex:1;min-width:0;min-height:38px}
+.episodes{gap:8px}.episode{min-height:52px;padding:7px 4px;gap:3px}.episode-title{font-size:10px}.episode small{font-size:8px;line-height:1.2}
+.episode-pages select{min-height:40px}
+@media(min-width:650px){.shelf{grid-auto-columns:140px;gap:14px}.collection-shelf{grid-auto-columns:140px}.filters .filter-options{flex-wrap:wrap;overflow:visible}.episode{min-height:54px}.episode-title{font-size:11px}}
+@media(max-width:350px){.episodes{grid-template-columns:repeat(3,minmax(0,1fr))}.browse-heading .heading{font-size:21px}.filter-chip{padding-left:9px;padding-right:9px}}
