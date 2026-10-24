@@ -93,6 +93,7 @@ static NSMutableDictionary *SYPosterRequests;
 @property(nonatomic) BOOL smokePlaybackStarted;
 @property(nonatomic) BOOL smokeProxyActive;
 @property(nonatomic,strong) NSMutableDictionary*smokePlaybackDebug;
+@property(nonatomic,strong) NSMutableDictionary*smokeNavigationDebug;
 @property(nonatomic) NSInteger smokeLiveAttempts;
 @property(nonatomic) BOOL smokeLiveStarted;
 @property(nonatomic) NSUInteger smokeLiveSubviewsBeforeFast;
@@ -310,7 +311,9 @@ static NSMutableDictionary *SYPosterRequests;
       NSData*data=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
       NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-smoke.json"];
       [data writeToFile:path atomically:YES];
+      self.smokeNavigationDebug=[@{@"phase":@"home-smoke-passed"} mutableCopy];[self writeSmokeNavigationDebug];
       [self sendPageAction:@"page" payload:@{@"id":@"discover"}];
+      self.smokeNavigationDebug[@"phase"]=@"discover-action-sent";[self writeSmokeNavigationDebug];
       [self performSelector:@selector(runDiscoverSmoke) withObject:nil afterDelay:3];return;
     }
     if(self.smokeAttempts<30)[self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:2];
@@ -333,6 +336,7 @@ static NSMutableDictionary *SYPosterRequests;
   if(!self.smokePlayerReady&&self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:2];
 }
 - (void)writeSmokePlaybackDebug {if(!self.smokePlaybackDebug)return;NSData*data=[NSJSONSerialization dataWithJSONObject:self.smokePlaybackDebug options:NSJSONWritingPrettyPrinted error:NULL];if(data)[data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke-debug.json"] atomically:YES];}
+- (void)writeSmokeNavigationDebug {if(!self.smokeNavigationDebug)return;NSData*data=[NSJSONSerialization dataWithJSONObject:self.smokeNavigationDebug options:NSJSONWritingPrettyPrinted error:NULL];if(data)[data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-navigation-smoke-debug.json"] atomically:YES];}
 #endif
 - (void)viewDidLayoutSubviews {[super viewDidLayoutSubviews];self.web.frame=self.view.bounds;self.appScreen.view.frame=self.view.bounds;if(self.liveScreen)self.liveScreen.view.frame=self.view.bounds;}
 - (void)layoutPlayer:(NSDictionary*)frame {
@@ -454,7 +458,15 @@ static NSMutableDictionary *SYPosterRequests;
   NSDictionary*body=message.body;NSString*identifier=body[@"id"],*type=body[@"type"];
   if(![identifier isKindOfClass:NSString.class]||identifier.length>100)return;
   if([type isEqualToString:@"statusStyle"]){self.detailStatusStyle=[body[@"dark"] boolValue];[self setNeedsStatusBarAppearanceUpdate];return;}
-  if([type isEqualToString:@"pageState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.pageSnapshot=body[@"state"];if(NSThread.isMainThread)[self.appScreen applyState:self.pageSnapshot];else dispatch_async(SYMainQueue(),^{[self.appScreen applyState:self.pageSnapshot];});}return;}
+  if([type isEqualToString:@"pageState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.pageSnapshot=body[@"state"];
+#if defined(SY_SIMULATOR_SMOKE)
+    NSString*page=[self.pageSnapshot[@"page"] isKindOfClass:NSString.class]?self.pageSnapshot[@"page"]:@"unknown";self.smokeNavigationDebug=self.smokeNavigationDebug?:[NSMutableDictionary dictionary];self.smokeNavigationDebug[@"phase"]=[NSString stringWithFormat:@"%@-state-received",page];self.smokeNavigationDebug[@"page"]=page;self.smokeNavigationDebug[@"items"]=@([self.pageSnapshot[@"items"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"items"] count]:0);self.smokeNavigationDebug[@"groups"]=@([self.pageSnapshot[@"groups"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"groups"] count]:0);self.smokeNavigationDebug[@"sections"]=@([self.pageSnapshot[@"sections"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"sections"] count]:0);[self writeSmokeNavigationDebug];
+#endif
+    if(NSThread.isMainThread)[self.appScreen applyState:self.pageSnapshot];else dispatch_async(SYMainQueue(),^{[self.appScreen applyState:self.pageSnapshot];});
+#if defined(SY_SIMULATOR_SMOKE)
+    self.smokeNavigationDebug[@"phase"]=[NSString stringWithFormat:@"%@-state-%@",page,NSThread.isMainThread?@"applied":@"scheduled"];[self writeSmokeNavigationDebug];
+#endif
+  }return;}
   if([type isEqualToString:@"liveOpen"]){[self openLiveScreen];return;}
   if([type isEqualToString:@"liveClose"]){[self closeLiveScreen];return;}
   if([type isEqualToString:@"liveState"]||[type isEqualToString:@"liveStateFast"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.liveSnapshot=body[@"state"];if([type isEqualToString:@"liveStateFast"])[self.liveScreen applyFastState:self.liveSnapshot];else [self.liveScreen applyState:self.liveSnapshot];}return;}

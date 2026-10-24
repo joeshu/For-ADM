@@ -53,8 +53,13 @@ if [ -f "$sim_data/Library/Caches/sanyuan-playback-smoke-debug.json" ]; then
   cp "$sim_data/Library/Caches/sanyuan-playback-smoke-debug.json" dist/simulator-playback-debug.json
   cat dist/simulator-playback-debug.json >&2
 fi
+if [ -f "$sim_data/Library/Caches/sanyuan-navigation-smoke-debug.json" ]; then
+  cp "$sim_data/Library/Caches/sanyuan-navigation-smoke-debug.json" dist/simulator-navigation-debug.json
+  cat dist/simulator-navigation-debug.json >&2
+fi
 xcrun simctl spawn "$sim_device" log show --last 10m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log || true
 find "$sim_data/Library/Logs/CrashReporter" -type f -iname '*sanyuan*' -print -exec cat {} \; >> dist/simulator-system.log 2>/dev/null || true
+find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 2 -type f \( -iname '*sanyuan*' -o -iname '*com.joeshu.sanyuan*' \) -print -exec cat {} \; >> dist/simulator-system.log 2>/dev/null || true
 xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png || true
 printf '%s\n' 'Simulator did not start native media playback.' >&2
 exit 1
