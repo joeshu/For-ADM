@@ -14,7 +14,7 @@ function createM3UParser(playlistURL){
  const base=new URL(playlistURL),channels=[];let pending='',group='',epgUrl='',started=false;
  const addLine=raw=>{
  const line=raw.trim();if(!line)return;
-  if(/^#EXTM3U\b/i.test(line)){started=true;const value=attribute(line,'x-tvg-url');if(value){try{const url=new URL(value,base);if(url.protocol==='https:')epgUrl=url.href;}catch{}}return;}
+  if(/^#EXTM3U\b/i.test(line)){started=true;const value=attribute(line,'x-tvg-url');if(value){try{const url=new URL(value,base);if(['https:','http:'].includes(url.protocol))epgUrl=url.href;}catch{}}return;}
   if(!started)return;
   if(/^#EXTGRP:/i.test(line)){group=line.slice(line.indexOf(':')+1).trim()||'未分类';return;}
   if(/^#EXTINF:/i.test(line)){pending=line;group=attribute(line,'group-title')||group||'未分类';return;}
@@ -70,9 +70,9 @@ export function parseXMLTV(xml,channelId){
 }
 
 export function indexChannelAlternates(channels){
- const index=new Map();for(const channel of channels){if(!channel.secure)continue;const list=index.get(channel.identity)||[];list.push(channel);index.set(channel.identity,list);}return index;
+ const index=new Map();for(const channel of channels){const list=index.get(channel.identity)||[];list.push(channel);index.set(channel.identity,list);}return index;
 }
 export function channelAlternates(channels,channel,index){
  if(!channel)return [];
- return index?.get(channel.identity)||channels.filter(candidate=>candidate.secure&&candidate.identity===channel.identity);
+ return index?.get(channel.identity)||channels.filter(candidate=>candidate.identity===channel.identity);
 }

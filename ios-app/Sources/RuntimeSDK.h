@@ -66,6 +66,7 @@ __attribute__((objc_root_class))
 + (NSNumber*)numberWithBool:(BOOL)value;
 + (NSNumber*)numberWithDouble:(double)value;
 - (double)doubleValue;
+- (NSInteger)integerValue;
 - (NSString*)stringValue;
 @end
 @interface NSArray:NSObject
@@ -82,9 +83,11 @@ __attribute__((objc_root_class))
 - (void)removeObjectForKey:(id)key;
 @end
 @interface NSData:NSObject
++ (instancetype)dataWithContentsOfFile:(NSString*)path;
 @property(readonly) NSUInteger length;
 - (NSString*)base64EncodedStringWithOptions:(NSUInteger)options;
 - (instancetype)initWithBase64EncodedString:(NSString*)string options:(NSUInteger)options;
+- (BOOL)writeToFile:(NSString*)path atomically:(BOOL)atomically;
 @end
 @interface NSBundle:NSObject
 + (instancetype)mainBundle;
@@ -96,6 +99,7 @@ __attribute__((objc_root_class))
 @property(readonly) NSString*scheme;
 @property(readonly) NSString*host;
 @property(readonly) NSString*path;
+@property(readonly) NSNumber*port;
 @property(readonly) NSString*absoluteString;
 @property(readonly) BOOL isFileURL;
 @end
@@ -230,6 +234,7 @@ __attribute__((objc_root_class))
 @interface UIApplication:NSObject @end
 extern int UIApplicationMain(int,char**,NSString*,NSString*);
 extern NSString*NSStringFromClass(Class);
+extern NSString*NSHomeDirectory(void);
 @protocol WKScriptMessageHandler<NSObject>
 - (void)userContentController:(id)controller didReceiveScriptMessage:(id)message;
 @end

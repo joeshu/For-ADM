@@ -19,7 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.19-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.20-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+
+0.2.20 支持任意 HTTP/HTTPS M3U、EPG 和直播线路，界面标记 HTTP 未加密。导入的 M3U 保存在本机，打开直播时优先读取缓存，只有手动更新才重新请求。HTTP 只在直播列表、节目单和直播播放路径放行。
 
 0.2.19 将直播管理页迁至 UIKit，播放器顶栏固定；频道/分类/节目/线路、搜索、收藏和 M3U 导入仍复用现有数据逻辑。原生频道列表按批显示，减少大量频道重绘。
 
@@ -27,7 +29,7 @@
 
 0.2.15 按录屏完善直播页：固定播放区与四栏导航，增加返回、频道收藏、AirPlay、频道/EPG 详情、日期节目表和线路操作菜单；支持 iOS 系统播放器、VLC 外部播放及复制线路地址。系统播放器使用 iOS 自动硬件解码。
 
-0.2.14 新增直播栏目，自动导入指定 M3U 地址，提供频道分类、搜索与收藏、节目单及备用线路切换；HTTPS 频道交由 iOS 系统播放器播放，HTTP 频道会显示并停用。
+0.2.14 新增直播栏目，自动导入指定 M3U 地址，提供频道分类、搜索与收藏、节目单及备用线路切换；当时 HTTP 频道仅显示并停用，现已由 0.2.20 改为可播放。
 
 0.2.13 将详情页播放画面和线路控件固定在顶部，向下浏览时自动缩小播放画面以便选择线路与集数；首页、分类、发现与专题页面切换时复用已显示的页面节点，保留横向栏目位置，并把图片缓存控制在约 20 MB，减少重复图片加载和内存占用。
 
@@ -73,7 +75,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.19-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.20-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
