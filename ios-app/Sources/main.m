@@ -309,6 +309,12 @@ static NSMutableDictionary *SYPosterRequests;
   self.web.autoresizingMask=18;self.web.navigationDelegate=self;
   self.web.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.web];
   self.appScreen=[SYAppScreenController new];self.appScreen.owner=self;[self addChildViewController:self.appScreen];self.appScreen.view.frame=self.view.bounds;self.appScreen.view.autoresizingMask=18;[self.view addSubview:self.appScreen.view];[self.view sendSubviewToBack:self.web];[self.appScreen didMoveToParentViewController:self];[self.appScreen applyState:@{@"page":@"home"}];
+#if defined(SY_SIMULATOR_SMOKE)
+  NSString*liveFixturePath=[NSHomeDirectory() stringByAppendingPathComponent:@"Documents/sanyuan-live-cache.json"];
+  NSString*liveFixture=@"#EXTM3U\n#EXTINF:-1 tvg-id=\"SMOKE1\" group-title=\"模拟器频道\",检查频道一\nhttps://smoke.invalid/live/one.m3u8\n#EXTINF:-1 tvg-id=\"SMOKE2\" group-title=\"备用频道\",检查频道二\nhttps://smoke.invalid/live/two.m3u8\n";
+  NSData*liveFixtureData=[NSJSONSerialization dataWithJSONObject:@{@"url":@"https://smoke.invalid/interface.m3u",@"text":liveFixture} options:0 error:NULL];
+  if(liveFixtureData)[liveFixtureData writeToFile:liveFixturePath atomically:YES];
+#endif
   NSString*root=[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Web"];
   [self.web loadFileURL:[NSURL fileURLWithPath:[root stringByAppendingPathComponent:@"index.html"] isDirectory:NO]
     allowingReadAccessToURL:[NSURL fileURLWithPath:root isDirectory:YES]];
