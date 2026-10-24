@@ -56,6 +56,8 @@ static char SYPlaybackStatus;
 @property(nonatomic,strong) UIView*bottomBar;
 @property(nonatomic,strong) UILabel*titleLabel;
 @property(nonatomic,strong) UITextField*searchField;
+@property(nonatomic,strong) UITextField*accountField;
+@property(nonatomic,strong) UITextField*passwordField;
 - (void)applyState:(NSDictionary*)state;
 @end
 @interface SYController:UIViewController<WKNavigationDelegate>
