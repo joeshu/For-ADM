@@ -27,7 +27,7 @@ try{
  await page.locator('.home-section [data-act="collection-link"]').click();await page.locator('.collection-content .card').first().waitFor();
  assert.equal(await page.locator('.collection-content .card').count(),12);
  await page.locator('[data-act="more"]').click();await page.waitForFunction(()=>document.querySelectorAll('.collection-content .card').length===13);
- await page.locator('.collection-content .card').first().click();await page.locator('.detailcover').waitFor();
+ await page.locator('.collection-content .card').first().click();await page.locator('.detail-hero').waitFor();
  await page.locator('[data-act="back"]').click();assert.equal(await page.locator('.collection-content .card').count(),13);
  await page.locator('[data-act="collection-back"]').click();assert.ok(await page.locator('.shelf').evaluate(row=>row.scrollLeft)>0);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-home.png'});
@@ -41,7 +41,13 @@ try{
  await page.getByLabel('海报分栏',{exact:true}).selectOption('2');assert.equal(await page.locator('html').getAttribute('data-columns'),'2');
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-filters.png'});
  await page.locator('[data-act="filters-reset"]').click();await page.waitForFunction(()=>!document.querySelector('.selected-filters')&&document.querySelectorAll('.card').length>0);
- await page.locator('.card').first().click();await page.locator('.route-card').first().waitFor();
+ await page.evaluate(()=>window.scrollTo(0,250));const returnY=await page.evaluate(()=>window.scrollY);
+ await page.locator('.card').first().evaluate(el=>el.click());await page.locator('.route-card').first().waitFor();
+ assert.ok(await page.locator('.detailtop-title').isVisible());
+ await page.evaluate(()=>window.scrollTo(0,500));assert.ok(await page.locator('.detailtop').evaluate(el=>Math.abs(el.getBoundingClientRect().top)<2));
+ await page.locator('[data-act="back"]').click();await page.locator('.browse-heading').waitFor();await page.evaluate(()=>new Promise(requestAnimationFrame));
+ assert.ok(await page.evaluate(y=>Math.abs(window.scrollY-y)<3,returnY));
+ await page.locator('.card').first().evaluate(el=>el.click());await page.locator('.route-card').first().waitFor();
  await page.locator('[data-act="episode"][data-id="1"]').click();await page.locator('#video').waitFor();
  await page.getByLabel('切换播放源',{exact:true}).selectOption('1');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/c.m3u8'));
  assert.match(await page.locator('.episode.active').innerText(),/第2集/);
@@ -53,5 +59,5 @@ try{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'horizontal overflow at '+width);
  }
  assert.deepEqual(errors,[]);
- console.log('Usability passed: horizontal shelves, real section lists and pagination, return-position restoration, compact source row, category-scoped filters, reset, column layout, same-episode switching with reordered sources, 320–1024px layout.');
+ console.log('Usability passed: horizontal shelves, real section lists and pagination, detail/player sticky header, origin-page and scroll restoration, compact source row, category-scoped filters, reset, column layout, same-episode switching with reordered sources, 320–1024px layout.');
 }finally{await browser.close();}

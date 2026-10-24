@@ -145,3 +145,10 @@ html[data-page="discover"] .bottomnav{width:min(560px,calc(100% - 10px));padding
 html[data-page="discover"] .bottomnav .nav-item{color:#e1e2e7;font-size:10px}.bottomnav .nav-item.active .nav-icon{background:transparent}
 html[data-page="discover"] .bottomnav .nav-item.active{background:transparent;color:#ffe000}.discover-page .notice{background:#232631;color:#d2d3d9}.discover-page .notice h3{color:#fff}
 @media(max-width:370px){.discover-tabs{padding-left:8px;padding-right:8px}.discover-tabs button{min-width:62px;font-size:12px}.timeline-years{gap:15px}.bottomnav .nav-label{font-size:9px}}
+
+/* Keep the detail/player controls reachable while scrolling and identify the current playback. */
+.detail-shell .detailtop{position:sticky;top:0;height:calc(58px + env(safe-area-inset-top));margin-bottom:calc(-58px - env(safe-area-inset-top));padding:calc(8px + env(safe-area-inset-top)) 18px 8px;background:linear-gradient(#071211b8,transparent);transition:background-color .16s ease,backdrop-filter .16s ease}
+.detail-shell .detailtop.scrolled{background:#0b101af2;border-bottom:1px solid #ffffff10;backdrop-filter:blur(18px)}
+.detail-shell .detailtop-title{flex:1;min-width:0;padding:0 10px;color:#f3f7f5;font-size:12px;font-weight:650;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 8px #0008}
+.detail-shell .detailtop .iconbutton{flex:0 0 42px}
+@media(prefers-reduced-motion:reduce){.detail-shell .detailtop{transition:none}}
