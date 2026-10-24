@@ -54,6 +54,7 @@ __attribute__((objc_root_class))
 + (Class)class;
 - (instancetype)init;
 - (BOOL)isKindOfClass:(Class)cls;
+- (BOOL)isEqual:(id)object;
 - (BOOL)respondsToSelector:(SEL)selector;
 - (NSString*)description;
 - (void)addObserver:(NSObject*)observer forKeyPath:(NSString*)keyPath options:(NSUInteger)options context:(void*)context;
@@ -92,6 +93,7 @@ __attribute__((objc_root_class))
 @interface NSDictionary:NSObject
 + (instancetype)dictionaryWithObjects:(const id[])objects forKeys:(const id[])keys count:(NSUInteger)count;
 - (id)objectForKeyedSubscript:(id)key;
+@property(readonly) NSUInteger count;
 @end
 @interface NSMutableDictionary:NSDictionary
 + (instancetype)dictionary;
