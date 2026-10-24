@@ -127,3 +127,11 @@ html[data-page="detail"] body{background:var(--bg);color:var(--text)}
 .episode-pages select{min-height:40px}
 @media(min-width:650px){.shelf{grid-auto-columns:140px;gap:14px}.collection-shelf{grid-auto-columns:140px}.filters .filter-options{flex-wrap:wrap;overflow:visible}.episode{min-height:54px}.episode-title{font-size:11px}}
 @media(max-width:350px){.episodes{grid-template-columns:repeat(3,minmax(0,1fr))}.browse-heading .heading{font-size:21px}.filter-chip{padding-left:9px;padding-right:9px}}
+
+/* Keep the One-style tab capsule mounted while pages change. */
+#bottomnav[hidden]{display:none!important}
+.bottomnav{left:50%;right:auto;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(440px,calc(100% - 28px));min-height:72px;padding:7px 8px;background:#fffffff5;border:1px solid #dfe2e9;border-radius:32px;box-shadow:0 8px 28px #1b27351c;backdrop-filter:blur(24px);gap:4px;justify-content:space-between}
+.bottomnav .nav-item{flex:1;min-width:0;min-height:56px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;padding:4px 2px;border-radius:24px;color:#343740;font-size:10px;transition:background-color .16s ease,color .16s ease}
+.bottomnav .nav-item.active{color:#1768df;background:#e9ebef}.bottomnav .nav-icon{width:30px;height:28px;display:grid;place-items:center}.bottomnav .nav-icon .icon{width:23px;height:23px;stroke-width:1.9}.bottomnav .nav-item.active .icon{stroke-width:2.2}.bottomnav .nav-label{line-height:14px;font-weight:500}
+@media(min-width:650px){.bottomnav{gap:4px;justify-content:space-between}.bottomnav .nav-item{min-width:0;max-width:108px}}
+@media(prefers-reduced-motion:reduce){.bottomnav .nav-item{transition:none}}
