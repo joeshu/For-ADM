@@ -22,6 +22,10 @@ try{
  });
  await page.goto('http://127.0.0.1:4173/');
  await page.locator('.hero').waitFor();
+ assert.equal(await page.locator('#bottomnav .nav-item').count(),5);
+ assert.equal(await page.locator('#bottomnav').innerText().then(text=>text.includes('游戏')),false);
+ await page.evaluate(()=>window.NativePageAction('page','games'));
+ assert.equal(await page.locator('html').getAttribute('data-page'),'home');
  await page.locator('[data-act="hero-pick"][data-id="1"]').click();assert.match(await page.locator('.hero h1').innerText(),/测试影片2/);
  assert.equal(await page.locator('.home-section .card').count(),12);
  assert.equal(await page.locator('.shelf').evaluate(row=>row.scrollWidth>row.clientWidth),true);

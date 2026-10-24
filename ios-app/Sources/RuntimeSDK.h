@@ -198,6 +198,7 @@ extern CGFloat UIFontWeightMedium;
 @property UIEdgeInsets safeAreaInsets;
 @property NSUInteger autoresizingMask;
 @property BOOL hidden;
+@property BOOL userInteractionEnabled;
 @property(strong) UIColor*backgroundColor;
 @property BOOL clipsToBounds;
 @property(readonly) CALayer*layer;
