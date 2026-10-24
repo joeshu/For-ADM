@@ -22,6 +22,7 @@ try{
  });
  await page.goto('http://127.0.0.1:4173/');
  await page.locator('.hero').waitFor();
+ assert.equal(await page.locator('.sources button').evaluateAll(buttons=>buttons.every(button=>button.scrollWidth<=button.clientWidth)),true);
  assert.equal(await page.locator('#bottomnav .nav-item').count(),5);
  assert.equal(await page.locator('#bottomnav').innerText().then(text=>text.includes('游戏')),false);
  await page.evaluate(()=>window.NativePageAction('page','games'));
@@ -72,7 +73,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('.episode')?.getBoundingClientRect().bottom<innerHeight,undefined,{timeout:5000});
  assert.ok(await page.locator('.route-card').first().evaluate(card=>card.getBoundingClientRect().height)<65);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-lines.png'});
- await page.locator('[data-act="back"]').evaluate(button=>button.click());await page.waitForFunction(()=>document.documentElement.dataset.page==='browse',{timeout:5000});
+ await page.locator('[data-act="back"]').evaluate(button=>button.click());await page.waitForTimeout(500);await page.waitForFunction(()=>document.documentElement.dataset.page==='browse',{timeout:5000});
  await page.locator('[data-act="page"][data-id="live"]').click();await page.locator('.live-channel-list').waitFor();
  assert.equal(await page.locator('.live-channel-row').count(),2);assert.match(await page.locator('.live-now-copy').innerText(),/CCTV1综合/);
  await page.locator('.live-channel-row').nth(1).locator('[data-act="live-channel"]').click();await page.locator('#live-video').waitFor();

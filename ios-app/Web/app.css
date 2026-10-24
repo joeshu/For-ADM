@@ -226,3 +226,4 @@ html[data-theme="white"] .detail-content .playtoolbar select{background:#f0f2f6;
 html[data-theme="white"] .detail-content .native-card{background:radial-gradient(ellipse at center,#e6edf1,#f3f4f8)}
 html[data-theme="white"] .detail-content .notice{background:#fff;color:#666e7e}
 html[data-theme="white"] .detail-content .notice h3{color:#202431}
+.sources{overflow-x:auto;scrollbar-width:none}.sources::-webkit-scrollbar{display:none}.sources button{flex:1 0 auto;min-width:96px;white-space:nowrap;padding-left:12px;padding-right:12px}.discover-sources button{white-space:nowrap}
