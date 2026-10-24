@@ -33,6 +33,8 @@ static char SYPlaybackStatus;
 @property(nonatomic,strong) AVPlayerItem*nativeItem;
 @property(nonatomic,strong) id timeObserver;
 @property(nonatomic,strong) id endObserver;
+@property(nonatomic,strong) id stalledObserver;
+@property(nonatomic,strong) id failedObserver;
 @property(nonatomic,copy) NSString*playContext;
 @property(nonatomic) BOOL detailStatusStyle;
 #if defined(SY_SIMULATOR_SMOKE)
@@ -128,6 +130,8 @@ static char SYPlaybackStatus;
 }
 - (void)stopNativePlayback {
   if(self.nativeItem){[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];self.nativeItem=nil;}
+  if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
+  if(self.failedObserver){[NSNotificationCenter.defaultCenter removeObserver:self.failedObserver];self.failedObserver=nil;}
   if(self.timeObserver){[self.nativePlayer.player removeTimeObserver:self.timeObserver];self.timeObserver=nil;}
   if(self.endObserver){[NSNotificationCenter.defaultCenter removeObserver:self.endObserver];self.endObserver=nil;}
   [self.nativePlayer.player pause];self.nativePlayer.player=nil;[self.nativePlayer willMoveToParentViewController:nil];[self.nativePlayer.view removeFromSuperview];[self.nativePlayer removeFromParentViewController];self.nativePlayer=nil;
@@ -197,6 +201,9 @@ static char SYPlaybackStatus;
     SYPlayerViewController*player=[SYPlayerViewController new];self.nativePlayer=player;
     player.entersFullScreenWhenPlaybackBegins=NO;player.exitsFullScreenWhenPlaybackEnds=NO;player.delegate=player;player.updatesNowPlayingInfoCenter=YES;player.allowsPictureInPicturePlayback=YES;player.canStartPictureInPictureAutomaticallyFromInline=YES;player.videoGravity=AVLayerVideoGravityResizeAspect;
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];self.nativeItem=item;item.preferredForwardBufferDuration=6;item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
+    __weak SYController*weakOwner=self;__weak AVPlayerItem*weakItem=item;
+    self.stalledObserver=[NSNotificationCenter.defaultCenter addObserverForName:AVPlayerItemPlaybackStalledNotification object:item queue:SYMainQueue() usingBlock:^(id note){SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];[owner stopNativePlayback];}];
+    self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:SYMainQueue() usingBlock:^(id note){SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];[owner stopNativePlayback];}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
     player.player=[AVPlayer playerWithPlayerItem:item];[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];

@@ -101,3 +101,18 @@ html[data-page="detail"] body{background:var(--bg);color:var(--text)}
 #toast{color:#fff}
 @media(min-width:650px){.top{padding-left:35px;padding-right:35px}.content{padding-left:35px;padding-right:35px}.detail-content{padding:0 0 28px}.detail-hero{min-height:580px;height:min(78vh,720px);height:min(78svh,720px)}.detail-hero-copy{padding:34px 42px 38px}.detail-section{margin-left:35px;margin-right:35px;padding:22px 24px}.detail-tags{padding-left:35px;padding-right:35px}.detail-shell .detailtop{padding-left:30px;padding-right:30px}}
 @media(max-width:380px){.detail-hero{min-height:455px}.detail-hero-copy{padding-left:18px;padding-right:18px}.detail-actions{gap:6px}.detail-actions button{font-size:12px}.detail-favorite,.detail-secondary-action{padding:0 11px}.detail-section{margin-left:13px;margin-right:13px;padding:15px 13px}}
+
+/* Tighten the shared browsing rhythm and make grouped collections scan quickly. */
+.grid{align-items:start;gap:23px 14px}
+.card{border-radius:13px;transition:transform .16s ease,opacity .16s ease}.card:active{transform:scale(.975);opacity:.88}
+.poster{border-radius:14px;box-shadow:0 4px 14px #202b3d12}.poster img{transition:transform .28s ease}.card:active .poster img{transform:scale(1.025)}
+.card strong{font-size:13px;font-weight:600;line-height:1.45;margin-top:9px}.card small{font-size:10px;line-height:1.5;margin-top:3px}
+.browse-heading{margin:8px 0 3px;align-items:center}.browse-heading .heading{font-size:23px;margin:15px 0 12px}.density-control{padding:5px 8px;border-radius:11px;background:#fff;box-shadow:0 2px 9px #19223a09}.density-control select{border:0;background:transparent}
+.filters{border-radius:17px;padding:9px 13px 13px}.filter-heading strong{color:#202431}.results-status{padding:3px 2px 9px;min-height:27px;font-size:11px}
+.collection-content>.heading{font-size:24px;margin-top:21px}.collection-group{padding:0 0 19px;border-bottom:1px solid #18233a0d}.collection-group .sectiontop{margin:20px 0 12px}.collection-group .sectiontop h2{font-size:16px;font-weight:700;color:#262b38}.collection-shelf{grid-auto-columns:clamp(112px,30vw,150px);padding-bottom:8px}.collection-shelf .card{scroll-snap-align:start}
+.tabbar{gap:8px;border:0;background:#e9ebf1;padding:4px;border-radius:14px}.tabbar button{flex:1;text-align:center;border:0;border-radius:11px;padding:11px 8px}.tabbar button.active{background:#fff;box-shadow:0 2px 8px #16213a12}
+.settinggroup{border-radius:18px;padding:19px}.settinggroup h3{font-size:15px;color:#202431}.settinggroup p{line-height:1.8}.layout-options .chip{min-height:42px}.home-section .sectiontop h2{font-size:17px}.textbutton{font-weight:600}
+.detail-hero{background-color:#0b1917}
+.detail-content .playerbox{box-shadow:0 9px 26px #0004}.playtoolbar .playing-title{font-size:12px;font-weight:600}.playback-section .route-card{min-width:104px;max-width:180px}.playback-section .episode{transition:background .14s ease,border-color .14s ease}.playback-section .episode:active{border-color:#88e1ce80}
+@media(min-width:650px){.grid{gap:28px 18px}.collection-shelf{grid-auto-columns:150px}.collection-group{padding-bottom:26px}.browse-heading .heading{font-size:26px}.detail-content .playerbox{margin-left:35px;margin-right:35px;border-radius:16px}}
+@media(prefers-reduced-motion:reduce){.card,.poster img,.episode{transition:none!important}}

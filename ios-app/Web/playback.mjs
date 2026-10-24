@@ -25,9 +25,9 @@ export async function verifyMedia(client,url,signal){
  const text=playlist(response);
  if(text.includes('#EXT-X-STREAM-INF:')){const next=text.split(/\r?\n/).find(x=>x.trim()&&!x.startsWith('#'));const child=next&&safeHTTPS(new URL(next.trim(),response.url||url).href);if(!child)throw new MediaError('视频清单缺少有效子线路');playlist(await mediaRequest(client,child,signal));}
 }
-export async function resolvePlayableEpisode(client,detail,lineIndex,episodeIndex,signal,onAttempt=()=>{}){
+export async function resolvePlayableEpisode(client,detail,lineIndex,episodeIndex,signal,onAttempt=()=>{},{excludedSites=[],excludedLines=[]}={}){
  const lines=detail.playSources||[],original=lines[lineIndex],requested=original?.list?.[episodeIndex];if(!requested)throw new MediaError('未找到选集');
- const preferred=lines.findIndex(x=>x.siteId===client.preferredPlaybackSiteId),order=[...new Set([lineIndex,preferred,...lines.map((_,i)=>i)].filter(i=>i>=0))].slice(0,5),badHosts=new Set();let last;
+ const preferred=lines.findIndex(x=>x.siteId===client.preferredPlaybackSiteId),order=[...new Set([lineIndex,preferred,...lines.map((_,i)=>i)].filter(i=>i>=0))].filter(i=>!excludedLines.includes(i)&&!excludedSites.includes(lines[i]?.siteId)).slice(0,5),badHosts=new Set();let last;
  for(const index of order){
   if(signal?.aborted)throw new DOMException('请求取消','AbortError');const line=lines[index];onAttempt(line.name||'播放线路');
   try{

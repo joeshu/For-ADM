@@ -241,6 +241,7 @@ extern NSString*NSStringFromClass(Class);
 @property(copy) NSString*videoGravity;
 @end
 extern NSString*const AVLayerVideoGravityResizeAspect;
+extern NSString*const AVPlayerItemPlaybackStalledNotification;
 extern NSString*const AVAudioSessionCategoryPlayback;
 extern NSString*const AVAudioTimePitchAlgorithmTimeDomain;
 extern NSString*const AVMetadataCommonIdentifierTitle;
