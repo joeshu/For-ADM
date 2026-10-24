@@ -221,6 +221,7 @@ extern NSString*NSStringFromClass(Class);
 @end
 @interface AVPlayer:NSObject
 + (instancetype)playerWithPlayerItem:(AVPlayerItem*)item;
+- (void)replaceCurrentItemWithPlayerItem:(AVPlayerItem*)item;
 - (void)play;
 - (void)pause;
 @property float rate;

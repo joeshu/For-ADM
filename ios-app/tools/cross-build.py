@@ -39,7 +39,7 @@ else:
     for provider in groups:
         link+=['-l'+provider] if provider in ('System','objc') else ['-framework',provider]
     subprocess.run(link,check=True);os.chmod(app/'Sanyuan',0o755)
-info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.2.15',CFBundleVersion='17',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsLocalNetworking':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
+info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.2.16',CFBundleVersion='18',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsLocalNetworking':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
 info['UIBackgroundModes']=['audio']
 info['UIApplicationSceneManifest']={'UIApplicationSupportsMultipleScenes':False,'UISceneConfigurations':{'UIWindowSceneSessionRoleApplication':[{'UISceneConfigurationName':'Default Configuration','UISceneDelegateClassName':'SYSceneDelegate'}]}}
 info['CFBundleIcons~ipad']={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon76x76','AppIcon83.5x83.5']}}
@@ -51,7 +51,7 @@ for icon in (root/'Resources').glob('*.png') if (root/'Resources').exists() else
 metadata=inspect((app/'Sanyuan').read_bytes())
 assert metadata['cpu']==0x100000c and metadata['kind']==2 and metadata['platform'][0]==2 and not metadata['signed']
 assert not (app/'embedded.mobileprovision').exists() and not (app/'_CodeSignature').exists()
-ipa=out/'Sanyuan-0.2.15-unsigned.ipa'
+ipa=out/'Sanyuan-0.2.16-unsigned.ipa'
 with zipfile.ZipFile(ipa,'w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted((out/'Payload').rglob('*')):
         if f.is_file():z.write(f,f.relative_to(out))

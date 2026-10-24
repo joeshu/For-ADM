@@ -16,6 +16,7 @@ export const NativeTransport={
   async play(url,headers={},options={}){if(native())return post('play',{url,headers,...options});return false;},
   async copyText(text){if(native())return post('copyText',{text});await navigator.clipboard.writeText(text);return {ok:true};},
   async openExternal(url){if(native())return post('openExternal',{url});throw Error('外部播放器仅在 iPhone 原生 App 中可用');},
+  stopLive(){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'live-stop',type:'stopLive'});},
   showAirPlay(frame){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'airplay',type:'airplay',frame});},
   layoutPlayer(context,frame){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:"layout",type:"playerLayout",context,frame});},
   statusStyle(dark){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:"theme",type:"statusStyle",dark:!!dark});},
