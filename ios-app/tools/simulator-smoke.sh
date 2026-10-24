@@ -46,6 +46,8 @@ for attempt in $(seq 1 80); do
   fi
   sleep 2
 done
+xcrun simctl spawn "$sim_device" log show --last 10m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log || true
+find "$sim_data/Library/Logs/CrashReporter" -type f -iname '*sanyuan*' -print -exec cat {} \; >> dist/simulator-system.log 2>/dev/null || true
 xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png || true
 printf '%s\n' 'Simulator did not start native media playback.' >&2
 exit 1

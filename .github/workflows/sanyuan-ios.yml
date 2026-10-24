@@ -49,4 +49,5 @@ jobs:
             ios-app/dist/simulator-playback*.json
             ios-app/dist/simulator-live-smoke.json
             ios-app/dist/simulator-failure.png
+            ios-app/dist/simulator-system.log
           if-no-files-found: error

@@ -29,3 +29,19 @@ do {
 } catch {
     print("::error title=Simulator screenshot OCR::\(error.localizedDescription)")
 }
+
+let logPath = "dist/simulator-system.log"
+if let logs = try? String(contentsOfFile: logPath, encoding: .utf8) {
+    let matches = logs.split(separator: "\n").filter { line in
+        let text = line.lowercased()
+        return ["sanyuan", "exception", "terminating", "crash", "abort", "dyld", "failed", "error"].contains { text.contains($0) }
+    }
+    let summary = matches.suffix(14).joined(separator: " | ")
+        .replacingOccurrences(of: "%", with: "%25")
+        .replacingOccurrences(of: "\r", with: "%0D")
+        .replacingOccurrences(of: "\n", with: "%0A")
+    if !summary.isEmpty {
+        print("SIMULATOR_APP_LOG: \(summary)")
+        print("::error title=Simulator app log::\(String(summary.prefix(900)))")
+    }
+}
