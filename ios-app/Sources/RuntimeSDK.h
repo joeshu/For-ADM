@@ -16,6 +16,7 @@ typedef struct {long long value;int timescale;unsigned int flags;long long epoch
 extern CMTime CMTimeMakeWithSeconds(double,int);
 extern double CMTimeGetSeconds(CMTime);
 typedef long NSInteger;
+typedef void* SEL;
 typedef NSInteger UIStatusBarStyle;
 typedef NSInteger WKNavigationActionPolicy;
 typedef double CGFloat;
@@ -24,9 +25,14 @@ typedef signed char BOOL;
 #define NO ((BOOL)0)
 #define nil ((id)0)
 #define NULL ((void*)0)
+#define UIControlEventTouchUpInside (1UL<<6)
+#define UIControlStateNormal 0
+#define UIControlStateSelected 4
 typedef struct {CGFloat x,y;} CGPoint;
 typedef struct {CGFloat width,height;} CGSize;
 typedef struct {CGPoint origin;CGSize size;} CGRect;
+#define CGRectMake(x,y,w,h) ((CGRect){{(x),(y)},{(w),(h)}})
+#define CGSizeMake(w,h) ((CGSize){(w),(h)})
 typedef NSUInteger NSStringEncoding;
 enum {NSUTF8StringEncoding=4};
 @class NSString,NSArray,NSDictionary,NSData,NSURL,NSError;
@@ -52,6 +58,7 @@ __attribute__((objc_root_class))
 - (BOOL)hasPrefix:(NSString*)prefix;
 - (NSString*)lowercaseString;
 - (NSString*)stringByStandardizingPath;
+- (NSString*)substringFromIndex:(NSUInteger)index;
 @end
 @interface NSNumber:NSObject
 + (NSNumber*)numberWithInt:(int)value;
@@ -59,6 +66,7 @@ __attribute__((objc_root_class))
 + (NSNumber*)numberWithBool:(BOOL)value;
 + (NSNumber*)numberWithDouble:(double)value;
 - (double)doubleValue;
+- (NSString*)stringValue;
 @end
 @interface NSArray:NSObject
 + (instancetype)arrayWithObjects:(const id[])objects count:(NSUInteger)count;
@@ -131,27 +139,72 @@ __attribute__((objc_root_class))
 @end
 @interface UIColor:NSObject
 + (UIColor*)colorWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha;
++ (UIColor*)whiteColor;
++ (UIColor*)blackColor;
++ (UIColor*)systemBlueColor;
+@end
+@interface UIFont:NSObject
++ (instancetype)systemFontOfSize:(CGFloat)size;
++ (instancetype)boldSystemFontOfSize:(CGFloat)size;
 @end
 @interface UIView:NSObject
+- (instancetype)initWithFrame:(CGRect)frame;
 @property CGRect frame;
 @property CGRect bounds;
 @property NSUInteger autoresizingMask;
 @property(strong) UIColor*backgroundColor;
+@property BOOL clipsToBounds;
+@property(readonly) NSArray*subviews;
 - (void)addSubview:(UIView*)view;
 - (void)removeFromSuperview;
 - (CGRect)convertRect:(CGRect)rect toView:(UIView*)view;
 @end
-@interface UIScrollView:UIView @end
+@interface UIControl:UIView
+@property BOOL enabled;
+@property BOOL selected;
+- (void)addTarget:(id)target action:(SEL)action forControlEvents:(NSUInteger)events;
+@end
+@interface UILabel:UIView
+@property(copy) NSString*text;
+@property(strong) UIFont*font;
+@property(strong) UIColor*textColor;
+@property NSInteger numberOfLines;
+@property NSInteger textAlignment;
+@end
+@interface UIButton:UIControl
+@property(readonly) UILabel*titleLabel;
++ (instancetype)buttonWithType:(NSInteger)type;
+- (void)setTitle:(NSString*)title forState:(NSUInteger)state;
+- (void)setTitleColor:(UIColor*)color forState:(NSUInteger)state;
+@end
+@interface UITextField:UIControl
+@property(copy) NSString*text;
+@property(copy) NSString*placeholder;
+@property(strong) UIFont*font;
+@property(strong) UIColor*textColor;
+@property NSInteger borderStyle;
+@property NSInteger keyboardType;
+@property NSInteger clearButtonMode;
+@end
+@interface UIScrollView:UIView
+@property CGSize contentSize;
+@property BOOL showsVerticalScrollIndicator;
+@property BOOL showsHorizontalScrollIndicator;
+@property BOOL alwaysBounceVertical;
+@end
 @interface UIViewController:NSObject
 @property(strong) UIView*view;
 @property(readonly) UIViewController*parentViewController;
 @property(readonly) UIViewController*presentedViewController;
+@property NSInteger modalPresentationStyle;
+@property(readonly) UIStatusBarStyle preferredStatusBarStyle;
 - (void)addChildViewController:(UIViewController*)controller;
 - (void)willMoveToParentViewController:(UIViewController*)controller;
 - (void)didMoveToParentViewController:(UIViewController*)controller;
 - (void)removeFromParentViewController;
 - (void)viewDidLoad;
 - (void)viewDidLayoutSubviews;
+- (void)setNeedsStatusBarAppearanceUpdate;
 - (void)viewDidDisappear:(BOOL)animated;
 - (void)viewDidAppear:(BOOL)animated;
 - (void)dismissViewControllerAnimated:(BOOL)animated completion:(void(^)(void))completion;
@@ -240,6 +293,11 @@ extern NSString*NSStringFromClass(Class);
 @property BOOL updatesNowPlayingInfoCenter;
 @property BOOL canStartPictureInPictureAutomaticallyFromInline;
 @property(copy) NSString*videoGravity;
+@end
+@interface AVRoutePickerView:UIView
+@property(strong) UIColor*activeTintColor;
+@property(strong) UIColor*tintColor;
+- (instancetype)initWithFrame:(CGRect)frame;
 @end
 extern NSString*const AVLayerVideoGravityResizeAspect;
 extern NSString*const AVPlayerItemPlaybackStalledNotification;

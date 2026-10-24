@@ -19,9 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.17-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.18-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
 
-0.2.17 优化直播：M3U 大列表分批解析并可取消，预建频道备用线路索引；节目单请求随频道切换取消；播放器视图脱离 WebKit 滚动容器，并在频道与线路切换时复用。重绘会保留直播横向栏目位置。
+0.2.18 将直播管理页迁至 UIKit，播放器顶栏固定；频道/分类/节目/线路、搜索、收藏和 M3U 导入仍复用现有数据逻辑。原生频道列表按批显示，减少大量频道重绘。
 
 0.2.16 修复直播备用线路切换时重建播放器造成的闪屏。同一频道的线路复用播放会话，在原生 AVPlayer 上替换媒体项；源出错等待自动切换期间保留播放器视图。
 
@@ -73,7 +73,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.17-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.18-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
