@@ -1,5 +1,8 @@
 #import "RuntimeSDK.h"
 #import "HLSProxy.h"
+#if defined(SY_SIMULATOR_SMOKE)
+#import <CoreFoundation/CFByteOrder.h>
+#endif
 @class SYController;
 static char SYPlaybackStatus;
 static NSMutableDictionary *SYPosterImageCache;
@@ -87,6 +90,7 @@ static NSMutableDictionary *SYPosterRequests;
 #if defined(SY_SIMULATOR_SMOKE)
 @property(nonatomic) NSInteger smokeAttempts;
 @property(nonatomic) BOOL smokePlayerReady;
+@property(nonatomic) BOOL smokePlaybackStarted;
 @property(nonatomic) BOOL smokeProxyActive;
 @property(nonatomic) NSInteger smokeLiveAttempts;
 @property(nonatomic) BOOL smokeLiveStarted;
@@ -323,15 +327,16 @@ static NSMutableDictionary *SYPosterRequests;
   [self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:2];
 }
 - (void)runPlaybackSmoke {
-  [self.web evaluateJavaScript:@"(()=>{const hero=document.querySelector('.hero [data-act=detail]');if(hero){hero.click();return;}const episode=document.querySelector('[data-act=episode]');if(episode&&!window.__sanyuanSmokePlaying){window.__sanyuanSmokePlaying=true;episode.click();}})()" completionHandler:nil];
+  if(!self.hlsProxy.port){if(self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:1];return;}
+  if(!self.smokePlaybackStarted){self.smokePlaybackStarted=YES;[self.web evaluateJavaScript:@"(()=>{if(!window.NativeTransport)return;window.NativeTransport.syncPage({page:'detail',theme:'white',site:'smoke',siteName:'模拟器检查',movie:{id:'1',title:'原生播放器检查',metadata:'本地测试媒体',actors:[],summary:'',imageURLs:[]},playSources:[],line:0,episode:{title:'静音测试',index:0},playURLs:[{url:'https://smoke.invalid/silence.m3u8'}],playIndex:0,loading:false});return window.NativeTransport.play('https://smoke.invalid/silence.m3u8',{}, {context:'smoke:playback',cleanHLS:true,frame:{visible:true,x:0,y:360,width:390,height:220,viewportWidth:390},title:'原生播放器检查'});})()" completionHandler:nil];}
   if(!self.smokePlayerReady&&self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:2];
 }
 #endif
 - (void)viewDidLayoutSubviews {[super viewDidLayoutSubviews];self.web.frame=self.view.bounds;self.appScreen.view.frame=self.view.bounds;if(self.liveScreen)self.liveScreen.view.frame=self.view.bounds;}
 - (void)layoutPlayer:(NSDictionary*)frame {
   if(!self.nativePlayer||self.nativePlayer.fullScreen)return;
-  if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;[self.liveScreen.playerHost bringSubviewToFront:self.liveScreen.routePicker];return;}
-  if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){self.nativePlayer.view.frame=self.appScreen.playerHost.bounds;[self.appScreen.playerHost addSubview:self.nativePlayer.view];return;}
+  if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;[self.liveScreen.playerHost bringSubviewToFront:self.liveScreen.routePicker];return;}
+  if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){[self.appScreen.view setNeedsLayout];[self.appScreen.view layoutIfNeeded];self.nativePlayer.view.frame=self.appScreen.playerHost.bounds;[self.appScreen.playerHost addSubview:self.nativePlayer.view];return;}
   if(![frame[@"visible"] boolValue]){
     if(!self.nativePlayer.pictureInPicture)[self stopNativePlayback];
     return;
@@ -358,6 +363,14 @@ static NSMutableDictionary *SYPosterRequests;
  if(screen){[screen willMoveToParentViewController:nil];[screen.view removeFromSuperview];[screen removeFromParentViewController];}self.appScreen.view.hidden=NO;[self setNeedsStatusBarAppearanceUpdate];
 }
 - (UIStatusBarStyle)preferredStatusBarStyle {if(self.liveScreen)return [self.liveSnapshot[@"theme"] isEqualToString:@"black"]?1:0;return self.detailStatusStyle||[self.pageSnapshot[@"theme"] isEqualToString:@"black"]?1:0;}
+#if defined(SY_SIMULATOR_SMOKE)
+- (NSURL*)smokeAudioFixtureURL {
+  const uint32_t sampleRate=8000,seconds=12,channels=1,bitsPerSample=16,dataBytes=sampleRate*seconds*channels*(bitsPerSample/8);
+  NSMutableData*wav=[NSMutableData data];uint32_t riffSize=CFSwapInt32HostToLittle(36+dataBytes),rate=CFSwapInt32HostToLittle(sampleRate),byteRate=CFSwapInt32HostToLittle(sampleRate*channels*(bitsPerSample/8)),payloadSize=CFSwapInt32HostToLittle(dataBytes);uint16_t format=CFSwapInt16HostToLittle(1),channelCount=CFSwapInt16HostToLittle(channels),alignment=CFSwapInt16HostToLittle(channels*(bitsPerSample/8)),sampleBits=CFSwapInt16HostToLittle(bitsPerSample);
+  [wav appendBytes:"RIFF" length:4];[wav appendBytes:&riffSize length:4];[wav appendBytes:"WAVEfmt " length:8];uint32_t formatSize=CFSwapInt32HostToLittle(16);[wav appendBytes:&formatSize length:4];[wav appendBytes:&format length:2];[wav appendBytes:&channelCount length:2];[wav appendBytes:&rate length:4];[wav appendBytes:&byteRate length:4];[wav appendBytes:&alignment length:2];[wav appendBytes:&sampleBits length:2];[wav appendBytes:"data" length:4];[wav appendBytes:&payloadSize length:4];[wav appendData:[NSMutableData dataWithLength:dataBytes]];
+  NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-smoke-silence.wav"];if(![wav writeToFile:path atomically:YES])return nil;return [NSURL fileURLWithPath:path];
+}
+#endif
 - (void)deliver:(NSDictionary*)result {
   NSData*data=[NSJSONSerialization dataWithJSONObject:result options:0 error:NULL];
   if(!data)return;
@@ -438,7 +451,7 @@ static NSMutableDictionary *SYPosterRequests;
   NSDictionary*body=message.body;NSString*identifier=body[@"id"],*type=body[@"type"];
   if(![identifier isKindOfClass:NSString.class]||identifier.length>100)return;
   if([type isEqualToString:@"statusStyle"]){self.detailStatusStyle=[body[@"dark"] boolValue];[self setNeedsStatusBarAppearanceUpdate];return;}
-  if([type isEqualToString:@"pageState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.pageSnapshot=body[@"state"];dispatch_async(SYMainQueue(),^{[self.appScreen applyState:self.pageSnapshot];});}return;}
+  if([type isEqualToString:@"pageState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.pageSnapshot=body[@"state"];if(NSThread.isMainThread)[self.appScreen applyState:self.pageSnapshot];else dispatch_async(SYMainQueue(),^{[self.appScreen applyState:self.pageSnapshot];});}return;}
   if([type isEqualToString:@"liveOpen"]){[self openLiveScreen];return;}
   if([type isEqualToString:@"liveClose"]){[self closeLiveScreen];return;}
   if([type isEqualToString:@"liveState"]||[type isEqualToString:@"liveStateFast"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.liveSnapshot=body[@"state"];if([type isEqualToString:@"liveStateFast"])[self.liveScreen applyFastState:self.liveSnapshot];else [self.liveScreen applyState:self.liveSnapshot];}return;}
@@ -500,6 +513,7 @@ static NSMutableDictionary *SYPosterRequests;
     NSURL*playURL=livePlayback?url:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
     #if defined(SY_SIMULATOR_SMOKE)
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
+    if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}
 #endif
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];
