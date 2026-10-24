@@ -27,6 +27,8 @@ static char SYPlaybackStatus;
 @property(nonatomic,copy) NSString*action;
 @property(nonatomic,copy) NSString*value;
 @end
+@implementation SYLiveActionButton
+@end
 @interface SYLiveScreenController:UIViewController
 @property(nonatomic,weak) SYController*owner;
 @property(nonatomic,strong) UIView*playerHost;
