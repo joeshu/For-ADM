@@ -2,6 +2,20 @@
 # Uses a separately compiled simulator executable. The device IPA stays unsigned.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+simulator_failure() {
+  status=$1; line=$2; command=$3
+  trap - ERR
+  set +e
+  printf 'Simulator smoke failed at line %s: %s (exit %s)\n' "$line" "$command" "$status" >&2
+  mkdir -p dist
+  if [ -n "${sim_device:-}" ]; then
+    xcrun simctl list devices available >&2
+    xcrun simctl spawn "$sim_device" log show --last 10m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log
+    xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png >&2
+  fi
+  exit "$status"
+}
+trap 'simulator_failure "$?" "$LINENO" "$BASH_COMMAND"' ERR
 sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 sim_arch="$(uname -m)"
 mkdir -p dist/simulator
