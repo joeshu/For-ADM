@@ -428,7 +428,9 @@ static NSMutableDictionary *SYPosterRequests;
   self.smokeLiveAttempts++;
   if(!self.liveScreen&&self.smokeLiveAttempts<20){[self performSelector:@selector(runLiveScreenSmoke) withObject:nil afterDelay:1];return;}
   if(!self.liveScreen)return;
-  [self.web evaluateJavaScript:@"window.NativeLiveAction&&window.NativeLiveAction('live-panel','categories')" completionHandler:nil];
+  BOOL sentCategoryAction=NO;
+  for(UIView*view in self.liveScreen.content.subviews)if([view isKindOfClass:SYLiveActionButton.class]){SYLiveActionButton*button=(SYLiveActionButton*)view;if([button.action isEqualToString:@"live-panel"]&&[button.value isEqualToString:@"categories"]){[button sendActionsForControlEvents:UIControlEventTouchUpInside];sentCategoryAction=YES;break;}}
+  if(!sentCategoryAction)[self.web evaluateJavaScript:@"window.NativeLiveAction&&window.NativeLiveAction('live-panel','categories')" completionHandler:nil];
   [self performSelector:@selector(runFastLiveScreenSmoke) withObject:nil afterDelay:1];
 }
 - (void)runFastLiveScreenSmoke {
