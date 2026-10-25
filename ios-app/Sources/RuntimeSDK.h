@@ -13,8 +13,11 @@
 typedef unsigned long NSUInteger;
 struct dispatch_queue_s;
 typedef struct {long long value;int timescale;unsigned int flags;long long epoch;} CMTime;
+typedef unsigned int FourCharCode;
+typedef const struct opaqueCMFormatDescription* CMFormatDescriptionRef;
 extern CMTime CMTimeMakeWithSeconds(double,int);
 extern double CMTimeGetSeconds(CMTime);
+extern FourCharCode CMFormatDescriptionGetMediaSubType(CMFormatDescriptionRef);
 typedef long NSInteger;
 typedef void* SEL;
 typedef NSInteger UIStatusBarStyle;
@@ -332,11 +335,19 @@ extern NSString*NSHomeDirectory(void);
 @interface WKNavigationAction:NSObject
 @property(readonly) NSURLRequest*request;
 @end
-@interface AVURLAsset:NSObject
+@interface AVAsset:NSObject
+- (void)loadTracksWithMediaType:(NSString*)mediaType completionHandler:(void(^)(NSArray*,NSError*))handler;
+@end
+@interface AVAssetTrack:NSObject
+@property(readonly) CGSize naturalSize;
+@property(readonly) NSArray*formatDescriptions;
+@end
+@interface AVURLAsset:AVAsset
 + (instancetype)URLAssetWithURL:(NSURL*)url options:(NSDictionary*)options;
 @end
 @interface AVPlayerItem:NSObject
 + (instancetype)playerItemWithAsset:(AVURLAsset*)asset;
+@property(readonly) AVAsset*asset;
 @property(readonly) NSInteger status;
 @property(readonly) NSError*error;
 @property(readonly) CMTime duration;

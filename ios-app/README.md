@@ -19,9 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.26-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.27-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
 
-0.2.26 修复直播画面未显示时的诊断与渲染恢复：识别只有音频轨道的线路并保留当前播放，不自动换源；检测到视频轨道但 AVKit 未输出首帧时，改用绑定同一 AVPlayer 的 AVPlayerLayer 重建画面，不中断音频。模拟器检查覆盖备用渲染层挂载与容器尺寸变化。
+0.2.27 修复直播画面未显示时的诊断与渲染恢复：识别只有音频轨道的线路并保留当前播放，不自动换源；检测到视频轨道但 AVKit 未输出首帧时，改用绑定同一 AVPlayer 的 AVPlayerLayer 重建画面，不中断音频。模拟器检查覆盖备用渲染层挂载与容器尺寸变化。
 
 0.2.24 修复直播播放器视图未随容器尺寸变化的问题；直播源未显示视频帧时保持当前线路，不因首帧延迟自动换源。模拟器检查验证播放器挂载、填满播放容器并随尺寸变化，以及 AirPlay 控件层级。
 
@@ -85,7 +85,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.26-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.27-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

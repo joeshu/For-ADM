@@ -529,6 +529,9 @@ static NSMutableDictionary *SYPosterRequests;
   [asset loadTracksWithMediaType:AVMediaTypeVideo completionHandler:^(NSArray<AVAssetTrack*>*tracks,NSError*error){
     dispatch_async(SYMainQueue(),^{SYController*owner=weakSelf;AVPlayerItem*current=weakItem;if(!owner||owner.nativeItem!=current||![owner.playContext hasPrefix:@"live:"])return;
       if(tracks.count==0){[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":error?@"videoTrackUnknown":@"audioOnly",@"error":error.localizedDescription?:@"这条直播流没有可识别的视频轨道"}];return;}
+      AVAssetTrack*track=tracks.firstObject;CGSize size=track.naturalSize;FourCharCode subtype=0;id description=track.formatDescriptions.firstObject;if(description)subtype=CMFormatDescriptionGetMediaSubType((__bridge CMFormatDescriptionRef)description);
+      NSString*codec=(description&&subtype)?[NSString stringWithFormat:@"%c%c%c%c",(int)((subtype>>24)&0xff),(int)((subtype>>16)&0xff),(int)((subtype>>8)&0xff),(int)(subtype&0xff)]:@"未知";NSUInteger width=(NSUInteger)(size.width<0?-size.width:size.width),height=(NSUInteger)(size.height<0?-size.height:size.height);
+      [owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"videoTrack",@"width":@(width),@"height":@(height),@"codec":codec?:@""}];
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(6*NSEC_PER_SEC)),dispatch_get_main_queue(),^{SYController*strongOwner=weakSelf;if(!strongOwner||strongOwner.nativeItem!=current||![strongOwner.playContext hasPrefix:@"live:"]||strongOwner.nativeVideoReady)return;
         if(strongOwner.nativePlayer.readyForDisplay)return;
         [strongOwner activateLiveLayerRendererForItem:current];
