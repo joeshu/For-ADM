@@ -1,0 +1,2171 @@
+{
+  "checkedAt": "2026-10-25T04:15:09.749Z",
+  "scope": "Three public films per source; at most five corresponding-episode lines for YQK/QNTV and three for Dyls. No account, authorization bypass, video segments or AVPlayer playback.",
+  "protocolRequests": {
+    "yqk": [
+      {
+        "method": "POST",
+        "endpoint": "/v2/api/vodInfo/index",
+        "keys": [
+          "vodId"
+        ]
+      },
+      {
+        "method": "POST",
+        "endpoint": "/v2/api/vodInfo/epDetail",
+        "keys": [
+          "vodEpId"
+        ],
+        "gate": "canPlay must be true"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/v2/api/vodInfo/playUrl",
+        "keys": [
+          "vodResolution",
+          "epId"
+        ]
+      }
+    ],
+    "dyls": [
+      {
+        "method": "GET",
+        "endpoint": "/movie/detail",
+        "keys": [
+          "id"
+        ]
+      },
+      {
+        "method": "GET",
+        "endpoint": "/movie_addr/list",
+        "keys": [
+          "from_code",
+          "movie_id"
+        ]
+      },
+      {
+        "method": "GET",
+        "endpoint": "/movie_addr/parse_url",
+        "keys": [
+          "type",
+          "episode_id",
+          "from_code",
+          "play_url",
+          "refresh"
+        ],
+        "gate": "Use original source need_to_parse / player_need_to_parse / !ready_to_play decision"
+      }
+    ]
+  },
+  "sites": [
+    {
+      "id": "yqk",
+      "origin": "https://yqk18.app",
+      "movies": [
+        {
+          "id": "205721",
+          "title": "哪吒之魔童闹海-7月31日-HD高清",
+          "lines": [
+            {
+              "name": "KC",
+              "episodeId": 15277807,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v2.kuaichezym3u8.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "SD",
+              "skipped": "No corresponding episode"
+            },
+            {
+              "name": "NN",
+              "episodeId": 15277814,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v2.xingchongwang.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "WJ",
+              "episodeId": 17537523,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v8.ppqrrs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "BF",
+              "episodeId": 17537611,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "p.bvvvvvvvvv1f.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "requestedEpisode": "TC",
+          "sourceLines": 17
+        },
+        {
+          "id": "159159",
+          "title": "抓娃娃",
+          "lines": [
+            {
+              "name": "SD",
+              "episodeId": 5609263,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v9.qqqrst.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "KC",
+              "episodeId": 14593283,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v9.kuaichezym3u8.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "NN",
+              "episodeId": 14593290,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v9.xingchongwang.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "BD",
+              "episodeId": 5664570,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "vod6.bdzybf11.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegURL",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": true,
+                    "child": {
+                      "host": "vod6.bdzybf11.com",
+                      "status": 200,
+                      "validPlaylist": true
+                    }
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "WJ",
+              "episodeId": 5956215,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v7.ppqrrs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "requestedEpisode": "TC",
+          "sourceLines": 17
+        },
+        {
+          "id": "143726",
+          "title": "飞驰人生2",
+          "lines": [
+            {
+              "name": "BF",
+              "episodeId": 6598876,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "c1.ddbbffcdn.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "NN",
+              "episodeId": 14228453,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v10.xingchongwang.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "WJ",
+              "episodeId": 4809893,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v4.ppqrrs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "SN",
+              "episodeId": 5139606,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v4.rstu6.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "HN",
+              "episodeId": 6583935,
+              "episode": "正片",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "hn.bfvvs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegurl",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": false
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "requestedEpisode": "HD",
+          "sourceLines": 17
+        }
+      ],
+      "apiOrigin": "https://yz260324.bzy42ezt.com",
+      "summary": {
+        "movies": 3,
+        "lines": 15,
+        "verifiedPlaylists": 2,
+        "verifiedMediaHeads": 0,
+        "parserCalls": 0
+      }
+    },
+    {
+      "id": "qntv",
+      "origin": "https://qntv28.app",
+      "movies": [
+        {
+          "id": "205721",
+          "title": "哪吒之魔童闹海-7月31日-HD高清",
+          "lines": [
+            {
+              "name": "KC",
+              "episodeId": 15277807,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v2.kuaichezym3u8.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "SD",
+              "skipped": "No corresponding episode"
+            },
+            {
+              "name": "NN",
+              "episodeId": 15277814,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v2.xingchongwang.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "WJ",
+              "episodeId": 17537523,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v8.ppqrrs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "BF",
+              "episodeId": 17537611,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "p.bvvvvvvvvv1f.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "requestedEpisode": "TC",
+          "sourceLines": 17
+        },
+        {
+          "id": "159159",
+          "title": "抓娃娃",
+          "lines": [
+            {
+              "name": "SD",
+              "episodeId": 5609263,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v9.qqqrst.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "KC",
+              "episodeId": 14593283,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v9.kuaichezym3u8.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "NN",
+              "episodeId": 14593290,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v9.xingchongwang.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "BD",
+              "episodeId": 5664570,
+              "episode": "TC",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "vod6.bdzybf11.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegURL",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": true,
+                    "child": {
+                      "host": "vod6.bdzybf11.com",
+                      "status": 200,
+                      "validPlaylist": true
+                    }
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "WJ",
+              "episodeId": 5956215,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v7.ppqrrs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "requestedEpisode": "TC",
+          "sourceLines": 17
+        },
+        {
+          "id": "143726",
+          "title": "飞驰人生2",
+          "lines": [
+            {
+              "name": "BF",
+              "episodeId": 6598876,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "c1.ddbbffcdn.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 404,
+                    "contentType": "text/html; charset=utf-8",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "resource-not-found",
+                    "errorPageTitle": "404 Not Found"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "NN",
+              "episodeId": 14228453,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v10.xingchongwang.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "failure": "transport-error",
+                    "error": "fetch failed"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "WJ",
+              "episodeId": 4809893,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v4.ppqrrs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "SN",
+              "episodeId": 5139606,
+              "episode": "HD",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "v4.rstu6.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied",
+                    "errorPageTitle": "403 Forbidden"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "HN",
+              "episodeId": 6583935,
+              "episode": "正片",
+              "resolutions": [
+                {
+                  "name": "流畅",
+                  "canPlay": true,
+                  "resolution": 1
+                }
+              ],
+              "playbackResponse": {
+                "fields": [
+                  "playUrl",
+                  "popMsg",
+                  "popOperateCode"
+                ],
+                "popOperateCode": 0
+              },
+              "media": {
+                "host": "hn.bfvvs.com",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegurl",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": false
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "requestedEpisode": "HD",
+          "sourceLines": 17
+        }
+      ],
+      "apiOrigin": "https://yz260324.bzy42ezt.com",
+      "summary": {
+        "movies": 3,
+        "lines": 15,
+        "verifiedPlaylists": 2,
+        "verifiedMediaHeads": 0,
+        "parserCalls": 0
+      }
+    },
+    {
+      "id": "dyls",
+      "origin": "https://dyls1.mbxqnb.cn",
+      "checkedAt": "2026-10-25T04:15:09.750Z",
+      "movies": [
+        {
+          "id": "nrLxl",
+          "title": "蜘蛛侠崭新之日",
+          "lines": [
+            {
+              "name": "高清-官方线路B",
+              "code": "bytedance",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": true,
+              "episodeId": 202942809,
+              "episode": "正片",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "v26-default.ixigua.com",
+                "protocol": "https:",
+                "extension": "",
+                "queryKeys": [
+                  "a",
+                  "ch",
+                  "cr",
+                  "dr",
+                  "er",
+                  "lr",
+                  "cd",
+                  "br",
+                  "bt",
+                  "cs",
+                  "ds",
+                  "ft",
+                  "mime_type",
+                  "qs",
+                  "rc",
+                  "btag",
+                  "dy_q",
+                  "feature_id",
+                  "l"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "no-referer",
+                    "status": 200,
+                    "contentType": "video/mp4",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": true
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": true,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "高清-官方线路D",
+              "code": "Dong",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": true,
+              "episodeId": 196963445,
+              "episode": "高清",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "ykj-eos-wx2-01.eos-wuxi-3.cmecloud.cn",
+                "protocol": "https:",
+                "extension": "",
+                "queryKeys": [
+                  "response-content-disposition",
+                  "X-Amz-Algorithm",
+                  "X-Amz-Date",
+                  "X-Amz-SignedHeaders",
+                  "X-Amz-Expires",
+                  "X-Amz-Credential",
+                  "t",
+                  "r",
+                  "u",
+                  "ot",
+                  "oi",
+                  "f",
+                  "ext",
+                  "X-Amz-Signature"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "no-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "官方线路-C",
+              "code": "cloudflare",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": false,
+              "episodeId": 196849326,
+              "episode": "正片",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "lf1.wikjdd.cn",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [
+                  "verify"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegurl",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": false
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "sourceLines": 16,
+          "requestedEpisode": "正片"
+        },
+        {
+          "id": "6Xnqz",
+          "title": "杯雪一战成名",
+          "lines": [
+            {
+              "name": "高清-官方线路B",
+              "code": "bytedance",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": true,
+              "episodeId": 204536061,
+              "episode": "正片",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "v6-picotv.bdxiguavod.com",
+                "protocol": "https:",
+                "extension": "",
+                "queryKeys": [
+                  "a",
+                  "ch",
+                  "cr",
+                  "dr",
+                  "er",
+                  "lr",
+                  "cd",
+                  "br",
+                  "bt",
+                  "cs",
+                  "ds",
+                  "ft",
+                  "mime_type",
+                  "qs",
+                  "rc",
+                  "btag",
+                  "dy_q",
+                  "feature_id",
+                  "l"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "text/html",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "no-referer",
+                    "status": 200,
+                    "contentType": "video/mp4",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": true
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": true,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "高清-官方线路D",
+              "code": "Dong",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": true,
+              "episodeId": 204666867,
+              "episode": "HD",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "ykj-eos-wx2-01.eos-wuxi-3.cmecloud.cn",
+                "protocol": "https:",
+                "extension": "",
+                "queryKeys": [
+                  "response-content-disposition",
+                  "X-Amz-Algorithm",
+                  "X-Amz-Date",
+                  "X-Amz-SignedHeaders",
+                  "X-Amz-Expires",
+                  "X-Amz-Credential",
+                  "t",
+                  "r",
+                  "u",
+                  "ot",
+                  "oi",
+                  "f",
+                  "ext",
+                  "X-Amz-Signature"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "no-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-no-referer",
+                    "status": 403,
+                    "contentType": "application/xml",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "官方线路-C",
+              "code": "cloudflare",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": false,
+              "episodeId": 204581626,
+              "episode": "正片",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "lf1.wikjdd.cn",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [
+                  "verify"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegurl",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": false
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            }
+          ],
+          "sourceLines": 18,
+          "requestedEpisode": "正片"
+        },
+        {
+          "id": "Gv3jK",
+          "title": "空枪",
+          "lines": [
+            {
+              "name": "高清-官方线路B",
+              "code": "bytedance",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": true,
+              "episodeId": 197740035,
+              "episode": "抢先版",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "v3-vc.ixigua.com",
+                "protocol": "https:",
+                "extension": "",
+                "queryKeys": [
+                  "a",
+                  "ch",
+                  "cr",
+                  "dr",
+                  "er",
+                  "lr",
+                  "cd",
+                  "br",
+                  "bt",
+                  "cs",
+                  "ds",
+                  "ft",
+                  "mime_type",
+                  "qs",
+                  "rc",
+                  "btag",
+                  "dy_q",
+                  "feature_id",
+                  "l"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 403,
+                    "contentType": "video/mp4",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "mobile-and-site-referer",
+                    "status": 403,
+                    "contentType": "video/mp4",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": false,
+                    "failure": "authorization-or-access-denied"
+                  },
+                  {
+                    "headers": "no-referer",
+                    "status": 200,
+                    "contentType": "video/mp4",
+                    "validPlaylist": false,
+                    "mediaHeadVerified": true
+                  }
+                ],
+                "playlistVerified": false,
+                "mediaHeadVerified": true,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "官方线路-C",
+              "code": "cloudflare",
+              "parseFlag": true,
+              "headerNames": [],
+              "hasPlayerUA": false,
+              "episodeId": 205379049,
+              "episode": "正片",
+              "requiresParsing": true,
+              "parser": {
+                "called": true,
+                "fields": [
+                  "type",
+                  "play_url",
+                  "download_url"
+                ],
+                "returnedURL": true
+              },
+              "media": {
+                "host": "lf1.wikjdd.cn",
+                "protocol": "https:",
+                "extension": ".m3u8",
+                "queryKeys": [
+                  "verify"
+                ],
+                "variants": [
+                  {
+                    "headers": "site-referer",
+                    "status": 200,
+                    "contentType": "application/vnd.apple.mpegurl",
+                    "validPlaylist": true,
+                    "mediaHeadVerified": false,
+                    "master": false
+                  }
+                ],
+                "playlistVerified": true,
+                "mediaHeadVerified": false,
+                "decodedPlaybackVerified": false
+              }
+            },
+            {
+              "name": "西瓜线路",
+              "code": "xiguam3u8",
+              "parseFlag": false,
+              "headerNames": [],
+              "hasPlayerUA": false,
+              "skipped": "No corresponding episode"
+            }
+          ],
+          "sourceLines": 18,
+          "requestedEpisode": "抢先版"
+        }
+      ],
+      "summary": {
+        "movies": 3,
+        "lines": 9,
+        "verifiedPlaylists": 3,
+        "verifiedMediaHeads": 3,
+        "parserCalls": 8
+      }
+    }
+  ]
+}

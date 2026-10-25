@@ -1,0 +1,2524 @@
+{
+  "checkedAt": "2026-10-25T04:03:14.324Z",
+  "sites": [
+    {
+      "id": "yqk",
+      "origin": "https://yqk18.app",
+      "files": [
+        {
+          "file": "yqk/index.html",
+          "url": "https://yqk18.app",
+          "bytes": 4900,
+          "sha256": "b30324da813469f687982381e295936243f8edcf2fd8fbbf360dc4e8ae35906a"
+        },
+        {
+          "file": "yqk/entry.18be5a7d.js",
+          "url": "https://yqk18.app/_nuxt/entry.18be5a7d.js",
+          "bytes": 349690,
+          "sha256": "8083cb56c452a3fd47030d1e4f12693de40af38c956e26b881b6a373538b99b1"
+        },
+        {
+          "file": "yqk/list-1.f743b0ff.js",
+          "url": "https://yqk18.app/_nuxt/list-1.f743b0ff.js",
+          "bytes": 2740,
+          "sha256": "2882f6532d1ff82b0455ef0e3c54163787b0e07f9dbde5c3afe01ed665ec79b7"
+        },
+        {
+          "file": "yqk/list-2.420e82e1.js",
+          "url": "https://yqk18.app/_nuxt/list-2.420e82e1.js",
+          "bytes": 5217,
+          "sha256": "621f635cb65bb1419c0bc1ac46bf1b5d29483f3d26e70264804ec15ed6887225"
+        },
+        {
+          "file": "yqk/list-3.9cd734ae.js",
+          "url": "https://yqk18.app/_nuxt/list-3.9cd734ae.js",
+          "bytes": 897,
+          "sha256": "8e66e80da6bf0f8519ad80e8db779dc16e1d456da763b6c95a31268ffddbbfd7"
+        },
+        {
+          "file": "yqk/_play_.d4e05844.js",
+          "url": "https://yqk18.app/_nuxt/_play_.d4e05844.js",
+          "bytes": 76535,
+          "sha256": "2cdbeaa21ed88903548d788f686c2fc22bf9d8fe0a5a75bb3eb279a4f207f06b"
+        },
+        {
+          "file": "yqk/play.990f7574.js",
+          "url": "https://yqk18.app/_nuxt/play.990f7574.js",
+          "bytes": 258,
+          "sha256": "bd5a98aad66ea045220131eb7ff23a31d463e108efca2a53d4940d8cb9596590"
+        },
+        {
+          "file": "yqk/category.84592bee.js",
+          "url": "https://yqk18.app/_nuxt/category.84592bee.js",
+          "bytes": 607,
+          "sha256": "88036bfe936b8c459604d36abb8d5ba3b0b24d95d11fdc6ed14944591d33edee"
+        },
+        {
+          "file": "yqk/index.c5b731a9.js",
+          "url": "https://yqk18.app/_nuxt/index.c5b731a9.js",
+          "bytes": 11501,
+          "sha256": "9084114386bbab4286d4533a59f88668f7412d6562405a670db2f5d140292318"
+        },
+        {
+          "file": "yqk/baseUrlList.js",
+          "url": "https://yqk18.app/js/baseUrlList.js",
+          "bytes": 369,
+          "sha256": "3225e78d8970134a8611077c76d49140f66380b85566f11aeadccf550dff8d37"
+        },
+        {
+          "file": "yqk/_id_.7200cdc6.js",
+          "url": "https://yqk18.app/_nuxt/_id_.7200cdc6.js",
+          "bytes": 5153,
+          "sha256": "aeea206198835bce572f0583e7335a504bbbd90ec6c0a866c1cbb372eed96c19"
+        }
+      ],
+      "probes": [
+        {
+          "endpoint": "/v2/api/home/header",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hotKeywordList": {
+                "type": "array",
+                "count": 3,
+                "items": [
+                  "string",
+                  "string"
+                ]
+              },
+              "channeList": {
+                "type": "array",
+                "count": 8,
+                "items": [
+                  {
+                    "channelId": "number",
+                    "logo": "string",
+                    "channelName": "string",
+                    "viewType": "number",
+                    "targetUrl": "string"
+                  },
+                  {
+                    "channelId": "number",
+                    "logo": "string",
+                    "channelName": "string",
+                    "viewType": "number",
+                    "targetUrl": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/home/body",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "adList": {
+                "type": "array",
+                "count": 8,
+                "items": [
+                  {
+                    "type": "array",
+                    "count": 1,
+                    "items": [
+                      {
+                        "id": "number",
+                        "title": "string",
+                        "subTitle": "string",
+                        "fileType": "number",
+                        "imgUrl": "string",
+                        "adImgType": "number",
+                        "adAction": "number",
+                        "actionContent": "string",
+                        "adInsertRule": "null"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "count": 1,
+                    "items": [
+                      {
+                        "id": "number",
+                        "title": "string",
+                        "subTitle": "string",
+                        "fileType": "number",
+                        "imgUrl": "string",
+                        "adImgType": "number",
+                        "adAction": "number",
+                        "actionContent": "string",
+                        "adInsertRule": "null"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "textAd": "null",
+              "vodTopicList": {
+                "type": "array",
+                "count": 27,
+                "items": [
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 0,
+                            "items": []
+                          },
+                          "remark": "null",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/childListView",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "focusAdList": {
+                "type": "array",
+                "count": 0,
+                "items": []
+              },
+              "childChannelList": {
+                "type": "array",
+                "count": 9,
+                "items": [
+                  {
+                    "channelId": "number",
+                    "channelName": "string"
+                  },
+                  {
+                    "channelId": "number",
+                    "channelName": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v1/api/search/getSearchFilter",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "filterList": {
+                "type": "array",
+                "count": 4,
+                "items": [
+                  {
+                    "filterName": "string",
+                    "filterValueList": {
+                      "type": "array",
+                      "count": 8,
+                      "items": [
+                        {
+                          "id": "string",
+                          "name": "string"
+                        },
+                        {
+                          "id": "string",
+                          "name": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "filterName": "string",
+                    "filterValueList": {
+                      "type": "array",
+                      "count": 16,
+                      "items": [
+                        {
+                          "id": "string",
+                          "name": "string"
+                        },
+                        {
+                          "id": "string",
+                          "name": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "sortList": {
+                "type": "array",
+                "count": 4,
+                "items": [
+                  {
+                    "sortType": "number",
+                    "sortName": "string",
+                    "hasDefault": "boolean"
+                  },
+                  {
+                    "sortType": "number",
+                    "sortName": "string",
+                    "hasDefault": "boolean"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/topicListView",
+          "params": {
+            "channelId": 2
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "focusAdList": {
+                "type": "array",
+                "count": 5,
+                "items": [
+                  {
+                    "id": "number",
+                    "title": "string",
+                    "subTitle": "string",
+                    "fileType": "number",
+                    "imgUrl": "string",
+                    "adImgType": "number",
+                    "adAction": "number",
+                    "actionContent": "string",
+                    "adInsertRule": "null"
+                  },
+                  {
+                    "id": "number",
+                    "title": "string",
+                    "subTitle": "string",
+                    "fileType": "number",
+                    "imgUrl": "string",
+                    "adImgType": "number",
+                    "adAction": "number",
+                    "actionContent": "string",
+                    "adInsertRule": "null"
+                  }
+                ]
+              },
+              "adList": {
+                "type": "array",
+                "count": 0,
+                "items": []
+              },
+              "topicList": {
+                "type": "array",
+                "count": 15,
+                "items": [
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 0,
+                            "items": []
+                          },
+                          "remark": "null",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "null",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/getVodList",
+          "params": {
+            "parentChannelId": 2,
+            "childChannelId": "",
+            "nextCount": 12,
+            "nextVal": ""
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hasNext": "boolean",
+              "nextVal": "string",
+              "items": {
+                "type": "array",
+                "count": 12,
+                "items": [
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  },
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/getVodList",
+          "params": {
+            "parentChannelId": 2,
+            "childChannelId": "",
+            "nextCount": 12,
+            "nextVal": "[27306559,1714492800000,1776153590000]"
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hasNext": "boolean",
+              "nextVal": "string",
+              "items": {
+                "type": "array",
+                "count": 12,
+                "items": [
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  },
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v1/api/search/search",
+          "params": {
+            "keyword": "流浪地球",
+            "nextCount": 12,
+            "nextVal": ""
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hasNext": "boolean",
+              "nextVal": "string",
+              "items": {
+                "type": "array",
+                "count": 10,
+                "items": [
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "null",
+                    "intro": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  },
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "intro": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/vodInfo/index",
+          "params": {
+            "vodId": 117263
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "vodId": "number",
+              "vodName": "string",
+              "coverImg": "string",
+              "score": "string",
+              "year": "number",
+              "areaName": "string",
+              "intro": "string",
+              "commentCount": "number",
+              "updateRemark": "string",
+              "playerList": {
+                "type": "array",
+                "count": 17,
+                "items": [
+                  {
+                    "vodPlayerKind": "number",
+                    "playerName": "string",
+                    "totalEpCount": "number",
+                    "remark": "string",
+                    "epList": {
+                      "type": "array",
+                      "count": 2,
+                      "items": [
+                        {
+                          "epId": "number",
+                          "epName": "string"
+                        },
+                        {
+                          "epId": "number",
+                          "epName": "string"
+                        }
+                      ]
+                    },
+                    "checkM3u8": "string"
+                  },
+                  {
+                    "vodPlayerKind": "number",
+                    "playerName": "string",
+                    "totalEpCount": "number",
+                    "remark": "string",
+                    "epList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "epId": "number",
+                          "epName": "string"
+                        }
+                      ]
+                    },
+                    "checkM3u8": "string"
+                  }
+                ]
+              },
+              "tagList": {
+                "type": "array",
+                "count": 11,
+                "items": [
+                  "string",
+                  "string"
+                ]
+              },
+              "directorList": {
+                "type": "array",
+                "count": 1,
+                "items": [
+                  {
+                    "vodWorkerId": "number",
+                    "vodWorkerName": "string"
+                  }
+                ]
+              },
+              "actorList": {
+                "type": "array",
+                "count": 23,
+                "items": [
+                  {
+                    "vodWorkerId": "number",
+                    "vodWorkerName": "string"
+                  },
+                  {
+                    "vodWorkerId": "number",
+                    "vodWorkerName": "string"
+                  }
+                ]
+              },
+              "startAd": "null",
+              "startAdShowSeconds": "number",
+              "canSkipStartAd": "boolean",
+              "guestCanWatchCount": "number",
+              "pcdnData": "null"
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "params": {
+            "vodEpId": 6854206
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "type": "array",
+              "count": 1,
+              "items": [
+                {
+                  "vodResolution": "number",
+                  "showName": "string",
+                  "iconRemark": "string",
+                  "canPlay": "boolean",
+                  "defaultSelect": "boolean"
+                }
+              ]
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "params": {
+            "vodResolution": 1,
+            "epId": 6854206
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "playUrl": "string",
+              "popMsg": "string",
+              "popOperateCode": "number"
+            },
+            "operateCode": "number"
+          }
+        }
+      ],
+      "endpoints": [
+        "/channel/childListView",
+        "/channel/getVodList",
+        "/channel/topicListView",
+        "/home/body",
+        "/home/downloadData",
+        "/home/firstScreen",
+        "/home/header",
+        "/home/notice",
+        "/home/quickMsg",
+        "/search/clearSearchHistory",
+        "/search/getRankList",
+        "/search/getSearchFilter",
+        "/search/init",
+        "/search/queryNow",
+        "/search/search",
+        "/search/searchClick",
+        "/vodInfo/comment",
+        "/vodInfo/commentList",
+        "/vodInfo/deleteComment",
+        "/vodInfo/epDetail",
+        "/vodInfo/foot",
+        "/vodInfo/getVodBodyAd",
+        "/vodInfo/getVodPauseAd",
+        "/vodInfo/guessYouLike",
+        "/vodInfo/index",
+        "/vodInfo/likeComment",
+        "/vodInfo/playUrl",
+        "/vodInfo/reportFirstLoad",
+        "/vodInfo/reportPlayDuration",
+        "/vodInfo/reportPlayFail",
+        "/vodInfo/reportPlaySlow",
+        "/vodInfo/shareVodInfo",
+        "/vodInfo/uploadFirstLoadTime",
+        "/vodInfo/uploadPlaybackProgress",
+        "/vodInfo/userUrgeMore",
+        "/vodTopic/detail",
+        "/vodTopic/getVodList",
+        "/vodTopic/shareVodTopic"
+      ],
+      "routes": [
+        {
+          "path": "/category-:channelId/list-1",
+          "module": "./list-1.f743b0ff.js"
+        },
+        {
+          "path": "/category-:channelId/list-2",
+          "module": "./list-2.420e82e1.js"
+        },
+        {
+          "path": "/category-:channelId/list-3",
+          "module": "./list-3.9cd734ae.js"
+        },
+        {
+          "path": "/play/:play",
+          "module": "./_play_.d4e05844.js"
+        },
+        {
+          "path": "/search",
+          "module": "./index.c5b731a9.js"
+        }
+      ],
+      "apiOrigins": [
+        "https://yz260324.bzy42ezt.com",
+        "https://yz250907.zazy3mc5.com",
+        "https://yz250907.7k5jb8t9.com",
+        "https://yz250907.3nyk7h9o.com",
+        "https://yz250907.jba2yo1c.com",
+        "https://yz250907.hzkeka49.com",
+        "https://yzy0916.q8nsderug.com",
+        "https://yz1018.o5r52at9v.com",
+        "https://yz1018.tgs2hl4ut.com",
+        "https://yz1018.goi6lhmry.com",
+        "https://yz1018.6vh3qyu9x.com"
+      ],
+      "version": "1.2.7.194",
+      "paginationSummary": {
+        "firstCount": 12,
+        "secondCount": 12,
+        "newItems": 12
+      },
+      "detailSummary": {
+        "movieId": 117263,
+        "lines": 17,
+        "episodes": 2
+      },
+      "resolutionSummary": [
+        {
+          "fields": [
+            "vodResolution",
+            "showName",
+            "iconRemark",
+            "canPlay",
+            "defaultSelect"
+          ],
+          "canPlay": true,
+          "defaultSelect": true
+        }
+      ],
+      "mediaSample": {
+        "host": "c1.rrcdnbf6.com",
+        "protocol": "https:",
+        "pathExtension": ".m3u8",
+        "verifiedPlayback": false,
+        "httpStatus": 404,
+        "validPlaylist": false
+      },
+      "activeApiOrigin": "https://yz260324.bzy42ezt.com"
+    },
+    {
+      "id": "qntv",
+      "origin": "https://qntv28.app",
+      "files": [
+        {
+          "file": "qntv/index.html",
+          "url": "https://qntv28.app",
+          "bytes": 4901,
+          "sha256": "8d46d232530a942c88e2eaa03f08b7de5fbdcf5ccbb96a21fe44a991c176a65f"
+        },
+        {
+          "file": "qntv/entry.1ff2e719.js",
+          "url": "https://qntv28.app/_nuxt/entry.1ff2e719.js",
+          "bytes": 349696,
+          "sha256": "c77aa657ba5ecabbc17b38498c1e73b2313d61e4f8b57b98b50be0f55b7fe2be"
+        },
+        {
+          "file": "qntv/list-1.6fb64bd8.js",
+          "url": "https://qntv28.app/_nuxt/list-1.6fb64bd8.js",
+          "bytes": 2740,
+          "sha256": "84e46e9eec11531ce404ecc016f6b1baf62c6b8e9e4d8c8fa0b863a0bf4e2fe8"
+        },
+        {
+          "file": "qntv/list-2.03e95508.js",
+          "url": "https://qntv28.app/_nuxt/list-2.03e95508.js",
+          "bytes": 5217,
+          "sha256": "248f8ac1effc2c85530072c4f072d5fbd6b780e5772356e763e2f81e8bd831b7"
+        },
+        {
+          "file": "qntv/list-3.a83532ff.js",
+          "url": "https://qntv28.app/_nuxt/list-3.a83532ff.js",
+          "bytes": 897,
+          "sha256": "b656788ed3c015c23c495c05dd011c19a2f32c848158997ab1d5623eab3a842e"
+        },
+        {
+          "file": "qntv/_play_.0930dfea.js",
+          "url": "https://qntv28.app/_nuxt/_play_.0930dfea.js",
+          "bytes": 76535,
+          "sha256": "de32519c8c33b40fe3a84b453408e26baf8f01d27a6674e8b0d0b8e15f7e55d1"
+        },
+        {
+          "file": "qntv/play.744fb07d.js",
+          "url": "https://qntv28.app/_nuxt/play.744fb07d.js",
+          "bytes": 258,
+          "sha256": "4eb63ba86a637b24f9075fd5b5663d958c694b2b88b1069537cfc57cccf1f08e"
+        },
+        {
+          "file": "qntv/category.f21bd1de.js",
+          "url": "https://qntv28.app/_nuxt/category.f21bd1de.js",
+          "bytes": 607,
+          "sha256": "a54c0376cdab189d9cd870727bdfe137ff8ba59b1cc8aa7708d003846551fb05"
+        },
+        {
+          "file": "qntv/index.c51266d6.js",
+          "url": "https://qntv28.app/_nuxt/index.c51266d6.js",
+          "bytes": 11501,
+          "sha256": "0ed5729a18a220a289cfa5514250587007a58ad2db392073228b7b59a281f32f"
+        },
+        {
+          "file": "qntv/baseUrlList.js",
+          "url": "https://qntv28.app/js/baseUrlList.js",
+          "bytes": 369,
+          "sha256": "3225e78d8970134a8611077c76d49140f66380b85566f11aeadccf550dff8d37"
+        }
+      ],
+      "probes": [
+        {
+          "endpoint": "/v2/api/home/header",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hotKeywordList": {
+                "type": "array",
+                "count": 3,
+                "items": [
+                  "string",
+                  "string"
+                ]
+              },
+              "channeList": {
+                "type": "array",
+                "count": 8,
+                "items": [
+                  {
+                    "channelId": "number",
+                    "logo": "string",
+                    "channelName": "string",
+                    "viewType": "number",
+                    "targetUrl": "string"
+                  },
+                  {
+                    "channelId": "number",
+                    "logo": "string",
+                    "channelName": "string",
+                    "viewType": "number",
+                    "targetUrl": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/home/body",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "adList": {
+                "type": "array",
+                "count": 8,
+                "items": [
+                  {
+                    "type": "array",
+                    "count": 1,
+                    "items": [
+                      {
+                        "id": "number",
+                        "title": "string",
+                        "subTitle": "string",
+                        "fileType": "number",
+                        "imgUrl": "string",
+                        "adImgType": "number",
+                        "adAction": "number",
+                        "actionContent": "string",
+                        "adInsertRule": "null"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "array",
+                    "count": 1,
+                    "items": [
+                      {
+                        "id": "number",
+                        "title": "string",
+                        "subTitle": "string",
+                        "fileType": "number",
+                        "imgUrl": "string",
+                        "adImgType": "number",
+                        "adAction": "number",
+                        "actionContent": "string",
+                        "adInsertRule": "null"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "textAd": "null",
+              "vodTopicList": {
+                "type": "array",
+                "count": 27,
+                "items": [
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 0,
+                            "items": []
+                          },
+                          "remark": "null",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/childListView",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "focusAdList": {
+                "type": "array",
+                "count": 0,
+                "items": []
+              },
+              "childChannelList": {
+                "type": "array",
+                "count": 9,
+                "items": [
+                  {
+                    "channelId": "number",
+                    "channelName": "string"
+                  },
+                  {
+                    "channelId": "number",
+                    "channelName": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v1/api/search/getSearchFilter",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "filterList": {
+                "type": "array",
+                "count": 4,
+                "items": [
+                  {
+                    "filterName": "string",
+                    "filterValueList": {
+                      "type": "array",
+                      "count": 8,
+                      "items": [
+                        {
+                          "id": "string",
+                          "name": "string"
+                        },
+                        {
+                          "id": "string",
+                          "name": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "filterName": "string",
+                    "filterValueList": {
+                      "type": "array",
+                      "count": 16,
+                      "items": [
+                        {
+                          "id": "string",
+                          "name": "string"
+                        },
+                        {
+                          "id": "string",
+                          "name": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "sortList": {
+                "type": "array",
+                "count": 4,
+                "items": [
+                  {
+                    "sortType": "number",
+                    "sortName": "string",
+                    "hasDefault": "boolean"
+                  },
+                  {
+                    "sortType": "number",
+                    "sortName": "string",
+                    "hasDefault": "boolean"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/topicListView",
+          "params": {
+            "channelId": 2
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "focusAdList": {
+                "type": "array",
+                "count": 5,
+                "items": [
+                  {
+                    "id": "number",
+                    "title": "string",
+                    "subTitle": "string",
+                    "fileType": "number",
+                    "imgUrl": "string",
+                    "adImgType": "number",
+                    "adAction": "number",
+                    "actionContent": "string",
+                    "adInsertRule": "null"
+                  },
+                  {
+                    "id": "number",
+                    "title": "string",
+                    "subTitle": "string",
+                    "fileType": "number",
+                    "imgUrl": "string",
+                    "adImgType": "number",
+                    "adAction": "number",
+                    "actionContent": "string",
+                    "adInsertRule": "null"
+                  }
+                ]
+              },
+              "adList": {
+                "type": "array",
+                "count": 0,
+                "items": []
+              },
+              "topicList": {
+                "type": "array",
+                "count": 15,
+                "items": [
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "string",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "vodTopicId": "number",
+                    "topicName": "string",
+                    "intro": "string",
+                    "coverImg": "string",
+                    "vodList": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 0,
+                            "items": []
+                          },
+                          "remark": "null",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        },
+                        {
+                          "vodId": "number",
+                          "vodName": "string",
+                          "coverImg": "string",
+                          "score": "string",
+                          "iconList": {
+                            "type": "array",
+                            "count": 1,
+                            "items": [
+                              {
+                                "iconType": "number",
+                                "iconText": "string"
+                              }
+                            ]
+                          },
+                          "remark": "null",
+                          "flags": "string",
+                          "watchingCountDesc": "string"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/getVodList",
+          "params": {
+            "parentChannelId": 2,
+            "childChannelId": "",
+            "nextCount": 12,
+            "nextVal": ""
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hasNext": "boolean",
+              "nextVal": "string",
+              "items": {
+                "type": "array",
+                "count": 12,
+                "items": [
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  },
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/channel/getVodList",
+          "params": {
+            "parentChannelId": 2,
+            "childChannelId": "",
+            "nextCount": 12,
+            "nextVal": "[27306559,1714492800000,1776153590000]"
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hasNext": "boolean",
+              "nextVal": "string",
+              "items": {
+                "type": "array",
+                "count": 12,
+                "items": [
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  },
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v1/api/search/search",
+          "params": {
+            "keyword": "流浪地球",
+            "nextCount": 12,
+            "nextVal": ""
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "hasNext": "boolean",
+              "nextVal": "string",
+              "items": {
+                "type": "array",
+                "count": 10,
+                "items": [
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "null",
+                    "intro": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  },
+                  {
+                    "vodId": "number",
+                    "vodName": "string",
+                    "coverImg": "string",
+                    "score": "string",
+                    "iconList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "iconType": "number",
+                          "iconText": "string"
+                        }
+                      ]
+                    },
+                    "remark": "string",
+                    "intro": "string",
+                    "flags": "string",
+                    "watchingCountDesc": "string"
+                  }
+                ]
+              }
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/vodInfo/index",
+          "params": {
+            "vodId": 117263
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "vodId": "number",
+              "vodName": "string",
+              "coverImg": "string",
+              "score": "string",
+              "year": "number",
+              "areaName": "string",
+              "intro": "string",
+              "commentCount": "number",
+              "updateRemark": "string",
+              "playerList": {
+                "type": "array",
+                "count": 17,
+                "items": [
+                  {
+                    "vodPlayerKind": "number",
+                    "playerName": "string",
+                    "totalEpCount": "number",
+                    "remark": "string",
+                    "epList": {
+                      "type": "array",
+                      "count": 2,
+                      "items": [
+                        {
+                          "epId": "number",
+                          "epName": "string"
+                        },
+                        {
+                          "epId": "number",
+                          "epName": "string"
+                        }
+                      ]
+                    },
+                    "checkM3u8": "string"
+                  },
+                  {
+                    "vodPlayerKind": "number",
+                    "playerName": "string",
+                    "totalEpCount": "number",
+                    "remark": "string",
+                    "epList": {
+                      "type": "array",
+                      "count": 1,
+                      "items": [
+                        {
+                          "epId": "number",
+                          "epName": "string"
+                        }
+                      ]
+                    },
+                    "checkM3u8": "string"
+                  }
+                ]
+              },
+              "tagList": {
+                "type": "array",
+                "count": 11,
+                "items": [
+                  "string",
+                  "string"
+                ]
+              },
+              "directorList": {
+                "type": "array",
+                "count": 1,
+                "items": [
+                  {
+                    "vodWorkerId": "number",
+                    "vodWorkerName": "string"
+                  }
+                ]
+              },
+              "actorList": {
+                "type": "array",
+                "count": 23,
+                "items": [
+                  {
+                    "vodWorkerId": "number",
+                    "vodWorkerName": "string"
+                  },
+                  {
+                    "vodWorkerId": "number",
+                    "vodWorkerName": "string"
+                  }
+                ]
+              },
+              "startAd": "null",
+              "startAdShowSeconds": "number",
+              "canSkipStartAd": "boolean",
+              "guestCanWatchCount": "number",
+              "pcdnData": "null"
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "params": {
+            "vodEpId": 6854206
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "type": "array",
+              "count": 1,
+              "items": [
+                {
+                  "vodResolution": "number",
+                  "showName": "string",
+                  "iconRemark": "string",
+                  "canPlay": "boolean",
+                  "defaultSelect": "boolean"
+                }
+              ]
+            },
+            "operateCode": "number"
+          }
+        },
+        {
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "params": {
+            "vodResolution": 1,
+            "epId": 6854206
+          },
+          "status": 200,
+          "success": true,
+          "message": "",
+          "response": {
+            "result": "boolean",
+            "msg": "string",
+            "data": {
+              "playUrl": "string",
+              "popMsg": "string",
+              "popOperateCode": "number"
+            },
+            "operateCode": "number"
+          }
+        }
+      ],
+      "endpoints": [
+        "/channel/childListView",
+        "/channel/getVodList",
+        "/channel/topicListView",
+        "/home/body",
+        "/home/downloadData",
+        "/home/firstScreen",
+        "/home/header",
+        "/home/notice",
+        "/home/quickMsg",
+        "/search/clearSearchHistory",
+        "/search/getRankList",
+        "/search/getSearchFilter",
+        "/search/init",
+        "/search/queryNow",
+        "/search/search",
+        "/search/searchClick",
+        "/vodInfo/comment",
+        "/vodInfo/commentList",
+        "/vodInfo/deleteComment",
+        "/vodInfo/epDetail",
+        "/vodInfo/foot",
+        "/vodInfo/getVodBodyAd",
+        "/vodInfo/getVodPauseAd",
+        "/vodInfo/guessYouLike",
+        "/vodInfo/index",
+        "/vodInfo/likeComment",
+        "/vodInfo/playUrl",
+        "/vodInfo/reportFirstLoad",
+        "/vodInfo/reportPlayDuration",
+        "/vodInfo/reportPlayFail",
+        "/vodInfo/reportPlaySlow",
+        "/vodInfo/shareVodInfo",
+        "/vodInfo/uploadFirstLoadTime",
+        "/vodInfo/uploadPlaybackProgress",
+        "/vodInfo/userUrgeMore",
+        "/vodTopic/detail",
+        "/vodTopic/getVodList",
+        "/vodTopic/shareVodTopic"
+      ],
+      "routes": [
+        {
+          "path": "/category-:channelId/list-1",
+          "module": "./list-1.6fb64bd8.js"
+        },
+        {
+          "path": "/category-:channelId/list-2",
+          "module": "./list-2.03e95508.js"
+        },
+        {
+          "path": "/category-:channelId/list-3",
+          "module": "./list-3.a83532ff.js"
+        },
+        {
+          "path": "/play/:play",
+          "module": "./_play_.0930dfea.js"
+        },
+        {
+          "path": "/search",
+          "module": "./index.c51266d6.js"
+        }
+      ],
+      "apiOrigins": [
+        "https://yz260324.bzy42ezt.com",
+        "https://yz250907.zazy3mc5.com",
+        "https://yz250907.7k5jb8t9.com",
+        "https://yz250907.3nyk7h9o.com",
+        "https://yz250907.jba2yo1c.com",
+        "https://yz250907.hzkeka49.com",
+        "https://yzy0916.q8nsderug.com",
+        "https://yz1018.o5r52at9v.com",
+        "https://yz1018.tgs2hl4ut.com",
+        "https://yz1018.goi6lhmry.com",
+        "https://yz1018.6vh3qyu9x.com"
+      ],
+      "version": "1.0.0.109",
+      "paginationSummary": {
+        "firstCount": 12,
+        "secondCount": 12,
+        "newItems": 12
+      },
+      "detailSummary": {
+        "movieId": 117263,
+        "lines": 17,
+        "episodes": 2
+      },
+      "resolutionSummary": [
+        {
+          "fields": [
+            "vodResolution",
+            "showName",
+            "iconRemark",
+            "canPlay",
+            "defaultSelect"
+          ],
+          "canPlay": true,
+          "defaultSelect": true
+        }
+      ],
+      "mediaSample": {
+        "host": "c1.rrcdnbf6.com",
+        "protocol": "https:",
+        "pathExtension": ".m3u8",
+        "verifiedPlayback": false,
+        "httpStatus": 404,
+        "validPlaylist": false
+      },
+      "activeApiOrigin": "https://yz260324.bzy42ezt.com"
+    },
+    {
+      "id": "dyls",
+      "origin": "https://dyls1.mbxqnb.cn",
+      "files": [
+        {
+          "file": "dyls/index.html",
+          "url": "https://dyls1.mbxqnb.cn",
+          "bytes": 15786,
+          "sha256": "0bda7e6f3c4668bca1b9d98c9858fc865ef7d056305a1b4d707ee3302d4857a8"
+        },
+        {
+          "file": "dyls/index-BSCFNKjP.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/index-BSCFNKjP.js",
+          "bytes": 40834,
+          "sha256": "3d801d0f8f27e71275b22988206ad697d2b886107e0d37c7120d60129e4fbe25"
+        },
+        {
+          "file": "dyls/helperService-ovSFIM0i.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/helperService-ovSFIM0i.js",
+          "bytes": 114,
+          "sha256": "fd1a9c1fbb240d849c7bdccb252ebfc32fef5aceea111def639f6b4bef270758"
+        },
+        {
+          "file": "dyls/helperService-BjnnVgxU.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/helperService-BjnnVgxU.js",
+          "bytes": 18908,
+          "sha256": "d1311991ef51c7ebdb699eae7d610258290fe74f487c42e38f93769eb9fb08a9"
+        },
+        {
+          "file": "dyls/storage-D8smP6wL.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/storage-D8smP6wL.js",
+          "bytes": 3124,
+          "sha256": "74ab6fdf2efbf0d00f193678214a879017547bc41c2a6feb04f4a1c7948c50e6"
+        },
+        {
+          "file": "dyls/apiClient-C8Ny06Am.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/apiClient-C8Ny06Am.js",
+          "bytes": 39792,
+          "sha256": "9db1610ab7bbe73d696bf6d0298c0e5bdf54101fa4eb38f1caaf546004c79498"
+        },
+        {
+          "file": "dyls/homeApi-CnghIkoS.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/homeApi-CnghIkoS.js",
+          "bytes": 63,
+          "sha256": "8293c6aa62d47e550932a178dcd017dfb6695c64637ae5098b91efcaeea74803"
+        },
+        {
+          "file": "dyls/homeApi-CWtjxI_C.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/homeApi-CWtjxI_C.js",
+          "bytes": 1206,
+          "sha256": "7f70ef414f633f22c7bc8f5f95c842a63d249e97671c8fe508616e791c61e5a8"
+        },
+        {
+          "file": "dyls/secureRequest-fq6FKFt1.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/secureRequest-fq6FKFt1.js",
+          "bytes": 9591,
+          "sha256": "8fc63e89d70225c3961ba57936b270da4bdfcc9e16ce48498b32bc1f4bf26ea4"
+        },
+        {
+          "file": "dyls/newEncryption-dHuU6jWR.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/newEncryption-dHuU6jWR.js",
+          "bytes": 20000,
+          "sha256": "4455dc920ed1797bd133d6394ff3449e1d538199840d85e389ef928d09cd2d26"
+        },
+        {
+          "file": "dyls/playerService-4kMFfvlJ.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/playerService-4kMFfvlJ.js",
+          "bytes": 12265,
+          "sha256": "601a6bb9174b831535477169f4ecf72195ea46f9d363a3c12f68f296072e7c57"
+        },
+        {
+          "file": "dyls/searchApi-BSS2A4fw.js",
+          "url": "https://dyls1.mbxqnb.cn/assets/searchApi-BSS2A4fw.js",
+          "bytes": 1280,
+          "sha256": "f9a5be0959be9c8dfeb7a230a8ec6a32f2ce2c5182383f6423a7bbae16875706"
+        }
+      ],
+      "probes": [
+        {
+          "endpoint": "/movie/index_recommend",
+          "params": {},
+          "status": 200,
+          "success": true,
+          "message": "获取成功",
+          "response": {
+            "msg": "string",
+            "data": {
+              "type": "array",
+              "count": 11,
+              "items": [
+                {
+                  "layout": "string",
+                  "title": "string",
+                  "list": {
+                    "type": "array",
+                    "count": 13,
+                    "items": [
+                      {
+                        "image": "string",
+                        "type": "number",
+                        "title": "string",
+                        "sub_title": "string",
+                        "label": "string",
+                        "click": "string"
+                      },
+                      {
+                        "image": "string",
+                        "type": "number",
+                        "title": "string",
+                        "sub_title": "string",
+                        "label": "string",
+                        "click": "string"
+                      }
+                    ]
+                  },
+                  "right": {}
+                },
+                {
+                  "layout": "string",
+                  "title": "string",
+                  "list": {
+                    "type": "array",
+                    "count": 0,
+                    "items": []
+                  },
+                  "right": {},
+                  "data": {
+                    "type": "array",
+                    "count": 10,
+                    "items": [
+                      {
+                        "type": "number",
+                        "location_id": "number",
+                        "channel": "string",
+                        "remarks": "string",
+                        "data": {
+                          "image": "string",
+                          "url": "string"
+                        },
+                        "sort": "number"
+                      },
+                      {
+                        "type": "number",
+                        "location_id": "number",
+                        "channel": "string",
+                        "remarks": "string",
+                        "data": {
+                          "image": "string",
+                          "url": "string"
+                        },
+                        "sort": "number"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "endpoint": "/movie/screen/list",
+          "params": {
+            "type_id": 1,
+            "page": 1,
+            "pageSize": 12
+          },
+          "status": 200,
+          "success": true,
+          "message": "请求成功",
+          "response": {
+            "msg": "string",
+            "data": {
+              "list": {
+                "type": "array",
+                "count": 12,
+                "items": [
+                  {
+                    "id": "string",
+                    "type_name": "string",
+                    "name": "string",
+                    "dynamic": "string",
+                    "cover": "string",
+                    "label": "string"
+                  },
+                  {
+                    "id": "string",
+                    "type_name": "string",
+                    "name": "string",
+                    "dynamic": "string",
+                    "cover": "string",
+                    "label": "string"
+                  }
+                ]
+              },
+              "total": "number",
+              "page": "number",
+              "pageSize": "number"
+            }
+          }
+        },
+        {
+          "endpoint": "/movie/screen/list",
+          "params": {
+            "type_id": 1,
+            "page": 2,
+            "pageSize": 12
+          },
+          "status": 200,
+          "success": true,
+          "message": "请求成功",
+          "response": {
+            "msg": "string",
+            "data": {
+              "list": {
+                "type": "array",
+                "count": 12,
+                "items": [
+                  {
+                    "id": "string",
+                    "type_name": "string",
+                    "name": "string",
+                    "dynamic": "string",
+                    "cover": "string",
+                    "label": "string"
+                  },
+                  {
+                    "id": "string",
+                    "type_name": "string",
+                    "name": "string",
+                    "dynamic": "string",
+                    "cover": "string",
+                    "label": "string"
+                  }
+                ]
+              },
+              "total": "number",
+              "page": "number",
+              "pageSize": "number"
+            }
+          }
+        },
+        {
+          "endpoint": "/movie/search",
+          "params": {
+            "keyword": "流浪地球",
+            "page": 1,
+            "res_type": "by_movie_name"
+          },
+          "status": 200,
+          "success": true,
+          "message": "请求成功",
+          "response": {
+            "msg": "string",
+            "data": {
+              "list": {
+                "type": "array",
+                "count": 10,
+                "items": [
+                  {
+                    "id": "string",
+                    "type_name": "string",
+                    "name": "string",
+                    "dynamic": "string",
+                    "year": "string",
+                    "cover": "string",
+                    "blurb": "string",
+                    "tags": {
+                      "type": "array",
+                      "count": 3,
+                      "items": [
+                        {
+                          "tag_id": "number",
+                          "name": "string"
+                        },
+                        {
+                          "tag_id": "number",
+                          "name": "string"
+                        }
+                      ]
+                    },
+                    "members": {
+                      "type": "array",
+                      "count": 7,
+                      "items": [
+                        {
+                          "member_id": "number",
+                          "name": "string",
+                          "type": "number"
+                        },
+                        {
+                          "member_id": "number",
+                          "name": "string",
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "label": "string",
+                    "is_collect": "boolean",
+                    "highlight": "string"
+                  },
+                  {
+                    "id": "string",
+                    "type_name": "string",
+                    "name": "string",
+                    "dynamic": "string",
+                    "year": "string",
+                    "cover": "string",
+                    "blurb": "string",
+                    "tags": {
+                      "type": "array",
+                      "count": 3,
+                      "items": [
+                        {
+                          "tag_id": "number",
+                          "name": "string"
+                        },
+                        {
+                          "tag_id": "number",
+                          "name": "string"
+                        }
+                      ]
+                    },
+                    "members": {
+                      "type": "array",
+                      "count": 7,
+                      "items": [
+                        {
+                          "member_id": "number",
+                          "name": "string",
+                          "type": "number"
+                        },
+                        {
+                          "member_id": "number",
+                          "name": "string",
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "label": "string",
+                    "is_collect": "boolean",
+                    "highlight": "string"
+                  }
+                ]
+              },
+              "total": "number",
+              "page": "number",
+              "pageSize": "number"
+            }
+          }
+        },
+        {
+          "endpoint": "/movie/detail",
+          "params": {
+            "id": "Lg5BX"
+          },
+          "status": 200,
+          "success": true,
+          "message": "获取成功",
+          "response": {
+            "msg": "string",
+            "data": {
+              "id": "string",
+              "type_id": "number",
+              "name": "string",
+              "area": "string",
+              "year": "string",
+              "score": "string",
+              "dynamic": "string",
+              "cover": "string",
+              "content": "string",
+              "type_name": "string",
+              "tags": {
+                "type": "array",
+                "count": 3,
+                "items": [
+                  {
+                    "tag_id": "number",
+                    "name": "string"
+                  },
+                  {
+                    "tag_id": "number",
+                    "name": "string"
+                  }
+                ]
+              },
+              "members": {
+                "type": "array",
+                "count": 18,
+                "items": [
+                  {
+                    "member_id": "number",
+                    "name": "string",
+                    "type": "number"
+                  },
+                  {
+                    "member_id": "number",
+                    "name": "string",
+                    "type": "number"
+                  }
+                ]
+              },
+              "hot": "string",
+              "has_related_topics": "boolean",
+              "is_collect": "boolean",
+              "last_playback": {},
+              "comments_count": "string",
+              "popularity_score": "number",
+              "play_from": {
+                "type": "array",
+                "count": 10,
+                "items": [
+                  {
+                    "name": "string",
+                    "code": "string",
+                    "type": "number",
+                    "total": "number",
+                    "player_user_agent": "string",
+                    "player_headers": {
+                      "type": "array",
+                      "count": 0,
+                      "items": []
+                    },
+                    "tips": "string",
+                    "player_need_to_parse": "boolean",
+                    "download_need_to_parse": "boolean",
+                    "list": {
+                      "type": "array",
+                      "count": 6,
+                      "items": [
+                        {
+                          "episode_id": "number",
+                          "episode_name": "string",
+                          "play_url": "string",
+                          "from_code": "string"
+                        },
+                        {
+                          "episode_id": "number",
+                          "episode_name": "string",
+                          "play_url": "string",
+                          "from_code": "string"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "string",
+                    "code": "string",
+                    "type": "number",
+                    "total": "number",
+                    "player_user_agent": "string",
+                    "player_headers": {
+                      "type": "array",
+                      "count": 0,
+                      "items": []
+                    },
+                    "tips": "string",
+                    "player_need_to_parse": "boolean",
+                    "download_need_to_parse": "boolean",
+                    "list": {
+                      "type": "array",
+                      "count": 0,
+                      "items": []
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "endpoint": "/movie_addr/list",
+          "params": {
+            "from_code": "bfzym3u8",
+            "movie_id": "Lg5BX"
+          },
+          "status": 200,
+          "success": true,
+          "message": "获取成功",
+          "response": {
+            "msg": "string",
+            "data": {
+              "type": "array",
+              "count": 6,
+              "items": [
+                {
+                  "episode_id": "number",
+                  "episode_name": "string",
+                  "play_url": "string",
+                  "from_code": "string"
+                },
+                {
+                  "episode_id": "number",
+                  "episode_name": "string",
+                  "play_url": "string",
+                  "from_code": "string"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "endpoints": [
+        "/movie/comments/create",
+        "/movie/comments/delete",
+        "/movie/comments/index",
+        "/movie/comments/like",
+        "/movie/comments/replies",
+        "/movie/detail",
+        "/movie/index_recommend",
+        "/movie/screen/list",
+        "/movie/search_lately_words",
+        "/movie/search_ranking",
+        "/movie_addr/list",
+        "/movie_addr/parse_url"
+      ],
+      "paginationSummary": {
+        "firstCount": 12,
+        "secondCount": 12,
+        "newItems": 12
+      },
+      "homeSummary": {
+        "blocks": 11,
+        "sampleItemFields": [
+          "id",
+          "name",
+          "cover",
+          "year",
+          "dynamic",
+          "type_name",
+          "collect_count",
+          "label"
+        ]
+      },
+      "detailSummary": {
+        "movieId": "Lg5BX",
+        "lines": 10,
+        "episodes": 6,
+        "requiresParsing": false
+      },
+      "mediaSample": {
+        "host": "c1.rrcdnbf5.com",
+        "protocol": "https:",
+        "pathExtension": ".m3u8",
+        "verifiedPlayback": false,
+        "httpStatus": 404,
+        "validPlaylist": false
+      },
+      "parserContract": {
+        "endpoint": "/movie_addr/parse_url",
+        "method": "GET",
+        "params": [
+          "type",
+          "episode_id",
+          "from_code",
+          "play_url",
+          "refresh"
+        ],
+        "verified": false,
+        "evidence": "playerService original source"
+      }
+    }
+  ]
+}

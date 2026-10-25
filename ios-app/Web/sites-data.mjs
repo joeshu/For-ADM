@@ -208,5 +208,72 @@ export default [
         "iv": "gznsj9fd6crv8t8v"
       }
     ]
+  },
+  {
+    "id": "yqk",
+    "name": "一起看",
+    "provider": "yqk",
+    "origin": "https://yqk18.app",
+    "version": "1.2.7.194",
+    "sourceSha256": "8083cb56c452a3fd47030d1e4f12693de40af38c956e26b881b6a373538b99b1",
+    "protocol": {
+      "appId": "e6ddefe09e0349739874563459f56c54",
+      "appKey": "3359de478f8d45638125e446a10ec541",
+      "version": "1.2.7.194",
+      "apiOrigins": [
+        "https://yz260324.bzy42ezt.com",
+        "https://yz250907.zazy3mc5.com",
+        "https://yz250907.7k5jb8t9.com",
+        "https://yz250907.3nyk7h9o.com",
+        "https://yz250907.jba2yo1c.com",
+        "https://yz250907.hzkeka49.com",
+        "https://yzy0916.q8nsderug.com",
+        "https://yz1018.o5r52at9v.com",
+        "https://yz1018.tgs2hl4ut.com",
+        "https://yz1018.goi6lhmry.com",
+        "https://yz1018.6vh3qyu9x.com"
+      ]
+    }
+  },
+  {
+    "id": "qntv",
+    "name": "青柠 TV",
+    "provider": "yqk",
+    "origin": "https://qntv28.app",
+    "version": "1.0.0.109",
+    "sourceSha256": "c77aa657ba5ecabbc17b38498c1e73b2313d61e4f8b57b98b50be0f55b7fe2be",
+    "protocol": {
+      "appId": "0576435a23b94990806ca98e54f95adf",
+      "appKey": "99595b5da5d245b59aa73714b96ea73d",
+      "version": "1.0.0.109",
+      "apiOrigins": [
+        "https://yz260324.bzy42ezt.com",
+        "https://yz250907.zazy3mc5.com",
+        "https://yz250907.7k5jb8t9.com",
+        "https://yz250907.3nyk7h9o.com",
+        "https://yz250907.jba2yo1c.com",
+        "https://yz250907.hzkeka49.com",
+        "https://yzy0916.q8nsderug.com",
+        "https://yz1018.o5r52at9v.com",
+        "https://yz1018.tgs2hl4ut.com",
+        "https://yz1018.goi6lhmry.com",
+        "https://yz1018.6vh3qyu9x.com"
+      ]
+    }
+  },
+  {
+    "id": "dyls",
+    "name": "电影猎手",
+    "provider": "dyls",
+    "origin": "https://dyls1.mbxqnb.cn",
+    "version": "3102",
+    "sourceSha256": "4455dc920ed1797bd133d6394ff3449e1d538199840d85e389ef928d09cd2d26",
+    "protocol": {
+      "publicKey": "-----BEGIN RSA PUBLIC KEY-----MIIBCgKCAQEA02F/kPg5A2NX4qZ5JSns+bjhVMCC6JbTiTKpbgNgiXU+Kkorg6Dj76gS68gB8llhbUKCXjIdygnHPrxVHWfzmzisq9P9awmXBkCk74Skglx2LKHa/mNz9ivg6YzQ5pQFUEWS0DfomGBXVtqvBlOXMCRxp69oWaMsnfjnBV+0J7vHbXzUIkqBLdXSNfM9Ag5qdRDrJC3CqB65EJ3ARWVzZTTcXSdMW9i3qzEZPawPNPe5yPYbMZIoXLcrqvEZnRK1oak67/ihf7iwPJqdc+68ZYEmmdqwunOvRdjq89fQMVelmqcRD9RYe08v+xDxG9Co9z7hcXGTsUquMxkh29uNawIDAQAB-----END RSA PUBLIC KEY-----",
+      "signKey": "635a580fcb5dc6e60caa39c31a7bde48",
+      "aesKey": "e6d5de5fcc51f53d",
+      "aesIV": "2f13eef7dfc6c613",
+      "clientVersion": 3102
+    }
   }
 ];

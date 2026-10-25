@@ -19,7 +19,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.22-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+产物：`dist/Sanyuan-0.2.23-unsigned.ipa`。这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
+
+0.2.23 新增一起看、青柠 TV、电影猎手三个独立来源，支持原生首页、分类筛选、搜索、专题/分类更多、详情和分集。网站接口采用各自适配器，分类和分页按来源处理；媒体请求保留线路请求头及原网页的无 Referer 策略，保留原站资源权限。网络线路仍可能失效，真实接口和清单调查见 [三站接口资料](docs/website-source-protocols.md) 与 [播放线路调查](docs/website-playback-investigation.md)。
 
 0.2.22 将首页、发现、分类筛选、片单、设置、专题和影视详情选集迁到 UIKit 原生控件。WebKit 保留为隐藏的数据与业务引擎，播放器固定在原生详情页顶部，直播继续使用原生界面。
 
@@ -79,7 +81,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.22-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.23-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

@@ -1,0 +1,478 @@
+{
+  "checkedAt": "2026-10-25T07:24:26.722Z",
+  "note": "Every advertised line is selectable. Playlist/HEAD checks do not prove native decoding or availability for every episode.",
+  "movies": [
+    {
+      "id": "nrLxl",
+      "title": "蜘蛛侠崭新之日",
+      "lineCount": 16,
+      "lines": [
+        {
+          "code": "bytedance",
+          "name": "高清-官方线路B",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "v26-mvideov.onewsvod.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "Dong",
+          "name": "高清-官方线路D",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "高清",
+          "host": "ykj-eos-wx2-01.eos-wuxi-3.cmecloud.cn",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "cloudflare",
+          "name": "官方线路-C",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "lf1.wikjdd.cn",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "xiguam3u8",
+          "name": "西瓜线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "TC中字",
+          "host": "svip.xgplay20.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "bfzym3u8",
+          "name": "暴风线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "高清",
+          "host": "fengbao13.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "modum3u8",
+          "name": "魔都线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "play.modujx17.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "snm3u8",
+          "name": "索尼线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "HD",
+          "host": "v13.rstu6.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "dyttm3u8",
+          "name": "天堂线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "HD中字",
+          "host": "play.phimgood.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "ffm3u8",
+          "name": "非凡线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "HD中字",
+          "host": "vip.ffzy-plays.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "mtm3u8",
+          "name": "茅台线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "vodcnd17.uvjtih.cn",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "wsym3u8",
+          "name": "无水印线路",
+          "total": 2,
+          "episodes": 2,
+          "result": "missing-matching-episode"
+        },
+        {
+          "code": "jsm3u8",
+          "name": "极速线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "vv.jisuzyv.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "rym3u8",
+          "name": "如意线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "HD中字",
+          "host": "svip.ryiplay18.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "subm3u8",
+          "name": "速播线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "play.xluuss.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "xlm3u8",
+          "name": "新浪线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "正片",
+          "host": "play.xluuss.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "lzm3u8",
+          "name": "量子线路",
+          "total": 1,
+          "episodes": 1,
+          "episodeTitle": "HD中字",
+          "host": "v.lzcdn27.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 404,
+          "error": "视频线路返回 HTTP 404"
+        }
+      ],
+      "verified": 10
+    },
+    {
+      "id": "91qMz",
+      "title": "嫁金钗",
+      "lineCount": 18,
+      "lines": [
+        {
+          "code": "bytedance",
+          "name": "高清-官方线路B",
+          "total": 32,
+          "episodes": 32,
+          "episodeTitle": "第1集",
+          "host": "v6-opensdkv.ixigua.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "cloudflare",
+          "name": "官方线路-C",
+          "total": 25,
+          "episodes": 25,
+          "episodeTitle": "第1集",
+          "host": "lf1.wikjdd.cn",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "cloudflare-4k",
+          "name": "4K-官方线路C",
+          "total": 17,
+          "episodes": 17,
+          "episodeTitle": "第1集",
+          "host": "lf1.wikjdd.cn",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "xiguam3u8",
+          "name": "西瓜线路",
+          "total": 17,
+          "episodes": 17,
+          "episodeTitle": "第01集",
+          "host": "svip.xgplay20.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "bfzym3u8",
+          "name": "暴风线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第1集",
+          "host": "v.fengbao14.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "rrys",
+          "name": "1080P-官方线路R",
+          "total": 17,
+          "episodes": 17,
+          "episodeTitle": "第0001集",
+          "host": "sign.site.zshtys888.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "modum3u8",
+          "name": "魔都线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "play.modujx17.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "snm3u8",
+          "name": "索尼线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "v15.rstu6.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "dyttm3u8",
+          "name": "天堂线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "vip.dytt-tvs.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "ffm3u8",
+          "name": "非凡线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "super.ffzy-online6.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 403,
+          "error": "视频线路返回 HTTP 403"
+        },
+        {
+          "code": "mtm3u8",
+          "name": "茅台线路",
+          "total": 16,
+          "episodes": 16,
+          "episodeTitle": "第01集",
+          "host": "vodcnd17.ky32e.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "wsym3u8",
+          "name": "无水印线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "v15.wsyzym3u8.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "jsm3u8",
+          "name": "极速线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "vv.jisuzyv.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "youku",
+          "name": "优酷视频",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "1",
+          "host": "43.248.128.134:2222",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": null,
+          "error": "fetch failed"
+        },
+        {
+          "code": "rym3u8",
+          "name": "如意线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "svip.ryiplay18.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "subm3u8",
+          "name": "速播线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "play.xluuss.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "xlm3u8",
+          "name": "新浪线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "play.xluuss.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "transport-verified"
+        },
+        {
+          "code": "lzm3u8",
+          "name": "量子线路",
+          "total": 18,
+          "episodes": 18,
+          "episodeTitle": "第01集",
+          "host": "v.lzcdn27.com",
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ],
+          "result": "failed",
+          "status": 404,
+          "error": "视频线路返回 HTTP 404"
+        }
+      ],
+      "verified": 13
+    }
+  ]
+}

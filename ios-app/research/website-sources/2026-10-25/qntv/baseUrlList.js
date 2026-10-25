@@ -1,0 +1,1 @@
+var baseApiList = ["https://yz260324.bzy42ezt.com","https://yz250907.zazy3mc5.com","https://yz250907.7k5jb8t9.com","https://yz250907.3nyk7h9o.com","https://yz250907.jba2yo1c.com","https://yz250907.hzkeka49.com","https://yzy0916.q8nsderug.com","https://yz1018.o5r52at9v.com","https://yz1018.tgs2hl4ut.com","https://yz1018.goi6lhmry.com","https://yz1018.6vh3qyu9x.com"];

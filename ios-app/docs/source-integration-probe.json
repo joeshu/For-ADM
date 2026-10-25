@@ -1,0 +1,587 @@
+{
+  "checkedAt": "2026-10-25T07:10:33.237Z",
+  "scope": "Real App client factory + shared models + resolvePlayableEpisode; one sample film and at most five same-episode source lines per source; metadata, HEAD and small HLS playlists only. No accounts or video segments. AVPlayer decoding is not verified.",
+  "sources": [
+    {
+      "id": "yqk",
+      "checkedAt": "2026-10-25T04:19:24.503Z",
+      "success": true,
+      "steps": {
+        "bootstrap": {
+          "categories": 8,
+          "supportsAccount": false
+        },
+        "home": {
+          "sections": 27,
+          "films": 162
+        },
+        "pagination": {
+          "category": "电影",
+          "firstCount": 24,
+          "secondCount": 24,
+          "newCount": 24,
+          "overlap": 0
+        },
+        "search": {
+          "query": "抓娃娃",
+          "films": 24
+        },
+        "homeMore": {
+          "title": "抖音up主推荐电影",
+          "kind": "topic",
+          "films": 18,
+          "hasNext": true
+        },
+        "detail": {
+          "id": "159159",
+          "title": "抓娃娃",
+          "lines": 17,
+          "selectedLine": "SD",
+          "episodes": 2,
+          "selectedEpisode": "TC"
+        },
+        "playback": {
+          "attempts": [
+            "SD",
+            "KC",
+            "NN",
+            "BD"
+          ],
+          "lineIndex": 3,
+          "lineName": "BD",
+          "episodeId": 5664570,
+          "episodeTitle": "TC",
+          "switched": true,
+          "mediaHost": "vod6.bdzybf11.com",
+          "status": 200,
+          "validPlaylist": true,
+          "finalRequestHost": "vod6.bdzybf11.com",
+          "finalRequestStatus": 200,
+          "finalRequestValidPlaylist": true,
+          "referrerPolicy": "site-default",
+          "headerNames": [
+            "Referer"
+          ]
+        }
+      },
+      "apiRequests": [
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/home/header",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/home/body",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/channel/childListView",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/channel/getVodList",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/channel/getVodList",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v1/api/search/search",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v1/api/vodTopic/getVodList",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/index",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        }
+      ],
+      "mediaRequests": [
+        {
+          "method": "GET",
+          "host": "v9.qqqrst.com",
+          "pathExtension": ".m3u8",
+          "status": 403,
+          "responseHost": "v9.qqqrst.com",
+          "contentType": "text/html",
+          "validPlaylist": false
+        },
+        {
+          "method": "GET",
+          "host": "v9.kuaichezym3u8.com",
+          "pathExtension": ".m3u8",
+          "status": 403,
+          "responseHost": "v9.kuaichezym3u8.com",
+          "contentType": "text/html",
+          "validPlaylist": false
+        },
+        {
+          "method": "GET",
+          "host": "v9.xingchongwang.com",
+          "pathExtension": ".m3u8",
+          "error": "fetch failed"
+        },
+        {
+          "method": "GET",
+          "host": "vod6.bdzybf11.com",
+          "pathExtension": ".m3u8",
+          "status": 200,
+          "responseHost": "vod6.bdzybf11.com",
+          "contentType": "application/vnd.apple.mpegURL",
+          "validPlaylist": true
+        },
+        {
+          "method": "GET",
+          "host": "vod6.bdzybf11.com",
+          "pathExtension": ".m3u8",
+          "status": 200,
+          "responseHost": "vod6.bdzybf11.com",
+          "contentType": "application/vnd.apple.mpegURL",
+          "validPlaylist": true
+        }
+      ],
+      "decodedPlaybackVerified": false
+    },
+    {
+      "id": "qntv",
+      "checkedAt": "2026-10-25T04:19:37.292Z",
+      "success": true,
+      "steps": {
+        "bootstrap": {
+          "categories": 8,
+          "supportsAccount": false
+        },
+        "home": {
+          "sections": 27,
+          "films": 162
+        },
+        "pagination": {
+          "category": "电影",
+          "firstCount": 24,
+          "secondCount": 24,
+          "newCount": 24,
+          "overlap": 0
+        },
+        "search": {
+          "query": "抓娃娃",
+          "films": 24
+        },
+        "homeMore": {
+          "title": "抖音up主推荐电影",
+          "kind": "topic",
+          "films": 18,
+          "hasNext": true
+        },
+        "detail": {
+          "id": "159159",
+          "title": "抓娃娃",
+          "lines": 17,
+          "selectedLine": "SD",
+          "episodes": 2,
+          "selectedEpisode": "TC"
+        },
+        "playback": {
+          "attempts": [
+            "SD",
+            "KC",
+            "NN",
+            "BD"
+          ],
+          "lineIndex": 3,
+          "lineName": "BD",
+          "episodeId": 5664570,
+          "episodeTitle": "TC",
+          "switched": true,
+          "mediaHost": "vod6.bdzybf11.com",
+          "status": 200,
+          "validPlaylist": true,
+          "finalRequestHost": "vod6.bdzybf11.com",
+          "finalRequestStatus": 200,
+          "finalRequestValidPlaylist": true,
+          "referrerPolicy": "site-default",
+          "headerNames": [
+            "Referer"
+          ]
+        }
+      },
+      "apiRequests": [
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/home/header",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/home/body",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/channel/childListView",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/channel/getVodList",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/channel/getVodList",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v1/api/search/search",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v1/api/vodTopic/getVodList",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/index",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/epDetail",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        },
+        {
+          "method": "POST",
+          "endpoint": "/v2/api/vodInfo/playUrl",
+          "status": 200,
+          "responseHost": "yz260324.bzy42ezt.com",
+          "contentType": "application/json;charset=UTF-8"
+        }
+      ],
+      "mediaRequests": [
+        {
+          "method": "GET",
+          "host": "v9.qqqrst.com",
+          "pathExtension": ".m3u8",
+          "status": 403,
+          "responseHost": "v9.qqqrst.com",
+          "contentType": "text/html",
+          "validPlaylist": false
+        },
+        {
+          "method": "GET",
+          "host": "v9.kuaichezym3u8.com",
+          "pathExtension": ".m3u8",
+          "status": 403,
+          "responseHost": "v9.kuaichezym3u8.com",
+          "contentType": "text/html",
+          "validPlaylist": false
+        },
+        {
+          "method": "GET",
+          "host": "v9.xingchongwang.com",
+          "pathExtension": ".m3u8",
+          "error": "fetch failed"
+        },
+        {
+          "method": "GET",
+          "host": "vod6.bdzybf11.com",
+          "pathExtension": ".m3u8",
+          "status": 200,
+          "responseHost": "vod6.bdzybf11.com",
+          "contentType": "application/vnd.apple.mpegURL",
+          "validPlaylist": true
+        },
+        {
+          "method": "GET",
+          "host": "vod6.bdzybf11.com",
+          "pathExtension": ".m3u8",
+          "status": 200,
+          "responseHost": "vod6.bdzybf11.com",
+          "contentType": "application/vnd.apple.mpegURL",
+          "validPlaylist": true
+        }
+      ],
+      "decodedPlaybackVerified": false
+    },
+    {
+      "id": "dyls",
+      "checkedAt": "2026-10-25T07:10:33.237Z",
+      "success": true,
+      "steps": {
+        "bootstrap": {
+          "categories": 5,
+          "supportsAccount": false
+        },
+        "home": {
+          "sections": 9,
+          "films": 81
+        },
+        "pagination": {
+          "category": "电影",
+          "firstCount": 24,
+          "secondCount": 24,
+          "newCount": 24,
+          "overlap": 0
+        },
+        "search": {
+          "query": "抓娃娃",
+          "films": 10
+        },
+        "homeMore": {
+          "title": "近期热门电影",
+          "kind": "channel",
+          "films": 24,
+          "hasNext": true
+        },
+        "detail": {
+          "id": "nrLxl",
+          "title": "蜘蛛侠崭新之日",
+          "lines": 16,
+          "selectedLine": "高清-官方线路B",
+          "episodes": 1,
+          "selectedEpisode": "正片"
+        },
+        "playback": {
+          "attempts": [
+            "高清-官方线路B"
+          ],
+          "lineIndex": 0,
+          "lineName": "高清-官方线路B",
+          "episodeId": 202942809,
+          "episodeTitle": "正片",
+          "switched": false,
+          "mediaHost": "v26-backup.toutiaovod.com",
+          "status": 200,
+          "validPlaylist": false,
+          "finalRequestHost": "v26-backup.toutiaovod.com",
+          "finalRequestStatus": 200,
+          "finalRequestValidPlaylist": false,
+          "referrerPolicy": "no-referrer",
+          "headerNames": [
+            "User-Agent"
+          ]
+        }
+      },
+      "apiRequests": [
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/app/config",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "text/plain"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie/index_recommend",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie/screen/list",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie/screen/list",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie/search",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie/screen/list",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie/detail",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie_addr/list",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        },
+        {
+          "method": "GET",
+          "endpoint": "/api/v1/movie_addr/parse_url",
+          "status": 200,
+          "responseHost": "dyls1.mbxqnb.cn",
+          "contentType": "application/json"
+        }
+      ],
+      "mediaRequests": [
+        {
+          "method": "HEAD",
+          "host": "v26-backup.toutiaovod.com",
+          "pathExtension": "",
+          "status": 200,
+          "responseHost": "v26-backup.toutiaovod.com",
+          "contentType": "video/mp4",
+          "validPlaylist": false
+        }
+      ],
+      "decodedPlaybackVerified": false
+    }
+  ]
+}

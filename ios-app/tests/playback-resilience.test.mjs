@@ -14,6 +14,10 @@ test('Unmatched episode titles are skipped instead of using an unrelated array i
  assert.equal(matchingEpisode({id:3,title:'第03集'},[{id:4,title:'第04集'}]),-1);
  assert.equal(matchingEpisode({id:3,title:'第03集'},[{id:4,title:'第3集'}]),0);
  assert.equal(matchingEpisode({id:3,title:'HD'},[{id:4,title:'正片'}],{singleMovie:true}),0);
+ assert.equal(matchingEpisode({id:3,title:'HD'},[{id:4,title:'正片'}],{singleEpisodeSource:true}),0);
+ assert.equal(matchingEpisode({id:3,title:'第3集'},[{id:4,title:'正片'}],{singleEpisodeSource:true}),-1);
+ assert.equal(matchingEpisode({id:3,title:'预告'},[{id:4,title:'正片'}],{singleMovie:true,singleEpisodeSource:true}),-1);
+ assert.equal(matchingEpisode({id:3,title:'HD'},[{id:4,title:'正片'},{id:5,title:'第2集'}],{singleEpisodeSource:true}),-1);
 });
 test('A real business denial is surfaced without trying a different source',async()=>{
  let checks=0;const d={id:9,playSources:[{siteId:1,list:[episode(1,'第1集','https://x.example/a.m3u8',false)]},{siteId:2,list:[episode(2,'第1集','https://y.example/a.m3u8')]}]};
@@ -28,6 +32,22 @@ test('Expired cached URLs refresh through the service rather than changing their
 test('Master playlist validation checks a variant without downloading segments',async()=>{
  const requests=[];await verifyMedia({site,transport:async r=>{requests.push(r.url);return requests.length===1?body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nvariant.m3u8\n'):hls;}},'https://cdn.example/master.m3u8');
  assert.deepEqual(requests,['https://cdn.example/master.m3u8','https://cdn.example/variant.m3u8']);
+});
+test('Website referrer policy and per-line headers reach master and variant requests unchanged',async()=>{
+ const seen=[],headers={'User-Agent':'Source Mobile UA','X-Playback':'source-value'};
+ await verifyMedia({site,transport:async r=>{seen.push(r);return seen.length===1?body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nvariant.m3u8\n'):hls;}},'https://cdn.example/master.m3u8',undefined,headers,'no-referrer');
+ assert.equal(seen.length,2);for(const r of seen)assert.deepEqual(r.headers,headers);
+});
+test('Resolver retains no-referrer on a website MP4 and skips broken same-episode lines',async()=>{
+ const d={id:'nrLxl',channelId:1,playSources:[{siteId:'broken',list:[{id:1,title:'正片'}]},{siteId:'working',list:[{id:2,title:'HD'}]}]},seen=[];
+ const c={site,play:async p=>[{url:'https://cdn.example/'+p.siteId,referrerPolicy:'no-referrer',headers:{'User-Agent':'Mobile'}}],transport:async r=>{seen.push(r);assert.equal(r.headers.Referer,undefined);return {status:r.url.endsWith('broken')?404:200};}};
+ const result=await resolvePlayableEpisode(c,d,0,0);assert.equal(result.lineIndex,1);assert.equal(result.urls[0].referrerPolicy,'no-referrer');assert.equal(seen.length,2);
+});
+test('A manually chosen line beyond the automatic probe budget is fully usable',async()=>{
+ const lines=Array.from({length:16},(_,i)=>({siteId:'line-'+i,name:'线路'+i,list:[{id:i+1,title:'第01集',open:false}]}));
+ const requested=[];const c={site,play:async p=>{requested.push(p.siteId);return [{url:'https://media.example/selected.m3u8'}];},transport:async()=>hls};
+ const result=await resolvePlayableEpisode(c,{id:'series',playSources:lines},12,0);
+ assert.equal(result.lineIndex,12);assert.equal(result.episode.id,13);assert.deepEqual(requested,['line-12']);
 });
 test('Guest initialization is shared; keychain write failure does not block a valid session',async()=>{
  let guests=0,plays=0;globalThis.NativeTransport={vault:{get:async()=>null,put:async()=>{throw Error('keychain unavailable')}}};

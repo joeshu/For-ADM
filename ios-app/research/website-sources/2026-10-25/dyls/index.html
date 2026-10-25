@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="/logo.png" type="image/png" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#161619" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <script>
+      (function () {
+        var configuredMode = "dark";
+        try {
+          var storedMode = window.localStorage.getItem("app.themeModePreference.v1");
+          if (storedMode === "light" || storedMode === "dark") {
+            configuredMode = storedMode;
+          } else if (storedMode === "auto") {
+            var hour = new Date().getHours();
+            configuredMode = hour >= 19 || hour < 7 ? "dark" : "light";
+          }
+        } catch (error) {}
+        var mode =
+          configuredMode === "light" || configuredMode === "dark"
+            ? configuredMode
+            : "dark";
+        var bg = mode === "light" ? "#fff2f8" : "#161619";
+        var shellBg = mode === "light" ? "#FFFFFF" : "#161619";
+        var text = mode === "light" ? "#161619" : "#ffffff";
+        var root = document.documentElement;
+        root.dataset.appThemeMode = mode;
+        root.style.colorScheme = mode;
+        try {
+          var stableSafeTop = window.sessionStorage.getItem("h5shellStableSafeAreaTop");
+          if (/^\d+(\.\d+)?px$/.test(stableSafeTop || "")) {
+            root.style.setProperty("--h5shell-stable-safe-area-top", stableSafeTop);
+          }
+        } catch (error) {}
+        root.style.setProperty("--brand-bg", bg);
+        root.style.setProperty("--brand-text-primary", text);
+        var themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) themeMeta.setAttribute("content", shellBg);
+        var schemeMeta = document.querySelector('meta[name="color-scheme"]');
+        if (schemeMeta) schemeMeta.setAttribute("content", mode);
+        var statusMeta = document.querySelector(
+          'meta[name="apple-mobile-web-app-status-bar-style"]'
+        );
+        if (statusMeta) {
+          statusMeta.setAttribute("content", mode === "light" ? "default" : "black");
+        }
+        try {
+          if (window.H5ShellNativeBridge && typeof window.H5ShellNativeBridge.request === "function") {
+            window.H5ShellNativeBridge.request("theme.setTheme", { mode: mode });
+          }
+        } catch (error) {}
+      })();
+    </script>
+    <style>
+      html,
+      body,
+      #root {
+        --safe-top: max(env(safe-area-inset-top, 0px), var(--h5shell-safe-area-top, 0px));
+        --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--h5shell-safe-area-bottom, 0px));
+        --app-safe-top: max(var(--safe-top, 0px), var(--h5shell-stable-safe-area-top, 0px));
+        --app-safe-bottom: var(--safe-bottom, 0px);
+        min-height: 100%;
+        background: var(--brand-bg, #161619) !important;
+        color: var(--brand-text-primary, #ffffff);
+      }
+
+      .app-boot-skeleton {
+        min-height: 100vh;
+        box-sizing: border-box;
+        padding-bottom: calc(var(--app-safe-bottom, 0px) + 96px);
+        background:
+          linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--brand-bg, #161619) 55%, transparent) 0%,
+            var(--brand-bg, #161619) 56%
+          ),
+          var(--brand-bg, #161619);
+      }
+
+      @supports (min-height: 100dvh) {
+        .app-boot-skeleton {
+          min-height: 100dvh;
+        }
+      }
+
+      .app-boot-skeleton__nav {
+        box-sizing: border-box;
+        padding: calc(var(--app-safe-top, 0px) + 16px) 12px 8px;
+      }
+
+      .app-boot-skeleton__content {
+        padding: 14px 12px 0;
+      }
+
+      .app-boot-skeleton__search,
+      .app-boot-skeleton__tab,
+      .app-boot-skeleton__hero,
+      .app-boot-skeleton__ad-icon,
+      .app-boot-skeleton__ad-text,
+      .app-boot-skeleton__title,
+      .app-boot-skeleton__more,
+      .app-boot-skeleton__poster,
+      .app-boot-skeleton__line {
+        position: relative;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.11);
+      }
+
+      html[data-app-theme-mode="light"] .app-boot-skeleton__search,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__tab,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__hero,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__ad-icon,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__ad-text,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__title,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__more,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__poster,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__line {
+        background: rgba(22, 22, 25, 0.08);
+      }
+
+      .app-boot-skeleton__search::after,
+      .app-boot-skeleton__tab::after,
+      .app-boot-skeleton__hero::after,
+      .app-boot-skeleton__ad-icon::after,
+      .app-boot-skeleton__ad-text::after,
+      .app-boot-skeleton__title::after,
+      .app-boot-skeleton__more::after,
+      .app-boot-skeleton__poster::after,
+      .app-boot-skeleton__line::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+        transform: translateX(-100%);
+        animation: app-boot-skeleton-shimmer 1.2s ease-in-out infinite;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.16),
+          transparent
+        );
+      }
+
+      html[data-app-theme-mode="light"] .app-boot-skeleton__search::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__tab::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__hero::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__ad-icon::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__ad-text::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__title::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__more::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__poster::after,
+      html[data-app-theme-mode="light"] .app-boot-skeleton__line::after {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.72),
+          transparent
+        );
+      }
+
+      .app-boot-skeleton__search {
+        height: 36px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .app-boot-skeleton__tabs {
+        display: flex;
+        gap: 14px;
+        min-height: 44px;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .app-boot-skeleton__tab {
+        width: 48px;
+        height: 20px;
+        flex: 0 0 auto;
+        border-radius: 999px;
+      }
+
+      .app-boot-skeleton__hero {
+        height: 190px;
+        border-radius: 14px;
+      }
+
+      .app-boot-skeleton__ad-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 12px;
+        padding: 4px 0;
+      }
+
+      .app-boot-skeleton__ad {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .app-boot-skeleton__ad-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+      }
+
+      .app-boot-skeleton__ad-text {
+        width: 60px;
+        height: 20px;
+        border-radius: 999px;
+      }
+
+      .app-boot-skeleton__section {
+        margin-top: 22px;
+      }
+
+      .app-boot-skeleton__section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .app-boot-skeleton__title {
+        width: 92px;
+        height: 18px;
+        border-radius: 999px;
+      }
+
+      .app-boot-skeleton__more {
+        width: 44px;
+        height: 14px;
+        border-radius: 999px;
+      }
+
+      .app-boot-skeleton__grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px 8px;
+      }
+
+      .app-boot-skeleton__poster {
+        aspect-ratio: 16 / 22;
+        border-radius: 6px;
+      }
+
+      .app-boot-skeleton__line {
+        width: 82%;
+        height: 12px;
+        margin-top: 8px;
+        border-radius: 999px;
+      }
+
+      @media (min-width: 768px) {
+        .app-boot-skeleton__nav,
+        .app-boot-skeleton__content {
+          padding-right: 40px;
+          padding-left: 40px;
+        }
+
+        .app-boot-skeleton__hero {
+          height: 320px;
+        }
+
+        .app-boot-skeleton__ad-grid {
+          grid-template-columns: repeat(10, minmax(0, 1fr));
+        }
+
+        .app-boot-skeleton__grid {
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: 16px 12px;
+        }
+      }
+
+      @keyframes app-boot-skeleton-shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+    </style>
+    <title>电影猎手</title>
+    <script type="module" crossorigin src="/assets/index-BSCFNKjP.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-B1FJdls4.js">
+    <link rel="modulepreload" crossorigin href="/assets/storage-D8smP6wL.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-core-Bgz3Urnl.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-BUd7DzZu.js">
+    <link rel="modulepreload" crossorigin href="/assets/user-HbLDobdt.js">
+    <link rel="modulepreload" crossorigin href="/assets/activeTheme-DA34uXzd.js">
+    <link rel="modulepreload" crossorigin href="/assets/appVersion-CyUj4Djb.js">
+    <link rel="modulepreload" crossorigin href="/assets/playerModalRoute-CNbnYbuv.js">
+    <link rel="modulepreload" crossorigin href="/assets/AppActivityContext-hnlFokJw.js">
+    <link rel="modulepreload" crossorigin href="/assets/ErrorSlice-BieBQydb.js">
+    <link rel="modulepreload" crossorigin href="/assets/secureRequest-fq6FKFt1.js">
+    <link rel="modulepreload" crossorigin href="/assets/searchOverlayBridge-BU-CBciZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/socialMenu-Ber_VzKh.js">
+    <link rel="modulepreload" crossorigin href="/assets/apiClient-C8Ny06Am.js">
+    <link rel="modulepreload" crossorigin href="/assets/PointApi-BkCuj0vU.js">
+    <link rel="modulepreload" crossorigin href="/assets/profileApi-0E5cJ2dI.js">
+    <link rel="modulepreload" crossorigin href="/assets/authDebugLog-DFHmU5JF.js">
+    <link rel="modulepreload" crossorigin href="/assets/authSession-YvsgqkMR.js">
+    <link rel="modulepreload" crossorigin href="/assets/apiErrorMessage-CrWWPv1j.js">
+    <link rel="modulepreload" crossorigin href="/assets/nativeBridge-CHMGOvt0.js">
+    <link rel="modulepreload" crossorigin href="/assets/assets-CfqdI0y-.js">
+    <link rel="modulepreload" crossorigin href="/assets/brand-B_rJ1sRR.js">
+    <link rel="modulepreload" crossorigin href="/assets/applyTheme-Dl56c9ij.js">
+    <link rel="modulepreload" crossorigin href="/assets/appShell-DGAzWGEj.js">
+    <link rel="modulepreload" crossorigin href="/assets/deferredRoutePreload-BNDQ6-sb.js">
+    <link rel="modulepreload" crossorigin href="/assets/polyfills-DlQJa-eC.js">
+    <link rel="modulepreload" crossorigin href="/assets/routeLoaders-DmucbsAi.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-NJqZn8aJ.css">
+  </head>
+  <body id="h5">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root">
+      <div class="app-boot-skeleton" aria-hidden="true">
+        <div class="app-boot-skeleton__nav">
+          <div class="app-boot-skeleton__search"></div>
+          <div class="app-boot-skeleton__tabs">
+            <div class="app-boot-skeleton__tab"></div>
+            <div class="app-boot-skeleton__tab"></div>
+            <div class="app-boot-skeleton__tab"></div>
+            <div class="app-boot-skeleton__tab"></div>
+            <div class="app-boot-skeleton__tab"></div>
+          </div>
+        </div>
+        <div class="app-boot-skeleton__content">
+          <div class="app-boot-skeleton__hero"></div>
+          <div class="app-boot-skeleton__ad-grid">
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+            <div class="app-boot-skeleton__ad">
+              <div class="app-boot-skeleton__ad-icon"></div>
+              <div class="app-boot-skeleton__ad-text"></div>
+            </div>
+          </div>
+          <div class="app-boot-skeleton__section">
+            <div class="app-boot-skeleton__section-head">
+              <div class="app-boot-skeleton__title"></div>
+              <div class="app-boot-skeleton__more"></div>
+            </div>
+            <div class="app-boot-skeleton__grid">
+              <div>
+                <div class="app-boot-skeleton__poster"></div>
+                <div class="app-boot-skeleton__line"></div>
+              </div>
+              <div>
+                <div class="app-boot-skeleton__poster"></div>
+                <div class="app-boot-skeleton__line"></div>
+              </div>
+              <div>
+                <div class="app-boot-skeleton__poster"></div>
+                <div class="app-boot-skeleton__line"></div>
+              </div>
+              <div>
+                <div class="app-boot-skeleton__poster"></div>
+                <div class="app-boot-skeleton__line"></div>
+              </div>
+              <div>
+                <div class="app-boot-skeleton__poster"></div>
+                <div class="app-boot-skeleton__line"></div>
+              </div>
+              <div>
+                <div class="app-boot-skeleton__poster"></div>
+                <div class="app-boot-skeleton__line"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="modal-root"></div>
+  </body>
+</html>

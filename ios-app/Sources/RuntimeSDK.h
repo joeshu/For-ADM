@@ -340,6 +340,7 @@ extern NSString*NSHomeDirectory(void);
 @property(readonly) NSInteger status;
 @property(readonly) NSError*error;
 @property(readonly) CMTime duration;
+@property(readonly) CGSize presentationSize;
 @property double preferredForwardBufferDuration;
 @property(copy) NSString*audioTimePitchAlgorithm;
 @property(copy) NSArray*externalMetadata;
@@ -366,6 +367,7 @@ extern NSString*NSHomeDirectory(void);
 @property BOOL updatesNowPlayingInfoCenter;
 @property BOOL canStartPictureInPictureAutomaticallyFromInline;
 @property(copy) NSString*videoGravity;
+@property(readonly) BOOL readyForDisplay;
 @end
 @interface AVRoutePickerView:UIView
 @property(strong) UIColor*activeTintColor;

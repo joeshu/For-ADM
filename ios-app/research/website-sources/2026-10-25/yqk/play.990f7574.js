@@ -1,0 +1,1 @@
+import{bg as a,n as p}from"./entry.18be5a7d.js";import{i as r}from"./isNaN.1dedf85e.js";import"./swiper-vue.1c91be54.js";const m=a(e=>{if(r(Number(e.params.play))||e.query.epId&&r(Number(e.query.epId)))return p({path:"/",replace:!0})});export{m as default};

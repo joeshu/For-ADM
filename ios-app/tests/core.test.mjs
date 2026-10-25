@@ -19,6 +19,14 @@ test('Dynamic categories and resource domains retain paths and only accept HTTPS
  assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/a.jpg'},{groups:[{id:'vod1',url:[{domain:'https://img.example/vod1'}]}]}),['https://img.example/vod1/a.jpg']);
  assert.deepEqual(playbackURLs({playUrls:[{url:'http://x.test/a'},{url:'javascript:alert(1)'},{url:'https://x.test/a'}]}),[{url:'https://x.test/a'}]);
 });
+test('Website catalogs retain string IDs, direct HTTPS posters, and source-specific adult classifications',()=>{
+ const rows=collectMovies([{title:'影片',url:'vod/detail?vodId=Lg5BX',imageURL:'https://poster.example/a.jpg',channelId:0,isAdult:false},{title:'无效ID',url:'vod/detail?vodId=../../oops'}]);
+ assert.equal(rows.length,1);assert.equal(rows[0].id,'Lg5BX');assert.deepEqual(imageURLs(rows[0],{}),['https://poster.example/a.jpg']);
+ const tabs=[{type:'category',channelId:5,text:'体育'},{type:'category',channelId:99,text:'成人'}];
+ assert.deepEqual(categories({vodTabs:tabs,adultChannelIds:[99]}),[{id:5,name:'体育'}]);
+ assert.equal(categories({vodTabs:[{type:'category',channelId:5,text:'成人'}]}).length,0);
+ assert.equal(collectMovies([{title:'旧源成人分类',url:'vod/detail?vodId=1',channelId:5,isAdult:false}]).length,0);
+});
 test('Request signature matches independent HMAC implementation, public queries and API version',()=>{
  const c=new SiteClient(site,()=>{},storage()),r=c.buildRequest('https://api.example','/test',{k:'a&b 中文'});
  const query={os:'webapp',appId:site.appId,userLevel:'0',k:'a&b 中文'};
