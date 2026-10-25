@@ -251,7 +251,7 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title"><div class="settings-card-heading"><span class="settings-icon">⌁</span><div><h2 id="settings-network-title">数据线路</h2><p>选择数据请求优先使用的线路</p></div><button class="settings-action" data-act="probe-lines">检测</button></div>
    <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${(c.config?.urls?.[kind]||[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}).slice(0,5).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button class="settings-line" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'优先':health?health.ok?`${health.ms} ms`:'暂不可用':'未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}</div>
   </section>
-  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.29 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
+  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.30 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
  </div>`;
 }
 function detail(){
@@ -280,6 +280,10 @@ function render(options={}){
  stopImages?.();const video=$('#video');if(video){saveProgress(video.currentTime);video.pause();}
  if(!native.native()&&switched&&renderKey&&pageDOMCache.has(renderKey)){const cached=pageDOMCache.get(renderKey);pageDOMCache.delete(renderKey);pageDOMCache.set(renderKey,cached);state.imageMap=new Map(cached.images);pageRoot.replaceChildren(cached.node);for(const row of pageRoot.querySelectorAll('[data-shelf]'))row.scrollLeft=shelfOffsets.get(row.dataset.shelf)||row.scrollLeft;for(const row of pageRoot.querySelectorAll('[data-live-scroll]'))row.scrollLeft=liveScrollOffsets.get(row.dataset.liveScroll)||0;activeRenderKey=renderKey;activeRenderReady=true;syncNav();wireVideo();requestAnimationFrame(()=>{window.scrollTo({top:cached.scrollY||0,behavior:'instant'});syncNativePlayer();});stopImages=loadVisibleImages(pageRoot,new Map(state.imageMap),options=>native.request(options),site().origin+'/');return;}
  activeRenderKey=renderKey;activeRenderReady=!state.loading;state.imageMap.clear();
+ if(native.native()&&!(state.page==='detail'&&state.playURLs.length)){
+  pageRoot.replaceChildren();syncNav();native.syncPage(nativePageSnapshot());if(state.page==='live')native.syncLive(nativeLiveSnapshot(),{fast:options.liveFast===true});wireVideo();stopImages=()=>{};
+  requestAnimationFrame(syncNativePlayer);return;
+ }
  if(state.page==='collection')pageRoot.innerHTML=`<div class="shell"><div class="detailtop"><button class="iconbutton" data-act="collection-back" aria-label="返回上一页">${icon('back')}</button><span class="caption">专题片库</span><button class="iconbutton" data-act="page" data-id="home" aria-label="首页">${icon('home')}</button></div>${collectionView()}</div>`;
  else if(state.page==='detail')pageRoot.innerHTML=`<div class="shell detail-shell ${state.playURLs.length?'is-playing':''}"><div class="detailtop"><button class="iconbutton" data-act="back" aria-label="返回上一页">${icon('back')}</button><span class="detailtop-title">${e(state.playURLs.length?(state.detail?.title||'正在播放')+' · '+(state.episode?.title||'播放中'):'影片详情')}</span><button class="iconbutton" data-act="page" data-id="saved" aria-label="片单">${icon('saved')}</button></div>${detail()}<div class="footer">SANYUAN · 让好故事继续</div></div>`;
  else if(state.page==='discover')pageRoot.innerHTML=`<div class="shell discover-shell">${discover()}</div>`;
@@ -365,12 +369,17 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config,cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.29'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config,cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.30'};
  }
  return {...base};
 }
 window.NativePageAction=(action,payload={})=>{
  if(action==='page'&&!['home','discover','browse','live','me','saved','settings'].includes(String(payload.id||'')))return;
+ if(action==='search-submit'){const query=String(payload.query||'').trim();if(!query)return;state.query=query;state.page='search';state.items=[];load();return;}
+ if(action==='login-submit'){const account=String(payload.account||'').trim(),password=String(payload.password||'');if(!account||!password)return;state.authError='';void client().login(account,password).then(()=>toast('登录成功')).catch(error=>{state.authError=error.message;}).finally(()=>render());return;}
+ if(action==='toggle-clean-hls'){state.cleanHLS=!state.cleanHLS;write('cleanHLS',state.cleanHLS);toast('已更新，下次播放生效');render();return;}
+ if(action==='playback-rate'){const rate=Number(payload.id);if([0.5,0.75,1,1.25,1.5,2].includes(rate)){state.playbackRate=rate;write('playbackRate',rate);toast('默认倍速已更新');render();}return;}
+ if(action==='play-line'){const index=Number(payload.id);if(!Number.isInteger(index)||!state.playURLs[index])return;saveProgress(undefined);state.playIndex=index;const session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};void verifyMedia(client(),state.playURLs[index].url,controller?.signal,state.playURLs[index].headers,state.playURLs[index].referrerPolicy).then(()=>{render();if(native.native())return launchNativePlayer();return $('#video')?.play().catch(()=>{});}).catch(error=>recoverPlayback(session,error.message));return;}
  if(action==='more'){
   if(!state.loading&&state.next&&['browse','search','collection'].includes(state.page))load({more:true});
   return;
