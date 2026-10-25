@@ -69,7 +69,7 @@ function discover(){
 }
 async function loadDiscovery({refresh=false,more=false}={}){
  const key=`${state.site}:${state.discoverTab}:${state.adultEnabled?'adult':'safe'}`,cached=discoveryCache.get(key);if(!refresh&&!more&&cached){Object.assign(state,cached,{loading:false,error:''});render();return;}
- const {signal,epoch}=cancel(),c=client();state.loading=true;state.error='';if(!more){state.discoverGroups=[];state.discoverSections=[];state.discoverItems=[];state.discoverNext='';}render();
+ const previousGroups=state.discoverGroups.length,previousItems=state.discoverItems.length,{signal,epoch}=cancel(),c=client();state.loading=true;state.error='';if(!more){state.discoverGroups=[];state.discoverSections=[];state.discoverItems=[];state.discoverNext='';render();}else{const button=pageRoot.querySelector('[data-act="discover-more"]');if(button){button.disabled=true;button.textContent='正在加载…';}}
  try{
   if(!c.config)await c.bootstrap(signal);if(!state.sections.length){const home=await c.home(signal);state.sections=homeSections(home);}
   if(state.discoverTab===0){const route=state.sections.find(section=>section.route?.kind==='timeline')?.route;if(route){const data=await c.collection(route,more?state.discoverNext||'page=1':'page=1',signal),groups=collectionGroups(data,{includeAdult:state.adultEnabled});state.discoverGroups=more?[...state.discoverGroups,...groups]:groups;state.discoverNext=pageCursor(data?.next);}else{const category=categories(c.config,{includeAdult:state.adultEnabled})[0];if(category){const data=await c.channel(category.id,{},more?state.discoverNext||'page=1':'page=1',signal),items=collectMovies(data?.items||[],{includeAdult:state.adultEnabled});state.discoverItems=more?[...state.discoverItems,...items]:items;state.discoverNext=pageCursor(data?.next);}}}
@@ -78,7 +78,23 @@ async function loadDiscovery({refresh=false,more=false}={}){
   else if(state.discoverTab===3){const category=categories(c.config,{includeAdult:state.adultEnabled})[0],definition=c.config.channelListQuery?.find(row=>Number(row.channelId)===category?.id)?.items?.find(row=>row.query==='sort'),hot=definition?.data?.find(option=>/热|人气|排行/.test(option.name))?.id;if(category){const data=await c.channel(category.id,hot?{sort:String(hot)}:{},more?state.discoverNext||'page=1':'page=1',signal),items=collectMovies(data?.items||[],{includeAdult:state.adultEnabled});state.discoverItems=more?[...state.discoverItems,...items]:items;state.discoverNext=pageCursor(data?.next);}}
   if(epoch!==state.epoch)return;
  }catch(error){if(error.name!=='AbortError'&&epoch===state.epoch)state.error=error.message;}
- finally{if(epoch===state.epoch){state.loading=false;if(!state.error)discoveryCache.set(key,{discoverGroups:state.discoverGroups.slice(),discoverSections:state.discoverSections.slice(),discoverItems:state.discoverItems.slice(),discoverNext:state.discoverNext});render();}}
+ finally{if(epoch===state.epoch){state.loading=false;if(!state.error)discoveryCache.set(key,{discoverGroups:state.discoverGroups.slice(),discoverSections:state.discoverSections.slice(),discoverItems:state.discoverItems.slice(),discoverNext:state.discoverNext});if(!more||native.native()||!appendDiscoveryResults(previousGroups,previousItems))render();else if(native.native())native.syncPage(nativePageSnapshot());}}
+}
+function appendDiscoveryResults(previousGroups,previousItems){
+ if(state.error)return false;
+ const page=pageRoot.querySelector('.discover-page');if(!page)return false;
+ const template=document.createElement('div');template.innerHTML=discover();
+ const more=page.querySelector('[data-act="discover-more"]');
+ const addedItems=state.discoverItems.slice(previousItems),firstCard=page.querySelector('.card');
+ if(addedItems.length&&firstCard){firstCard.parentElement.insertAdjacentHTML('beforeend',addedItems.map(item=>card(item)).join(''));const button=page.querySelector('[data-act="discover-more"]');if(button){if(state.discoverNext){button.disabled=false;button.textContent='加载更多';}else button.remove();}return true;}
+ const existingGrid=page.querySelector(':scope > .grid'),nextGrid=template.querySelector('.discover-page > .grid');
+ if(existingGrid&&nextGrid){existingGrid.insertAdjacentHTML('beforeend',state.discoverItems.slice(previousItems).map(item=>card(item)).join(''));}
+ else{
+  const selectors=state.discoverTab===0?['.timeline-group']:state.discoverTab===2?['.discover-topic']:[];
+  if(selectors.length){const selector=selectors[0],existingTitles=new Set([...page.querySelectorAll(selector+' h2')].map(node=>node.textContent)),incoming=[...template.querySelectorAll(selector)];for(const section of incoming)if(!existingTitles.has(section.querySelector('h2')?.textContent||'')){if(more)more.insertAdjacentElement('beforebegin',section);else page.append(section);}}
+ }
+ const button=page.querySelector('[data-act="discover-more"]');if(button){if(state.discoverNext){button.disabled=false;button.textContent='加载更多';}else button.remove();}
+ return true;
 }
 function browse(){
  const cats=categories(client().config,{includeAdult:state.adultEnabled}),category=cats.find(c=>c.id===state.channel),filters=filterDefinitions();
@@ -243,7 +259,7 @@ function render(options={}){
  stopImages=native.native()?()=>{}:loadVisibleImages(pageRoot,new Map(state.imageMap),options=>native.request(options),site().origin+'/');
 }
 function cancel(){controller?.abort();controller=new AbortController();state.epoch++;return {signal:controller.signal,epoch:state.epoch};}
-async function load({more=false}={}){const {signal,epoch}=cancel(),c=client();state.loading=true;state.error='';if(!more)state.next='page=1';render();try{if(!c.config)await c.bootstrap(signal);
+async function load({more=false}={}){const {signal,epoch}=cancel(),c=client(),previousItemCount=state.items.length,previousGroupCount=state.collectionGroups.length;state.loading=true;state.error='';if(!more)state.next='page=1';if(more){const button=pageRoot.querySelector('[data-act="more"]');if(button){button.disabled=true;button.textContent='正在加载…';}}else render();try{if(!c.config)await c.bootstrap(signal);
  if(state.page==='browse'){
   const definitions=filterDefinitions(),valid={};
   for(const f of definitions){const value=state.filters[f.query]??filterDefault(f);if((f.data||[]).some(o=>String(o.id)===String(value)))valid[f.query]=String(value);}
@@ -253,7 +269,31 @@ async function load({more=false}={}){const {signal,epoch}=cancel(),c=client();st
  const options={includeAdult:state.adultEnabled},items=sectionItems(data?.items||[],options),groups=collectionGroups(data,options);
  state.items=more?[...new Map([...state.items,...items].map(x=>[x.id,x])).values()]:items;
  state.collectionGroups=more?[...state.collectionGroups,...groups]:groups;state.next=pageCursor(data?.next);
- }else if(['browse','search'].includes(state.page)){const items=collectMovies(data?.items||[],{includeAdult:state.adultEnabled});state.items=more?[...new Map([...state.items,...items].map(x=>[x.id,x])).values()]:items;state.next=pageCursor(data?.next);}}catch(error){if(error.name!=='AbortError'&&epoch===state.epoch)state.error=error.message;}finally{if(epoch===state.epoch){state.loading=false;if(!state.error)cacheView();render();}}}
+ }else if(['browse','search'].includes(state.page)){const items=collectMovies(data?.items||[],{includeAdult:state.adultEnabled});state.items=more?[...new Map([...state.items,...items].map(x=>[x.id,x])).values()]:items;state.next=pageCursor(data?.next);}}catch(error){if(error.name!=='AbortError'&&epoch===state.epoch)state.error=error.message;}finally{if(epoch===state.epoch){state.loading=false;if(!state.error)cacheView();if(!more||!appendMoreResults(previousItemCount,previousGroupCount))render();else if(native.native())native.syncPage(nativePageSnapshot());}}}
+function appendMoreResults(previousItemCount,previousGroupCount){
+ if(state.error)return false;
+ if(['browse','search'].includes(state.page)){
+  const gridNode=pageRoot.querySelector('.content > .grid');if(!gridNode)return false;
+  gridNode.insertAdjacentHTML('beforeend',state.items.slice(previousItemCount).map(item=>card(item)).join(''));
+  const status=pageRoot.querySelector('.results-status');if(status)status.textContent=`已显示 ${state.items.length} 部${state.next?' · 下方可加载更多':' · 已全部显示'}`;
+  const button=pageRoot.querySelector('[data-act="more"]');if(button){if(state.next){button.disabled=false;button.textContent='加载更多影片';}else button.remove();}
+  return true;
+ }
+ if(state.page==='collection'&&state.collection?.kind==='topic'){
+  const gridNode=pageRoot.querySelector('.collection-content > .grid');if(!gridNode)return false;
+  gridNode.insertAdjacentHTML('beforeend',state.items.slice(previousItemCount).map(item=>card(item)).join(''));
+  const button=pageRoot.querySelector('[data-act="more"]');if(button){if(state.next){button.disabled=false;button.textContent='加载更多';}else button.remove();}
+  return true;
+ }
+ if(state.page==='collection'&&state.collectionGroups.length>previousGroupCount){
+  const content=pageRoot.querySelector('.collection-content'),button=content?.querySelector('[data-act="more"]');if(!content)return false;
+  const markup=state.collectionGroups.slice(previousGroupCount).map((group,index)=>`<section class="collection-group"><div class="sectiontop row"><h2>${e(group.title)}</h2>${group.route?`<button class="textbutton" data-act="collection-link" data-route="${e(group.route.url)}" data-title="${e(group.title)}">全部影片 ›</button>`:''}</div><div class="shelf collection-shelf" data-shelf="collection:${e(state.collection?.id||'root')}:${previousGroupCount+index}" aria-label="${e(group.title)}">${group.items.map(movie=>card(movie)).join('')}</div></section>`).join('');
+  if(button)button.insertAdjacentHTML('beforebegin',markup);else content.insertAdjacentHTML('beforeend',markup);
+  const more=content.querySelector('[data-act="more"]');if(more){if(state.next){more.disabled=false;more.textContent='加载更多';}else more.remove();}
+  return true;
+ }
+ return false;
+}
 async function openDetail(id,source=state.site){if(activeRenderKey)pageScrollCache.set(activeRenderKey,window.scrollY);if(state.page!=='detail'||!state.detailReturn)state.detailReturn=detailPageSnapshot();saveProgress($('#video')?.currentTime);cancel();if(source!==state.site){state.site=source;localStorage.setItem('sanyuan:site',source);}state.page='detail';state.detail=null;state.line=0;state.episode=null;state.episodePage=0;state.playURLs=[];state.playError='';state.loading=true;state.error='';const {signal,epoch}=cancel();render();window.scrollTo(0,0);try{const d=await client().detail(id,signal);if(epoch!==state.epoch)return;state.detail=d;if(!Array.isArray(d.playSources))d.playSources=[];const preferred=d.playSources.findIndex(x=>x.siteId===client().preferredPlaybackSiteId),selected=d.playSources.findIndex(x=>x.selected);state.line=preferred>=0?preferred:selected>=0?selected:0;await loadEpisodes(signal);}catch(error){if(error.name!=='AbortError'&&epoch===state.epoch)state.error=error.message;}finally{if(epoch===state.epoch){state.loading=false;render();}}}
 async function loadEpisodes(signal){const d=state.detail,c=client(),line=d?.playSources?.[state.line];if(!line)return;if(!Array.isArray(line.list)||line.list.length<Number(line.total||0)){const list=await c.episodes(d.id,line,signal);if(Array.isArray(list)&&list.length)line.list=list;}}
 function favorite(movie){let list=read('favorites');const index=list.findIndex(x=>x.siteId===state.site&&x.movie.id===String(movie.id));if(index>=0){list.splice(index,1);toast('已移出片单');}else{list.push({siteId:state.site,movie:{...movie,id:String(movie.id)},updated:Date.now()});toast('已加入片单');}write('favorites',list);}
@@ -317,7 +357,7 @@ window.NativePageAction=(action,payload={})=>{
  const button=document.createElement('button');button.dataset.act=action;for(const [key,value] of Object.entries(payload||{}))if(value!==undefined&&value!==null)button.dataset[key]=String(value);button.hidden=true;root.append(button);button.click();button.remove();
 };
 window.NativePageRequestState=()=>native.syncPage(nativePageSnapshot());
-function episodesPanel(line,episodes){const pageSize=20,pageCount=Math.max(1,Math.ceil(episodes.length/pageSize)),page=Math.min(state.episodePage,pageCount-1),start=page*pageSize,current=episodes.findIndex(x=>x.id===state.episode?.id),total=Math.max(episodes.length,Number(line?.total||0));return `<section class="episode-section"><div class="episodes-heading"><div><h2 class="smallheading">选集</h2><span class="subtle">已载入 ${episodes.length}${total>episodes.length?` / 共 ${total}`:''} 集${current>=0?` · 正在播放 ${e(episodes[current].title||`第${current+1}集`)}`:''}</span></div>${current>=0?`<div class="episode-steps"><button class="secondary" data-act="episode-step" data-id="-1" ${current===0?'disabled':''}>上一集</button><button class="secondary" data-act="episode-step" data-id="1" ${current===episodes.length-1?'disabled':''}>下一集</button></div>`:''}</div>${pageCount>1?`<label class="episode-pages"><span>选集范围</span><select aria-label="选择集数范围" data-episode-page>${Array.from({length:pageCount},(_,i)=>`<option value="${i}" ${i===page?'selected':''}>${i*pageSize+1}–${Math.min((i+1)*pageSize,episodes.length)} 集</option>`).join('')}</select></label>`:''}<div class="episodes">${episodes.slice(start,start+pageSize).map((episode,offset)=>{const i=start+offset,active=state.episode?.id===episode.id;return `<button class="episode ${active?'active':''}" data-act="episode" data-id="${i}" aria-current="${active?'true':'false'}" aria-label="${e(episode.title||'第'+(i+1)+'集')}${active?'，正在播放':'，点击播放'}"><span class="episode-title">${e(episode.title||'第'+(i+1)+'集')}</span>${active?'<small>正在播放</small>':''}</button>`;}).join('')}</div></section>`;}
+function episodesPanel(line,episodes){const pageSize=20,pageCount=Math.max(1,Math.ceil(episodes.length/pageSize)),page=Math.min(state.episodePage,pageCount-1),start=page*pageSize,current=episodes.findIndex(x=>x.id===state.episode?.id),total=Math.max(episodes.length,Number(line?.total||0));return `<section class="episode-section"><div class="episodes-heading"><div><h2 class="smallheading">选集</h2><span class="subtle">已载入 ${episodes.length}${total>episodes.length?` / 共 ${total}`:''} 集${current>=0?` · 正在播放 ${e(episodes[current].title||`第${current+1}集`)}`:''}</span></div>${current>=0?`<div class="episode-steps"><button class="secondary" data-act="episode-step" data-id="-1" ${current===0?'disabled':''}>上一集</button><button class="secondary" data-act="episode-step" data-id="1" ${current===episodes.length-1?'disabled':''}>下一集</button></div>`:''}</div>${pageCount>1?`<div class="episode-pages" role="group" aria-label="选集分页"><span>页码</span><div class="episode-page-options">${Array.from({length:pageCount},(_,i)=>`<button type="button" class="episode-page-chip ${i===page?'active':''}" data-act="episode-page" data-id="${i}" aria-current="${i===page?'page':'false'}" aria-label="第 ${i+1} 页，第 ${i*pageSize+1} 至 ${Math.min((i+1)*pageSize,episodes.length)} 集">${i+1}</button>`).join('')}</div><small>第 ${page+1} / ${pageCount} 页 · ${start+1}–${Math.min(start+pageSize,episodes.length)} 集</small></div>`:''}<div class="episodes">${episodes.slice(start,start+pageSize).map((episode,offset)=>{const i=start+offset,active=state.episode?.id===episode.id;return `<button class="episode ${active?'active':''}" data-act="episode" data-id="${i}" aria-current="${active?'true':'false'}" aria-label="${e(episode.title||'第'+(i+1)+'集')}${active?'，正在播放':'，点击播放'}"><span class="episode-title">${e(episode.title||'第'+(i+1)+'集')}</span>${active?'<small>正在播放</small>':''}</button>`;}).join('')}</div></section>`;}
 function saveProgress(time,session=playbackSession){if(!session)return;const key=sourceKey(session.siteId,session.movie.id);let list=read('history'),row=list.find(x=>x.key===key);const prior=row?.episodeId===session.episodeId?row.time:0;const entry={key,...session,time:Number.isFinite(time)?time:prior||0,updated:Date.now()};list=[entry,...list.filter(x=>x.key!==key)].slice(0,100);write('history',list);}
 
 function playerFrame(){
@@ -454,6 +494,7 @@ else if(act==='age-cancel'){state.showAgeGate=false;render();}
 else if(act==='columns'){state.columns=id;localStorage.setItem('sanyuan:columns',id);render();}
 else if(act==='theme'){state.theme=id==='black'?'black':'white';localStorage.setItem('sanyuan:theme',state.theme);render();}
 else if(act==='episode-step'){const list=state.detail?.playSources?.[state.line]?.list||[],index=list.findIndex(x=>x.id===state.episode?.id)+Number(id);if(index>=0&&index<list.length)await playEpisode(index);}
+else if(act==='episode-page'){state.episodePage=Math.max(0,Number(id)||0);render();}
 else if(act==='play-source'){
  const target=Number(id);if(target===state.line)return;
  const requested=state.episode,oldLine=state.detail?.playSources?.[state.line],{signal,epoch}=cancel();

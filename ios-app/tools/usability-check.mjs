@@ -36,7 +36,7 @@ try{
  assert.equal(await page.locator('.shelf').first().evaluate(row=>[...row.children].every(card=>{const r=card.getBoundingClientRect(),p=row.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;})),true);
  await page.locator('.home-section [data-act="collection-link"]').first().click();await page.locator('.collection-content .card').first().waitFor();
  assert.equal(await page.locator('.collection-content .card').count(),12);
- await page.locator('[data-act="more"]').click();await page.waitForFunction(()=>document.querySelectorAll('.collection-content .card').length===13);
+ await page.evaluate(()=>window.__collectionFirst=document.querySelector('.collection-content .card'));await page.locator('[data-act="more"]').click();await page.waitForFunction(()=>document.querySelectorAll('.collection-content .card').length===13);assert.equal(await page.evaluate(()=>window.__collectionFirst===document.querySelector('.collection-content .card')),true);
  await page.locator('.collection-content .card').first().click();await page.locator('.detail-hero').waitFor();
  await page.locator('[data-act="back"]').click();assert.equal(await page.locator('.collection-content .card').count(),13);
  await page.locator('[data-act="collection-back"]').click();assert.equal(await page.locator('.shelf').first().evaluate(row=>getComputedStyle(row).gridTemplateColumns.split(' ').length),3);
@@ -44,7 +44,7 @@ try{
  await page.locator('[data-act="collection-back"]').click();
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-home.png'});
  await page.locator('[data-act="page"][data-id="discover"]').click();await page.locator('.discover-page').waitFor();await page.waitForFunction(()=>document.querySelectorAll('.discover-page .card').length===12);
- await page.evaluate(()=>window.NativePageAction('discover-more'));await page.waitForFunction(()=>document.querySelectorAll('.discover-page .card').length===13);assert.match(await page.locator('.discover-page').innerText(),/后续影片/);
+ await page.evaluate(()=>window.__discoverFirst=document.querySelector('.discover-page .card'));await page.evaluate(()=>window.NativePageAction('discover-more'));await page.waitForFunction(()=>document.querySelectorAll('.discover-page .card').length===13);assert.equal(await page.evaluate(()=>window.__discoverFirst===document.querySelector('.discover-page .card')),true);assert.match(await page.locator('.discover-page').innerText(),/后续影片/);
  await page.locator('[data-act="page"][data-id="home"]').click();await page.locator('.hero').waitFor();
  await page.evaluate(()=>window.__cachedHomeHero=document.querySelector('.hero'));
  await page.locator('[data-act="page"][data-id="browse"]').click();await page.locator('.browse-heading').waitFor();
@@ -64,7 +64,7 @@ try{
  assert.equal(await page.locator('.grid').first().evaluate(row=>[...row.children].every(card=>{const r=card.getBoundingClientRect(),p=row.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;})),true);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-filters.png'});
  await page.locator('[data-act="filters-reset"]').click();await page.waitForFunction(()=>!document.querySelector('.selected-filters')&&document.querySelectorAll('.card').length>0);
- await page.locator('.content [data-act="more"]').waitFor();const browsePageCount=await page.locator('.content .card').count();await page.evaluate(()=>window.NativePageAction('more'));await page.waitForFunction(count=>document.querySelectorAll('.content .card').length===count+1,browsePageCount);assert.match(await page.locator('.content').innerText(),/后续影片/);assert.equal(await page.locator('.content [data-act="more"]').count(),0);
+ await page.locator('.content [data-act="more"]').waitFor();const browsePageCount=await page.locator('.content .card').count();await page.evaluate(()=>window.__browseFirst=document.querySelector('.content .card'));await page.evaluate(()=>window.NativePageAction('more'));await page.waitForFunction(count=>document.querySelectorAll('.content .card').length===count+1,browsePageCount);assert.equal(await page.evaluate(()=>window.__browseFirst===document.querySelector('.content .card')),true);assert.match(await page.locator('.content').innerText(),/后续影片/);assert.equal(await page.locator('.content [data-act="more"]').count(),0);
  await page.evaluate(()=>window.scrollTo(0,250));const returnY=await page.evaluate(()=>window.scrollY);
  await page.locator('.card').first().evaluate(el=>el.click());await page.locator('.route-card').first().waitFor();
  assert.ok(await page.locator('.detailtop-title').isVisible());
@@ -72,7 +72,7 @@ try{
  await page.locator('[data-act="back"]').click();await page.locator('.browse-heading').waitFor();await page.evaluate(()=>new Promise(requestAnimationFrame));
  assert.ok(await page.evaluate(y=>Math.abs(window.scrollY-y)<3,returnY));
  await page.locator('.card').first().evaluate(el=>el.click());await page.locator('.route-card').first().waitFor();
- await page.evaluate(()=>window.NativePageAction('episode-page',{id:'1'}));await page.waitForFunction(()=>document.querySelector('.episode')?.dataset.id==='20');assert.equal(await page.locator('.episode').count(),20);await page.evaluate(()=>window.NativePageAction('episode-page',{id:'0'}));await page.waitForFunction(()=>document.querySelector('.episode')?.dataset.id==='0');
+ assert.equal(await page.locator('.episode-page-chip').count(),3);await page.locator('.episode-page-chip[data-id="2"]').click();await page.waitForFunction(()=>document.querySelector('.episode')?.dataset.id==='40');assert.equal(await page.locator('.episode').count(),5);await page.locator('.episode-page-chip[data-id="1"]').click();await page.waitForFunction(()=>document.querySelector('.episode')?.dataset.id==='20');assert.equal(await page.locator('.episode').count(),20);await page.locator('.episode-page-chip[data-id="0"]').click();await page.waitForFunction(()=>document.querySelector('.episode')?.dataset.id==='0');
  await page.locator('[data-act="episode"][data-id="1"]').click();await page.locator('#video').waitFor();
  await page.getByLabel('切换播放源',{exact:true}).selectOption('1');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/c.m3u8'));
  assert.match(await page.locator('.episode.active').innerText(),/第2集/);
