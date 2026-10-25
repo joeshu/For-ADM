@@ -158,7 +158,8 @@ async function loadLivePlaylist(value=state.liveURL){
  let url;try{url=new URL(value.trim());if(!['https:','http:'].includes(url.protocol)||!url.hostname)throw Error();}catch{state.liveError='请输入有效的 HTTP 或 HTTPS M3U 地址。';state.liveImportOpen=true;render();return;}
  state.liveImportController?.abort();const controller=new AbortController();state.liveImportController=controller;state.liveURL=url.href;localStorage.setItem('sanyuan:livePlaylistURL',url.href);state.liveLoading=true;state.liveError='';render();
  try{const response=await native.request({url:url.href,method:'GET',headers:{Accept:'application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*'},livePlaylist:true,signal:controller.signal});if(response.status<200||response.status>=300)throw Error(`播放列表请求失败（HTTP ${response.status}）`);const text=decodePlaylist(response.bodyBase64),parsed=await parseM3UIncremental(text,url.href,{signal:controller.signal});if(controller.signal.aborted)return;
-  let saved=true;try{await native.saveLiveCache(url.href,text);state.liveCacheFound=true;}catch{saved=false;}
+  let saved=true;try{await native.saveLiveCache(url.href,text);if(controller.signal.aborted)return;state.liveCacheFound=true;}catch{saved=false;}
+  if(controller.signal.aborted)return;
   applyLivePlaylist(parsed,url.href);state.liveStatus=`${url.protocol==='http:'?'HTTP 列表未加密 · ':''}已导入 ${parsed.channels.length.toLocaleString()} 个频道${saved?' · 已保存在本机':' · 本地保存失败，请检查设备空间'}`;
   const preferred=liveChannel();if(state.page==='live'&&preferred)queueMicrotask(()=>playLiveVariant(0));
  }catch(error){if(error.name!=='AbortError'&&!controller.signal.aborted)state.liveError=error.message||'无法读取 M3U 播放列表';}
@@ -171,7 +172,7 @@ function applyLivePlaylist(parsed,url){
  state.liveCurrentIndex=preferred?.index??-1;state.liveVariantIndex=0;state.livePrograms=[];state.liveProgramDate='';state.liveSelectedProgram=null;
 }
 async function restoreLivePlaylist(){
- try{const cached=await native.getLiveCache();if(!cached?.url||typeof cached.text!=='string'||!cached.text)return false;state.liveCacheFound=true;const parsed=await parseM3UIncremental(cached.text,cached.url);applyLivePlaylist(parsed,cached.url);state.liveStatus=`${cached.url.startsWith('http:')?'HTTP 列表未加密 · ':''}已从本机读取 ${parsed.channels.length.toLocaleString()} 个频道`;if(state.page==='live')render();return true;}
+ try{const cached=await native.getLiveCache();if(state.liveInitialAttempted||!cached?.url||typeof cached.text!=='string'||!cached.text)return false;state.liveCacheFound=true;const parsed=await parseM3UIncremental(cached.text,cached.url);if(state.liveInitialAttempted)return false;applyLivePlaylist(parsed,cached.url);state.liveStatus=`${cached.url.startsWith('http:')?'HTTP 列表未加密 · ':''}已从本机读取 ${parsed.channels.length.toLocaleString()} 个频道`;if(state.page==='live')render();return true;}
  catch(error){state.liveCacheFound=true;state.liveError='本地直播列表读取失败，请手动更新。';return false;}
 }
 const liveCacheReady=restoreLivePlaylist();
@@ -249,7 +250,7 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title"><div class="settings-card-heading"><span class="settings-icon">⌁</span><div><h2 id="settings-network-title">数据线路</h2><p>选择数据请求优先使用的线路</p></div><button class="settings-action" data-act="probe-lines">检测</button></div>
    <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${(c.config?.urls?.[kind]||[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}).slice(0,5).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button class="settings-line" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'优先':health?health.ok?`${health.ms} ms`:'暂不可用':'未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}</div>
   </section>
-  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.24 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
+  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.25 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
  </div>`;
 }
 function detail(){
@@ -363,7 +364,7 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config,cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.24'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config,cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.25'};
  }
  return {...base};
 }
