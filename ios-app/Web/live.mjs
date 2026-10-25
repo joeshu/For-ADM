@@ -76,3 +76,6 @@ export function channelAlternates(channels,channel,index){
  if(!channel)return [];
  return index?.get(channel.identity)||channels.filter(candidate=>candidate.identity===channel.identity);
 }
+export function nextUntriedRouteIndex(routes,triedURLs){
+ return routes.findIndex(route=>route&&!triedURLs?.has(route.url));
+}

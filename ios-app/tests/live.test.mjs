@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates} from '../Web/live.mjs';
+import {parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex} from '../Web/live.mjs';
 
 test('parses M3U metadata, groups, relative URLs and labels insecure entries',()=>{
  const source='#EXTM3U x-tvg-url="https://guide.example/guide.xml"\n'+
@@ -26,6 +26,13 @@ test('matches HTTPS and HTTP alternate relays by TVG identity',()=>{
   '#EXTINF:-1 tvg-id="one" group-title="C",One insecure\nhttp://c.example/one.m3u8\n',
   'https://list.example/list.m3u').channels;
  assert.deepEqual(channelAlternates(channels,channels[0]).map(channel=>channel.index),[0,1,2]);
+});
+
+test('automatic live failover checks earlier routes after a manual route fails',()=>{
+ const routes=[{url:'https://one.example/live.m3u8'},{url:'https://two.example/live.m3u8'},{url:'https://three.example/live.m3u8'}];
+ assert.equal(nextUntriedRouteIndex(routes,new Set([routes[2].url])),0);
+ assert.equal(nextUntriedRouteIndex(routes,new Set([routes[0].url,routes[1].url])),2);
+ assert.equal(nextUntriedRouteIndex(routes,new Set(routes.map(route=>route.url))),-1);
 });
 
 test('large M3U imports parse incrementally and preindex all alternate routes',async()=>{
