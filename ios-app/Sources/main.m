@@ -144,7 +144,7 @@ static NSMutableDictionary *SYPosterRequests;
  SYController*owner=self.owner;SYPlayerViewController*player=owner.nativePlayer;
  if(!player||player.fullScreen||player.pictureInPicture||![owner.playContext hasPrefix:@"live:"])return;
  if(player.view.superview!=self.playerHost){[player.view removeFromSuperview];[self.playerHost addSubview:player.view];}
- player.view.frame=self.playerHost.bounds;
+ player.view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;player.view.hidden=NO;player.view.alpha=1;player.view.frame=self.playerHost.bounds;
  [self.playerHost bringSubviewToFront:self.routePicker];
 }
 - (void)actionPressed:(SYLiveActionButton*)sender {
@@ -494,9 +494,13 @@ static NSMutableDictionary *SYPosterRequests;
   BOOL ready=self.liveScreen&&self.liveScreen.playerHost&&self.liveScreen.content.subviews.count>=8&&[self.liveSnapshot[@"panel"] isEqualToString:@"categories"];
   self.smokeLiveFastStateApplied=self.liveScreen.content.subviews.count==self.smokeLiveSubviewsBeforeFast&&[self.liveScreen.liveTitleLabel.text isEqualToString:@"切台响应测试"];
   BOOL embedded=self.liveScreen.parentViewController==self&&self.liveScreen.view.superview==self.view&&self.presentedViewController==nil;
-  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
+  [self stopNativePlayback];self.playContext=@"live:layout-smoke";SYPlayerViewController*layoutProbe=[SYPlayerViewController new];self.nativePlayer=layoutProbe;[self.liveScreen addChildViewController:layoutProbe];layoutProbe.view.frame=CGRectZero;[self.liveScreen.playerHost addSubview:layoutProbe.view];[layoutProbe didMoveToParentViewController:self.liveScreen];[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];
+  CGRect initialFrame=layoutProbe.view.frame,initialBounds=self.liveScreen.playerHost.bounds;BOOL playerAttached=layoutProbe.view.superview==self.liveScreen.playerHost;BOOL playerFillsHost=initialFrame.size.width>0&&initialFrame.size.height>0&&initialFrame.size.width==initialBounds.size.width&&initialFrame.size.height==initialBounds.size.height;
+  CGRect originalScreenFrame=self.liveScreen.view.frame;self.liveScreen.view.frame=CGRectMake(0,0,MAX(240,originalScreenFrame.size.width-24),originalScreenFrame.size.height);[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];CGRect resizedFrame=layoutProbe.view.frame,resizedBounds=self.liveScreen.playerHost.bounds;BOOL resizesWithHost=resizedFrame.size.width==resizedBounds.size.width&&resizedFrame.size.height==resizedBounds.size.height&&resizedFrame.size.width>0&&resizedFrame.size.height>0;self.liveScreen.view.frame=originalScreenFrame;[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];BOOL routePickerAbovePlayer=[[self.liveScreen.playerHost.subviews lastObject] isEqual:self.liveScreen.routePicker];
+  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"livePlayerAttachedToHost":@(playerAttached),@"livePlayerFillsHost":@(playerFillsHost),@"livePlayerResizesWithHost":@(resizesWithHost),@"routePickerAbovePlayer":@(routePickerAbovePlayer),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
   NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
   [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
+  [self closeLiveScreen];
 }
 #endif
 - (void)stopNativePlayback {
