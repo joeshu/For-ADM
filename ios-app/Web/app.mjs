@@ -14,7 +14,7 @@ const savedColumns=localStorage.getItem('sanyuan:columns')||'3';
 const savedTheme=localStorage.getItem('sanyuan:theme')==='black'?'black':'white';
 const state={theme:savedTheme,cleanHLS:read('cleanHLS',true)!==false,heroIndex:0,homeScroll:0,collection:null,collectionStack:[],collectionGroups:[],detailReturn:null,site:localStorage.getItem('sanyuan:site')||'kkapp',page:'home',query:'',channel:1,filters:{},next:'page=1',items:[],sections:[],loading:false,error:'',savedTab:'favorites',detail:null,line:0,episode:null,episodePage:0,playURLs:[],playIndex:0,playError:'',playStatus:'',playRecovery:null,pendingEpisodeIndex:0,epoch:0,authError:'',adultEnabled:localStorage.getItem('sanyuan:adult')==='true',showAgeGate:false,columns:['3','4','5','6'].includes(savedColumns)?savedColumns:'3',playbackRate:[0.5,0.75,1,1.25,1.5,2].includes(Number(read('playbackRate',1)))?Number(read('playbackRate',1)):1,imageMap:new Map()};
 Object.assign(state,{discoverTab:0,discoverYear:new Date().getFullYear(),discoverMonth:new Date().getMonth()+1,discoverGroups:[],discoverSections:[],discoverItems:[],discoverNext:'',meTab:'favorites'});
-Object.assign(state,{liveLastPlaybackTime:null,livePlaybackProgressAt:0,liveVideoReady:false,liveVideoCheckTimer:null});
+Object.assign(state,{liveLastPlaybackTime:null,livePlaybackProgressAt:0,liveVideoReady:false});
 Object.assign(state,{liveURL:localStorage.getItem('sanyuan:livePlaylistURL')||'https://fnipv.69574517.xyz/shiju19880215/interface.m3u',liveChannels:[],liveGroups:[],liveAlternateIndex:new Map(),liveEPGUrl:'',liveLoadedURL:'',livePanel:'channels',liveCategory:'',liveSearch:'',liveVisibleCount:80,liveNativeVisibleCount:40,liveCurrentIndex:-1,liveVariantIndex:0,liveImportOpen:true,liveLoading:false,liveError:'',liveStatus:'',liveActive:false,liveResume:false,liveEPGLoading:false,liveEPGText:'',livePrograms:[],liveProgramDate:'',liveSelectedProgram:null,liveSelectedRoute:null,liveSheet:'',liveReturn:null,liveFavorites:read('liveFavorites',[]),liveImportController:null,liveGuideController:null,liveEPGCache:new Map(),liveTriedURLs:new Set(),liveCacheFound:false,liveInitialAttempted:false});
 const clients=new Map(sites.map(site=>[site.id,createSourceClient(site,options=>native.request(options))]));
 if(!clients.has(state.site))state.site=sites[0].id;
@@ -182,17 +182,17 @@ async function loadLiveGuide(){
 function liveCandidateList(channel){return channelAlternates(state.liveChannels,channel,state.liveAlternateIndex).sort((a,b)=>a.index===channel.index?-1:b.index===channel.index?1:a.index-b.index);}
 async function playLiveVariant(variantIndex=0,{automatic=false}={}){
  const channel=liveChannel();if(!channel)return;const routes=liveCandidateList(channel),route=routes[variantIndex];if(!route)return;
- clearTimeout(state.liveVideoCheckTimer);state.liveVideoCheckTimer=null;state.liveVideoReady=false;state.liveVariantIndex=variantIndex;state.liveTriedURLs.add(route.url);state.liveCurrentIndex=channel.index;state.liveActive=true;state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus=automatic?'正在切换备用线路…':route.secure?'正在连接…':'HTTP 未加密 · 正在连接…';state.liveError='';if(!['programs','routes'].includes(state.livePanel))state.livePanel='channels';render({liveFast:true});
+ state.liveVideoReady=false;state.liveVariantIndex=variantIndex;state.liveTriedURLs.add(route.url);state.liveCurrentIndex=channel.index;state.liveActive=true;state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus=automatic?'正在切换备用线路…':route.secure?'正在连接…':'HTTP 未加密 · 正在连接…';state.liveError='';if(!['programs','routes'].includes(state.livePanel))state.livePanel='channels';render({liveFast:true});
  if(!native.native()){const video=$('#live-video');if(video)await video.play().catch(()=>{});return;}
  // Keep one playback context for all mirrors of this channel. The native bridge
  // can then replace the AVPlayerItem in place instead of tearing down the view.
  const context='live:'+channel.identity+':'+variantIndex;nativeSession={context,kind:'live',session:{channelId:channel.tvgId||channel.name,title:channel.name}};
  let referer=state.liveLoadedURL;try{referer=new URL(referer).origin+'/';}catch{}
- try{await native.play(route.url,{Referer:referer},{cleanHLS:false,context,frame:playerFrame(),title:channel.name});if(nativeSession?.context===context){state.liveVideoCheckTimer=setTimeout(()=>{if(state.page==='live'&&state.liveActive&&!state.liveVideoReady&&nativeSession?.context===context)void handleLivePlaybackFailure('音频已连接，但未收到视频画面，正在尝试备用线路');},16000);}}catch(error){if(nativeSession?.context===context)await handleLivePlaybackFailure(error.message);}
+ try{await native.play(route.url,{Referer:referer},{cleanHLS:false,context,frame:playerFrame(),title:channel.name});}catch(error){if(nativeSession?.context===context)await handleLivePlaybackFailure(error.message);}
 }
 async function handleLivePlaybackFailure(message=''){
  if(state.page!=='live')return;
- clearTimeout(state.liveVideoCheckTimer);state.liveVideoCheckTimer=null;const channel=liveChannel(),routes=liveCandidateList(channel);state.liveActive=false;const next=nextUntriedRouteIndex(routes,state.liveTriedURLs);
+ const channel=liveChannel(),routes=liveCandidateList(channel);state.liveActive=false;const next=nextUntriedRouteIndex(routes,state.liveTriedURLs);
  if(next>=0){state.liveStatus='线路异常，正在尝试备用源';toast('直播源连接失败，切换备用线路');await playLiveVariant(next,{automatic:true});return;}
  state.liveError=message||'直播源暂时无法播放。可重试或切换线路。';state.liveStatus='播放失败';state.liveActive=false;native.stopLive();nativeSession=null;render();
 }
@@ -434,8 +434,8 @@ async function recoverPlayback(session,message=''){
 native.onPlaybackEvent=event=>{
  if(event.context!==nativeSession?.context)return;const {session}=nativeSession;
  if(nativeSession.kind==='live'){
-  if(event.status==='ready'){state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus='已连接，等待画面';state.liveError='';render({liveFast:true});}
-  else if(event.status==='videoReady'){state.liveVideoReady=true;clearTimeout(state.liveVideoCheckTimer);state.liveVideoCheckTimer=null;state.liveStatus='正在直播';state.liveError='';render({liveFast:true});}
+  if(event.status==='ready'){state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus='播放已连接，画面加载中';state.liveError='';render({liveFast:true});}
+  else if(event.status==='videoReady'){state.liveVideoReady=true;state.liveStatus='正在直播';state.liveError='';render({liveFast:true});}
   else if(event.status==='progress'){
    const time=Number(event.time),now=Date.now();if(!Number.isFinite(time))return;
    if(state.liveLastPlaybackTime===null||time>state.liveLastPlaybackTime+.2){state.liveLastPlaybackTime=time;state.livePlaybackProgressAt=now;}
