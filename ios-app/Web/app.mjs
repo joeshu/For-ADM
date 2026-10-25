@@ -437,6 +437,10 @@ native.onPlaybackEvent=event=>{
  if(nativeSession.kind==='live'){
   if(event.status==='ready'){state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus='播放已连接，画面加载中';state.liveError='';render({liveFast:true});}
   else if(event.status==='videoReady'){state.liveVideoReady=true;state.liveStatus='正在直播';state.liveError='';render({liveFast:true});}
+  else if(event.status==='audioOnly'){state.liveVideoReady=false;state.liveStatus='该线路没有可识别的视频轨道';state.liveError='已保留当前线路，没有自动切换。可手动选择其他线路，或检查源站是否提供视频流。';render({liveFast:true});}
+  else if(event.status==='videoTrackUnknown'){state.liveVideoReady=false;state.liveStatus='暂时无法确认该线路的视频轨道';state.liveError='当前线路保持播放，未自动切换。请检查网络后重试或手动查看其他线路。';render({liveFast:true});}
+  else if(event.status==='rendererRecovery'){state.liveStatus='正在修复画面渲染，当前线路保持不变…';state.liveError='';render({liveFast:true});}
+  else if(event.status==='rendererFailed'){state.liveVideoReady=false;state.liveStatus='检测到视频轨道，但画面仍未输出';state.liveError='当前线路未自动切换。可手动刷新画面或选择其他线路。';render({liveFast:true});}
   else if(event.status==='progress'){
    const time=Number(event.time),now=Date.now();if(!Number.isFinite(time))return;
    if(state.liveLastPlaybackTime===null||time>state.liveLastPlaybackTime+.2){state.liveLastPlaybackTime=time;state.livePlaybackProgressAt=now;}
