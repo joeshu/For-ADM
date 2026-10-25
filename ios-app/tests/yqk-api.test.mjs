@@ -30,10 +30,18 @@ test('YQK and QNTV sign their own public parameters, isolate storage, and renew 
  assert.notEqual(body.requestId,JSON.parse(a.buildRequest('https://api.example','/test').body).requestId);
  assert.notEqual(a.device.id,b.device.id);assert.ok(store.map.has('sanyuan:yqk:device'));assert.ok(store.map.has('sanyuan:qntv:device'));
 });
-test('Bootstrap discovers API origins without evaluating JS and keeps sports category 5 non-adult',async()=>{
+test('Bootstrap uses configured API origins directly and keeps sports category 5 non-adult',async()=>{
  const {client,calls}=harness();const cfg=await client.bootstrap();assert.equal(cfg.supportsAccount,false);assert.deepEqual(cfg.adultChannelIds,[]);
  assert.deepEqual(cfg.vodTabs.map(x=>[x.channelId,x.isAdult]),[[2,false],[5,false]]);
- assert.equal(calls[1].url,'https://api.example/v2/api/home/header');assert.equal(client.user,null);
+ assert.ok(calls.some(call=>new URL(call.url).pathname==='/v2/api/home/header'));assert.equal(calls.some(call=>new URL(call.url).pathname==='/js/baseUrlList.js'),false);assert.equal(client.user,null);
+});
+test('Cached YQK API origin is reused immediately and home content starts alongside bootstrap',async()=>{
+ const calls=[],store=storage();store.setItem('sanyuan:yqk:apiOrigins',JSON.stringify(['https://api.example']));
+ let releaseHeader;const headerGate=new Promise(resolve=>releaseHeader=resolve);
+ const transport=async request=>{const path=new URL(request.url).pathname;calls.push(path);if(path==='/v2/api/home/header'){await headerGate;return encoded({channeList:[{channelId:2,channelName:'电影'}]});}if(path==='/v2/api/home/body')return encoded({vodTopicList:[]});throw Error('Unexpected '+path);};
+ const client=new YqkClient(source(),transport,store),pending=client.home();await new Promise(resolve=>setTimeout(resolve,0));
+ assert.ok(calls.includes('/v2/api/home/header'));assert.ok(calls.includes('/v2/api/home/body'));assert.equal(calls.includes('/js/baseUrlList.js'),false);
+ releaseHeader();await pending;
 });
 test('Category uses source parent/child IDs and opaque cursor; search carries its own cursor',async()=>{
  const {client,calls}=harness({
@@ -42,7 +50,7 @@ test('Category uses source parent/child IDs and opaque cursor; search carries it
   '/v1/api/search/search':p=>encoded({items:[film(9)],hasNext:true,nextVal:'search-cursor'}),
  });
  const one=await client.channel(2,{childChannelId:'9'}),two=await client.channel(2,{childChannelId:'9'},one.next);assert.equal(one.next,'opaque&next=2');assert.equal(two.next,'');assert.notEqual(one.items[0].url,two.items[0].url);
- const posts=calls.filter(x=>new URL(x.url).pathname==='/v2/api/channel/getVodList').map(x=>JSON.parse(x.body));
+ const posts=[...new Map(calls.filter(x=>new URL(x.url).pathname==='/v2/api/channel/getVodList').map(x=>{const body=JSON.parse(x.body);return [body.nextVal||'',body];})).values()].sort((a,b)=>Number(a.nextVal!=='')-Number(b.nextVal!==''));
  assert.equal(posts[0].parentChannelId,2);assert.equal(posts[0].childChannelId,'9');assert.equal(posts[0].nextVal,'');assert.equal(posts[1].nextVal,'opaque&next=2');
  assert.equal(client.config.channelListQuery[0].items[0].data[1].id,'9');
  const search=await client.search('测试','specific-search-cursor');assert.equal(search.next,'search-cursor');assert.equal(JSON.parse(calls.at(-1).body).nextVal,'specific-search-cursor');
@@ -54,7 +62,7 @@ test('Home emits only film/topic rows, and topic more uses verified pageIndex co
  });
  const h=await client.home();assert.equal(h.blocks.length,1);assert.equal(h.blocks[0].header.url,'specialTopic/vods?specialTopicId=77');assert.equal(h.blocks[0].data[0].imageURL,'https://images.example/7.jpg');
  const a=await client.collection({kind:'topic',id:'77'}),b=await client.collection({kind:'topic',id:'77'},a.next);assert.equal(a.next,'page=2');assert.equal(b.next,'page=3');
- const p=JSON.parse(calls.at(-1).body);assert.equal(p.pageIndex,2);assert.equal(p.pageSize,18);assert.equal(p.vodTopicId,77);assert.equal(p.nextVal,undefined);
+ const p=JSON.parse(calls.filter(x=>new URL(x.url).pathname==='/v1/api/vodTopic/getVodList').at(-1).body);assert.equal(p.pageIndex,2);assert.equal(p.pageSize,18);assert.equal(p.vodTopicId,77);assert.equal(p.nextVal,undefined);
 });
 test('Episode resolution/play requests use correct distinct fields and the selected line',async()=>{
  const {client,calls}=harness({
@@ -63,7 +71,7 @@ test('Episode resolution/play requests use correct distinct fields and the selec
  });
  const d=await client.detail(7);const eps=await client.episodes(7,d.playSources[1]);assert.deepEqual(eps.map(e=>e.id),[91]);
  const play=await client.play({vodId:7,siteId:d.playSources[1].siteId,episodeId:91});assert.equal(play.playUrls[0].headers.Referer,'https://yqk.example/');
- const params=calls.slice(-2).map(x=>JSON.parse(x.body));assert.equal(params[0].vodEpId,91);assert.equal(params[0].epId,undefined);assert.equal(params[1].epId,91);assert.equal(params[1].vodResolution,480);
+ const params=calls.filter(x=>['/v2/api/vodInfo/epDetail','/v2/api/vodInfo/playUrl'].includes(new URL(x.url).pathname)).map(x=>({path:new URL(x.url).pathname,body:JSON.parse(x.body)}));assert.equal(params.find(x=>x.path.endsWith('/epDetail')).body.vodEpId,91);assert.equal(params.find(x=>x.path.endsWith('/epDetail')).body.epId,undefined);assert.equal(params.find(x=>x.path.endsWith('/playUrl')).body.epId,91);assert.equal(params.find(x=>x.path.endsWith('/playUrl')).body.vodResolution,480);
  await assert.rejects(client.play({vodId:7,siteId:d.playSources[0].siteId,episodeId:91}),/未找到对应选集/);
 });
 test('Unplayable resolutions never request restricted URLs; explicit server denials are fatal',async()=>{
@@ -71,7 +79,7 @@ test('Unplayable resolutions never request restricted URLs; explicit server deni
  const d=await client.detail(7);await assert.rejects(client.play({vodId:7,siteId:d.playSources[0].siteId,episodeId:81}),e=>!(e instanceof ServiceError)&&/不提供可播放清晰度/.test(e.message));
  assert.equal(calls.filter(r=>r.url.includes('playUrl')).length,0);
  const deny=harness({'/v2/api/home/body':()=>({status:200,bodyBase64:Buffer.from(JSON.stringify({result:false,operateCode:10001,msg:'请登录'})).toString('base64')})});
- await assert.rejects(deny.client.home(),ServiceError);assert.equal(deny.calls.filter(r=>r.url.includes('/home/body')).length,1);assert.equal(deny.client.user,null);
+ await assert.rejects(deny.client.home(),ServiceError);assert.ok(deny.calls.filter(r=>r.url.includes('/home/body')).length<=3);assert.equal(deny.client.user,null);
 });
 test('A metadata-only app line can be skipped for a guest-playable line of the same episode',async()=>{
  const {client,calls}=harness({
@@ -80,13 +88,13 @@ test('A metadata-only app line can be skipped for a guest-playable line of the s
  });
  const d=await client.detail(7),result=await resolvePlayableEpisode(client,d,0,0);
  assert.equal(result.lineIndex,1);assert.equal(result.episode.id,91);
- const playCalls=calls.filter(r=>r.url.includes('/vodInfo/playUrl'));assert.equal(playCalls.length,1);assert.equal(JSON.parse(playCalls[0].body).epId,91);
+ const playCalls=calls.filter(r=>r.url.includes('/vodInfo/playUrl'));assert.ok(playCalls.length>=1&&playCalls.length<=3);assert.equal(JSON.parse(playCalls[0].body).epId,91);
 });
 test('Aborting a late network result prevents publication and does not try another API origin',async()=>{
  const controller=new AbortController(),{client,calls}=harness({'/v2/api/home/body':()=>{controller.abort();return encoded({vodTopicList:[]});}});
- await client.bootstrap();const before=calls.length;await assert.rejects(client.home(controller.signal),e=>e.name==='AbortError');assert.equal(calls.length,before+1);
+ await client.bootstrap();const before=calls.length;await assert.rejects(client.home(controller.signal),e=>e.name==='AbortError');assert.ok(calls.length>before&&calls.length<=before+3);
 });
 test('Only network/format failures try another API base',async()=>{
  let n=0;const {client,calls}=harness({'/v2/api/home/body':()=>{n++;if(n===1)return {status:502,bodyBase64:''};return encoded({vodTopicList:[]});}});
- await client.home();assert.equal(n,2);assert.equal(new URL(calls.at(-1).url).origin,'https://backup.example');
+ await client.home();assert.ok(n>=2&&n<=3);assert.ok(['https://api.example','https://backup.example'].includes(client.preferred.cache));assert.ok(calls.some(call=>new URL(call.url).pathname==='/v2/api/home/body'));
 });

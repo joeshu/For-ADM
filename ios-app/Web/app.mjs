@@ -290,7 +290,7 @@ function render(options={}){
  stopImages=native.native()?()=>{}:loadVisibleImages(pageRoot,new Map(state.imageMap),options=>native.request(options),site().origin+'/');
 }
 function cancel(){controller?.abort();controller=new AbortController();state.epoch++;return {signal:controller.signal,epoch:state.epoch};}
-async function load({more=false}={}){const {signal,epoch}=cancel(),c=client(),previousItemCount=state.items.length,previousGroupCount=state.collectionGroups.length;state.loading=true;state.error='';if(!more)state.next='page=1';if(more){const button=pageRoot.querySelector('[data-act="more"]');if(button){button.disabled=true;button.textContent='正在加载…';}}else render();try{if(!c.config)await c.bootstrap(signal);
+async function load({more=false}={}){const {signal,epoch}=cancel(),c=client(),previousItemCount=state.items.length,previousGroupCount=state.collectionGroups.length;state.loading=true;state.error='';if(!more)state.next='page=1';if(more){const button=pageRoot.querySelector('[data-act="more"]');if(button){button.disabled=true;button.textContent='正在加载…';}}else render();try{if(!c.config&&state.page!=='home')await c.bootstrap(signal);
  if(state.page==='browse'){
   const available=categories(c.config,{includeAdult:state.adultEnabled});if(available.length&&!available.some(item=>item.id===state.channel)){state.channel=available[0].id;restoreFilters();}
   if(c.prepareChannel)await c.prepareChannel(state.channel,signal);

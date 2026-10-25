@@ -57,9 +57,16 @@ export class DylsClient extends SiteClient {
   const url=new URL('/api/v1'+path,this.site.origin);url.searchParams.set('pack',pack);url.searchParams.set('signature',crypto().HmacMD5(pack,this.protocol.signKey).toString());
   return {url:url.href,method:'GET',headers:{Accept:'application/json, text/plain, */*','X-Client-Version':String(this.protocol.clientVersion||3102),'X-Client-Setting':'{"pure-mode":0}','Accept-Language':'en',Referer:this.site.origin+'/'}};
  }
+ async request(request,signal,timeout=12000){
+  abort(signal);const controller=new AbortController(),forward=()=>controller.abort();
+  signal?.addEventListener('abort',forward,{once:true});const timer=setTimeout(()=>controller.abort(),timeout);
+  try{const response=await this.transport({...request,signal:controller.signal});abort(signal);if(controller.signal.aborted)throw Error('电影猎手请求超时，请重试');return response;}
+  catch(error){if(signal?.aborted)throw new DOMException('请求取消','AbortError');if(error?.name==='AbortError')throw Error('电影猎手请求超时，请重试');throw error;}
+  finally{clearTimeout(timer);signal?.removeEventListener('abort',forward);}
+ }
  async api(path,params={},signal){
   abort(signal);const started=Date.now();let response;
-  try{response=await this.transport({...this.buildRequest(this.site.origin,path,params),signal});abort(signal);}catch(error){if(error.name!=='AbortError')this.recordHealth(this.site.origin,'cache',Date.now()-started,false);throw error;}
+  try{response=await this.request(this.buildRequest(this.site.origin,path,params),signal);abort(signal);}catch(error){if(error.name!=='AbortError')this.recordHealth(this.site.origin,'cache',Date.now()-started,false);throw error;}
   let data;
   try{data=decodeDylsResponse(response,this.protocol);}catch(error){
    if(response.status>=200&&response.status<300)throw error;
@@ -97,8 +104,7 @@ export class DylsClient extends SiteClient {
   return {title:String(title),url:'vod/detail?vodId='+encodeURIComponent(String(id)),imageURL:https(row.cover||row.image),channelId:row.type_name==='电影'||cat?.text==='电影'?1:0,isAdult,bottomLabel:String(row.dynamic||row.label||''),scoreText:String(row.score||''),labels:[row.type_name?{name:String(row.type_name)}:null].filter(Boolean)};
  }
  async home(signal){
-  if(!this.config)await this.bootstrap(signal);
-  const blocks=await this.api('/movie/index_recommend',{},signal);if(!Array.isArray(blocks))throw Error('电影猎手首页结构已变化');
+  const [,blocks]=await Promise.all([this.config?Promise.resolve(this.config):this.bootstrap(signal),this.api('/movie/index_recommend',{},signal)]);if(!Array.isArray(blocks))throw Error('电影猎手首页结构已变化');
   return {blocks:blocks.filter(b=>b.layout!=='advert_self'&&!/carousel/i.test(b.layout||'')).map(block=>{
    const items=array(block.list).map(x=>this.canonicalMovie(x)).filter(Boolean);
    // Only create a More route when the server supplies an explicit category.

@@ -16,6 +16,7 @@ export class YqkClient extends SiteClient {
   super(site,transport,storage);this.protocol=site.protocol||{};this.details=new Map();this.movieHints=new Map();this.topicHints=new Map();this.childFilters=new Map();
   let stored=[];try{stored=JSON.parse(storage.getItem(this.key+'apiOrigins'))||[];}catch{}
   this.apiOrigins=[...new Set([...stored,...(this.protocol.apiOrigins||[])].map(origin).filter(Boolean))];
+  try{const preferred=origin(storage.getItem(this.key+'preferredApiOrigin'));if(preferred&&this.apiOrigins.includes(preferred))this.preferred.cache=preferred;}catch{}
  }
  buildRequest(base,path,params={}){
   const p={...params,appId:this.protocol.appId,reqDomain:new URL(this.site.origin).host,deviceInfo:'iPhone',version:this.protocol.version||this.site.version,requestId:globalThis.crypto?.randomUUID?.()||crypto().lib.WordArray.random(16).toString(),cus1tom:'aabbcc',udid:this.device.id};
@@ -34,22 +35,29 @@ export class YqkClient extends SiteClient {
   finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
  }
  async post(path,params={},signal){
-  let last;
-  const bases=[...new Set([this.preferred.cache,...this.apiOrigins].filter(Boolean))];
-  for(const base of bases.slice(0,4)){
-   if(signal?.aborted)throw new DOMException('请求取消','AbortError');const start=Date.now();
-   try{
-    const response=await this.network(this.buildRequest(base,path,params),signal);
+  const bases=[...new Set([this.preferred.cache,...this.apiOrigins].filter(Boolean))];let last;
+  for(let offset=0;offset<bases.length;offset+=3){
+   if(signal?.aborted)throw new DOMException('请求取消','AbortError');
+   const controllers=new Map(),pending=bases.slice(offset,offset+3).map(base=>{const controller=new AbortController(),forward=()=>controller.abort();controllers.set(base,{controller,forward});signal?.addEventListener('abort',forward,{once:true});const started=Date.now();return this.network(this.buildRequest(base,path,params),controller.signal).then(response=>{
     if(response.status<200||response.status>=300)throw Error('网站接口返回 HTTP '+response.status);
     let body;try{body=decode(response);}catch{throw Error('网站接口数据格式已变化');}
     if(body?.result!==true){const message=body?.msg||'网站暂时无法提供数据';if(authDenial(body?.operateCode,message))throw new ServiceError(message,Number(body.operateCode)||403);throw Object.assign(Error(message),{businessDenial:true});}
-    this.preferred.cache=base;this.preferred.logic=base;this.recordHealth(base,'cache',Date.now()-start,true);return body.data;
-   }catch(error){this.recordHealth(base,'cache',Date.now()-start,false);if(error.name==='AbortError'||error instanceof ServiceError||error.businessDenial)throw error;last=error;}
+    this.recordHealth(base,'cache',Date.now()-started,true);return {base,data:body.data};
+   }).catch(error=>{if(!controllers.get(base).controller.signal.aborted)this.recordHealth(base,'cache',Date.now()-started,false);throw Object.assign(error,{failedBase:base});});});
+   let remaining=pending.slice();
+   while(remaining.length){
+    const outcome=await Promise.race(remaining.map(p=>p.then(value=>({ok:true,p,value}),error=>({ok:false,p,error}))));
+    remaining=remaining.filter(p=>p!==outcome.p);
+    if(outcome.ok){for(const [base,{controller,forward}]of controllers){signal?.removeEventListener('abort',forward);if(base!==outcome.value.base)controller.abort();}this.preferred.cache=outcome.value.base;this.preferred.logic=outcome.value.base;try{this.storage.setItem(this.key+'preferredApiOrigin',outcome.value.base);}catch{}return outcome.value.data;}
+    last=outcome.error;if(signal?.aborted)throw new DOMException('请求取消','AbortError');if(outcome.error instanceof ServiceError||outcome.error.businessDenial){for(const [base,{controller,forward}]of controllers){signal?.removeEventListener('abort',forward);controller.abort();}throw outcome.error;}
+   }
+   for(const [base,{controller,forward}]of controllers)signal?.removeEventListener('abort',forward);
   }
   throw last||Error('没有可用的网站数据线路');
  }
  async bootstrap(signal){
   try{
+   if(this.apiOrigins.length){const data=await this.post('/v2/api/home/header',{},signal);if(!Array.isArray(data?.channeList))throw Error('网站分类数据格式已变化');this.childFilters.clear();this.config={vodTabs:data.channeList.filter(c=>numeric(c.channelId)&&c.channelName).map(c=>({type:'category',channelId:Number(c.channelId),text:String(c.channelName),isAdult:false})),adultChannelIds:[],groups:[],channelListQuery:[],urls:{cache:this.apiOrigins.slice(),logic:this.apiOrigins.slice()},supportsAccount:false};return this.config;}
    const r=await this.network({url:this.site.origin+'/js/baseUrlList.js',method:'GET',headers:{Referer:this.site.origin+'/'}},signal,8000);
    if(r.status===200){const text=crypto().enc.Utf8.stringify(crypto().enc.Base64.parse(r.bodyBase64||''));const match=text.match(/\bbaseApiList\s*=\s*(\[[\s\S]*?\])/);
     if(match){const list=JSON.parse(match[1]);if(Array.isArray(list)){const discovered=[...new Set(list.map(origin).filter(Boolean))];if(discovered.length){this.apiOrigins=[...new Set([...discovered,...this.apiOrigins])];try{this.storage.setItem(this.key+'apiOrigins',JSON.stringify(discovered));}catch{}}}}
@@ -69,7 +77,7 @@ export class YqkClient extends SiteClient {
  }
  movies(value){return (Array.isArray(value)?value:[]).map(x=>this.movie(x)).filter(Boolean);}
  sections(value){return (Array.isArray(value)?value:[]).map(t=>{if(numeric(t.vodTopicId))this.topicHints.set(String(t.vodTopicId),t);return {header:{title:String(t.topicName||'精选片库'),...(numeric(t.vodTopicId)?{url:'specialTopic/vods?specialTopicId='+t.vodTopicId}:{})},data:this.movies(t.vodList)};}).filter(b=>b.data.length);}
- async home(signal){await this.ready(signal);const d=await this.post('/v2/api/home/body',{},signal);if(!Array.isArray(d?.vodTopicList))throw Error('网站首页结构已变化');return {blocks:this.sections(d.vodTopicList)};}
+ async home(signal){const [,d]=await Promise.all([this.ready(signal),this.post('/v2/api/home/body',{},signal)]);if(!Array.isArray(d?.vodTopicList))throw Error('网站首页结构已变化');return {blocks:this.sections(d.vodTopicList)};}
  async prepareChannel(channelId,signal){
   await this.ready(signal);if(!numeric(channelId))throw Error('无效分类');
   if(!this.childFilters.has(String(channelId))){const d=await this.post('/v2/api/channel/childListView',{channelId:Number(channelId)},signal);const children=(d?.childChannelList||[]).filter(c=>numeric(c.channelId)&&c.channelName);this.childFilters.set(String(channelId),children);

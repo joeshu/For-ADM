@@ -54,6 +54,16 @@ test('Dyls homepage drops dedicated ads and only enables explicit category More 
  const home=await client.home();assert.equal(home.blocks.length,2);assert.equal(home.blocks[0].header.url,'catalog/channel?channelId=1&class=netflix');assert.equal(home.blocks[1].header.url,undefined);assert.equal(home.blocks[1].data[0].isAdult,false);
  await client.collection({kind:'channel',id:1,url:home.blocks[0].header.url});assert.equal(calls.at(-1).p.class,'Netflix');
 });
+test('Dyls config and homepage load concurrently instead of blocking on a serial bootstrap',async()=>{
+ const calls=[],gate={};gate.wait=new Promise(resolve=>gate.release=resolve);
+ const {client}=fixture((path)=>{calls.push(path);if(path==='/api/v1/movie/index_recommend')return response({msg:'获取成功',data:[]});throw Error('Unexpected '+path);});
+ const original=client.transport;client.transport=async request=>{const path=new URL(request.url).pathname;if(path==='/api/v1/app/config'){calls.push(path);await gate.wait;return encrypted({msg:'获取成功',data:config});}return original(request);};
+ const pending=client.home();await new Promise(resolve=>setTimeout(resolve,0));assert.ok(calls.includes('/api/v1/app/config'));assert.ok(calls.includes('/api/v1/movie/index_recommend'));gate.release();await pending;
+});
+test('Dyls network requests have a bounded timeout and report it clearly',async()=>{
+ const {client}=fixture(()=>{throw Error('unexpected');});client.transport=(_request)=>new Promise((_resolve,reject)=>_request.signal.addEventListener('abort',()=>reject(new DOMException('aborted','AbortError')),{once:true}));
+ await assert.rejects(client.request({url:'https://catalog.example/slow'},undefined,5),/请求超时/);
+});
 
 test('Dyls parser semantics match string flags and source readiness precedence',()=>{
  assert.equal(needsDylsParsing({ready_to_play:false},{player_need_to_parse:'0'}),false);
