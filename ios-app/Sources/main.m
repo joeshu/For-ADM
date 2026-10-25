@@ -179,7 +179,7 @@ static NSMutableDictionary *SYPosterRequests;
   items=self.state[@"programs"]?:@[];
   }
  } else {
-  if([panel isEqualToString:@"channels"]&&[self.state[@"channelCount"] integerValue]>0){NSString*category=self.state[@"categoryName"]?:@"全部频道";NSString*count=[NSString stringWithFormat:@"%ld 个频道",(long)[self.state[@"filteredChannelCount"] integerValue]];[self addHeading:[NSString stringWithFormat:@"%@ · %@",category,count] y:y];y+=32;}
+  if([panel isEqualToString:@"channels"]&&[self.state[@"channelCount"] integerValue]>0){NSString*category=self.state[@"categoryName"]?:@"全部频道";NSString*count=[NSString stringWithFormat:@"%ld 个频道",(long)[self.state[@"filteredChannelCount"] integerValue]];UILabel*heading=[self label:[NSString stringWithFormat:@"%@ · %@",category,count] size:14 bold:YES];heading.frame=CGRectMake(16,y,inner,24);[self.content addSubview:heading];y+=30;}
   self.searchField=[[UITextField alloc]initWithFrame:CGRectMake(12,y,inner-82,40)];self.searchField.placeholder=@"搜索频道名称、分组";self.searchField.text=self.state[@"search"]?:@"";self.searchField.font=[UIFont systemFontOfSize:14];self.searchField.textColor=[self liveInk];self.searchField.backgroundColor=[self liveSurface];self.searchField.borderStyle=3;[self.content addSubview:self.searchField];
   [self.content addSubview:[self button:@"搜索" action:@"live-search" value:@"" frame:CGRectMake(width-94,y,82,40)]];y+=48;items=self.state[@"channels"]?:@[];
  }
