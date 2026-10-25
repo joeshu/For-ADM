@@ -442,6 +442,7 @@ native.onPlaybackEvent=event=>{
   else if(event.status==='videoReady'){state.liveVideoReady=true;state.liveStatus=`正在直播${formatLabel?' · '+formatLabel:''}`;state.liveError='';render({liveFast:true});}
   else if(event.status==='audioOnly'){state.liveVideoReady=false;state.liveStatus='该线路没有可识别的视频轨道';state.liveError='已保留当前线路，没有自动切换。可手动选择其他线路，或检查源站是否提供视频流。';render({liveFast:true});}
   else if(event.status==='videoTrackUnknown'){state.liveVideoReady=false;state.liveStatus='暂时无法确认该线路的视频轨道';state.liveError='当前线路保持播放，未自动切换。请检查网络后重试或手动查看其他线路。';render({liveFast:true});}
+  else if(event.status==='rendererAttached'){state.liveStatus='已启用 AVPlayerLayer 直接渲染，等待首帧…';state.liveError='';render({liveFast:true});}
   else if(event.status==='rendererRecovery'){state.liveStatus=`正在重建画面渲染${formatLabel?' · '+formatLabel:''}，当前线路保持不变…`;state.liveError='';render({liveFast:true});}
   else if(event.status==='rendererFailed'){state.liveVideoReady=false;state.liveStatus=`检测到视频轨道，但 AVPlayer 未输出画面${formatLabel?' · '+formatLabel:''}`;state.liveError='当前线路未自动切换。可手动选择其他线路，或在 VLC 播放以对比设备解码支持。';render({liveFast:true});}
   else if(event.status==='progress'){
