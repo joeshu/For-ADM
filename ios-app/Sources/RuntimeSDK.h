@@ -108,6 +108,8 @@ __attribute__((objc_root_class))
 @interface NSMutableArray:NSArray
 + (instancetype)array;
 - (void)addObject:(id)object;
+- (void)removeObject:(id)object;
+- (void)removeObjectAtIndex:(NSUInteger)index;
 @end
 @interface NSData:NSObject
 + (instancetype)dataWithContentsOfFile:(NSString*)path;

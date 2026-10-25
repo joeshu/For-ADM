@@ -9,6 +9,7 @@ static char SYVideoPresentationSize;
 static char SYLiveRendererDisplayReady;
 static NSMutableDictionary *SYPosterImageCache;
 static NSMutableDictionary *SYPosterRequests;
+static NSMutableArray *SYPosterImageOrder;
 @interface SYPlayerViewController:AVPlayerViewController<AVPlayerViewControllerDelegate>
 @property(nonatomic,copy) void(^onClose)(void);
 @property(nonatomic,copy) void(^onRestore)(void(^)(BOOL));
@@ -261,13 +262,14 @@ static NSMutableDictionary *SYPosterRequests;
  NSURL*url=[NSURL URLWithString:address];if(!url.host.length)return;
  if(!SYPosterImageCache)SYPosterImageCache=[NSMutableDictionary dictionary];
  if(!SYPosterRequests)SYPosterRequests=[NSMutableDictionary dictionary];
- UIImage*cached=SYPosterImageCache[address];if(cached){imageView.image=cached;return;}
+ if(!SYPosterImageOrder)SYPosterImageOrder=[NSMutableArray array];
+ UIImage*cached=SYPosterImageCache[address];if(cached){[SYPosterImageOrder removeObject:address];[SYPosterImageOrder addObject:address];imageView.image=cached;return;}
  NSMutableArray*subscribers=SYPosterRequests[address];if(subscribers){if(![subscribers containsObject:imageView])[subscribers addObject:imageView];return;}subscribers=[NSMutableArray array];[subscribers addObject:imageView];SYPosterRequests[address]=subscribers;
  NSURLSessionDataTask*task=[NSURLSession.sharedSession dataTaskWithURL:url completionHandler:^(NSData*data,NSURLResponse*response,NSError*error){
   UIImage*poster=(data.length>0&&data.length<5242880)?[UIImage imageWithData:data]:nil;if(poster&&(poster.size.width>540||poster.size.height>720)){CGFloat scale=MIN(540.0/poster.size.width,720.0/poster.size.height);CGSize size=CGSizeMake(poster.size.width*scale,poster.size.height*scale);UIGraphicsBeginImageContextWithOptions(size,NO,1);[poster drawInRect:CGRectMake(0,0,size.width,size.height)];UIImage*thumbnail=UIGraphicsGetImageFromCurrentImageContext();UIGraphicsEndImageContext();if(thumbnail)poster=thumbnail;}
   dispatch_async(SYMainQueue(),^{
    NSArray*waiting=SYPosterRequests[address];[SYPosterRequests removeObjectForKey:address];
-  if(poster){if(SYPosterImageCache.count>=32)[SYPosterImageCache removeAllObjects];SYPosterImageCache[address]=poster;for(UIImageView*target in waiting)target.image=poster;}
+  if(poster){while(SYPosterImageCache.count>=64&&SYPosterImageOrder.count){NSString*oldest=SYPosterImageOrder.firstObject;[SYPosterImageOrder removeObjectAtIndex:0];[SYPosterImageCache removeObjectForKey:oldest];}SYPosterImageCache[address]=poster;[SYPosterImageOrder removeObject:address];[SYPosterImageOrder addObject:address];for(UIImageView*target in waiting)target.image=poster;}
   });
  }];[task resume];
 }
