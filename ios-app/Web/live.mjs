@@ -29,7 +29,7 @@ function createM3UParser(playlistURL){
   const tvgId=attribute(pending,'tvg-id')||attribute(pending,'svg-id');
   const tvgName=attribute(pending,'tvg-name')||attribute(pending,'svg-name');
   const name=tvgName||title||tvgId||`频道 ${channels.length+1}`;
-  let logo='';try{const candidate=new URL(attribute(pending,'tvg-logo')||attribute(pending,'svg-logo'),base);if(candidate.protocol==='https:')logo=candidate.href;}catch{}
+  let logo='';const logoText=attribute(pending,'tvg-logo')||attribute(pending,'svg-logo');if(logoText)try{const candidate=new URL(logoText,base);if(candidate.protocol==='https:')logo=candidate.href;}catch{}
   channels.push({index:channels.length,name,tvgName,tvgId,logo,group:attribute(pending,'group-title')||group||'未分类',url:stream.href,secure:stream.protocol==='https:',identity:channelIdentity({tvgId,name})});
   pending='';group='';
  };

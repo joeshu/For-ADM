@@ -19,6 +19,11 @@ test('parses M3U metadata, groups, relative URLs and labels insecure entries',()
  assert.equal(parsed.channels[1].secure,false);
 });
 
+test('does not treat the playlist URL as a missing channel logo',()=>{
+ const channel=parseM3U('#EXTM3U\n#EXTINF:-1,No logo\n../streams/live.m3u8\n','https://cdn.example/lists/final.m3u').channels[0];
+ assert.equal(channel.logo,'');assert.equal(channel.url,'https://cdn.example/streams/live.m3u8');
+});
+
 test('matches HTTPS and HTTP alternate relays by TVG identity',()=>{
  const channels=parseM3U('#EXTM3U\n'+
   '#EXTINF:-1 tvg-id="one" group-title="A",One\nhttps://a.example/one.m3u8\n'+
