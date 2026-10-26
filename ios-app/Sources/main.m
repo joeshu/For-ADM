@@ -10,6 +10,7 @@ static char SYLiveRendererDisplayReady;
 static NSMutableDictionary *SYPosterImageCache;
 static NSMutableDictionary *SYPosterRequests;
 static NSMutableArray *SYPosterImageOrder;
+static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root isKindOfClass:AVPlayerLayer.class]&&((AVPlayerLayer*)root).player==player)return (AVPlayerLayer*)root;for(CALayer*child in root.sublayers){AVPlayerLayer*found=SYFindPlayerLayer(child,player);if(found)return found;}return nil;}
 @interface SYPlayerViewController:AVPlayerViewController<AVPlayerViewControllerDelegate>
 @property(nonatomic,copy) void(^onClose)(void);
 @property(nonatomic,copy) void(^onRestore)(void(^)(BOOL));
@@ -149,9 +150,8 @@ static NSMutableArray *SYPosterImageOrder;
 - (void)layoutEmbeddedPlayer {
  SYController*owner=self.owner;SYPlayerViewController*player=owner.nativePlayer;
  if(!player||player.fullScreen||player.pictureInPicture||![owner.playContext hasPrefix:@"live:"])return;
- if(self.liveRendererLayer){player.view.hidden=YES;[player.view removeFromSuperview];self.liveRendererLayer.player=player.player;self.liveRendererLayer.videoGravity=AVLayerVideoGravityResizeAspect;self.liveRendererLayer.frame=self.playerHost.bounds;[self.playerHost bringSubviewToFront:self.routePicker];return;}
  if(player.view.superview!=self.playerHost){[player.view removeFromSuperview];[self.playerHost addSubview:player.view];}
- player.view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;player.view.hidden=NO;player.view.alpha=1;player.view.frame=self.playerHost.bounds;
+ player.showsPlaybackControls=NO;player.videoGravity=AVLayerVideoGravityResizeAspect;player.view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;player.view.hidden=NO;player.view.alpha=1;player.view.frame=self.playerHost.bounds;
  [self.playerHost bringSubviewToFront:self.routePicker];
 }
 - (void)actionPressed:(SYLiveActionButton*)sender {
@@ -505,9 +505,9 @@ static NSMutableArray *SYPosterImageOrder;
   [self stopNativePlayback];self.playContext=@"live:layout-smoke";SYPlayerViewController*layoutProbe=[SYPlayerViewController new];self.nativePlayer=layoutProbe;[self.liveScreen addChildViewController:layoutProbe];layoutProbe.view.frame=CGRectZero;[self.liveScreen.playerHost addSubview:layoutProbe.view];[layoutProbe didMoveToParentViewController:self.liveScreen];[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];
   CGRect initialFrame=layoutProbe.view.frame,initialBounds=self.liveScreen.playerHost.bounds;BOOL playerAttached=layoutProbe.view.superview==self.liveScreen.playerHost;BOOL playerFillsHost=initialFrame.size.width>0&&initialFrame.size.height>0&&initialFrame.size.width==initialBounds.size.width&&initialFrame.size.height==initialBounds.size.height;
   CGRect originalScreenFrame=self.liveScreen.view.frame;self.liveScreen.view.frame=CGRectMake(0,0,MAX(240,originalScreenFrame.size.width-24),originalScreenFrame.size.height);[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];CGRect resizedFrame=layoutProbe.view.frame,resizedBounds=self.liveScreen.playerHost.bounds;BOOL resizesWithHost=resizedFrame.size.width==resizedBounds.size.width&&resizedFrame.size.height==resizedBounds.size.height&&resizedFrame.size.width>0&&resizedFrame.size.height>0;self.liveScreen.view.frame=originalScreenFrame;[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];BOOL routePickerAbovePlayer=[[self.liveScreen.playerHost.subviews lastObject] isEqual:self.liveScreen.routePicker];
-  layoutProbe.player=[AVPlayer playerWithURL:[NSURL fileURLWithPath:@"/dev/null"]];AVPlayerLayer*renderer=[AVPlayerLayer playerLayerWithPlayer:layoutProbe.player];self.liveScreen.liveRendererLayer=renderer;[self.liveScreen.playerHost.layer insertSublayer:renderer atIndex:0];[self.liveScreen layoutEmbeddedPlayer];CGRect rendererFrame=renderer.frame,rendererBounds=self.liveScreen.playerHost.bounds;BOOL fallbackRendererBound=renderer.player==layoutProbe.player;BOOL fallbackRendererFillsHost=rendererFrame.size.width==rendererBounds.size.width&&rendererFrame.size.height==rendererBounds.size.height&&rendererFrame.size.width>0&&rendererFrame.size.height>0;
-  self.liveScreen.view.frame=CGRectMake(0,0,MAX(240,originalScreenFrame.size.width-24),originalScreenFrame.size.height);[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];CGRect rendererResized=renderer.frame,rendererResizedBounds=self.liveScreen.playerHost.bounds;BOOL fallbackRendererResizes=rendererResized.size.width==rendererResizedBounds.size.width&&rendererResized.size.height==rendererResizedBounds.size.height&&rendererResized.size.width>0&&rendererResized.size.height>0;self.liveScreen.view.frame=originalScreenFrame;[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];
-  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"livePlayerAttachedToHost":@(playerAttached),@"livePlayerFillsHost":@(playerFillsHost),@"livePlayerResizesWithHost":@(resizesWithHost),@"routePickerAbovePlayer":@(routePickerAbovePlayer),@"liveFallbackRendererBound":@(fallbackRendererBound),@"liveFallbackRendererFillsHost":@(fallbackRendererFillsHost),@"liveFallbackRendererResizesWithHost":@(fallbackRendererResizes),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
+  layoutProbe.player=[AVPlayer playerWithURL:[NSURL fileURLWithPath:@"/dev/null"]];[self.liveScreen layoutEmbeddedPlayer];AVPlayerLayer*renderer=SYFindPlayerLayer(layoutProbe.view.layer,layoutProbe.player);BOOL avPlayerControllerRendererFound=renderer!=nil;
+  self.liveScreen.view.frame=CGRectMake(0,0,MAX(240,originalScreenFrame.size.width-24),originalScreenFrame.size.height);[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];CGRect rendererFrame=layoutProbe.view.frame,rendererBounds=self.liveScreen.playerHost.bounds;BOOL rendererResizesWithHost=rendererFrame.size.width==rendererBounds.size.width&&rendererFrame.size.height==rendererBounds.size.height&&rendererFrame.size.width>0&&rendererFrame.size.height>0;self.liveScreen.view.frame=originalScreenFrame;[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];
+  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"livePlayerAttachedToHost":@(playerAttached),@"livePlayerFillsHost":@(playerFillsHost),@"livePlayerResizesWithHost":@(resizesWithHost),@"routePickerAbovePlayer":@(routePickerAbovePlayer),@"avPlayerControllerRendererFound":@(avPlayerControllerRendererFound),@"avPlayerControllerRendererResizesWithHost":@(rendererResizesWithHost),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
   NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
   [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
   [self closeLiveScreen];
@@ -515,7 +515,7 @@ static NSMutableArray *SYPosterImageOrder;
 #endif
 - (void)stopNativePlayback {
   if(self.nativeItem){@try{[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}@try{[self.nativeItem removeObserver:self forKeyPath:@"presentationSize" context:&SYVideoPresentationSize];}@catch(NSException*exception){}self.nativeItem=nil;}
-  if(self.liveScreen.liveRendererLayer){@try{[self.liveScreen.liveRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYLiveRendererDisplayReady];}@catch(NSException*exception){}[self.liveScreen.liveRendererLayer removeFromSuperlayer];self.liveScreen.liveRendererLayer=nil;}
+  if(self.liveScreen.liveRendererLayer){@try{[self.liveScreen.liveRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYLiveRendererDisplayReady];}@catch(NSException*exception){}self.liveScreen.liveRendererLayer=nil;}
   if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
   if(self.failedObserver){[NSNotificationCenter.defaultCenter removeObserver:self.failedObserver];self.failedObserver=nil;}
   if(self.timeObserver){[self.nativePlayer.player removeTimeObserver:self.timeObserver];self.timeObserver=nil;}
@@ -540,11 +540,9 @@ static NSMutableArray *SYPosterImageOrder;
 }
 - (void)attachLiveLayerRendererForItem:(AVPlayerItem*)item {
   if(!item||item!=self.nativeItem||!self.nativePlayer||!self.liveScreen||![self.playContext hasPrefix:@"live:"]||self.liveRendererAttached)return;
-  self.liveRendererAttached=YES;
-  AVPlayerLayer*layer=self.liveScreen.liveRendererLayer;
-  if(!layer){layer=[AVPlayerLayer playerLayerWithPlayer:self.nativePlayer.player];layer.videoGravity=AVLayerVideoGravityResizeAspect;layer.frame=self.liveScreen.playerHost.bounds;self.liveScreen.liveRendererLayer=layer;[self.liveScreen.playerHost.layer insertSublayer:layer atIndex:0];[layer addObserver:self forKeyPath:@"readyForDisplay" options:NSKeyValueObservingOptionNew context:&SYLiveRendererDisplayReady];}
-  else {layer.player=self.nativePlayer.player;layer.frame=self.liveScreen.playerHost.bounds;}
-  [self.liveScreen layoutEmbeddedPlayer];
+  [self.liveScreen layoutEmbeddedPlayer];AVPlayerLayer*layer=SYFindPlayerLayer(self.nativePlayer.view.layer,self.nativePlayer.player);
+  if(!layer){__weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.2*NSEC_PER_SEC)),SYMainQueue(),^{SYController*owner=weakSelf;if(owner&&owner.nativeItem==weakItem&&!owner.liveRendererAttached)[owner attachLiveLayerRendererForItem:weakItem];});return;}
+  self.liveRendererAttached=YES;self.liveScreen.liveRendererLayer=layer;[layer addObserver:self forKeyPath:@"readyForDisplay" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:&SYLiveRendererDisplayReady];
   [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"rendererAttached"}];
 }
 - (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
