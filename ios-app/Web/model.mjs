@@ -34,7 +34,7 @@ export function sectionItems(value,options={}){
  }
  visit(value,0);return out;
 }
-export function homeSections(data){return (Array.isArray(data?.blocks)?data.blocks:[]).filter(block=>!String(block._vod||'').startsWith('ad_')).map(block=>({title:String(block.header?.title||'为你推荐'),route:sectionRoute(block.header?.url),items:sectionItems(block.data)})).filter(section=>section.items.length);}
+export function homeSections(data){return (Array.isArray(data?.blocks)?data.blocks:[]).filter(block=>block&&block.isAd!==true&&block.type!=='ad'&&block.layout!=='advert_self'&&!String(block._vod||'').startsWith('ad_')).map(block=>({title:String(block.header?.title||'为你推荐'),route:sectionRoute(block.header?.url),items:sectionItems(block.data)})).filter(section=>section.items.length);}
 export function collectionGroups(data,options={}){
  return (data?.items||[]).filter(item=>!String(item?._vod||'').startsWith('ad_')).map(item=>({title:String(item.header?.title||''),route:sectionRoute(item.header?.url),items:sectionItems(item.data,options)})).filter(group=>group.items.length);
 }

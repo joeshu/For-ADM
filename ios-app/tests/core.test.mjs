@@ -11,7 +11,7 @@ const response=data=>({status:200,bodyBase64:Buffer.from(JSON.stringify(data)).t
 const movie={title:'影片',url:'vod/detail?vodId=123',channelId:1};
 test('Home only renders internal movie cards, excludes advertisement containers and external routes',()=>{
  assert.equal(collectMovies([{...movie,id:123},{...movie}, {...movie,url:'https://ads.example'}, {_vod:'ad_home',data:[{...movie,url:'vod/detail?vodId=456'}]}]).length,1);
- assert.equal(homeSections({blocks:[{_vod:'ad_home',data:[movie]},{header:{title:'电影'},data:[movie]}]}).length,1);
+ assert.equal(homeSections({blocks:[{_vod:'ad_home',data:[movie]},{type:'ad',data:[movie]},{isAd:true,data:[movie]},{layout:'advert_self',data:[movie]},{header:{title:'电影'},data:[movie]}]}).length,1);
  assert.equal(escapeHTML('<script>"&'),'&lt;script&gt;&quot;&amp;');
 });
 test('Dynamic categories and resource domains retain paths and only accept HTTPS playback',()=>{
