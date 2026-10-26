@@ -1,6 +1,6 @@
 import {resolvePlayableEpisode,verifyMedia,matchingEpisode,mediaHeaders} from './playback.mjs';
 import {loadVisibleImages} from './image-loader.mjs';
-import {decodePlaylist,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,expiredMiguURL,normalizePlaylistURL} from './live.mjs';
+import {decodePlaylist,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,normalizePlaylistURL} from './live.mjs';
 import sites from './sites-data.mjs';
 import {NativeTransport as native} from './transport.mjs';
 import {createSourceClient} from './source-clients.mjs';
@@ -183,7 +183,6 @@ async function loadLiveGuide(){
 function liveCandidateList(channel){return channelAlternates(state.liveChannels,channel,state.liveAlternateIndex).sort((a,b)=>a.index===channel.index?-1:b.index===channel.index?1:a.index-b.index);}
 async function playLiveVariant(variantIndex=0,{automatic=false}={}){
  const channel=liveChannel();if(!channel)return;const routes=liveCandidateList(channel),route=routes[variantIndex];if(!route)return;
- if(expiredMiguURL(route.url)){state.liveTriedURLs.add(route.url);const next=nextUntriedRouteIndex(routes,state.liveTriedURLs);if(next>=0){void playLiveVariant(next,{automatic:true});return;}state.liveActive=false;state.liveCurrentIndex=channel.index;state.liveStatus='咪咕播放链接已过期';state.liveError='此列表中的咪咕签名链接已过期（源地址仍返回旧链接）。请使用提供方更新后的 M3U；重复导入当前文件不会续期播放签名。';native.stopLive();nativeSession=null;render();return;}
  state.liveVideoReady=false;state.liveVideoFormat=null;state.liveVariantIndex=variantIndex;state.liveTriedURLs.add(route.url);state.liveCurrentIndex=channel.index;state.liveActive=true;state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus=automatic?'正在切换备用线路…':route.secure?'正在连接…':'HTTP 未加密 · 正在连接…';state.liveError='';if(!['programs','routes'].includes(state.livePanel))state.livePanel='channels';render({liveFast:true});
  if(!native.native()){const video=$('#live-video');if(video)await video.play().catch(()=>{});return;}
  // Keep one playback context for all mirrors of this channel. The native bridge
