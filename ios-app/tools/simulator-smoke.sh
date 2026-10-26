@@ -52,9 +52,19 @@ for attempt in $(seq 1 80); do
   if [ -f "$sim_data/Library/Caches/sanyuan-live-smoke.json" ]; then
     cp "$sim_data/Library/Caches/sanyuan-live-smoke.json" dist/simulator-live-smoke.json
   fi
-  if [ -f dist/simulator-discover-smoke.json ] && [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ]; then
-    cat dist/simulator-smoke.json dist/simulator-discover-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json
-    python3 -c 'import json; d=json.load(open("dist/simulator-discover-smoke.json")); p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); assert d["nativeDiscoverPage"] and d["bottomNavigationItems"]>=5 and d["paginationCursorIsString"], d; assert p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["embeddedLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["livePlayerAttachedToHost"] and l["livePlayerFillsHost"] and l["livePlayerResizesWithHost"] and l["avPlayerControllerEmbedded"] and l["avPlayerControllerResizesWithHost"] and l["routePickerAbovePlayer"] and l["categoryActionReachedBridge"] and l["fastSwitchUpdatesWithoutRebuild"], l'
+  if [ -f "$sim_data/Library/Caches/sanyuan-live-video-smoke.json" ]; then
+    cp "$sim_data/Library/Caches/sanyuan-live-video-smoke.json" dist/simulator-live-video-smoke.json
+    live_video_status="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status", "unknown"))' dist/simulator-live-video-smoke.json)"
+    if [ "$live_video_status" = "videoReady" ]; then
+      xcrun simctl io "$sim_device" screenshot dist/simulator-live-video.png
+    elif [ "$live_video_status" = "failed" ]; then
+      cat dist/simulator-live-video-smoke.json >&2
+      exit 1
+    fi
+  fi
+  if [ -f dist/simulator-discover-smoke.json ] && [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ] && [ -f dist/simulator-live-video-smoke.json ] && [ -f dist/simulator-live-video.png ]; then
+    cat dist/simulator-smoke.json dist/simulator-discover-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json dist/simulator-live-video-smoke.json
+    python3 -c 'import json; d=json.load(open("dist/simulator-discover-smoke.json")); p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); v=json.load(open("dist/simulator-live-video-smoke.json")); assert d["nativeDiscoverPage"] and d["bottomNavigationItems"]>=5 and d["paginationCursorIsString"], d; assert p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["embeddedLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["livePlayerAttachedToHost"] and l["livePlayerFillsHost"] and l["livePlayerResizesWithHost"] and l["avPlayerControllerEmbedded"] and l["avPlayerControllerResizesWithHost"] and l["routePickerAbovePlayer"] and l["categoryActionReachedBridge"] and l["fastSwitchUpdatesWithoutRebuild"], l; assert v["status"]=="videoReady" and v["rendererAttached"] and v["rendererReady"] and v["playURLIsLoopback"] and v["presentationWidth"]>0 and v["presentationHeight"]>0, v'
     exit 0
   fi
   if [ -f "$sim_data/Library/Caches/sanyuan-playback-error.json" ]; then

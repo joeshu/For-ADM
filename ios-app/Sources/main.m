@@ -111,6 +111,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic) NSUInteger smokeLiveSubviewsBeforeFast;
 @property(nonatomic) BOOL smokeLiveFastStateApplied;
 @property(nonatomic) BOOL smokeLiveCategoryLinked;
+@property(nonatomic) BOOL smokeLiveVideoStarted;
 #endif
 - (void)receive:(WKScriptMessage*)message;
 - (void)inspectLiveVideoTracksForItem:(AVPlayerItem*)item;
@@ -448,6 +449,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)sendPlayback:(NSDictionary*)event {
 #if defined(SY_SIMULATOR_SMOKE)
   if([event[@"context"] isEqualToString:@"smoke:playback"]){self.smokePlaybackDebug[@"phase"]=[event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"playback-event";if(event[@"error"])self.smokePlaybackDebug[@"playbackError"]=event[@"error"];if(event[@"time"])self.smokePlaybackDebug[@"playbackTime"]=event[@"time"];[self writeSmokePlaybackDebug];}
+  if([event[@"context"] isEqualToString:@"live:smoke-cctv2"]){NSString*livePath=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"];NSDictionary*old=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:livePath]?:[NSData data] options:0 error:NULL];if(![old[@"status"] isEqualToString:@"videoReady"]){NSString*status=(self.nativeVideoReady||[event[@"status"] isEqualToString:@"videoReady"])?@"videoReady":([event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"unknown");NSMutableDictionary*liveResult=[@{@"context":event[@"context"],@"status":status,@"proxyEnabled":@(self.liveScreen!=nil),@"rendererAttached":@(self.liveRendererAttached),@"rendererReady":@(self.liveScreen.liveRendererLayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"playURLIsLoopback":@([self.nativeItem.asset isKindOfClass:AVURLAsset.class]&&[((AVURLAsset*)self.nativeItem.asset).URL.host isEqualToString:@"127.0.0.1"])} mutableCopy];if(event[@"error"])liveResult[@"error"]=event[@"error"];NSData*liveData=[NSJSONSerialization dataWithJSONObject:liveResult options:NSJSONWritingPrettyPrinted error:NULL];if(liveData)[liveData writeToFile:livePath atomically:YES];}}
   if([event[@"status"] isEqualToString:@"ready"])self.smokePlayerReady=YES;
   if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1&&!self.smokeLiveStarted){
     self.smokeLiveStarted=YES;
@@ -511,7 +513,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"livePlayerAttachedToHost":@(playerAttached),@"livePlayerFillsHost":@(playerFillsHost),@"livePlayerResizesWithHost":@(resizesWithHost),@"routePickerAbovePlayer":@(routePickerAbovePlayer),@"avPlayerControllerEmbedded":@(avPlayerControllerEmbedded),@"avPlayerControllerResizesWithHost":@(rendererResizesWithHost),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
   NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
   [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
-  [self closeLiveScreen];
+  [self stopNativePlayback];self.smokeLiveVideoStarted=YES;
+  [self.web evaluateJavaScript:@"window.NativeTransport&&window.NativeTransport.play('http://118.190.200.12:8767/cctv2.m3u8',{}, {context:'live:smoke-cctv2',frame:{visible:true,x:0,y:0,width:390,height:220,viewportWidth:390},title:'CCTV2财经模拟实播验证'})" completionHandler:^(id result,NSError*error){if(error){NSDictionary*failure=@{@"context":@"live:smoke-cctv2",@"status":@"failed",@"error":error.localizedDescription?:@"播放器桥接失败"};NSData*failureData=[NSJSONSerialization dataWithJSONObject:failure options:NSJSONWritingPrettyPrinted error:NULL];[failureData writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"] atomically:YES];}}];
 }
 #endif
 - (void)stopNativePlayback {
