@@ -9,6 +9,24 @@ export function decodePlaylist(base64){
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
  return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/,'');
 }
+export function normalizePlaylistURL(value){
+ let input=String(value||'').trim();if(input&&!/^[a-z][a-z\d+.-]*:\/\//i.test(input))input='http://'+input;
+ const url=new URL(input);if(!['https:','http:'].includes(url.protocol)||!url.hostname)throw Error('请输入有效的 HTTP 或 HTTPS M3U 地址。');return url;
+}
+
+// Migu playlist URLs are signed with a China-local timestamp. Its CDN rejects
+// stale signatures (often with the opaque HTTP 661 status), so identify those
+// links before handing them to AVPlayer and show a useful error.
+export function expiredMiguURL(value,{now=Date.now(),maxAgeMs=10*60*1000}={}){
+ try{
+  const url=new URL(value);if(!/miguvideo\.com$/i.test(url.hostname)||!url.searchParams.has('SecurityKey'))return false;
+  const stamp=url.searchParams.get('timestamp')||url.searchParams.get('SecurityKey');
+  if(!/^\d{14}$/.test(stamp||''))return false;
+  const [,year,month,day,hour,minute,second]=stamp.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);
+  const signedAt=Date.UTC(+year,+month-1,+day,+hour-8,+minute,+second),age=now-signedAt;
+  return age>maxAgeMs;
+ }catch{return false;}
+}
 
 function createM3UParser(playlistURL){
  const base=new URL(playlistURL),channels=[];let pending='',group='',epgUrl='',started=false;

@@ -1,6 +1,6 @@
 import {resolvePlayableEpisode,verifyMedia,matchingEpisode,mediaHeaders} from './playback.mjs';
 import {loadVisibleImages} from './image-loader.mjs';
-import {decodePlaylist,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex} from './live.mjs';
+import {decodePlaylist,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,expiredMiguURL,normalizePlaylistURL} from './live.mjs';
 import sites from './sites-data.mjs';
 import {NativeTransport as native} from './transport.mjs';
 import {createSourceClient} from './source-clients.mjs';
@@ -155,9 +155,9 @@ function liveRoutesPanel(channel){
 }
 async function loadLivePlaylist(value=state.liveURL){
  state.liveInitialAttempted=true;
- let url;try{url=new URL(value.trim());if(!['https:','http:'].includes(url.protocol)||!url.hostname)throw Error();}catch{state.liveError='请输入有效的 HTTP 或 HTTPS M3U 地址。';state.liveImportOpen=true;render();return;}
+ let url;try{url=normalizePlaylistURL(value);}catch{state.liveError='请输入有效的 HTTP 或 HTTPS M3U 地址。';state.liveImportOpen=true;render();return;}
  state.liveImportController?.abort();const controller=new AbortController();state.liveImportController=controller;state.liveURL=url.href;localStorage.setItem('sanyuan:livePlaylistURL',url.href);state.liveLoading=true;state.liveError='';render();
- try{const response=await native.request({url:url.href,method:'GET',headers:{Accept:'application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*'},livePlaylist:true,signal:controller.signal});if(response.status<200||response.status>=300)throw Error(`播放列表请求失败（HTTP ${response.status}）`);const text=decodePlaylist(response.bodyBase64),parsed=await parseM3UIncremental(text,url.href,{signal:controller.signal});if(controller.signal.aborted)return;
+ try{const fetchURL=new URL(url.href);fetchURL.searchParams.set('_sanyuan_refresh',String(Date.now()));const response=await native.request({url:fetchURL.href,method:'GET',headers:{Accept:'application/x-mpegURL, application/vnd.apple.mpegurl, text/plain, */*','Cache-Control':'no-cache','Pragma':'no-cache'},livePlaylist:true,signal:controller.signal});if(response.status<200||response.status>=300)throw Error(`播放列表请求失败（HTTP ${response.status}）`);const text=decodePlaylist(response.bodyBase64),parsed=await parseM3UIncremental(text,url.href,{signal:controller.signal});if(controller.signal.aborted)return;
   let saved=true;try{await native.saveLiveCache(url.href,text);if(controller.signal.aborted)return;state.liveCacheFound=true;}catch{saved=false;}
   if(controller.signal.aborted)return;
   applyLivePlaylist(parsed,url.href);state.liveStatus=`${url.protocol==='http:'?'HTTP 列表未加密 · ':''}已导入 ${parsed.channels.length.toLocaleString()} 个频道${saved?' · 已保存在本机':' · 本地保存失败，请检查设备空间'}`;
@@ -183,6 +183,7 @@ async function loadLiveGuide(){
 function liveCandidateList(channel){return channelAlternates(state.liveChannels,channel,state.liveAlternateIndex).sort((a,b)=>a.index===channel.index?-1:b.index===channel.index?1:a.index-b.index);}
 async function playLiveVariant(variantIndex=0,{automatic=false}={}){
  const channel=liveChannel();if(!channel)return;const routes=liveCandidateList(channel),route=routes[variantIndex];if(!route)return;
+ if(expiredMiguURL(route.url)){state.liveTriedURLs.add(route.url);const next=nextUntriedRouteIndex(routes,state.liveTriedURLs);if(next>=0){void playLiveVariant(next,{automatic:true});return;}state.liveActive=false;state.liveCurrentIndex=channel.index;state.liveStatus='咪咕播放链接已过期';state.liveError='此列表中的咪咕签名链接已过期（源地址仍返回旧链接）。请使用提供方更新后的 M3U；重复导入当前文件不会续期播放签名。';native.stopLive();nativeSession=null;render();return;}
  state.liveVideoReady=false;state.liveVideoFormat=null;state.liveVariantIndex=variantIndex;state.liveTriedURLs.add(route.url);state.liveCurrentIndex=channel.index;state.liveActive=true;state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus=automatic?'正在切换备用线路…':route.secure?'正在连接…':'HTTP 未加密 · 正在连接…';state.liveError='';if(!['programs','routes'].includes(state.livePanel))state.livePanel='channels';render({liveFast:true});
  if(!native.native()){const video=$('#live-video');if(video)await video.play().catch(()=>{});return;}
  // Keep one playback context for all mirrors of this channel. The native bridge
@@ -218,7 +219,7 @@ window.NativeLiveAction=(act,id='')=>{
 function livePage(){
  const channel=liveChannel(),hasChannels=state.liveChannels.length>0;
  const screen=native.native()?`<div id="native-player-slot" class="native-card live-native-card"><span>${channel?e(state.liveStatus||channel.name):'选择频道开始直播'}</span></div>`:state.liveActive&&channel?`<video id="live-video" controls autoplay playsinline preload="none" src="${e(liveCandidateList(channel)[state.liveVariantIndex]?.url||channel.url)}"></video>`:`<div class="live-screen-placeholder"><span class="live-screen-mark">${channel?e(channel.name.slice(0,2)):'LIVE'}</span><strong>${channel?e(channel.name):'三源直播'}</strong><small>${channel?e(state.liveStatus||'点击播放，开始观看'):hasChannels?'请选择一个频道':'导入 M3U 播放列表即可开始'}</small>${channel&&!state.liveActive?`<button class="live-start" data-act="live-play">▶ 播放直播</button>`:''}</div>`;
- const importForm=`<form id="live-import-form" class="live-import-form" ${state.liveImportOpen?'':'hidden'}><label for="live-playlist-url">M3U 播放列表地址</label><div><input id="live-playlist-url" name="url" type="url" value="${e(state.liveURL)}" placeholder="https:// 或 http:// 播放列表地址" required><button class="live-import-button" type="submit">${state.liveLoading?'正在导入…':'导入 / 手动更新'}</button></div><small>导入后保存到本机，打开直播时不自动更新。HTTP 传输未加密；建议优先使用 HTTPS。</small></form>`;
+ const importForm=`<form id="live-import-form" class="live-import-form" ${state.liveImportOpen?'':'hidden'}><label for="live-playlist-url">M3U 播放列表地址</label><div><input id="live-playlist-url" name="url" type="text" inputmode="url" autocapitalize="off" spellcheck="false" value="${e(state.liveURL)}" placeholder="https:// 或 http:// 播放列表地址" required><button class="live-import-button" type="submit">${state.liveLoading?'正在导入…':'导入 / 手动更新'}</button></div><small>可省略 http://；导入后保存到本机，打开直播时不自动更新。HTTP 传输未加密；建议优先使用 HTTPS。</small></form>`;
  const panelContent=state.liveLoading&&!hasChannels?`<div class="live-empty"><span class="spinner"></span>正在加载 M3U 频道…</div>`:state.liveError&&!hasChannels?`<div class="live-error"><strong>导入失败</strong><span>${e(state.liveError)}</span><button class="secondary" data-act="live-import-open">检查地址并重试</button></div>`:state.livePanel==='categories'?liveGroupsMarkup():state.livePanel==='programs'?liveProgramsPanel(channel):state.livePanel==='routes'?liveRoutesPanel(channel):liveChannelList();
  const routes=channelAlternates(state.liveChannels,channel,state.liveAlternateIndex),routeIndex=routes.findIndex(item=>item.url===liveCandidateList(channel)[state.liveVariantIndex]?.url),selectedRoute=state.liveSelectedRoute||routes[routeIndex>=0?routeIndex:0],programDays=[...new Set(state.livePrograms.map(program=>dayKey(program.start)))],today=dayKey(Date.now()),guideDate=programDays.includes(state.liveProgramDate)?state.liveProgramDate:programDays.includes(today)?today:programDays[0]||today;
  let sheet='';
@@ -251,7 +252,7 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title"><div class="settings-card-heading"><span class="settings-icon">⌁</span><div><h2 id="settings-network-title">数据线路</h2><p>选择数据请求优先使用的线路</p></div><button class="settings-action" data-act="probe-lines">检测</button></div>
    <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${(c.config?.urls?.[kind]||[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}).slice(0,5).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button class="settings-line" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'优先':health?health.ok?`${health.ms} ms`:'暂不可用':'未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}</div>
   </section>
-  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.30 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
+  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.31 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
  </div>`;
 }
 function detail(){
@@ -369,7 +370,7 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config,cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.30'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.31'};
  }
  return {...base};
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex} from '../Web/live.mjs';
+import {parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,expiredMiguURL,normalizePlaylistURL} from '../Web/live.mjs';
 
 test('parses M3U metadata, groups, relative URLs and labels insecure entries',()=>{
  const source='#EXTM3U x-tvg-url="https://guide.example/guide.xml"\n'+
@@ -72,4 +72,17 @@ test('rejects malformed playlists and accepts HTTP or HTTPS EPG endpoints',()=>{
  assert.equal(arbitrary.channels[0].secure,false);assert.equal(arbitrary.channels[0].url,'http://any-host.example:8080/tv/one.m3u8');
  const imported=parseM3U('#EXTM3U x-tvg-url="guide.xml"\n#EXTINF:-1,One\nchannel.m3u8','http://118.190.200.12:8767/all.m3u');
  assert.equal(imported.epgUrl,'http://118.190.200.12:8767/guide.xml');assert.equal(imported.channels[0].url,'http://118.190.200.12:8767/channel.m3u8');
+});
+
+test('detects stale Migu signed URLs while allowing fresh and non-Migu live streams',()=>{
+ const now=Date.UTC(2026,9,26,1,25,0),stale='http://gslbmgsplive.miguvideo.com/live.m3u8?timestamp=20261026084129&SecurityKey=abc',fresh='http://gslbmgsplive.miguvideo.com/live.m3u8?timestamp=20261026092400&SecurityKey=abc';
+ assert.equal(expiredMiguURL(stale,{now}),true);
+ assert.equal(expiredMiguURL(fresh,{now}),false);
+ assert.equal(expiredMiguURL('http://example.com/live.m3u8?timestamp=20200101000000&SecurityKey=abc',{now}),false);
+});
+
+test('normalizes bare HTTP playlist hosts and rejects unsupported schemes',()=>{
+ assert.equal(normalizePlaylistURL(' www.52top.com.cn:678/downloads/migu.txt ').href,'http://www.52top.com.cn:678/downloads/migu.txt');
+ assert.equal(normalizePlaylistURL('https://example.com/live.m3u').protocol,'https:');
+ assert.throws(()=>normalizePlaylistURL('ftp://example.com/live.m3u'),/有效的 HTTP 或 HTTPS/);
 });
