@@ -263,6 +263,50 @@ html[data-theme="white"] .detail-content .playtoolbar select{background:#f0f2f6;
 html[data-theme="white"] .detail-content .native-card{background:radial-gradient(ellipse at center,#e6edf1,#f3f4f8)}
 html[data-theme="white"] .detail-content .notice{background:#fff;color:#666e7e}
 html[data-theme="white"] .detail-content .notice h3{color:#202431}
+
+/* Reference style: compact filter pills, a quiet discovery header and a floating tab capsule.
+   All pages stay on the user's single global light/dark theme. */
+html[data-theme="white"][data-page="discover"],html[data-theme="white"][data-page="live"]{color-scheme:light;--bg:#f3f4f8;--panel:#fff;--panel2:#e9edf4;--text:#171923;--muted:#737989;--accent:#2878f0;--line:#11182712;background:var(--bg)}
+html[data-theme="white"][data-page="discover"] body,html[data-theme="white"][data-page="live"] body{background:var(--bg);color:var(--text)}
+html[data-theme="black"][data-page="discover"],html[data-theme="black"][data-page="live"]{color-scheme:dark;--bg:#090d11;--panel:#121920;--panel2:#1b252e;--text:#f1f4f6;--muted:#9aa7b2;--accent:#8ce1cf;--line:#ffffff18;background:var(--bg)}
+html[data-theme="black"][data-page="discover"] body,html[data-theme="black"][data-page="live"] body{background:var(--bg);color:var(--text)}
+html[data-theme="white"] .discover-banner{height:116px;padding:12px 16px;background:var(--panel);border:1px solid #e4e7ee;border-radius:0 0 20px 20px;box-shadow:0 3px 14px #19223a08}
+html[data-theme="black"] .discover-banner{height:116px;padding:12px 16px;background:linear-gradient(145deg,#15232a,#11171e 72%);border:1px solid #ffffff12;border-radius:0 0 20px 20px}
+.discover-banner:before,.discover-banner:after,.movie-time-word,.discover-caption{display:none}
+.discover-banner-top{top:calc(13px + env(safe-area-inset-top));left:16px;right:16px;color:var(--text);font-size:15px;font-weight:700}
+.discover-refresh{width:38px;height:38px;border:1px solid var(--line);background:var(--panel2);color:var(--text)}
+.discover-sources{gap:7px;padding:0 1px 2px}
+.discover-sources button{min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:18px;background:var(--panel2);color:var(--text);font-size:12px}
+html[data-theme="white"] .discover-sources button.active{background:#e7f0ff;border-color:#2878f044;color:#1768df}
+html[data-theme="black"] .discover-sources button.active{background:#20352f;border-color:#8ce1cf44;color:#8ce1cf}
+.discover-tabs{gap:5px;padding:5px;margin:9px 14px 5px;border:1px solid var(--line);border-radius:17px;background:var(--panel2)}
+.discover-tabs button{min-height:40px;border:0;border-radius:13px;color:var(--muted);font-size:13px}
+html[data-theme="white"] .discover-tabs button.active{background:#fff;color:#1768df;box-shadow:0 2px 7px #16213a12}
+html[data-theme="black"] .discover-tabs button.active{background:#20352f;color:#8ce1cf;box-shadow:none}
+.timeline-years{gap:8px;padding:7px 14px 10px}
+.year-chip{min-height:34px;padding:0 13px;border:1px solid var(--line);border-radius:17px;background:var(--panel2);color:var(--muted);font-size:13px}
+.year-chip.active{font-weight:700}
+html[data-theme="white"] .year-chip.active{background:#e7f0ff;border-color:#2878f044;color:#1768df}
+html[data-theme="black"] .year-chip.active{background:#20352f;border-color:#8ce1cf44;color:#8ce1cf}
+.year-chip.active:after{display:none}
+.timeline-months{gap:7px;padding:7px 14px 14px}
+.month-chip{min-height:35px;padding:7px 13px;border:1px solid var(--line);border-radius:18px;background:var(--panel2);color:var(--text);font-size:12px}
+html[data-theme="white"] .month-chip.active{background:#2878f0;color:#fff}
+html[data-theme="black"] .month-chip.active{background:#8ce1cf;color:#0b201d}
+.timeline-group{padding-bottom:19px}
+.timeline-group:before{border-color:var(--line)}
+.timeline-mark,.timeline-heading:before{border-color:var(--accent);background:var(--bg);box-shadow:0 0 0 3px var(--bg)}
+.timeline-heading h2,.discover-topic .sectiontop h2,.timeline-shelf .card strong{color:var(--text)}
+.timeline-heading span,.timeline-shelf .card small{color:var(--muted)}
+.timeline-shelf .poster{border-radius:13px}
+.discover-page .notice{background:var(--panel);color:var(--muted)}
+.discover-page .notice h3{color:var(--text)}
+html[data-theme="white"][data-page="discover"] .bottomnav{width:min(440px,calc(100% - 28px));padding:7px 8px;background:#fffffff5;border-color:#dfe2e9;border-radius:32px;box-shadow:0 8px 28px #1b27351c}
+html[data-theme="white"] .bottomnav .nav-item.active{color:#1768df;background:#e7f0ff}
+html[data-theme="black"][data-page="discover"] .bottomnav{width:min(440px,calc(100% - 28px));padding:7px 8px;background:#121920f5;border-color:#ffffff18;border-radius:32px;box-shadow:0 8px 28px #0006}
+html[data-theme="black"] .bottomnav .nav-item.active{color:#8ce1cf;background:#20352f}
+html[data-theme="black"][data-page="live"] .live-import-form,html[data-theme="black"][data-page="live"] .live-player-card,html[data-theme="black"][data-page="live"] .live-group-card{background:var(--panel);border-color:var(--line)}
+@media(max-width:370px){.discover-banner{height:112px}.discover-tabs{margin-left:8px;margin-right:8px}}
 .sources{overflow-x:auto;scrollbar-width:none}.sources::-webkit-scrollbar{display:none}.sources button{flex:1 0 auto;min-width:96px;white-space:nowrap;padding-left:12px;padding-right:12px}.discover-sources button{white-space:nowrap}
 
 /* Film shelves wrap like catalog grids; only source and filter controls scroll sideways. */
