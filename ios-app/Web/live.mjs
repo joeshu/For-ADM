@@ -40,9 +40,10 @@ function createM3UParser(playlistURL){
   let stream;try{stream=new URL(line,base);}catch{pending='';return;}
   if(!['https:','http:'].includes(stream.protocol)){pending='';return;}
   const comma=pending.search(/,(?=(?:[^"']|"[^"]*"|'[^']*')*$)/),title=comma>=0?pending.slice(comma+1).trim():'';
-  const name=attribute(pending,'tvg-name')||title||attribute(pending,'tvg-id')||`频道 ${channels.length+1}`;
-  const tvgId=attribute(pending,'tvg-id');let logo='';try{const candidate=new URL(attribute(pending,'tvg-logo'),base);if(candidate.protocol==='https:')logo=candidate.href;}catch{}
-  const tvgName=attribute(pending,'tvg-name')||title||name;
+  const tvgId=attribute(pending,'tvg-id')||attribute(pending,'svg-id');
+  const tvgName=attribute(pending,'tvg-name')||attribute(pending,'svg-name');
+  const name=tvgName||title||tvgId||`频道 ${channels.length+1}`;
+  let logo='';try{const candidate=new URL(attribute(pending,'tvg-logo')||attribute(pending,'svg-logo'),base);if(candidate.protocol==='https:')logo=candidate.href;}catch{}
   channels.push({index:channels.length,name,tvgName,tvgId,logo,group:attribute(pending,'group-title')||group||'未分类',url:stream.href,secure:stream.protocol==='https:',identity:channelIdentity({tvgId,name})});
   pending='';group='';
  };

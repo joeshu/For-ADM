@@ -40,10 +40,15 @@
 }
 - (void)dealloc {if(_listener)nw_listener_cancel(_listener);[_session invalidateAndCancel];}
 - (NSURL*)mapped:(NSURL*)url {
- if(![url.scheme.lowercaseString isEqualToString:@"https"])return nil;
+ if(![@[@"https",@"http"] containsObject:url.scheme.lowercaseString]||!url.host.length||!self.port)return nil;
  NSString*path=self.paths[url.absoluteString];
  if(!path){path=[NSString stringWithFormat:@"/%@/%@.%@",self.token,NSUUID.UUID.UUIDString,[url.path.lowercaseString hasSuffix:@".m3u8"]?@"m3u8":@"bin"];self.paths[url.absoluteString]=path;self.resources[path]=url;}
  return [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%u%@",self.port,path]];
+}
+- (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers {
+ [self prepare:url headers:headers enabled:NO];
+ if(!self.port||![url.path.lowercaseString hasSuffix:@".m3u8"])return url;
+ return [self mapped:url]?:url;
 }
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled {
  [self.session invalidateAndCancel];self.removed=0;self.enabled=enabled;self.headers=headers;self.token=NSUUID.UUID.UUIDString;
@@ -83,7 +88,7 @@
     NSString*value=[raw substringWithRange:[match rangeAtIndex:1]];
     // Non-HTTP key URIs (for example FairPlay) are preserved; HTTPS keys stay encrypted.
     NSURL*absolute=[NSURL URLWithString:value relativeToURL:base].absoluteURL;
-    if([absolute.scheme.lowercaseString isEqualToString:@"https"]){NSURL*mapped=[self mapped:absolute];[changed replaceCharactersInRange:[match rangeAtIndex:1] withString:mapped.absoluteString];}
+    if([@[@"https",@"http"] containsObject:absolute.scheme.lowercaseString]){NSURL*mapped=[self mapped:absolute];if(mapped)[changed replaceCharactersInRange:[match rangeAtIndex:1] withString:mapped.absoluteString];}
    }
    [output addObject:changed];
   }

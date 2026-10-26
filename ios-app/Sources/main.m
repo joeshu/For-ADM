@@ -638,7 +638,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
     NSString*requestedContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
     BOOL livePlayback=[requestedContext hasPrefix:@"live:"];
-    NSURL*playURL=livePlayback?url:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
+    NSURL*playURL=livePlayback?[self.hlsProxy prepareLive:url headers:headers]:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
     #if defined(SY_SIMULATOR_SMOKE)
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
     if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}

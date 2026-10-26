@@ -28,6 +28,20 @@ test('matches HTTPS and HTTP alternate relays by TVG identity',()=>{
  assert.deepEqual(channelAlternates(channels,channels[0]).map(channel=>channel.index),[0,1,2]);
 });
 
+test('imports the Migu svg metadata format and IPTV HTTP channel routes',()=>{
+ const migu=parseM3U('#EXTM3U x-tvg-url="https://guide.example/playback.xml"\n'+
+  '#EXTINF:-1 svg-id="CCTV2财经" svg-name="CCTV2财经" tvg-logo="http://logo.example/cctv2.png" group-title="央视",CCTV2财经\n'+
+  'http://gslbmgsplive.miguvideo.com/live/index.m3u8?timestamp=20261026104130&SecurityKey=fixture\n',
+  'http://www.52top.com.cn:678/downloads/migu.txt');
+ const iptv=parseM3U('#EXTM3U url-tvg="https://guide.example/t.xml.gz"\n'+
+  '#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV-2 财经" group-title="央视",CCTV-2 财经\n'+
+  'http://118.190.200.12:8767/cctv2.m3u8\n',
+  'http://118.190.200.12:8767/all.m3u');
+ assert.equal(migu.channels[0].name,'CCTV2财经');assert.equal(migu.channels[0].tvgId,'CCTV2财经');
+ assert.equal(migu.channels[0].logo,'');assert.equal(migu.channels[0].secure,false);assert.equal(migu.channels.length,1);
+ assert.equal(iptv.channels[0].name,'CCTV-2 财经');assert.equal(iptv.channels[0].url,'http://118.190.200.12:8767/cctv2.m3u8');
+});
+
 test('automatic live failover checks earlier routes after a manual route fails',()=>{
  const routes=[{url:'https://one.example/live.m3u8'},{url:'https://two.example/live.m3u8'},{url:'https://three.example/live.m3u8'}];
  assert.equal(nextUntriedRouteIndex(routes,new Set([routes[2].url])),0);
