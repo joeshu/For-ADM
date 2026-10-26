@@ -13,6 +13,8 @@
 @property(nonatomic) uint16_t port;
 @property(nonatomic) BOOL enabled;
 @property(nonatomic) NSUInteger removed;
+@property(nonatomic,copy) NSString*lastTransportError;
+@property(nonatomic) NSInteger lastHTTPStatus;
 @end
 @implementation SYHLSProxy
 - (instancetype)init {
@@ -99,7 +101,7 @@
  NSArray*lines=[request componentsSeparatedByString:@"\r\n"],*parts=[lines.firstObject componentsSeparatedByString:@" "];
  BOOL head=parts.count>=2&&[parts[0] isEqual:@"HEAD"];
  NSURL*url=parts.count>=2?self.resources[parts[1]]:nil;
- if(!url||(!head&&![parts[0] isEqual:@"GET"])){[self reply:connection status:404 headers:@{} data:[NSData data] head:head];return;}
+ if(!url||(!head&&![parts[0] isEqual:@"GET"])){self.lastTransportError=@"proxy-resource-not-found";[self reply:connection status:404 headers:@{} data:[NSData data] head:head];return;}
  NSMutableURLRequest*upstream=[NSMutableURLRequest requestWithURL:url];upstream.allHTTPHeaderFields=self.headers;upstream.HTTPMethod=head?@"HEAD":@"GET";
  for(NSString*line in lines)if(![url.path.lowercaseString hasSuffix:@".m3u8"]&&[line.lowercaseString hasPrefix:@"range:"])[upstream setValue:[[line substringFromIndex:6] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet] forHTTPHeaderField:@"Range"];
  NSString*token=self.token;
@@ -108,7 +110,9 @@
   dispatch_async(dispatch_get_main_queue(),^{
    SYHLSProxy*owner=weak;if(!owner||![token isEqual:owner.token]){nw_connection_cancel(connection);return;}
    NSHTTPURLResponse*http=(NSHTTPURLResponse*)response;
-   if(error||body.length>32*1024*1024){[owner reply:connection status:502 headers:@{} data:[NSData data] head:head];return;}
+   owner.lastHTTPStatus=http.statusCode;owner.lastTransportError=error?error.localizedDescription:@"";
+   if(error||body.length>32*1024*1024){NSLog(@"SYHLSProxy upstream failure host=%@ status=%ld error=%@",url.host,(long)http.statusCode,error.localizedDescription?:@"response-too-large");[owner reply:connection status:502 headers:@{} data:[NSData data] head:head];return;}
+   if(http.statusCode<200||http.statusCode>=300)NSLog(@"SYHLSProxy upstream HTTP status host=%@ status=%ld",url.host,(long)http.statusCode);
    NSMutableDictionary*headers=[NSMutableDictionary dictionary];headers[@"Content-Type"]=http.MIMEType?:@"application/octet-stream";if(head&&response.expectedContentLength>=0)headers[@"Content-Length"]=@(response.expectedContentLength);
    for(NSString*name in http.allHeaderFields)if([@[@"content-range",@"accept-ranges"] containsObject:name.lowercaseString])headers[name]=http.allHeaderFields[name];
    NSData*result=body?:[NSData data];
