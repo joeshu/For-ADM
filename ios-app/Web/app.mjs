@@ -369,7 +369,7 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.32'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.36'};
  }
  return {...base};
 }
