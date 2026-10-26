@@ -64,7 +64,7 @@ body{background:var(--bg);color:var(--text)}
 .primary{background:#2878f0;color:#fff;box-shadow:0 4px 12px #2878f021}.secondary{background:#e9edf5;color:#293143}
 .content{padding-left:20px;padding-right:20px}
 .heading{color:#171923}.caption{color:#747b8b}
-.hero{box-shadow:0 8px 24px #1d293916}.hero:after{background:linear-gradient(90deg,#09111bcc,#101b2a30),linear-gradient(0deg,#09111be8,transparent 82%)}
+.hero{color:#fff;box-shadow:0 8px 24px #1d293916}.hero:after{background:linear-gradient(90deg,#09111bcc,#101b2a30),linear-gradient(0deg,#09111be8,transparent 82%)}.herobuttons .secondary{color:#fff}
 .tag{background:#ffffff24;color:#fff;border-color:#ffffff37}.chip{background:#fff;color:#525969;box-shadow:0 2px 8px #19223a0a}.chip.active{background:#e7f0ff;color:#1768df;box-shadow:inset 0 0 0 1px #2878f035}
 .sectiontop h2{color:#202431}.card strong{color:#202431}.card small{color:#737989}.poster{background:linear-gradient(145deg,#e3e7ef,#cbd3e1)}.poster>span{color:#2878f035}.postbadge{background:#ffffffdf;color:#765000}.postsub{color:#fff}
 .bottomnav{left:12px;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));padding:8px 14px;background:#fffffff0;border:1px solid #dfe2e9;border-radius:26px;box-shadow:0 8px 28px #1b273515;backdrop-filter:blur(24px)}
@@ -250,6 +250,9 @@ html[data-theme="white"] .detail-hero{background:radial-gradient(ellipse at 75% 
 html[data-theme="white"] .detail-hero>img{opacity:.34;filter:saturate(.7)}
 html[data-theme="white"] .detail-hero-shade{background:linear-gradient(180deg,#f3f4f800 0%,#f3f4f800 32%,#f3f4f566 62%,#f3f4f8 100%)}
 html[data-theme="white"] .detail-hero h1{color:#171923;text-shadow:0 1px 8px #fff8}
+html[data-theme="white"] .detail-actions .detail-play{background:#2878f0;color:#fff;box-shadow:0 4px 14px #2878f033}
+html[data-theme="white"] .detail-actions .detail-favorite,html[data-theme="white"] .detail-actions .detail-secondary-action{background:#ffffffdf;color:#293143;border:1px solid #dbe1ea;box-shadow:0 2px 8px #18233a10;backdrop-filter:blur(14px)}
+html[data-theme="white"] .detail-actions .detail-secondary-action{color:#1768df!important}
 html[data-theme="white"] .detail-kicker,html[data-theme="white"] .detail-meta{color:#525969}
 html[data-theme="white"] .detail-score{color:#17634f;background:#e4f5ed;border-color:#17634f30}
 html[data-theme="white"] .detail-tags span,html[data-theme="white"] .cast-list span{background:#e9edf4;color:#525969}

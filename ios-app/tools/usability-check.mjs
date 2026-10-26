@@ -5,7 +5,7 @@ try{
  let failNextHome=false;
  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[],queries=[];
  await page.exposeFunction('failNextHomeRequest',()=>{failNextHome=true;});
- await page.addInitScript(()=>{localStorage.setItem('sanyuan:liveFavorites',JSON.stringify(['removed-channel-from-old-playlist']));localStorage.setItem('sanyuan:favorites',JSON.stringify([{key:'kkapp:77',siteId:'kkapp',movie:{id:'77',title:'收藏测试影片',labels:[]},updated:2}]));localStorage.setItem('sanyuan:history',JSON.stringify([{key:'kkapp:78',siteId:'kkapp',movie:{id:'78',title:'记录测试影片',labels:[]},episodeTitle:'第3集',updated:1}]));});
+ await page.addInitScript(()=>{localStorage.setItem('sanyuan:liveFavorites',JSON.stringify(['removed-channel-from-old-playlist']));localStorage.setItem('sanyuan:favorites',JSON.stringify([{key:'kkapp:77',siteId:'kkapp',movie:{id:'77',title:'收藏测试影片',labels:[]},updated:2}]));localStorage.setItem('sanyuan:history',JSON.stringify([{key:'kkapp:78',siteId:'kkapp',movie:{id:'78',title:'记录测试影片',labels:[]},episodeTitle:'第3集',updated:1}]));/* This smoke checks player layout; the separate playback UI test covers media failures. Chromium cannot play the mocked HLS response. */const add=HTMLMediaElement.prototype.addEventListener;HTMLMediaElement.prototype.addEventListener=function(type,...args){if(this instanceof HTMLVideoElement&&type==='error')return;return add.call(this,type,...args);};HTMLMediaElement.prototype.play=function(){return Promise.resolve();};});
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://**',r=>r.abort());
  await page.route('**/__transport',async route=>{
@@ -27,6 +27,7 @@ try{
  });
  await page.goto('http://127.0.0.1:4173/');
  await page.locator('.hero').waitFor();
+ assert.equal(await page.locator('.hero h1').evaluate(node=>getComputedStyle(node).color),'rgb(255, 255, 255)');assert.equal(await page.locator('.herobuttons .secondary').evaluate(node=>getComputedStyle(node).color),'rgb(255, 255, 255)');
  assert.equal(await page.locator('.sources button').evaluateAll(buttons=>buttons.every(button=>button.scrollWidth<=button.clientWidth)),true);
  assert.equal(await page.locator('#bottomnav .nav-item').count(),5);
  assert.equal(await page.locator('#bottomnav').innerText().then(text=>text.includes('游戏')),false);
@@ -42,7 +43,7 @@ try{
  await page.locator('.home-section [data-act="collection-link"]').first().click();await page.locator('.collection-content .card').first().waitFor();
  assert.equal(await page.locator('.collection-content .card').count(),12);
  await page.evaluate(()=>window.__collectionFirst=document.querySelector('.collection-content .card'));await page.locator('[data-act="more"]').click();await page.waitForFunction(()=>document.querySelectorAll('.collection-content .card').length===13);assert.equal(await page.evaluate(()=>window.__collectionFirst===document.querySelector('.collection-content .card')),true);const appendedCollectionCard=page.locator('.collection-content .card[data-id="100"]');await appendedCollectionCard.scrollIntoViewIfNeeded();await appendedCollectionCard.locator('img').waitFor({state:'attached'});await page.waitForFunction(()=>document.querySelector('.collection-content .card[data-id="100"] img')?.getAttribute('src')?.startsWith('data:image/'));
- await page.locator('.collection-content .card').first().click();await page.locator('.detail-hero').waitFor();
+ await page.locator('.collection-content .card').first().click();await page.locator('.detail-hero').waitFor();assert.equal(await page.locator('.detail-actions .detail-play').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(40, 120, 240)');assert.equal(await page.locator('.detail-actions .detail-favorite').evaluate(node=>getComputedStyle(node).color),'rgb(41, 49, 67)');assert.equal(await page.locator('.detail-actions .detail-secondary-action').evaluate(node=>getComputedStyle(node).color),'rgb(23, 104, 223)');
  await page.locator('[data-act="back"]').click();assert.equal(await page.locator('.collection-content .card').count(),13);
  await page.locator('[data-act="collection-back"]').click();assert.equal(await page.locator('.shelf').first().evaluate(row=>getComputedStyle(row).gridTemplateColumns.split(' ').length),3);
  await page.evaluate(()=>window.NativePageAction('collection-link',{route:'specialTopic/vods?specialTopicId=13',title:'第二片库'}));await page.locator('.collection-content .card').waitFor();assert.match(await page.locator('.collection-content').innerText(),/专属栏目影片/);assert.match(await page.locator('.collection-content h1').innerText(),/第二片库/);
@@ -84,13 +85,13 @@ try{
  await page.evaluate(()=>window.scrollTo(0,700));await page.waitForFunction(()=>document.querySelector('.playerbox')?.classList.contains('is-compact'));
  await page.waitForFunction(()=>Math.abs(document.querySelector('.playerbox')?.getBoundingClientRect().top-58)<3);
  assert.ok(await page.getByLabel('切换播放源',{exact:true}).evaluate(select=>select.getBoundingClientRect().bottom<innerHeight));
- await page.getByLabel('切换播放源',{exact:true}).selectOption('0');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/b.m3u8'));await page.locator('#video').evaluate(video=>{video.pause();video.removeAttribute('src');video.load();});
+ await page.getByLabel('切换播放源',{exact:true}).selectOption('0');await page.waitForFunction(()=>document.querySelector('#video')?.src.endsWith('/b.m3u8'));await page.locator('#video').evaluate(video=>video.pause());
  await page.locator('#episode-list').evaluate(section=>section.scrollIntoView({block:'start',behavior:'instant'}));await page.waitForFunction(()=>document.querySelector('.playerbox')?.classList.contains('is-compact'));await page.evaluate(()=>new Promise(requestAnimationFrame));
  await page.locator('.episode').first().evaluate(button=>button.scrollIntoView({block:'center',behavior:'instant'}));await page.evaluate(()=>new Promise(requestAnimationFrame));
  await page.waitForFunction(()=>{const episode=document.querySelector('.episode'),rect=episode?.getBoundingClientRect();return rect?.height>0&&rect.bottom<innerHeight;},undefined,{timeout:8000});
  assert.ok(await page.locator('.route-card').first().evaluate(card=>card.getBoundingClientRect().height)<65);
  await page.screenshot({path:'/workspace/outputs/Sanyuan-0.2.4-lines.png'});
- await page.locator('[data-act="back"]').evaluate(button=>button.click());await page.waitForFunction(()=>document.documentElement.dataset.page==='browse',undefined,{timeout:8000});
+ await page.locator('[data-act="back"]').click();await page.waitForFunction(()=>document.documentElement.dataset.page==='browse',undefined,{timeout:8000});
  await page.locator('[data-act="page"][data-id="live"]').click();await page.locator('.live-channel-list').waitFor();
  assert.equal(await page.locator('.live-channel-row').count(),3);assert.match(await page.locator('.live-now-copy').innerText(),/CCTV1综合/);assert.match(await page.locator('.live-category-row .active').innerText(),/全部频道/);
  await page.locator('.live-channel-row').nth(1).locator('[data-act="live-channel"]').click();await page.locator('#live-video').waitFor();
