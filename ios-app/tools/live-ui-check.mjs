@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
 try{
- const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];let playlistRequests=0,redirectRequests=0;
+ const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];let playlistRequests=0,redirectRequests=0,epgRequests=0;
  await page.addInitScript(()=>localStorage.setItem('sanyuan:livePlaylistURL','http://118.190.200.12:8767/all.m3u'));
  page.on('pageerror',error=>errors.push(error.message));
  await page.route('https://**',route=>route.abort());
@@ -18,7 +18,7 @@ try{
    '#EXTINF:-1 tvg-id="CCTV5体育" group-title="体育",CCTV5体育\nhttp://fnipv.69574517.xyz/relay/five.m3u8\n';
    await route.fulfill({json:{status:200,bodyBase64:Buffer.from(playlist).toString('base64')}});return;}
   if(path.endsWith('/slow.m3u')||path.endsWith('/fast.m3u')){const name=path.endsWith('/slow.m3u')?'慢列表':'快列表',playlist=`#EXTM3U\n#EXTINF:-1 tvg-id="race" group-title="竞态检查",${name}\nhttps://fnipv.69574517.xyz/race.m3u8\n`;await route.fulfill({json:{status:200,bodyBase64:Buffer.from(playlist).toString('base64')}});return;}
-  if(path.endsWith('/playback.xml')){const xml='<tv><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1综合"><title>综合新闻</title><sub-title>早间新闻</sub-title><desc>节目说明示例</desc><category>新闻</category></programme></tv>';await route.fulfill({json:{status:200,bodyBase64:Buffer.from(xml).toString('base64')}});return;}
+  if(path.endsWith('/playback.xml')){epgRequests++;const title=epgRequests===1?'综合新闻':'更新后的新闻';const xml=`<tv><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1综合"><title>${title}</title><sub-title>早间新闻</sub-title><desc>节目说明示例</desc><category>新闻</category></programme></tv>`;await route.fulfill({json:{status:200,bodyBase64:Buffer.from(xml).toString('base64')}});return;}
   if(path.endsWith('.m3u8')){await route.fulfill({json:{status:200,bodyBase64:Buffer.from('#EXTM3U\n#EXTINF:5,\nsegment.ts\n').toString('base64')}});return;}
   const movies=Array.from({length:4},(_,index)=>({title:'测试影片'+(index+1),url:'vod/detail?vodId='+(index+1)}));
   if(path==='/config/prod/appInit.html')data={urls:{cache:['https://test.example'],logic:['https://test.example']},vodTabs:[{type:'category',channelId:1,text:'电影'}],groups:[],channelListQuery:[]};
@@ -38,6 +38,7 @@ try{
  await page.locator('[data-act="live-panel"][data-id="routes"]').click();assert.match(await page.locator('.live-panel-tabs').innerText(),/1\/3 线路/);
  await page.locator('.live-route').nth(2).click();assert.match(await page.locator('.live-sheet-card').innerText(),/HTTP · 未加密/);await page.locator('[data-act="live-route-system"]').click();
  await page.locator('[data-act="live-panel"][data-id="programs"]').click();await page.locator('.live-program').waitFor();assert.match(await page.locator('.live-program').innerText(),/综合新闻/);
+ await page.locator('.live-program-footer [data-act="live-epg-refresh"]').click();await page.waitForFunction(()=>document.querySelector('.live-program')?.innerText.includes('更新后的新闻'));assert.equal(epgRequests,2,'refresh should download the latest EPG instead of reparsing cached XML');
  await page.locator('.live-program-footer [data-act="live-epg-info"]').click();assert.match(await page.locator('.live-sheet-card').innerText(),/EPG 来源/);await page.locator('[data-act="live-sheet-dismiss"]').last().click();
  await page.locator('.live-program').click();assert.match(await page.locator('.live-sheet-card').innerText(),/节目说明示例/);await page.locator('[data-act="live-sheet-dismiss"]').last().click();
  await page.locator('[data-act="live-panel"][data-id="categories"]').click();assert.ok(await page.locator('.live-group-card').count()>=2);
@@ -49,5 +50,5 @@ try{
  await page.reload();await page.locator('.hero').waitFor();await page.locator('[data-act="page"][data-id="live"]').click();await page.waitForFunction(()=>window.NativeLiveSnapshot().channelInfo?.url==='https://cdn.example/streams/live.m3u8');assert.equal(redirectRequests,1,'restored M3U should retain its redirect base without re-fetching');
  for(const width of [320,390,768,1024]){await page.setViewportSize({width,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'live overflow at '+width);}
  await page.locator('[data-act="live-back"]').click();await page.locator('.hero').waitFor();
- assert.deepEqual(errors,[]);console.log('Live UI passed: arbitrary HTTP M3U import, local restore without re-fetch, stale-import race isolation, unencrypted route playback, pinned layout, favorites/actions, channel metadata, EPG dates/details, and responsive widths.');
+ assert.deepEqual(errors,[]);console.log('Live UI passed: arbitrary HTTP M3U import, local restore without re-fetch, stale-import race isolation, unencrypted route playback, pinned layout, favorites/actions, channel metadata, EPG network refresh, dates/details, and responsive widths.');
 }finally{await browser.close();}

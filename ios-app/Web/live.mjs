@@ -7,7 +7,10 @@ const channelIdentity=channel=>(channel.tvgId||channel.name).trim().toLocaleLowe
 export function decodePlaylist(base64){
  const binary=atob(base64||''),bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
- return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/,'');
+ if(bytes.length>=2&&bytes[0]===0xff&&bytes[1]===0xfe)return new TextDecoder('utf-16le').decode(bytes.subarray(2)).replace(/^\uFEFF/,'');
+ if(bytes.length>=2&&bytes[0]===0xfe&&bytes[1]===0xff)return new TextDecoder('utf-16be').decode(bytes.subarray(2)).replace(/^\uFEFF/,'');
+ try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes).replace(/^\uFEFF/,'');}
+ catch{try{return new TextDecoder('gb18030').decode(bytes).replace(/^\uFEFF/,'');}catch{return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/,'');}}
 }
 export function normalizePlaylistURL(value){
  let input=String(value||'').trim();if(input&&!/^[a-z][a-z\d+.-]*:\/\//i.test(input))input='http://'+input;
@@ -18,7 +21,7 @@ function createM3UParser(playlistURL){
  const base=new URL(playlistURL),channels=[];let pending='',group='',epgUrl='',started=false;
  const addLine=raw=>{
  const line=raw.trim();if(!line)return;
-  if(/^#EXTM3U\b/i.test(line)){started=true;const value=attribute(line,'x-tvg-url');if(value){try{const url=new URL(value,base);if(['https:','http:'].includes(url.protocol))epgUrl=url.href;}catch{}}return;}
+  if(/^#EXTM3U\b/i.test(line)){started=true;const values=[attribute(line,'x-tvg-url'),attribute(line,'url-tvg')].filter(Boolean).flatMap(value=>value.split(',').map(item=>item.trim()).filter(Boolean));for(const value of values){try{const url=new URL(value,base);if(['https:','http:'].includes(url.protocol)){epgUrl=url.href;break;}}catch{}}return;}
   if(!started)return;
   if(/^#EXTGRP:/i.test(line)){group=line.slice(line.indexOf(':')+1).trim()||'未分类';return;}
   if(/^#EXTINF:/i.test(line)){pending=line;group=attribute(line,'group-title')||group||'未分类';return;}

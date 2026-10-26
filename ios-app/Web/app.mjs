@@ -176,8 +176,8 @@ async function restoreLivePlaylist(){
  catch(error){state.liveCacheFound=true;state.liveError='本地直播列表读取失败，请手动更新。';return false;}
 }
 const liveCacheReady=restoreLivePlaylist();
-async function loadLiveGuide(){
- const channel=liveChannel();if(!channel||!state.liveEPGUrl)return;state.liveGuideController?.abort();const controller=new AbortController();state.liveGuideController=controller;const identity=channel.identity,key=channel.tvgId||channel.name,cached=state.liveEPGCache.get(key);if(cached){state.livePrograms=cached;state.liveProgramDate='';state.liveError='';state.liveGuideController=null;render();return;}
+async function loadLiveGuide({force=false}={}){
+ const channel=liveChannel();if(!channel||!state.liveEPGUrl)return;state.liveGuideController?.abort();const controller=new AbortController();state.liveGuideController=controller;const identity=channel.identity,key=channel.tvgId||channel.name;if(force){state.liveEPGText='';state.liveEPGCache.clear();}const cached=state.liveEPGCache.get(key);if(cached){state.livePrograms=cached;state.liveProgramDate='';state.liveError='';state.liveEPGLoading=false;state.liveGuideController=null;render();return;}
  state.liveEPGLoading=true;state.liveError='';render();try{if(!state.liveEPGText){const response=await native.request({url:state.liveEPGUrl,method:'GET',headers:{Accept:'application/xml, text/xml, */*'},liveGuide:true,signal:controller.signal});if(response.status<200||response.status>=300)throw Error(`节目单请求失败（HTTP ${response.status}）`);const xml=decodePlaylist(response.bodyBase64);if(controller.signal.aborted||liveChannel()?.identity!==identity)return;state.liveEPGText=xml;}if(controller.signal.aborted||liveChannel()?.identity!==identity)return;const programs=parseXMLTV(state.liveEPGText,key);state.livePrograms=programs;state.liveEPGCache.set(key,programs);state.liveProgramDate='';if(!programs.length)state.liveError='节目单里没有找到这个频道（频道 ID：'+key+'）';}catch(error){if(error.name!=='AbortError'&&!controller.signal.aborted&&liveChannel()?.identity===identity)state.liveError=error.message||'无法读取节目单';}finally{if(state.liveGuideController===controller){state.liveGuideController=null;state.liveEPGLoading=false;render();}}
 }
 function liveCandidateList(channel){return channelAlternates(state.liveChannels,channel,state.liveAlternateIndex).sort((a,b)=>a.index===channel.index?-1:b.index===channel.index?1:a.index-b.index);}
@@ -251,7 +251,7 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title"><div class="settings-card-heading"><span class="settings-icon">⌁</span><div><h2 id="settings-network-title">数据线路</h2><p>选择数据请求优先使用的线路</p></div><button class="settings-action" data-act="probe-lines">检测</button></div>
    <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${(c.config?.urls?.[kind]||[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}).slice(0,5).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button class="settings-line" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'优先':health?health.ok?`${health.ms} ms`:'暂不可用':'未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}</div>
   </section>
-  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.39 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
+  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.40 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
  </div>`;
 }
 function detail(){
@@ -369,7 +369,7 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.39'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.40'};
  }
  return {...base};
 }
@@ -508,7 +508,7 @@ else if(act==='live-sheet-dismiss'){state.liveSheet='';state.liveSelectedRoute=n
 else if(act==='live-date'){state.liveProgramDate=id;render();}
 else if(act==='live-program'){const channel=liveChannel(),days=[...new Set(state.livePrograms.map(program=>dayKey(program.start)))],today=dayKey(Date.now()),selectedDate=days.includes(state.liveProgramDate)?state.liveProgramDate:days.includes(today)?today:days[0]||today;state.liveSelectedProgram=state.livePrograms.filter(program=>dayKey(program.start)===selectedDate)[Number(id)]||null;state.liveSheet='program';render();}
 else if(act==='live-program-dismiss'){state.liveSelectedProgram=null;state.liveSheet='';render();}
-else if(act==='live-epg-refresh'){state.liveEPGCache.delete(liveChannel()?.tvgId||liveChannel()?.name);state.livePrograms=[];loadLiveGuide();}
+else if(act==='live-epg-refresh'){state.livePrograms=[];loadLiveGuide({force:true});}
 else if(act==='live-fullscreen'){if(!native.native())$('#live-video')?.webkitEnterFullscreen?.();}
 else if(act==='discover-tab'){state.discoverTab=Number(id);if(!discoveryCache.has(`${state.site}:${state.discoverTab}`))state.discoverGroups=[];loadDiscovery();}
 else if(act==='discover-month'){state.discoverMonth=Number(id);render();}

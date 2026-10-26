@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,normalizePlaylistURL} from '../Web/live.mjs';
+import {decodePlaylist,parseM3U,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,normalizePlaylistURL} from '../Web/live.mjs';
 
 test('parses M3U metadata, groups, relative URLs and labels insecure entries',()=>{
  const source='#EXTM3U x-tvg-url="https://guide.example/guide.xml"\n'+
@@ -19,9 +19,19 @@ test('parses M3U metadata, groups, relative URLs and labels insecure entries',()
  assert.equal(parsed.channels[1].secure,false);
 });
 
+test('decodes UTF-8, GB18030, and UTF-16 M3U payloads',()=>{
+ assert.match(decodePlaylist('I0VYVE0zVQojRVhUSU5GOi0xIHR2Zy1pZD0iQ0NUVjEiIGdyb3VwLXRpdGxlPSLR68rTxrUiLNbQ0eu158rTzKjX27rPxrW1wApodHRwczovL2V4YW1wbGUuY29tL2xpdmUubTN1OAo='),/中央电视台综合频道/);
+ assert.equal(decodePlaylist(Buffer.from('\uFEFF#EXTM3U\n中文','utf16le').toString('base64')),'#EXTM3U\n中文');
+});
+
 test('does not treat the playlist URL as a missing channel logo',()=>{
  const channel=parseM3U('#EXTM3U\n#EXTINF:-1,No logo\n../streams/live.m3u8\n','https://cdn.example/lists/final.m3u').channels[0];
  assert.equal(channel.logo,'');assert.equal(channel.url,'https://cdn.example/streams/live.m3u8');
+});
+
+test('uses the first supported URL from comma-separated EPG fallbacks',()=>{
+ const parsed=parseM3U('#EXTM3U x-tvg-url="https://guide.example/primary.xml,https://mirror.example/guide.xml" url-tvg="https://other.example/guide.xml"\n#EXTINF:-1,Channel\nhttps://media.example/live.m3u8','https://list.example/list.m3u');
+ assert.equal(parsed.epgUrl,'https://guide.example/primary.xml');
 });
 
 test('matches HTTPS and HTTP alternate relays by TVG identity',()=>{
@@ -45,6 +55,7 @@ test('imports the Migu svg metadata format and IPTV HTTP channel routes',()=>{
  assert.equal(migu.channels[0].name,'CCTV2财经');assert.equal(migu.channels[0].tvgId,'CCTV2财经');
  assert.equal(migu.channels[0].logo,'');assert.equal(migu.channels[0].secure,false);assert.equal(migu.channels.length,1);
  assert.equal(iptv.channels[0].name,'CCTV-2 财经');assert.equal(iptv.channels[0].url,'http://118.190.200.12:8767/cctv2.m3u8');
+ assert.equal(iptv.epgUrl,'https://guide.example/t.xml.gz');
 });
 
 test('automatic live failover checks earlier routes after a manual route fails',()=>{

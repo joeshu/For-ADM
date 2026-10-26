@@ -1,5 +1,6 @@
 #import "RuntimeSDK.h"
 #import "HLSProxy.h"
+#import <zlib.h>
 #if defined(SY_SIMULATOR_SMOKE)
 #import <CoreFoundation/CFByteOrder.h>
 #endif
@@ -11,6 +12,15 @@ static NSMutableDictionary *SYPosterImageCache;
 static NSMutableDictionary *SYPosterRequests;
 static NSMutableArray *SYPosterImageOrder;
 static NSOperationQueue *SYPosterLoadQueue;
+static NSData *SYGunzipEPG(NSData*input){
+ if(input.length<2)return input;
+ const uint8_t*bytes=input.bytes;if(bytes[0]!=0x1f||bytes[1]!=0x8b)return input;
+ z_stream stream={0};stream.next_in=(Bytef*)input.bytes;stream.avail_in=(uInt)input.length;
+ if(inflateInit2(&stream,15+32)!=Z_OK)return nil;
+ NSMutableData*output=[NSMutableData data];uint8_t buffer[65536];int result=Z_OK;NSUInteger maximum=48*1024*1024;
+ while(result==Z_OK){stream.next_out=buffer;stream.avail_out=(uInt)sizeof(buffer);result=inflate(&stream,Z_NO_FLUSH);NSUInteger produced=sizeof(buffer)-stream.avail_out;if(produced){if(output.length+produced>maximum){inflateEnd(&stream);return nil;}[output appendBytes:buffer length:produced];}}
+ inflateEnd(&stream);return result==Z_STREAM_END?output:nil;
+}
 static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root isKindOfClass:AVPlayerLayer.class]&&((AVPlayerLayer*)root).player==player)return (AVPlayerLayer*)root;for(CALayer*child in root.sublayers){AVPlayerLayer*found=SYFindPlayerLayer(child,player);if(found)return found;}return nil;}
 @interface SYPlayerViewController:AVPlayerViewController<AVPlayerViewControllerDelegate>
 @property(nonatomic,copy) void(^onClose)(void);
@@ -527,7 +537,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   CGRect originalScreenFrame=self.liveScreen.view.frame;self.liveScreen.view.frame=CGRectMake(0,0,MAX(240,originalScreenFrame.size.width-24),originalScreenFrame.size.height);[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];CGRect resizedFrame=layoutProbe.view.frame,resizedBounds=self.liveScreen.playerHost.bounds;BOOL resizesWithHost=resizedFrame.size.width==resizedBounds.size.width&&resizedFrame.size.height==resizedBounds.size.height&&resizedFrame.size.width>0&&resizedFrame.size.height>0;self.liveScreen.view.frame=originalScreenFrame;[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];BOOL routePickerAbovePlayer=[[self.liveScreen.playerHost.subviews lastObject] isEqual:self.liveScreen.routePicker];
   layoutProbe.player=[AVPlayer playerWithURL:[NSURL fileURLWithPath:@"/dev/null"]];[self.liveScreen layoutEmbeddedPlayer];BOOL avPlayerControllerEmbedded=[layoutProbe isKindOfClass:AVPlayerViewController.class]&&layoutProbe.view.superview==self.liveScreen.playerHost;
   self.liveScreen.view.frame=CGRectMake(0,0,MAX(240,originalScreenFrame.size.width-24),originalScreenFrame.size.height);[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];CGRect rendererFrame=layoutProbe.view.frame,rendererBounds=self.liveScreen.playerHost.bounds;BOOL rendererResizesWithHost=rendererFrame.size.width==rendererBounds.size.width&&rendererFrame.size.height==rendererBounds.size.height&&rendererFrame.size.width>0&&rendererFrame.size.height>0;self.liveScreen.view.frame=originalScreenFrame;[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];
-  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"livePlayerAttachedToHost":@(playerAttached),@"livePlayerFillsHost":@(playerFillsHost),@"livePlayerResizesWithHost":@(resizesWithHost),@"routePickerAbovePlayer":@(routePickerAbovePlayer),@"avPlayerControllerEmbedded":@(avPlayerControllerEmbedded),@"avPlayerControllerResizesWithHost":@(rendererResizesWithHost),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"categorySwitchReturnsToTop":@(self.smokeLiveScrollReset),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied)};
+  NSData*gzipFixture=[[NSData alloc]initWithBase64EncodedString:@"H4sIAAAAAAACA7MpKbOzKSjKTy9KzM1NVUjOSMzLS82xVXJ2DgkzUlIoLkksKrFVMjIwMjMEYSMDIFDQNrAwMABJ5hcgyRkjydnZlGSW5KTaPe3rfr5n5Yuupuez1z3tnfpsa/eL9VNt9CGSNvpwi4FsoEMAHdULJo0AAAA=" options:0];NSString*gzipText=[[NSString alloc]initWithData:SYGunzipEPG(gzipFixture) encoding:NSUTF8StringEncoding];BOOL gzipEPGDecoded=[gzipText containsString:@"压缩节目单测试"];
+  NSDictionary*report=@{@"nativeLiveScreen":@(ready),@"embeddedLiveScreen":@(embedded),@"pinnedPlayerHost":@(self.liveScreen.playerHost!=nil),@"airplayRoutePicker":@(self.liveScreen.routePicker!=nil),@"livePlayerAttachedToHost":@(playerAttached),@"livePlayerFillsHost":@(playerFillsHost),@"livePlayerResizesWithHost":@(resizesWithHost),@"routePickerAbovePlayer":@(routePickerAbovePlayer),@"avPlayerControllerEmbedded":@(avPlayerControllerEmbedded),@"avPlayerControllerResizesWithHost":@(rendererResizesWithHost),@"visibleNativeControls":@(self.liveScreen.content.subviews.count),@"categoryActionReachedBridge":@(self.smokeLiveCategoryLinked),@"categorySwitchReturnsToTop":@(self.smokeLiveScrollReset),@"fastSwitchUpdatesWithoutRebuild":@(self.smokeLiveFastStateApplied),@"gzipEPGDecoded":@(gzipEPGDecoded)};
   NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
   [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
   [self stopNativePlayback];self.smokeLiveVideoStarted=YES;
@@ -741,8 +752,9 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     dispatch_async(SYMainQueue(),^{[owner.tasks removeObjectForKey:identifier];});
     if(error){[owner deliver:@{@"id":identifier,@"error":error.localizedDescription?:@"网络错误",@"errorCode":@(error.code)}];return;}
     if(data.length>12*1024*1024){[owner deliver:@{@"id":identifier,@"error":@"响应过大"}];return;}
+    NSData*payload=data;if([body[@"liveGuide"] boolValue]){NSData*decoded=SYGunzipEPG(data);if(!decoded){[owner deliver:@{@"id":identifier,@"error":@"节目单压缩文件损坏或解压后超过 48 MB"}];return;}payload=decoded;}
     NSHTTPURLResponse*http=(NSHTTPURLResponse*)response;
-    [owner deliver:@{@"id":identifier,@"status":@(http.statusCode),@"url":http.URL.absoluteString?:@"",@"headers":http.allHeaderFields?:@{},@"bodyBase64":[data base64EncodedStringWithOptions:0]?:@""}];
+    [owner deliver:@{@"id":identifier,@"status":@(http.statusCode),@"url":http.URL.absoluteString?:@"",@"headers":http.allHeaderFields?:@{},@"bodyBase64":[payload base64EncodedStringWithOptions:0]?:@""}];
   }];
   self.tasks[identifier]=task;[task resume];
 }
