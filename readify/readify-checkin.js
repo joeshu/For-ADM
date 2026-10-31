@@ -14,7 +14,6 @@ const $ = new Env('Readify阅读签到');
 // ================== 配置 ==================
 const HOST = 'https://readifyapp.voiceclub.cn';
 const DEFAULT_CAMPAIGN_ID = 'reading-streak-7d-202607';
-const DEFAULT_DEVICE_ID = 'E7C9599F-C470-4FE7-BDCD-77F5BAA10296';
 
 // 兜底手填（正常不用填，抓取脚本会自动写入；换机/新装时再填）
 const FALLBACK = {
@@ -27,8 +26,27 @@ const FALLBACK = {
 
 const TOKEN       = $prefs.valueForKey('readify_token')      || FALLBACK.token;
 const USER_ID     = $prefs.valueForKey('readify_userId')     || FALLBACK.userId;
-const DEVICE_ID   = $prefs.valueForKey('readify_deviceId')   || FALLBACK.deviceId || DEFAULT_DEVICE_ID;
 const CAMPAIGN_ID = $prefs.valueForKey('readify_campaignId') || FALLBACK.campaignId || DEFAULT_CAMPAIGN_ID;
+
+// 设备 id 只来自抓取或本次生成，不写死在仓库里
+function uuid() {
+  const hex = '0123456789ABCDEF';
+  const n = (i) => hex.charAt(Math.floor(Math.random() * 16));
+  let out = '';
+  for (let i = 0; i < 36; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) out += '-';
+    else if (i === 14) out += '4';
+    else if (i === 19) out += hex.charAt(8 + Math.floor(Math.random() * 4));
+    else out += n(i);
+  }
+  return out;
+}
+
+let DEVICE_ID = $prefs.valueForKey('readify_deviceId') || FALLBACK.deviceId;
+if (!DEVICE_ID) {
+  DEVICE_ID = uuid();
+  $prefs.setValueForKey(DEVICE_ID, 'readify_deviceId');
+}
 
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) readify version/3.6.2 platform/ios timezone/Asia/Shanghai lang/zh-Hans theme/light region/CN';
 

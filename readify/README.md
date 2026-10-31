@@ -30,7 +30,7 @@ Readify（`readifyapp.voiceclub.cn`）7 天阅读挑战：被动抓取登录态�
 | `readify_deviceId` | `x-device-id` |
 | `readify_campaignId` | 当前活动 id，默认 `reading-streak-7d-202607` |
 
-`readify-checkin.js` 顶部的 `FALLBACK` 留空即可；换机或新装时也可手填。仓库内不保存任何真实 token、用户 id 或设备 id。
+`readify-checkin.js` 顶部的 `FALLBACK` 留空即可；换机或新装时也可手填。未抓到 `x-device-id` 时脚本会生成一个 UUID 并写入 `readify_deviceId`（App 的设备 id 本身就是随机 UUID，抓取脚本随后会用真实值覆盖）。仓库内不保存任何真实 token、用户 id 或设备 id。
 
 ## 行为说明
 
