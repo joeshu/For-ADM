@@ -26,15 +26,42 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, parse_qs, urlencode
 from urllib.request import Request, build_opener, HTTPCookieProcessor, HTTPRedirectHandler
 
-VERSION = '1.0.1-public'
+VERSION = '1.0.2-public'
 ORIGIN = 'https://hongguoduanju.com'
 COMPAT_PATH = '/api/video/protected/fallback-play-info'
 UA_WEB = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
+_TRACE_LOCK = threading.RLock()
+
+def _trace(event, **fields):
+    # CCTVHost retains stderr even when it replaces a source's empty result
+    # with NO_MEDIA. Never include media URLs, headers, cookies or error bodies.
+    allowed = ('series_id', 'episode_id', 'preview', 'status', 'failure_stage',
+               'error_code', 'retryable', 'elapsed_ms')
+    record = {'event': event, 'source_version': VERSION}
+    record.update((key, fields[key]) for key in allowed if key in fields)
+    try:
+        with _TRACE_LOCK:
+            print('[HGTV] ' + json.dumps(record, ensure_ascii=False), file=sys.stderr, flush=True)
+    except Exception:
+        pass
+
 class SourceError(Exception):
-    def __init__(self, message, status=0):
+    def __init__(self, message, status=0, stage='', code='', retryable=False):
         super().__init__(message)
         self.status = status
+        self.stage, self.code, self.retryable = stage, code, retryable
+
+def _stage_error(error, stage, code):
+    if isinstance(error, SourceError):
+        return SourceError(str(error), error.status, error.stage or stage,
+                           error.code or code, error.retryable)
+    return SourceError('播放处理发生异常（%s）' % type(error).__name__, stage=stage, code=code)
+
+def _public_error_message(error):
+    message = re.sub(r'https?://[^\s]+', '[地址已隐藏]', str(error), flags=re.I)[:300]
+    return re.sub(r'(?i)\b(?:cookie|authorization|(?:access_)?token|signature|password)\s*[:=][^\r\n]*',
+                  '[凭据已隐藏]', message)
 
 class _Flight:
     def __init__(self):
@@ -76,7 +103,7 @@ class BoundedCache:
             if not flight.event.wait(wait_timeout):
                 raise SourceError('等待相同请求超时，请重试')
             if flight.error:
-                raise SourceError(str(flight.error), getattr(flight.error, 'status', 0))
+                raise _stage_error(flight.error, 'shared_request', 'shared_request_failed')
             return flight.value
         try:
             value = loader()
@@ -155,7 +182,7 @@ class PublicHTTP:
         request._bounded_probe = require_range
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            raise SourceError('请求预算已用完')
+            raise SourceError('请求预算已用完', code='request_timeout', retryable=True)
         with self.count_lock:
             self.request_count += 1
         with self._opener().open(request, timeout=min(self.timeout, remaining)) as response:
@@ -174,7 +201,7 @@ class PublicHTTP:
             while True:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
-                    raise SourceError('响应读取超时')
+                    raise SourceError('响应读取超时', code='request_timeout', retryable=True)
                 transport_socket = getattr(getattr(getattr(response, 'fp', None), 'raw', None), '_sock', None)
                 if transport_socket is not None:
                     transport_socket.settimeout(min(self.timeout, remaining))
@@ -215,7 +242,8 @@ class PublicHTTP:
                 status = error.code
                 retry_after = error.headers.get('Retry-After', '')
                 error.close()
-                last = SourceError('站点返回 HTTP %d' % status, status)
+                transient = status in (408, 425, 429) or status >= 500
+                last = SourceError('站点返回 HTTP %d' % status, status, code='http_error', retryable=transient)
                 if status not in (408, 425, 429) and status < 500:
                     raise last
                 if retry_after:
@@ -232,8 +260,8 @@ class PublicHTTP:
                 raise
             except (URLError, socket.timeout, OSError) as error:
                 if isinstance(getattr(error, 'reason', None), ssl.SSLError):
-                    raise SourceError('TLS 证书校验失败')
-                last = SourceError('网络连接失败，请稍后重试')
+                    raise SourceError('TLS 证书校验失败', code='tls_error')
+                last = SourceError('网络连接失败，请稍后重试', code='network_error', retryable=True)
             if attempt + 1 >= attempts or time.monotonic() + wait >= deadline:
                 break
             time.sleep(wait)
@@ -264,9 +292,13 @@ class PublicHTTP:
         try:
             _, _, raw = self.request(ORIGIN + COMPAT_PATH, method='POST', headers={'Content-Type': 'application/json', 'Accept': 'application/json', 'Origin': ORIGIN, 'Referer': referer}, payload=json.dumps({'item_id': vid}).encode(), limit=256000)
         except SourceError as error:
-            if error.status in (403, 404):
-                raise SourceError('站点未提供本集的整集兼容播放；可使用官方 App', error.status)
-            raise
+            if error.status == 403:
+                raise SourceError('官网兼容接口拒绝本集请求（HTTP 403），未返回可播放地址', 403,
+                                  'resolve_api', 'provider_http_forbidden', False)
+            if error.status == 404:
+                raise SourceError('官网兼容接口未找到本次请求的资源（HTTP 404），未返回可播放地址', 404,
+                                  'resolve_api', 'provider_http_not_found', False)
+            raise _stage_error(error, 'resolve_api', 'provider_request_failed')
         try:
             data = json.loads(raw.decode('utf-8'))
         except (ValueError, UnicodeDecodeError):
@@ -290,7 +322,7 @@ class PublicHTTP:
 
     def _probe_range(self, url, headers, start, end, deadline, expected_total=None):
         if time.monotonic() >= deadline:
-            raise SourceError('视频初始化检查超时')
+            raise SourceError('视频初始化检查超时', code='probe_timeout', retryable=True)
         fields = {key: value for key, value in (headers or {}).items() if key.lower() != 'range'}
         fields['Range'] = 'bytes=%d-%d' % (start, end)
         status, response_headers, body = self.request(url, headers=fields, limit=end - start + 1, require_range=True, deadline=deadline)
@@ -307,7 +339,7 @@ class PublicHTTP:
         if 'text/' in content_type or 'json' in content_type or 'xml' in content_type or encoding not in ('', 'identity'):
             raise SourceError('返回的是网页或压缩响应，而非原始视频字节')
         if time.monotonic() >= deadline:
-            raise SourceError('视频初始化检查超时')
+            raise SourceError('视频初始化检查超时', code='probe_timeout', retryable=True)
         return body, total
 
     def probe(self, url, headers=None):
@@ -322,7 +354,7 @@ class PublicHTTP:
             pieces, at = [], start
             while at < start + length:
                 if time.monotonic() >= deadline:
-                    raise SourceError('视频初始化检查超时')
+                    raise SourceError('视频初始化检查超时', code='probe_timeout', retryable=True)
                 window = next(((offset, data) for offset, data in windows if offset <= at < offset + len(data)), None)
                 if window:
                     offset, data = window
@@ -380,7 +412,7 @@ class PublicHTTP:
         if not info['has_video']:
             raise SourceError('MP4 没有具有非零画面尺寸的视频轨，可能仅含音频')
         if time.monotonic() >= deadline:
-            raise SourceError('视频初始化检查超时')
+            raise SourceError('视频初始化检查超时', code='probe_timeout', retryable=True)
         return info
 
 
@@ -969,6 +1001,7 @@ class Spider:
 
     def init(self, extend=''):
         self.extend = extend or ''
+        _trace('hgtv_init')
 
     def homeContent(self, filter=False):
         return {'class': [{'type_id': item['id'], 'type_name': item['title']} for item in self.catalog.categories()], 'filters': {}}
@@ -1031,38 +1064,87 @@ class Spider:
 
     def playerContent(self, flag, id, vipFlags=None):
         preview = '试看' in str(flag) or 'preview' in str(flag).lower()
-        empty = {'parse': 0, 'playUrl': '', 'url': '', 'header': {}, 'format': 'video/mp4', 'preview': preview, 'playback_verified': False}
+        started, sid, vid = time.monotonic(), '', ''
+        empty = {'parse': 0, 'playUrl': '', 'url': '', 'header': {}, 'format': 'video/mp4',
+                 'contentType': 'video/mp4', 'preview': preview, 'playback_verified': False,
+                 'source_version': VERSION, 'failure_stage': '', 'error_code': '', 'retryable': False}
         try:
             parts = str(id or '').strip().split('~')
             if len(parts) == 1:
                 sid, vid = '', parts[0]
             elif len(parts) == 2:
                 sid, vid = parts
-                if not _identifier(sid): raise SourceError('剧 ID 无效')
+                if not _identifier(sid): raise SourceError('剧 ID 无效', stage='validate_input', code='invalid_series_id')
             else:
-                raise SourceError('选集 ID 无效')
-            if not _identifier(vid): raise SourceError('选集 ID 无效')
+                raise SourceError('选集 ID 无效', stage='validate_input', code='invalid_episode_id')
+            if not _identifier(vid): raise SourceError('选集 ID 无效', stage='validate_input', code='invalid_episode_id')
+            _trace('hgtv_play_start', series_id=sid, episode_id=vid, preview=preview)
             def resolve_public():
                 if preview:
                     url, referer, expiry = ORIGIN + '/video/public/' + vid + '/360p.mp4', ORIGIN + '/', None
                 else:
-                    url, referer, expiry = self.http.compat(sid, vid)
+                    try:
+                        url, referer, expiry = self.http.compat(sid, vid)
+                    except Exception as error:
+                        raise _stage_error(error, 'resolve_api', 'provider_request_failed')
                 playback_headers = {'User-Agent': UA_WEB, 'Referer': referer, 'Accept': '*/*', 'Accept-Encoding': 'identity'}
-                info = self.http.probe(url, playback_headers)
+                preflight_error = None
+                try:
+                    info = self.http.probe(url, playback_headers)
+                except Exception as error:
+                    error = _stage_error(error, 'media_probe', 'media_initialization_failed')
+                    transient = error.status in (408, 425, 429) or error.status >= 500 or (
+                        error.status == 0 and error.code in ('network_error', 'request_timeout', 'probe_timeout'))
+                    if preview or not error.retryable or not transient:
+                        raise error
+                    # A normal compatibility API URL has already been obtained.
+                    # A temporary probe failure must not discard it before the
+                    # native player can make its own request. Nothing is marked
+                    # as initialized or decoded, and this result is not cached.
+                    preflight_error = error
+                    info = {'duration': None, 'initialization_complete': False}
+                    _trace('hgtv_preflight_deferred', series_id=sid, episode_id=vid, preview=False,
+                           status=error.status, failure_stage='media_probe', error_code=error.code,
+                           retryable=True, elapsed_ms=round((time.monotonic() - started) * 1000))
                 if expiry is not None and expiry <= time.time() + 2:
-                    raise SourceError('播放地址在预检期间过期，请重试')
-                return dict(empty, url=url, header=playback_headers, expires_at=expiry, duration=info['duration'],
+                    raise SourceError('播放地址在预检期间过期，请重试', stage='media_probe', code='media_url_expired', retryable=True)
+                result = dict(empty, url=url, header=playback_headers, status=200,
+                            series_id=sid, episode_id=vid, expires_at=expiry, duration=info['duration'],
                             initialization_complete=info.get('initialization_complete', False),
                             video_codecs=info.get('video_codecs', []),
                             video_dimensions=info.get('video_dimensions', []),
                             verification='mp4-video-initialization-only',
                             msg='公开试看片段，非整集' if preview else '官网兼容播放；已检查视频轨初始化，未验证客户端完整解码/播放')
-            ttl = lambda result: 10 if preview else max(0, min(10, result['expires_at'] - time.time() - 2)) if result.get('expires_at') else 0
+                if preflight_error:
+                    result.update(verification='compatibility-api-only',
+                                  preflight_warning=_public_error_message(preflight_error),
+                                  preflight_failure_stage='media_probe', preflight_code=preflight_error.code,
+                                  preflight_status=preflight_error.status,
+                                  msg='已取得官网兼容地址；媒体预检暂时失败，交给播放器继续请求，尚未确认视频轨')
+                return result
+            ttl = lambda result: 0 if result.get('verification') == 'compatibility-api-only' else (
+                10 if preview else max(0, min(10, result['expires_at'] - time.time() - 2)) if result.get('expires_at') else 0)
             # Resolution can use an 18s API budget plus a 20s media probe. A
             # concurrent caller must not time out before that owner can finish.
-            return copy.deepcopy(self.cache.load(('play', preview, sid, vid), resolve_public, ttl, wait_timeout=45))
+            result = copy.deepcopy(self.cache.load(('play', preview, sid, vid), resolve_public, ttl, wait_timeout=45))
+            _trace('hgtv_play_success', series_id=sid, episode_id=vid, preview=preview,
+                   status=200, failure_stage='', error_code='', retryable=False,
+                   elapsed_ms=round((time.monotonic() - started) * 1000))
+            return result
         except Exception as error:
-            return dict(empty, msg=str(error), status=getattr(error, 'status', 0))
+            error = _stage_error(error, 'validate_input' if not _identifier(vid) else 'playback', 'playback_failed')
+            safe_sid, safe_vid = _identifier(sid) or '', _identifier(vid) or ''
+            # The actual host reads msg but discards extra error fields. Include
+            # essential context there as well as in structured, URL-free logs.
+            context = 'HGTV %s · %s · 剧 %s · 集 %s · HTTP %s' % (
+                VERSION, error.stage, safe_sid or '-', safe_vid or '-', error.status or '-')
+            message = _public_error_message(error)
+            _trace('hgtv_play_failed', series_id=safe_sid, episode_id=safe_vid, preview=preview,
+                   status=error.status, failure_stage=error.stage, error_code=error.code,
+                   retryable=error.retryable, elapsed_ms=round((time.monotonic() - started) * 1000))
+            return dict(empty, msg=message + ' [' + context + ']', status=error.status,
+                        series_id=safe_sid, episode_id=safe_vid, failure_stage=error.stage,
+                        error_code=error.code, retryable=error.retryable)
 
 
 def _cli(argv=None):
@@ -1106,6 +1188,7 @@ def _cli(argv=None):
             return {'episode': episode['number'], 'available': bool(r['url']), 'duration': r.get('duration'),
                     'initialization_complete': r.get('initialization_complete', False),
                     'video_codecs': r.get('video_codecs', []), 'video_dimensions': r.get('video_dimensions', []),
+                    'preflight_code': r.get('preflight_code', ''), 'preflight_status': r.get('preflight_status'),
                     'message': r.get('msg'), 'status': r.get('status', 200)}
         if getattr(args, 'all', False):
             with ThreadPoolExecutor(max_workers=3) as pool:
@@ -1113,7 +1196,8 @@ def _cli(argv=None):
         else:
             rows = [inspect_episode(episode) for episode in targets]
         result.update(catalogue_count=data['episode_count'], catalogue_complete=data['catalog_complete'], checked_count=len(rows), episodes=rows)
-        passed = bool(rows) and data['catalog_complete'] is not False and all(row['available'] for row in rows)
+        passed = bool(rows) and data['catalog_complete'] is not False and all(
+            row['available'] and row['initialization_complete'] for row in rows)
     except Exception as error:
         result['error'], passed = str(error), False
     print(json.dumps(result, ensure_ascii=False, indent=2))

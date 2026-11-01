@@ -1,0 +1,215 @@
+{
+  "source": "User-provided CCTVHost diagnostic log; raw log and correlation IDs are not retained",
+  "lineCount": 74,
+  "selectedLineFromUser": "官网完整播放",
+  "sourceVersionLogged": false,
+  "seriesOrEpisodeIDLogged": false,
+  "upstreamHTTPStatusLogged": false,
+  "eventCounts": {
+    "python_spider_prepare_started": 1,
+    "python_spider_module_loaded": 1,
+    "python_spider_constructor_started": 1,
+    "python_spider_init_started": 1,
+    "python_spider_init_succeeded": 1,
+    "python_spider_ready": 1,
+    "media_play_result_rejected": 27,
+    "media_api_failed": 27,
+    "media_relay_client_disconnected": 7
+  },
+  "playResultValidationReasons": {
+    "missing_or_empty_address": 27
+  },
+  "failureStages": {
+    "no_media": 27
+  },
+  "failureRetryableValues": {
+    "false": 27
+  },
+  "diagnosis": "All 27 logged playback failures were rejected for missing/empty media addresses before decoding. The old source message merges HTTP 403 and 404, so the exact upstream response is unknown.",
+  "clientDecoderFailureEstablished": false,
+  "automaticRetryLoopEstablished": false,
+  "hostContractRevision": "0bb6418d0d322918e76cca41e56f44ae3acf1302",
+  "normalSessionControl": {
+    "seriesID": "7690961604636052505",
+    "episodeID": "7690963410778868761",
+    "httpRequestsTotal": 6,
+    "compatChecks": [
+      {
+        "scenario": "fresh HTTP instance; no preceding page request",
+        "httpStatus": 200,
+        "addressReturned": true
+      },
+      {
+        "scenario": "same thread after homepage",
+        "httpStatus": 200,
+        "addressReturned": true
+      },
+      {
+        "scenario": "same thread after corresponding player page",
+        "httpStatus": 200,
+        "addressReturned": true
+      },
+      {
+        "scenario": "new worker thread with fresh cookie jar",
+        "httpStatus": 200,
+        "addressReturned": true
+      }
+    ],
+    "scope": "Current cloud egress and one public sample only; does not establish the user-selected episode or device result."
+  },
+  "diagnosticUpdate": "1.0.2-public",
+  "userPlaybackIssueVerifiedFixed": false,
+  "liveDiagnosticChecks": [
+    {
+      "checkedAt": "2026-11-01T23:04:18.736033Z",
+      "phase": "before_transient_probe_defer",
+      "exitCode": 1,
+      "result": {
+        "version": "1.0.2-public",
+        "scope": "目录、地址和 MP4 初始化；不代表完整播放或全集播放验证",
+        "full_playback_verified": false,
+        "all_episodes_playback_verified": false,
+        "catalogue_count": 46,
+        "catalogue_complete": true,
+        "checked_count": 1,
+        "episodes": [
+          {
+            "episode": 1,
+            "available": false,
+            "duration": null,
+            "initialization_complete": false,
+            "video_codecs": [],
+            "video_dimensions": [],
+            "message": "网络连接失败，请稍后重试 [HGTV 1.0.2-public · media_probe · 剧 7690961604636052505 · 集 7690963410778868761 · HTTP -]",
+            "status": 0
+          }
+        ]
+      },
+      "events": [
+        {
+          "event": "hgtv_play_start",
+          "source_version": "1.0.2-public",
+          "series_id": "7690961604636052505",
+          "episode_id": "7690963410778868761",
+          "preview": false
+        },
+        {
+          "event": "hgtv_play_failed",
+          "source_version": "1.0.2-public",
+          "series_id": "7690961604636052505",
+          "episode_id": "7690963410778868761",
+          "preview": false,
+          "status": 0,
+          "failure_stage": "media_probe",
+          "error_code": "network_error",
+          "retryable": true,
+          "elapsed_ms": 9544
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-11-01T23:05:23.557306Z",
+      "phase": "before_transient_probe_defer",
+      "exitCode": 1,
+      "result": {
+        "version": "1.0.2-public",
+        "scope": "目录、地址和 MP4 初始化；不代表完整播放或全集播放验证",
+        "full_playback_verified": false,
+        "all_episodes_playback_verified": false,
+        "catalogue_count": 46,
+        "catalogue_complete": true,
+        "checked_count": 1,
+        "episodes": [
+          {
+            "episode": 1,
+            "available": false,
+            "duration": null,
+            "initialization_complete": false,
+            "video_codecs": [],
+            "video_dimensions": [],
+            "message": "站点返回 HTTP 503 [HGTV 1.0.2-public · media_probe · 剧 7690961604636052505 · 集 7690963410778868761 · HTTP 503]",
+            "status": 503
+          }
+        ]
+      },
+      "events": [
+        {
+          "event": "hgtv_play_start",
+          "source_version": "1.0.2-public",
+          "series_id": "7690961604636052505",
+          "episode_id": "7690963410778868761",
+          "preview": false
+        },
+        {
+          "event": "hgtv_play_failed",
+          "source_version": "1.0.2-public",
+          "series_id": "7690961604636052505",
+          "episode_id": "7690963410778868761",
+          "preview": false,
+          "status": 503,
+          "failure_stage": "media_probe",
+          "error_code": "http_error",
+          "retryable": true,
+          "elapsed_ms": 7543
+        }
+      ]
+    },
+    {
+      "checkedAt": "2026-11-01T23:08:07.186395Z",
+      "phase": "after_transient_probe_defer",
+      "exitCode": 0,
+      "result": {
+        "version": "1.0.2-public",
+        "scope": "目录、地址和 MP4 初始化；不代表完整播放或全集播放验证",
+        "full_playback_verified": false,
+        "all_episodes_playback_verified": false,
+        "catalogue_count": 46,
+        "catalogue_complete": true,
+        "checked_count": 1,
+        "episodes": [
+          {
+            "episode": 1,
+            "available": true,
+            "duration": 108.331,
+            "initialization_complete": true,
+            "video_codecs": [
+              "avc1"
+            ],
+            "video_dimensions": [
+              {
+                "width": 360,
+                "height": 640
+              }
+            ],
+            "preflight_code": "",
+            "preflight_status": null,
+            "message": "官网兼容播放；已检查视频轨初始化，未验证客户端完整解码/播放",
+            "status": 200
+          }
+        ]
+      },
+      "events": [
+        {
+          "event": "hgtv_play_start",
+          "source_version": "1.0.2-public",
+          "series_id": "7690961604636052505",
+          "episode_id": "7690963410778868761",
+          "preview": false
+        },
+        {
+          "event": "hgtv_play_success",
+          "source_version": "1.0.2-public",
+          "series_id": "7690961604636052505",
+          "episode_id": "7690963410778868761",
+          "preview": false,
+          "status": 200,
+          "failure_stage": "",
+          "error_code": "",
+          "retryable": false,
+          "elapsed_ms": 6257
+        }
+      ]
+    }
+  ],
+  "transientProbeChange": "Keep an already returned compatibility URL only for retryable network/timeout/408/425/429/5xx probe failures; mark initialization unverified, do not cache; provider denial and permanent or invalid media remain failures."
+}

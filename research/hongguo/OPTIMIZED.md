@@ -1,4 +1,4 @@
-# HGTV Python 公开兼容版 1.0.1
+# HGTV Python 公开兼容版 1.0.2
 
 [下载独立脚本](https://raw.githubusercontent.com/joeshu/For-ADM/master/research/hongguo/hgtv_public_optimized.py)。Python 3.8 及以上，仅使用标准库，不需要安装依赖。
 
@@ -29,6 +29,20 @@ HTTP 预算在连接、每次读取和重试前检查；正在阻塞的底层读
 `format` 的消费方式已核对 [FongMi Result](https://github.com/FongMi/TV/blob/8626650ebcbc0d028e16d859e826fcf439720f3a/app/src/main/java/com/fongmi/android/tv/bean/Result.java#L95)、[PlaySpec](https://github.com/FongMi/TV/blob/8626650ebcbc0d028e16d859e826fcf439720f3a/app/src/main/java/com/fongmi/android/tv/player/media/PlaySpec.java#L64) 和 [MediaItemFactory](https://github.com/FongMi/TV/blob/8626650ebcbc0d028e16d859e826fcf439720f3a/app/src/main/java/com/fongmi/android/tv/player/media/MediaItemFactory.java#L70)。其他分支可能忽略该字段，缺少此字段也不能单独解释所有黑屏问题。
 
 [真实媒体解码记录](playback-decode-check.json)：2026-11-01 使用正常兼容接口下载《军需处长的账本》第 1、4、6 集，经 FFmpeg 完整解码到结束，分别得到 2708、3585、3369 帧；均为 360×640 H.264 + AAC，无解码错误。它证明这三个样本包含可解码视频，不代表已复现或验证用户客户端的黑屏修复。站点拒绝提供地址的剧集仍会明确失败。
+
+## 1.0.2 CCTVHost 空地址诊断
+
+用户提供的 74 行 CCTVHost 日志中，27 次播放请求均为 `missing_or_empty_address` / `no_media`，脚本提示相同。旧提示合并了接口 HTTP 403 和 404，日志没有剧集 ID、源版本或原始状态，不能判断是哪一集、哪一种响应；没有这些失败已进入视频解码的证据。详情见[聚合分析](cctvhost-log-analysis.json)，未保存原始用户日志或会话关联 ID。
+
+已按 [CCTVHost 公开提交](https://github.com/joeshu/yqk-forward-widget/commit/0bb6418d0d322918e76cca41e56f44ae3acf1302) 核对：`sid~vid` 原样传入 `playerContent`，空结果在 `host_media_runtime.py:518–520` 取 `error/message/msg` 后统一包装为 `NO_MEDIA`；脚本返回的 `status/retryable` 不在这一分支消费。因此更新 MIME 或解码参数不能使这个空结果成为可播放媒体。
+
+本版分别记录 `provider_http_forbidden`、`provider_http_not_found`，并区分 `resolve_api` 与 `media_probe`。结果增加源版本与剧集 ID；`msg` 同时带上关键上下文，让当前宿主直接显示。`[HGTV]` JSON stderr 日志记录启动、播放开始、成功和失败，不记录媒体 URL、请求头、Cookie 或响应正文。并发等待者也保留原错误状态和阶段。
+
+同一公开第 1 集的有限会话对照中，新实例直接请求、浏览首页后请求、浏览播放页后请求、换工作线程后请求均返回 200。这只说明当前云端出口下没有复现普通 Cookie 会话问题，不代表用户设备出口或其他集也成功。
+
+另两次云端复测取得了官网兼容 URL，但媒体预检分别遇到网络错误与 HTTP 503；强制预检将这些地址全部丢弃。本版仅在**正常整集兼容接口已成功，且媒体预检遇到明确可重试的网络/超时/408/425/429/5xx 错误**时保留地址，交给客户端播放器继续请求。结果标为 `verification: "compatibility-api-only"`、`initialization_complete: false`，附 `preflight_code/status/failure_stage`，不缓存；没有声称视频轨已验证。接口拒绝、媒体 403/404、明确无视频、加密或结构错误以及预览猜测 URL 均不走这一分支。自检遇到此类未完成初始化检查的结果仍退出 1，不能用“有 URL”冒充检查通过。
+
+本版未更换取流接口，增加了临时预检容错与诊断，**未证明用户日志中的播放失败已修复**。接口未返回地址时仍不能播放；下一次用户日志会自动标明实际剧集与状态，不再靠猜测定位。
 
 搜索在首次使用时预热首页和四个分类的第一页，随后在已保留的标题中查找；这是有范围的本地搜索，未命中不表示全站没有该剧。分类翻页由实际站点返回值决定，不再伪造固定总页数。
 
@@ -72,7 +86,7 @@ python3 hgtv_public_optimized.py play '7690961604636052505~7690963410778868761'
 
 ## 验证结果与范围
 
-2026-11-01，1.0.1 共 45 项离线测试通过，覆盖请求合并、缓存淘汰、过期地址、网络恢复、异常响应、跳转验证、解析边界、目录完整性、自检退出码、视频轨与分段元数据检查。运行方式：
+2026-11-01，1.0.2 共 55 项离线测试通过，覆盖请求合并、缓存淘汰、过期地址、网络恢复、异常响应、跳转验证、解析边界、目录完整性、自检退出码、视频轨、分段元数据、临时预检失败容错、错误阶段与诊断脱敏检查。运行方式：
 
 ```sh
 python3 -m unittest discover -s research/hongguo -p 'test_public_*.py' -v
