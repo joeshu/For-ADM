@@ -1,0 +1,83 @@
+name: Publish Sanyuan iOS release
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful Sanyuan unsigned iOS build run ID
+        required: true
+        type: string
+      tag:
+        description: Release tag matching ios-app/package.json (for example v0.2.41)
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Sanyuan-unsigned-ipa
+          path: dist
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.build_run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify successful source build and unsigned IPA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          expected_tag="v$(node -p "require('./ios-app/package.json').version")"
+          [[ "$RELEASE_TAG" == "$expected_tag" ]]
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID")"
+          jq -e '.name == "Sanyuan unsigned iOS app" and .event == "push" and .head_branch == "master" and .conclusion == "success"' <<<"$run_json" >/dev/null
+          source_sha="$(jq -r '.head_sha' <<<"$run_json")"
+          mapfile -t ipa_files < <(find dist -maxdepth 2 -type f -name 'Sanyuan-*-unsigned.ipa' -print)
+          [[ "${#ipa_files[@]}" -eq 1 ]]
+          ipa="${ipa_files[0]}"
+          expected_ipa="dist/Sanyuan-${expected_tag#v}-unsigned.ipa"
+          [[ "$ipa" == "$expected_ipa" ]]
+          python3 ios-app/tools/check-ipa.py "$ipa"
+          python3 - "$ipa" "${expected_tag#v}" <<'PY'
+          import plistlib,sys,zipfile
+          with zipfile.ZipFile(sys.argv[1]) as archive:
+              info=plistlib.loads(archive.read('Payload/Sanyuan.app/Info.plist'))
+          assert info['CFBundleShortVersionString']==sys.argv[2], info
+          print('Verified release version:',info['CFBundleShortVersionString'])
+          PY
+          echo "SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
+          echo "IPA_PATH=$ipa" >> "$GITHUB_ENV"
+          echo "IPA_SHA256=$(shasum -a 256 "$ipa" | awk '{print $1}')" >> "$GITHUB_ENV"
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_RUN_ID: ${{ inputs.build_run_id }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists" >&2
+            exit 1
+          fi
+          version="${RELEASE_TAG#v}"
+          notes="$RUNNER_TEMP/release-notes.md"
+          cat > "$notes" <<EOF
+          三源影视 $version，包含红果短剧来源：首页、四类目录、题材筛选、分页、详情及官网公开试看。
+
+          红果仅播放官网明确公开的试看集；其他集仍遵循官网登录和会员权限。
+
+          这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
+
+          IPA SHA-256：$IPA_SHA256
+          EOF
+          gh release create "$RELEASE_TAG" "$IPA_PATH" \
+            --target "$SOURCE_SHA" \
+            --title "三源影视 $version" \
+            --notes-file "$notes"
