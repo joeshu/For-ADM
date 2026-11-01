@@ -33,6 +33,7 @@ try{
  assert.equal(await page.locator('#bottomnav').innerText().then(text=>text.includes('游戏')),false);
  await page.evaluate(()=>window.NativePageAction('page','games'));
  assert.equal(await page.locator('html').getAttribute('data-page'),'home');
+ const initialHero=await page.locator('.hero h1').innerText();await page.waitForFunction(title=>document.querySelector('.hero h1')?.innerText!==title,initialHero,{timeout:8000});assert.notEqual(await page.locator('.hero h1').innerText(),initialHero,'home hero should rotate automatically');
  await page.locator('[data-act="hero-pick"][data-id="1"]').click();assert.match(await page.locator('.hero h1').innerText(),/测试影片2/);
  assert.equal(await page.locator('.home-section .card').count(),32);
  assert.deepEqual(await page.locator('.home-section .section-count').allTextContents(),['12 部','20 部']);

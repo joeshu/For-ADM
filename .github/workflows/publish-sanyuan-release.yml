@@ -69,9 +69,9 @@ jobs:
           version="${RELEASE_TAG#v}"
           notes="$RUNNER_TEMP/release-notes.md"
           cat > "$notes" <<EOF
-          三源影视 $version，包含红果短剧来源：首页、四类目录、题材筛选、分页、全量选集和官网播放入口。
+          三源影视 $version，整合多个影视来源、原生直播页和系统播放器。
 
-          官网网页接口返回的媒体在 App 内播放；网页接口未提供地址的选集可从详情页打开红果官方播放器页并继续进入官方 App。
+          本版修复首页推荐轮播不自动切换的问题；自动切换只更新横幅，不重建整页。分类标签加宽，可完整显示较长名称。
 
           这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
 
