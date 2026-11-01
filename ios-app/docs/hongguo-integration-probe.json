@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-01T11:54:20.445Z",
+  "checkedAt": "2026-11-01T14:21:34.359Z",
   "origin": "https://hongguoduanju.com",
-  "scope": "Live, read-only crawl of public SSR pages, category pagination, topic filtering, a full episode list, and the official anonymous play-info endpoint. Media validation uses HEAD only; no media bytes or account data are fetched.",
+  "scope": "Live public SSR catalogue, pagination, filtering and complete episode IDs. Playback follows the original publicVideoSeo route and checks at most 64 KiB of the clear preview MP4. No protected media, keys, cookies or account data are recorded. Native rendered-frame verification runs separately in the iOS simulator.",
   "home": {
     "sections": 5,
     "cards": 39
@@ -41,12 +41,16 @@
     "websiteAnonymousOpenCount": 3
   },
   "playback": {
-    "episode": "第2集",
-    "officialPlayInfo": "available",
-    "mediaHost": "v11-hgweb.qznovelvod.com",
-    "headStatus": 200,
+    "episode": "第1集",
+    "publicPreview": true,
+    "mediaHost": "hongguoduanju.com",
+    "getStatus": 206,
     "contentType": "video/mp4",
-    "firstBeyondWebsiteOpenCount": "official web endpoint returned 403; playback remains subject to official free-access flow"
+    "contentRange": "bytes 0-65535/1198345",
+    "sampleBytes": 65536,
+    "isoBMFF": true,
+    "protectedSampleEntryFound": false,
+    "firstBeyondWebsiteOpenCount": "No public preview; show the official App entry without starting AVPlayer"
   },
   "ssrContract": {
     "home": {
@@ -76,7 +80,7 @@
       "kind": "category",
       "path": "/category/real-drama",
       "status": 200,
-      "htmlBytes": 230807,
+      "htmlBytes": 230871,
       "loaderKeys": [
         "category_layout",
         "category_$"
@@ -102,7 +106,7 @@
       "kind": "detail",
       "path": "/detail",
       "status": 200,
-      "htmlBytes": 523140,
+      "htmlBytes": 523360,
       "loaderKeys": [
         "detail_layout",
         "detail_page"
@@ -114,6 +118,33 @@
         "seriesDetail",
         "seriesSocialInfo",
         "isSuccess"
+      ],
+      "cached": false,
+      "ok": true
+    },
+    "player": {
+      "kind": "player",
+      "path": "/player/7701935931787316286/7701937936731737112",
+      "status": 200,
+      "htmlBytes": 130669,
+      "loaderKeys": [
+        "player_layout",
+        "player_(series_id)/(vid)/layout",
+        "player_(series_id)/(vid)/page"
+      ],
+      "routeKey": "player_(series_id)/(vid)/page",
+      "payloadKeys": [
+        "protectedPlayback",
+        "publicVideoSeo",
+        "req",
+        "isSuccess",
+        "series_id",
+        "vid",
+        "seriesSocialInfo",
+        "episodeSocialInfo",
+        "seriesDetail",
+        "videoList",
+        "recommendationsFromSearch"
       ],
       "cached": false,
       "ok": true

@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-01T14:20:31.166081+00:00",
+  "seriesTitle": "军需处长的账本",
+  "seriesId": "7690961604636052505",
+  "episodeId": "7690963410778868761",
+  "workingCommit": "6b3595cc7832b759901316d0703f23fb71e7bb91",
+  "regressionCommit": "0001bc6c58a1694c77264a5fb946c00ebb19a1a1",
+  "originalResource": {
+    "host": "hongguoduanju.com",
+    "path": "/video/public/7690963410778868761/360p.mp4",
+    "kind": "public preview, not a full episode",
+    "httpStatus": 206,
+    "fileBytes": 493363,
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "width": 360,
+    "height": 640,
+    "videoSeconds": 10.0,
+    "audioSeconds": 9.98458,
+    "decodedVideoFrames": 250,
+    "decodedAudioFrames": 430,
+    "ffmpegFullDecode": "passed"
+  },
+  "regressedResource": {
+    "host": "v11-hgweb.qznovelvod.com",
+    "definition": "720p",
+    "httpRangeStatus": 206,
+    "format": "dash",
+    "separateAudio": true,
+    "videoSampleEntry": "encv",
+    "encryptionScheme": "cenc",
+    "protectionBoxes": [
+      "sinf",
+      "schm",
+      "schi",
+      "tenc"
+    ],
+    "pathEndsInMP4": false,
+    "directAVPlayerMP4": false
+  },
+  "fix": "Restore explicitly published publicVideoSeo MP4, retain complete episode catalogue, label preview, do not resume or auto-advance a short preview, and verify real AVPlayer video frames in CI.",
+  "notImplemented": "Native playback of full protected episodes; official App remains the full-playback route."
+}

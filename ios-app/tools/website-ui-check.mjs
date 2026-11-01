@@ -69,9 +69,12 @@ try{
    if(path==='/detail'){
     await send(hgHTML({detail_page:{isSuccess:true,seriesDetail:{series_id:hgIDs[0],series_name:'红果首页短剧',series_cover:'https://posters.example/hongguo/detail.png',series_intro:'官网公开目录测试简介',episode_cnt:4,accessible_episode_cnt:3,episode_right_text:'全4集',vid_list:hgVideos,tags:['都市','短剧'],celebrities:[{nickname:'测试演员'}]},seriesSocialInfo:{rating:8.2}}}));return;
    }
-   if(path==='/api/video/protected/play-info'){
-    const body=JSON.parse(req.body||'{}'),payload=body.item_id===hgVideos[3]?{error:'protected_playback_unavailable'}:{play_info:{main_url:'https://v26-hgweb.qznovelvod.com/'+body.item_id+'.mp4'},base_resp:{StatusCode:0}};
-    try{await route.fulfill({json:{status:body.item_id===hgVideos[3]?403:200,bodyBase64:Buffer.from(JSON.stringify(payload)).toString('base64')}});}catch(error){if(!/already handled|Invalid Interception|Target closed|Fetch.enable|interception/i.test(error.message))throw error;}return;
+   if(path.startsWith('/player/')){
+    const itemId=path.split('/').at(-1);
+    await send(hgHTML({'player_(series_id)/(vid)/page':{isSuccess:true,protectedPlayback:true,publicVideoSeo:{available:itemId===hgVideos[0],seriesId:hgIDs[0],itemId}}}));return;
+   }
+   if(path.startsWith('/video/public/')){
+    await route.fulfill({json:{status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-1/493363'},bodyBase64:'AAA='}});return;
    }
    unexpected.push(path);await send({error:'Unexpected Hongguo fixture path '+path});return;
   }
@@ -156,12 +159,27 @@ try{
  assert.equal(await page.locator('.episodes .episode').count(),hgVideos.length);
  assert.equal(await page.locator('.episodes .episode').first().innerText(),'第1集');
  assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/detail?series_id='+hgIDs[0]));
- await page.locator('.episodes .episode').nth(3).click();
- await page.getByText('红果网页播放器没有返回此集地址；官网提示可前往红果App免费看全集。',{exact:true}).waitFor();
- assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/api/video/protected/play-info'&&r.params.item_id===hgVideos[3]));
- assert.ok(!requests.some(r=>r.url.startsWith('https://hongguoduanju.com/player/')));
+ await page.getByText('当前仅播放官网公开试看片段，非完整剧集。全集请前往红果官方 App 观看。',{exact:true}).waitFor();
+ // Exercise the native bridge options with a stale full-video resume position.
+ await page.evaluate(([sid,vid])=>{
+  localStorage.setItem('sanyuan:history',JSON.stringify([{key:'hongguo:'+sid,siteId:'hongguo',movie:{id:sid,title:'红果首页短剧'},episodeId:vid,time:65,updated:Date.now()}]));
+  window.__nativePlays=[];window.NativeTransport.native=()=>true;
+  window.NativeTransport.syncPage=state=>{window.__nativePage=state;};
+  window.NativeTransport.play=async(url,headers,options)=>{window.__nativePlays.push({url,headers,options});return {ok:true};};
+ },[hgIDs[0],hgVideos[0]]);
+ await action('episode',{id:'0'});await page.waitForFunction(()=>window.__nativePlays.length===1);
+ const preview=await page.evaluate(()=>window.__nativePlays[0]);
+ assert.equal(preview.url,'https://hongguoduanju.com/video/public/'+hgVideos[0]+'/360p.mp4');assert.equal(preview.options.startAt,0);
+ await page.evaluate(context=>window.NativeTransport.onPlaybackEvent({context,status:'ended'}),preview.options.context);
+ assert.match(await page.locator('#toast').innerText(),/公开试看已结束/);
+ assert.equal(await page.evaluate(()=>window.__nativePlays.length),1,'a ten-second preview must not silently advance to the next full episode');
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sanyuan:history'))[0].time),65,'a preview must not overwrite the full-video resume position');
+ await action('episode',{id:'3'});
+ await page.waitForFunction(()=>/红果官网未提供本集的公开试看/.test(window.__nativePage?.playError));
+ assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/player/'+hgIDs[0]+'/'+hgVideos[3]));
+ assert.ok(!requests.some(r=>r.url.startsWith('https://hongguoduanju.com/api/video/protected/')));
  await page.evaluate(()=>{window.open=url=>{window.__openedOfficialURL=url;return null;};});
- await page.locator('[data-act="hongguo-official-page"]').click();
+ await action('hongguo-official-page');
  await page.waitForFunction(()=>window.__openedOfficialURL==='https://hongguoduanju.com/player/7700000000000000001/8700000000000000004');
  assert.deepEqual(unexpected,[]);assert.deepEqual(errors,[]);
  console.log('Website UI passed: seven sources including Hongguo, distinct YQK/QNTV identities, sports visibility, direct posters, website protocols, incremental category/topic/channel pagination, string movie IDs, 45-episode paging, complete Hongguo episode selection and official-app handoff, stale-response isolation, and source-aware discovery/account controls.');

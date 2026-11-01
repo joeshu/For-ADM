@@ -1,59 +1,37 @@
-# 红果短剧适配器与维护记录
+# 红果短剧适配与播放回归记录
 
-已将红果短剧作为独立来源接入三源影视的现有原生界面、发现页、影视详情和播放器。实时官网只读探针见 [实测报告](hongguo-integration-probe.json)；浏览器模拟回归覆盖来源切换、首页栏目“更多”、发现分类分页和详情选集。
+红果作为独立来源接入全 App 原生片库、分类、详情、选集、收藏和观看历史。当前内置播放器恢复首次接入时使用的**官网公开试看**；完整选集目录不等于可在本 App 播放全集。
 
-## 当前抓取方式与接口边界
+## 已确认的黑屏原因
 
-依据 [hongguoTV 开源研究](https://github.com/N3urda/hongguoTV/blob/main/docs/research/2026-09-21-hongguo-open-source.md)，红果官网 `https://hongguoduanju.com/` 的页面服务端渲染数据并内嵌在 `_ROUTER_DATA`。本接入直接读取官网页面数据，并使用官网播放器正常调用的播放信息接口。
+| 版本/提交 | 实际播放资源 | 验证结果 |
+| --- | --- | --- |
+| 首次接入 `6b3595c` | 官网 `publicVideoSeo` 声明的 `/video/public/{itemId}/360p.mp4` | 《军需处长的账本》第 1 集：360×640，H.264 + AAC，约 10 秒公开试看，可正常解码 |
+| 全集选集改动 `0001bc6` | `/api/video/protected/play-info` 返回的 720P CDN 地址 | 返回 `format: dash`，视频和音频分离，视频含 `encv / sinf / schm(cenc) / tenc`；无法作为普通 MP4 直接交给 AVPlayer |
+| 0.2.45–0.2.46 | 对上述地址检查 HTTP 状态、重取地址、增加 MP4 Range 中继 | HTTP 200/206 只能证明字节可读取，不能证明视频能解码；真实 CDN 路径没有 `.mp4` 后缀，中继条件也没有命中 |
+| 0.2.47 | 恢复明确发布的公开试看 MP4 | 恢复原生播放器正常请求路径；完整选集保留，试看与全集能力分别说明 |
 
-- 首页 `/` 返回 `loaderData.page`，其中 `mBannerList` 与 `homeSections[].video_list` 可映射成首页片卡和更多入口。
-- 分类使用 `/category/{slug}?page={n}`；官网当前提供真人剧、漫剧、AI 剧、漫画四类。`selectorList` 给出题材筛选，选中题材时使用官网返回的路径段。
-- 详情使用 `/detail?series_id={id}`，可读取剧名、封面、简介、演员、全剧 `vid_list` 和网页当前开放集数 `accessible_episode_cnt`。两者含义不同：例如抽样页面的 SSR 返回 102 个视频 ID、3 个网页即播集。此前把公开 SEO 试看标记当成唯一集数，导致 App 只显示试看集；现在详情按完整 `vid_list` 建立选集，选择后再询问官方播放接口。
-- 官网播放器正常调用 `POST /api/video/protected/play-info`，请求只含官网页面使用的 `series_id`、`item_id` 和 `definition`。接口名里的 `protected` 本身不是要求登录的判断依据：匿名请求对抽样剧的开放集返回正常媒体地址；小范围 GET 能返回 `206 video/mp4`，网页未开放的后续集返回 403 `protected_playback_unavailable`。App 保留完整集数并把官网的拒绝原因呈现出来。
-- 官网播放器页对后续集提示“前往红果短剧App端免费看全集”。用户确认官方 App 无需登录或观看广告即可播放全剧；但该 App 使用的移动端接口与网页接口不同，本次无法从构建环境验证其请求和媒体格式。因此本适配器只播放网页接口实际返回的媒体，并为其余选集提供官网播放器页跳转，不把网页 403 错误描述成登录或付费限制。
-- App 的完整选集保留官网详情返回的全部视频 ID。遇到网页接口 403 时，详情页可打开对应的官网播放器页，让用户从官网进入红果 App；内置播放器不会把官网拒绝的流伪装成可播放资源。
-- 官网搜索结果接口要求浏览器安全校验参数，普通原生请求会被拒绝。本 App 不伪造校验值；搜索只在首页和四个分类首屏的公开片目中匹配，因此搜索结果不代表全站完整索引。
+2026-11-01 下载官网明确发布的第 1 集试看文件，`ffmpeg -xerror` 完整解码通过；`ffprobe -count_frames` 返回 250 个视频帧、430 个音频帧。视频时长 10.000 秒、音频时长 9.985 秒，而页面 `publicVideoSeo.durationSeconds` 是完整集的 108.331 秒，不能用该字段把试看标成完整剧集。调查记录见 [回归报告](hongguo-playback-regression.json)。仓库不保存第三方视频、媒体签名或播放密钥。
 
-红果目录由本项目直接抓取官网服务端渲染页面，不依赖第三方片库 API。网页公开接口与红果官方 App 的播放接口是两套能力：目录可显示官网返回的全集 ID，但内置播放器只使用官网网页播放接口实际提供的媒体 URL；官网拒绝的集会给出官方页面入口。
+## 当前数据与播放方式
 
-## 官网字段契约
+依据 [公开研究](https://github.com/N3urda/hongguoTV/blob/main/docs/research/2026-09-21-hongguo-open-source.md)，直接读取 `https://hongguoduanju.com` 官网的 `_ROUTER_DATA`，不依赖第三方片库服务：
 
-适配器把官网数据字段集中规范化，页面字段有已知别名时在同一映射函数处理。真实请求的路由键、数据键、HTTP 状态和响应字节数会保存在实时探针报告的 `ssrContract` 中，方便定位官网改版，不会记录 Cookie、视频签名或媒体内容。
+- 首页 `/`：`mBannerList`、`homeSections[].video_list`。
+- 分类 `/category/{slug}?page={n}`：真人剧、漫剧、AI 剧、漫画；`selectorList` 提供题材，`recommendList` 和 `pagination` 提供分页。
+- 详情 `/detail?series_id={id}`：标题、封面、简介、演员、完整 `vid_list`。`accessible_episode_cnt` 只作为官网诊断值，不裁切选集，也不等于公开试看集数。
+- 播放 `/player/{seriesId}/{itemId}`：按需读取所选集页面；仅当 `publicVideoSeo.available === true` 且剧 ID、集 ID 都匹配时，使用官网发布的同源 360P MP4。没有公开试看时给出明确说明和该集的官网入口，不拼接猜测其他集的媒体地址。
+- 搜索只覆盖已抓取的首页与四个分类首屏公开片目，不代表全站完整索引。
 
-| 页面 | 当前路径 | 主要字段 | App 映射 |
-| --- | --- | --- | --- |
-| 首页 | `/` | `loaderData.page`、`mBannerList`、`homeSections[].video_list` | 推荐区、栏目片卡和“更多”路由 |
-| 分类 | `/category/{slug}?page={n}` | `category_$`、`recommendList`、`pagination`、`selectorList` | 分类、题材筛选和增量分页 |
-| 详情 | `/detail?series_id={id}` | `detail_page.seriesDetail`、`vid_list`、`accessible_episode_cnt` | 影片资料、完整选集和网页开放集数诊断 |
-| 播放 | `POST /api/video/protected/play-info` | `play_info.main_url`、`play_info.backup_url`、`base_resp` | 官方 HTTPS 媒体线路及明确的接口拒绝提示 |
+`Web/hongguo-api.mjs` 集中处理字段别名、响应大小限制、解析、重试、有界缓存和来源校验。网络中断、408/425/429/5xx 最多重试两次；4xx 不盲目重试。失败的页面解析不进入缓存，手动刷新清理页面与详情缓存。
 
-## App 内实现
+## 播放体验
 
-`Web/hongguo-api.mjs` 是独立的官网适配器，负责限制响应体大小、提取并验证 `_ROUTER_DATA`、缓存 SSR 页面、转换分类/筛选/分页/完整选集，并校验官方播放接口返回的媒体主机。`Web/source-clients.mjs` 注册客户端；`Web/sites.json` 添加“红果短剧”；`Web/app.mjs` 为来源配置热播短剧、真人剧、漫剧和 AI 剧发现标签。首页与发现仍复用全 App 影视卡片、增量分页、收藏、观看历史和播放器流程。
+详情和线路明确显示“官网公开试看”，保持全部选集可选择。未提供试看的集显示官网入口，不再先黑屏再尝试相同加密资源的主备地址。试看总是从头播放，避免旧完整视频的进度跳到短片末尾；试看播放进度不覆盖完整剧集进度，也不在结束后自动播放下一集。
 
-没有把研究文档提及的 GPL 项目源码复制进 App；适配器按官网公开页面字段独立编写。红果站点数据只含来源 ID、名称、适配器类型和官网地址。
+用户确认官方 App 可免费观看全集。官方 App 的正常播放流程与网页公开试看不同；目前本项目没有验证可供系统 AVPlayer 使用的官方完整播放接口或 SDK。本版只恢复已验证可播放的公开片段，不宣称已实现全集内置播放，也不处理加密媒体的密钥。
 
-## 稳定性与维护流程
-
-适配器请求当前有这些保护：
-
-- SSR 页面最多读取 3.5 MB，路由 JSON 最多解析 2.5 MB，播放信息响应限制为 256 KB；只接受 HTTPS 和官网同源页面跳转。
-- 网络中断、HTTP 408/425/429 和 5xx 最多重试两次；登录/访问拒绝等 4xx 不重试，避免把权限结果误判成线路故障。
-- 只缓存成功解析并符合页面契约的 SSR 数据。临时拦截页、空 HTML、改版后的未知结构不会进入缓存。
-- 页面和搜索结果使用有界缓存；无题材筛选的分类也会记为已初始化，避免每次切换都重复抓取同一分类页。
-- 详情剧集 ID 会做校验和去重；官网没有返回有效 `vid_list` 时显示适配器错误并记录到诊断信息，不再展示一个看似正常的空选集页。
-- 红果 MP4 播放地址用 `Range: bytes=0-1` 检查实际 GET 响应，不以 HEAD 成功代替媒体可读；遇到 404/410 会重新向官网申请播放地址一次，再尝试同集的主备地址。
-- 红果官方 MP4 会通过本机 HTTP Range 中继送入 AVPlayer；中继向官网转发原始字节范围和 Referer，再把 `206`、`Content-Range` 与媒体数据回传。只有通过官网媒体主机校验的红果 MP4 启用此路径。
-
-修复官网字段时，先运行模拟回归，再实时抓取官网并检查 `ssrContract`。若路由键或字段名变化，只修改 `Web/hongguo-api.mjs` 的字段别名/规范化，不把 HTML 解析散落到 UI 层；同步更新 `tests/hongguo-api.test.mjs` 和探针报告。
-
-仓库的 `.github/workflows/hongguo-source-audit.yml` 每周自动运行一次，也支持手动触发；失败时仍会保存探针 JSON 作为 Actions artifact，便于区分网站结构变化、限流与播放接口拒绝。
-
-## 实时验证结果与播放边界
-
-2026-11-01 实测《军需处长的账本》前三集的官方地址：HEAD 返回 `video/mp4`，从文件开头、中段和末尾请求字节范围均返回 `206`；官网未开放的第 4 集仍返回 403。用户在重取地址后仍遇到黑屏，因此 0.2.46 将官方 MP4 请求放入本机 Range 中继，并为中继增加了 `206`/`Content-Range` 回归测试。具体剧集是否能在用户设备播放，仍需实机确认。
-
-运行验证：
+## 验证与维护
 
 ```sh
 cd ios-app
@@ -62,4 +40,10 @@ node tools/website-ui-check.mjs
 node --use-env-proxy tools/hongguo-integration-probe.mjs
 ```
 
-搜索只覆盖本地下载到的公开首屏目录；集数按官网当前返回的所有视频 ID 显示，内置播放能力受官网网页接口返回范围限制。网页接口未返回地址时可打开官网播放器页继续进入官方 App。官网若更改 SSR 键名、路径、播放接口或题材 slug，适配器可能需要同步调整。
+- 单元回归包含实际形态的无扩展名加密 DASH 数据，确保不会再次当成 MP4 返回给播放器；同时验证试看声明、剧集 ID 匹配、完整集数和未公开集的提示。
+- 界面回归覆盖来源切换、更多、筛选、分页、完整选集、旧进度不跳过试看、试看结束不自动跳集和对应集官网入口。
+- 官网探针验证 SSR 契约与公开 MP4 的小范围 GET；报告见 [官网探针](hongguo-integration-probe.json)。
+- iOS CI 在已有导航/直播检查之后，以 `--hongguo-smoke` 重新启动测试 App，通过真实来源、详情、选集、原生桥接和 AVPlayer 播放上述公开试看。检查 `readyForDisplay`、非零画面尺寸、超过 1 秒的播放进度和原生页面内嵌关系，不能用音频测试文件替换红果视频。诊断 JSON 和截图单独上传，不放入 IPA。
+- 每周 `hongguo-source-audit.yml` 检查官网目录和公开试看；官网变更时只修改集中适配层，并同步回归与探针。
+
+今后更换完整播放方式前，必须检查真实媒体的封装、音视频轨道与内容保护，并通过原生画面测试；不能仅凭 URL、扩展名、Content-Type 或 HTTP 成功状态认定可播放。

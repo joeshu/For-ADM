@@ -65,7 +65,8 @@ for attempt in $(seq 1 80); do
   if [ -f dist/simulator-discover-smoke.json ] && [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ] && [ -f dist/simulator-live-video-smoke.json ] && [ -f dist/simulator-live-video.png ]; then
     cat dist/simulator-smoke.json dist/simulator-discover-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json dist/simulator-live-video-smoke.json
     python3 -c 'import json; d=json.load(open("dist/simulator-discover-smoke.json")); p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); v=json.load(open("dist/simulator-live-video-smoke.json")); assert d["nativeDiscoverPage"] and d["bottomNavigationItems"]>=5 and d["paginationCursorIsString"], d; assert p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["embeddedLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["livePlayerAttachedToHost"] and l["livePlayerFillsHost"] and l["livePlayerResizesWithHost"] and l["avPlayerControllerEmbedded"] and l["avPlayerControllerResizesWithHost"] and l["routePickerAbovePlayer"] and l["categoryActionReachedBridge"] and l["categorySwitchReturnsToTop"] and l["fastSwitchUpdatesWithoutRebuild"] and l["gzipEPGDecoded"], l; assert v["status"]=="videoReady" and v["rendererAttached"] and v["rendererReady"] and v["playURLIsLoopback"] and v["presentationWidth"]>0 and v["presentationHeight"]>0, v'
-    exit 0
+    base_smoke_passed=1
+    break
   fi
   if [ -f "$sim_data/Library/Caches/sanyuan-playback-error.json" ]; then
     cp "$sim_data/Library/Caches/sanyuan-playback-error.json" dist/simulator-playback-error.json
@@ -73,6 +74,29 @@ for attempt in $(seq 1 80); do
   fi
   sleep 2
 done
+if [ "${base_smoke_passed:-0}" = "1" ]; then
+  # Relaunch through the real app/adapter/player path. This test must never use
+  # the audio-only fixture substituted for the earlier generic bridge check.
+  xcrun simctl terminate "$sim_device" com.joeshu.sanyuan
+  xcrun simctl launch "$sim_device" com.joeshu.sanyuan --hongguo-smoke
+  for attempt in $(seq 1 70); do
+    if [ -f "$sim_data/Library/Caches/sanyuan-hongguo-smoke.json" ]; then
+      cp "$sim_data/Library/Caches/sanyuan-hongguo-smoke.json" dist/simulator-hongguo-smoke.json
+      hongguo_status="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("status","unknown"))' dist/simulator-hongguo-smoke.json)"
+      if [ "$hongguo_status" = "videoReady" ]; then
+        cat dist/simulator-hongguo-smoke.json
+        python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-smoke.json"));assert d["officialPublicMP4"] and d["rendererReady"] and d["inlinePlayback"] and d["previewNotice"] and not d["fixtureUsed"] and d["presentationWidth"]>0 and d["presentationHeight"]>0 and d["playbackTime"]>1 and d["duration"]>1,d'
+        xcrun simctl io "$sim_device" screenshot dist/simulator-hongguo.png
+        exit 0
+      elif [ "$hongguo_status" = "failed" ]; then
+        cat dist/simulator-hongguo-smoke.json >&2
+        xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png
+        exit 1
+      fi
+    fi
+    sleep 2
+  done
+fi
 if [ -f "$sim_data/Library/Caches/sanyuan-playback-smoke-debug.json" ]; then
   cp "$sim_data/Library/Caches/sanyuan-playback-smoke-debug.json" dist/simulator-playback-debug.json
   cat dist/simulator-playback-debug.json >&2

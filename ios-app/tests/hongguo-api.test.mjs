@@ -11,17 +11,16 @@ function categoryPage(path){
  const list=pageNumber===2?[movie('7690961604636052506','第二页影片')]:selected?[movie('7690961604636052507','爱情分类影片')]:[movie(sid,'红果测试短剧')];
  return page({'category_$':{isSuccess:true,query:{page:pageNumber},selectorList:[{items:[{selector_item_id:'romance',show_name:'爱情'}]}],recommendList:list,pagination:{pageNum:pageNumber,totalPages:2}}});
 }
-function createClient({episodeList=vids}={}){
+function createClient({episodeList=vids,publicVideoSeo}={}){
  const requests=[],storage={getItem(){return null;},setItem(){}};
  const transport=async request=>{
   const url=new URL(request.url);requests.push({url:url.href,method:request.method,body:request.body});
   if(url.pathname==='/')return response(page({'page':{isSuccess:true,mBannerList:[movie(sid,'首页红果短剧')],homeSections:[{tab_type:'human',tab_name:'热播短剧',video_list:[movie(sid,'红果测试短剧')]}]}}));
   if(url.pathname.startsWith('/category/'))return response(categoryPage(url.pathname+url.search));
   if(url.pathname==='/detail')return response(page({'detail_page':{isSuccess:true,seriesDetail:{series_id:sid,series_name:'红果测试短剧',series_cover:'https://image.example/detail.jpg',series_intro:'简介',episode_cnt:4,accessible_episode_cnt:3,episode_right_text:'全4集',vid_list:episodeList,tags:['都市','爱情'],celebrities:[{nickname:'演员甲'}]},seriesSocialInfo:{rating:8.2}}}));
-  if(url.pathname==='/api/video/protected/play-info'){
-   const body=JSON.parse(request.body);
-   if(body.item_id===vids[3])return response(JSON.stringify({error:'protected_playback_unavailable'}),403,{'Content-Type':'application/json'});
-   return response(JSON.stringify({play_info:{main_url:'https://v26-hgweb.qznovelvod.com/video/'+body.item_id+'.mp4?sig=test',backup_url:'https://v11-hgweb.qznovelvod.com/video/'+body.item_id+'.mp4?sig=test'},base_resp:{StatusCode:0,StatusMessage:''}}),200,{'Content-Type':'application/json'});
+  if(url.pathname.startsWith('/player/')){
+   const videoId=url.pathname.split('/').at(-1);
+   return response(page({'player_(series_id)/(vid)/page':{isSuccess:true,protectedPlayback:true,publicVideoSeo:publicVideoSeo??{available:videoId===vids[0],seriesId:sid,itemId:videoId,width:360,height:640,durationSeconds:108.331},video_player_info:{format:'dash',kid:'fixture-kid',main_url:'https://v11-hgweb.qznovelvod.com/video/media-video-avc1/?mime_type=video_mp4',audio:{main_url:'https://v11-hgweb.qznovelvod.com/video/media-audio/'}}}}));
   }
   throw Error('Unexpected Hongguo request: '+url.href);
  };
@@ -38,12 +37,22 @@ test('Hongguo SSR extraction validates bounded JSON and maps homepage/category r
  assert.ok(requests.some(row=>row.url.includes('/category/real-drama/romance?page=2')));
 });
 
-test('Hongguo search keeps full episode lists and uses the official anonymous play-info endpoint',async()=>{
- const {client}=createClient();const results=await client.search('红果测试');assert.ok(results.items.some(item=>item.title==='红果测试短剧'));assert.equal(results.next,'');
+test('Hongguo restores the original public video while preserving the complete episode list',async()=>{
+ const {client,requests}=createClient();const results=await client.search('红果测试');assert.ok(results.items.some(item=>item.title==='红果测试短剧'));assert.equal(results.next,'');
  const detail=await client.detail(sid);assert.equal(detail.title,'红果测试短剧');assert.equal(detail.actors[0],'演员甲');assert.equal(detail.playSources[0].total,vids.length);
  const episodes=await client.episodes(sid,detail.playSources[0]);assert.deepEqual(episodes.map(item=>item.id),vids);assert.equal(detail.playSources[0].total,vids.length);assert.equal(episodes.length,4);
- const playback=await client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[1]});assert.equal(playback.playUrls.length,2);assert.match(playback.playUrls[0].url,/v26-hgweb\.qznovelvod\.com/);assert.equal(playback.playUrls[0].headers.Referer,origin+'/player/'+sid+'/'+vids[1]);
- await assert.rejects(client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[3]}),/红果网页播放器没有返回此集地址/);
+ assert.match(detail.playbackNotice,/非完整剧集/);assert.doesNotMatch(detail.playSources[0].name,/720P/);
+ const playback=await client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[0]});assert.equal(playback.playUrls.length,1);assert.equal(playback.playUrls[0].url,origin+'/video/public/'+vids[0]+'/360p.mp4');assert.equal(playback.playUrls[0].headers.Referer,origin+'/player/'+sid+'/'+vids[0]);assert.equal(playback.playUrls[0].preview,true);
+ await assert.rejects(client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[3]}),error=>error.code==='HONGGUO_OFFICIAL_REQUIRED'&&/公开试看/.test(error.message));
+ assert.ok(!requests.some(row=>row.url.includes('/api/video/protected/')),'encrypted DASH must not be treated as a directly playable MP4');
+});
+
+test('Hongguo never guesses public media URLs for a different episode or a protected-only player',async()=>{
+ for(const publicVideoSeo of [{available:false,seriesId:sid,itemId:vids[0]},{available:true,seriesId:sid,itemId:vids[1]},{available:true,seriesId:'111',itemId:vids[0]}]){
+  const {client,requests}=createClient({publicVideoSeo});
+  await assert.rejects(client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[0]}),error=>error.code==='HONGGUO_OFFICIAL_REQUIRED');
+  assert.ok(requests.every(request=>new URL(request.url).hostname==='hongguoduanju.com'));
+ }
 });
 
 test('Hongguo accepts official episode object variants, removes duplicate IDs, and keeps every valid episode',async()=>{
@@ -51,6 +60,13 @@ test('Hongguo accepts official episode object variants, removes duplicate IDs, a
  const {client}=createClient({episodeList}),detail=await client.detail(sid),episodes=await client.episodes(sid,detail.playSources[0]);
  assert.deepEqual(episodes.map(item=>item.id),vids.slice(0,3));
  assert.equal(detail.playSources[0].total,3);
+});
+
+test('Hongguo unavailable player pages offer the official App without guessing a media URL or retrying a 404',async()=>{
+ const {client}=createClient(),original=client.transport;let playerCalls=0;
+ client.transport=async request=>{if(new URL(request.url).pathname.startsWith('/player/')){playerCalls++;return response('Not found',404);}return original(request);};
+ await assert.rejects(client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[3]}),error=>error.code==='HONGGUO_OFFICIAL_REQUIRED');
+ assert.equal(playerCalls,1);
 });
 
 test('Hongguo does not cache an invalid SSR response, so a later request can recover',async()=>{
@@ -85,10 +101,11 @@ test('Hongguo retries 5xx responses, records the SSR contract, and avoids retryi
  assert.equal(client.lastDiagnostics.kind,'home');
  assert.equal(client.lastDiagnostics.routeKey,'page');
  assert.equal(client.lastDiagnostics.cached,false);
- const detail=await client.detail(sid);
- const before=requests.filter(item=>item.url.includes('/api/video/protected/play-info')).length;
+ const detail=await client.detail(sid);let playerAttempts=0;
+ client.transport=async request=>{if(new URL(request.url).pathname.startsWith('/player/')){playerAttempts++;return response('Forbidden',403);}return original(request);};
+ const before=playerAttempts;
  await assert.rejects(client.play({vodId:sid,siteId:detail.playSources[0].siteId,episodeId:vids[3]}),error=>error.code===403);
- const after=requests.filter(item=>item.url.includes('/api/video/protected/play-info')).length;
+ const after=playerAttempts;
  assert.equal(after-before,1,'official 403 denials must not be retried');
 });
 

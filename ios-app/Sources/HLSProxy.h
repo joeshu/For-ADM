@@ -17,7 +17,6 @@
 @property(nonatomic) NSInteger lastHTTPStatus;
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
-- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4;
 @end
 @implementation SYHLSProxy
 - (instancetype)init {
@@ -56,15 +55,11 @@
  return [self mapped:url]?:url;
 }
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled {
- return [self prepare:url headers:headers enabled:enabled proxyMP4:NO];
-}
-- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4 {
  [self.session invalidateAndCancel];self.removed=0;self.enabled=enabled;self.headers=headers;self.token=NSUUID.UUID.UUIDString;
  [self.resources removeAllObjects];[self.paths removeAllObjects];
  NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=6;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
  self.session=[NSURLSession sessionWithConfiguration:config];
- BOOL playlist=[url.path.lowercaseString hasSuffix:@".m3u8"],mp4=proxyMP4&&[url.path.lowercaseString hasSuffix:@".mp4"];
- if(!self.port||(!mp4&&(!enabled||!playlist)))return url;
+ if(!enabled||!self.port||![url.path.lowercaseString hasSuffix:@".m3u8"])return url;
  return [self mapped:url]?:url;
 }
 - (void)reply:(nw_connection_t)connection status:(NSInteger)status headers:(NSDictionary*)headers data:(NSData*)data head:(BOOL)head {
@@ -145,11 +140,9 @@
 @property(nonatomic) NSUInteger removed;
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
-- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4;
 @end
 @implementation SYHLSProxy
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers{return url;}
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled{return url;}
-- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4{return url;}
 @end
 #endif

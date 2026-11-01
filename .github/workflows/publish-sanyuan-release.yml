@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       tag:
-        description: Release tag matching ios-app/package.json (for example v0.2.46)
+        description: Release tag matching ios-app/package.json (for example v0.2.47)
         required: true
         type: string
 permissions:
@@ -71,7 +71,9 @@ jobs:
           cat > "$notes" <<EOF
           三源影视 $version，整合多个影视来源、原生直播页和系统播放器。
 
-          本版修复红果短剧出现黑屏及 HTTP 404 时的直连问题。App 通过本机 Range 中继把官方 MP4 字节交给 AVPlayer，并在地址失效时重新获取播放地址。
+          本版修复红果播放回归：恢复首次接入时可播放的官网公开试看 MP4，不再把加密 DASH 当作普通 MP4 交给 AVPlayer。试看明确标注，结束不自动跳集，旧观看进度不会跳过短试看；完整选集目录保留，未公开的剧集提供红果官方 App 入口。
+
+          注意：首次接入版本使用的也是官网公开试看，本版没有实现完整剧集的内置播放。CI 增加真实红果视频的模拟器画面和播放进度验证。
 
           这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
 

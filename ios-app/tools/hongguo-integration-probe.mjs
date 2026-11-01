@@ -6,7 +6,7 @@ import {HongguoClient} from '../Web/hongguo-api.mjs';
 
 const origin='https://hongguoduanju.com';
 const output=new URL('../docs/hongguo-integration-probe.json',import.meta.url);
-const report={checkedAt:new Date().toISOString(),origin,scope:'Live, read-only crawl of public SSR pages, category pagination, topic filtering, a full episode list, and the official anonymous play-info endpoint. Media validation uses HEAD only; no media bytes or account data are fetched.',home:{},categories:[],filter:null,detail:null,playback:null,ssrContract:{}};
+const report={checkedAt:new Date().toISOString(),origin,scope:'Live public SSR catalogue, pagination, filtering and complete episode IDs. Playback follows the original publicVideoSeo route and checks at most 64 KiB of the clear preview MP4. No protected media, keys, cookies or account data are recorded. Native rendered-frame verification runs separately in the iOS simulator.',home:{},categories:[],filter:null,detail:null,playback:null,ssrContract:{}};
 async function boundedBody(response,limit){
  const reader=response.body?.getReader();if(!reader)return Buffer.alloc(0);
  const chunks=[];let size=0;
@@ -20,7 +20,7 @@ async function main(){
   const timeout=AbortSignal.timeout(20000),combined=signal?AbortSignal.any([signal,timeout]):timeout;
   const response=await fetch(request.url,{...request,signal:combined});
   const body=request.method==='HEAD'?Buffer.alloc(0):await boundedBody(response,3_500_000);
-  return {status:response.status,bodyBase64:body.toString('base64'),url:response.url};
+  return {status:response.status,headers:Object.fromEntries(response.headers),bodyBase64:body.toString('base64'),url:response.url};
  };
  const client=new HongguoClient({id:'hongguo',name:'红果短剧',provider:'hongguo',origin},transport,storage);
 
@@ -64,18 +64,24 @@ assert.equal(episodes.length,Number(detail.playSources[0].total),'UI episode lis
 const detailRecord=client.details.get(String(id));
 report.detail={title:detail.title,episodeCount:episodes.length,websiteAnonymousOpenCount:detailRecord?.accessible||0};
 report.ssrContract.detail=client.lastDiagnostics;
-if(episodes[1]){
- const playback=await client.play({vodId:id,siteId:line.siteId,episodeId:episodes[1].id});
+if(episodes[0]){
+ const playback=await client.play({vodId:id,siteId:line.siteId,episodeId:episodes[0].id});
  const url=playback.playUrls[0].url,parsed=new URL(url);
- assert.match(parsed.hostname,/^v\d+-hgweb\.qznovelvod\.com$/i,'Unexpected official video host');
- const response=await fetch(url,{method:'HEAD',headers:{'User-Agent':'Mozilla/5.0',Referer:origin+'/player/'+id+'/'+episodes[1].id},signal:AbortSignal.timeout(20000)});
- report.playback={episode:episodes[1].title,officialPlayInfo:'available',mediaHost:parsed.hostname,headStatus:response.status,contentType:response.headers.get('content-type')};
- assert.ok(response.status>=200&&response.status<300,'Official play-info media HEAD failed');
- assert.match(report.playback.contentType||'',/video\/mp4/i,'Official video was not served as MP4');
- const protectedEpisode=episodes[detailRecord?.accessible||0];
- if(protectedEpisode){
-  try{await client.play({vodId:id,siteId:line.siteId,episodeId:protectedEpisode.id});report.playback.firstBeyondWebsiteOpenCount='official endpoint returned a URL';}
-  catch(error){report.playback.firstBeyondWebsiteOpenCount=Number(error.code)===403?'official web endpoint returned 403; playback remains subject to official free-access flow':'official endpoint error: '+String(error.code||error.message).slice(0,120);}
+ assert.equal(parsed.origin,origin,'Unexpected public preview host');
+ assert.equal(parsed.pathname,'/video/public/'+episodes[0].id+'/360p.mp4');
+ assert.equal(playback.playUrls[0].preview,true,'Public preview must be identified as a preview');
+ const response=await fetch(url,{headers:{...playback.playUrls[0].headers,Range:'bytes=0-65535'},signal:AbortSignal.timeout(20000)});
+ const bytes=await boundedBody(response,65536),mdat=bytes.indexOf(Buffer.from('mdat')),metadata=mdat<0?bytes:bytes.subarray(0,mdat);
+ const protectedSampleEntryFound=metadata.includes(Buffer.from('encv'))||metadata.includes(Buffer.from('enca'));
+ report.playback={episode:episodes[0].title,publicPreview:true,mediaHost:parsed.hostname,getStatus:response.status,contentType:response.headers.get('content-type'),contentRange:response.headers.get('content-range'),sampleBytes:bytes.length,isoBMFF:bytes.subarray(4,8).toString()==='ftyp',protectedSampleEntryFound};
+ report.ssrContract.player=client.lastDiagnostics;
+ assert.equal(response.status,206,'Public preview Range GET failed');
+ assert.match(report.playback.contentType||'',/video\/mp4/i,'Public preview was not served as MP4');
+ assert.ok(report.playback.isoBMFF&&!protectedSampleEntryFound,'Public preview returned incompatible or protected media');
+ const nonPreviewCandidate=episodes[detailRecord?.accessible||0];
+ if(nonPreviewCandidate){
+  try{const other=await client.play({vodId:id,siteId:line.siteId,episodeId:nonPreviewCandidate.id});report.playback.firstBeyondWebsiteOpenCount=other.playUrls[0]?.preview?'another published public preview':'unexpected media kind';}
+  catch(error){if(error.code!=='HONGGUO_OFFICIAL_REQUIRED')throw error;report.playback.firstBeyondWebsiteOpenCount='No public preview; show the official App entry without starting AVPlayer';}
  }
 }
 
