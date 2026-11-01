@@ -29,11 +29,11 @@ static void waitFor(BOOL(^done)(void)){
  NSCAssert(done(),@"async operation timed out");
 }
 static NSData*get(NSURL*url,NSString*method,NSString*range,NSHTTPURLResponse**out){
- __block BOOL done=NO;__block NSData*data;__block NSHTTPURLResponse*response;__block NSError*failure;
+ NSLog(@"Proxy fixture request %@ %@ range=%@",method,url.absoluteString,range?:@"none");__block BOOL done=NO;__block NSData*data;__block NSHTTPURLResponse*response;__block NSError*failure;
  NSMutableURLRequest*r=[NSMutableURLRequest requestWithURL:url];r.HTTPMethod=method;
  if(range)[r setValue:range forHTTPHeaderField:@"Range"];
  [[NSURLSession.sharedSession dataTaskWithRequest:r completionHandler:^(NSData*d,NSURLResponse*s,NSError*e){data=d;response=(id)s;failure=e;done=YES;}] resume];
- waitFor(^BOOL{return done;});NSCAssert(!failure,@"%@",failure);if(out)*out=response;return data;
+ NSDate*deadline=[NSDate dateWithTimeIntervalSinceNow:8];while(!done&&deadline.timeIntervalSinceNow>0)[NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];NSCAssert(done,@"Timed out: %@ %@ range=%@",method,url.absoluteString,range?:@"none");NSCAssert(!failure,@"%@",failure);if(out)*out=response;return data;
 }
 static NSURLSession*fixtureSession(void){NSURLSessionConfiguration*c=NSURLSessionConfiguration.ephemeralSessionConfiguration;c.protocolClasses=@[FixtureProtocol.class];return [NSURLSession sessionWithConfiguration:c];}
 static NSString*text(NSData*d){return [[NSString alloc]initWithData:d encoding:NSUTF8StringEncoding];}
