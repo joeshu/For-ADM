@@ -1,4 +1,4 @@
-// Offline integration check for the three website clients through the real UI bundle.
+// Offline integration check for website-backed clients through the real UI bundle.
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -20,6 +20,9 @@ try{
  const encoded=data=>({status:200,bodyBase64:Buffer.from(typeof data==='string'?data:JSON.stringify(data)).toString('base64')});
  const film=(source,id)=>({vodId:id,vodName:source+'影片'+id,coverImg:'https://posters.example/'+source+'/'+id+'.png',flags:'2026 / 科幻片 / 中国',score:'8.0',iconList:[],remark:'高清'});
  const movie=id=>({id,name:'猎手影片'+id,cover:'https://posters.example/dyls/'+id+'.png',type_id:1,type_name:'电影',dynamic:'高清'});
+ const hgIDs=['7700000000000000001','7700000000000000002','7700000000000000003'];
+ const hgMovie=(id,title)=>({series_id:id,series_name:title,series_cover:'https://posters.example/hongguo/'+id+'.png',episode_cnt:2,episode_right_text:'全2集',tags:['都市','短剧']});
+ const hgHTML=loaderData=>'<html><script>window._ROUTER_DATA = '+JSON.stringify({loaderData})+';</script></html>';
  await page.route('**/__transport',async route=>{
   const req=route.request().postDataJSON(),url=new URL(req.url),path=url.pathname;
   const params=req.body?JSON.parse(req.body):{};
@@ -54,6 +57,23 @@ try{
    else {unexpected.push(path);await send({errorCode:400,msg:'Unexpected fixture path '+path});return;}
    await send({msg:'获取成功',data});return;
   }
+  if(url.hostname==='hongguoduanju.com'){
+   if(path==='/'){
+    await send(hgHTML({page:{isSuccess:true,mBannerList:[hgMovie(hgIDs[0],'红果首页短剧')],homeSections:[{tab_type:'human',tab_name:'热播短剧',video_list:[hgMovie(hgIDs[0],'红果首页短剧'),hgMovie(hgIDs[1],'红果第二部短剧')]}]}}));return;
+   }
+   if(path.startsWith('/category/')){
+    const pageNumber=Number(url.searchParams.get('page')||1),selected=path.endsWith('/romance'),id=pageNumber===2?hgIDs[2]:selected?hgIDs[1]:hgIDs[0];
+    await send(hgHTML({'category_$':{isSuccess:true,query:{page:pageNumber},selectorList:[{items:[{selector_item_id:'romance',show_name:'爱情'}]}],recommendList:[hgMovie(id,pageNumber===2?'红果第二页短剧':selected?'红果爱情短剧':'红果分类短剧')],pagination:{pageNum:pageNumber,totalPages:2}}}));return;
+   }
+   if(path==='/detail'){
+    await send(hgHTML({detail_page:{isSuccess:true,seriesDetail:{series_id:hgIDs[0],series_name:'红果首页短剧',series_cover:'https://posters.example/hongguo/detail.png',series_intro:'官网公开目录测试简介',episode_cnt:2,accessible_episode_cnt:2,episode_right_text:'全2集',vid_list:['8700000000000000001','8700000000000000002'],tags:['都市','短剧'],celebrities:[{nickname:'测试演员'}]},seriesSocialInfo:{rating:8.2}}}));return;
+   }
+   if(path.startsWith('/player/')){
+    const videoId=path.split('/').at(-1),isPublic=videoId==='8700000000000000001';
+    await send(hgHTML({'player_(series_id)/page':{isSuccess:true,protectedPlayback:true,series_id:hgIDs[0],vid:videoId,publicVideoSeo:isPublic?{available:true,seriesId:hgIDs[0],itemId:videoId,width:360,height:640,durationSeconds:90}:null}}));return;
+   }
+   unexpected.push(path);await send({error:'Unexpected Hongguo fixture path '+path});return;
+  }
   if(path==='/config/prod/appInit.html'){await send({urls:{cache:['https://legacy.example'],logic:['https://legacy.example']},vodTabs:[{type:'category',channelId:1,text:'电影'}],groups:[]});return;}
   if(path==='/v5/vod/home.capi'){await send({blocks:[{header:{title:'原有片源'},data:[{title:'原有影片',url:'vod/detail?vodId=1'}]}]});return;}
   unexpected.push(path);await send({error:'Unexpected fixture path '+path});
@@ -62,7 +82,7 @@ try{
  const home=async()=>{await action('page',{id:'home'});await page.locator('.hero').waitFor();};
  const source=async id=>{await page.locator('[data-act="source"][data-id="'+id+'"]').first().click();};
  await page.goto('http://127.0.0.1:'+port+'/');await page.locator('.hero').waitFor();
- assert.equal(await page.locator('.sources button').count(),6);
+ assert.equal(await page.locator('.sources button').count(),7);
  await source('yqk');await page.getByRole('heading',{name:'YQK专题'}).waitFor();
  assert.equal(await page.locator('[data-act="category"][data-id="5"]').count(),1);
  assert.equal(await page.locator('.home-section .card').count(),2);
@@ -116,6 +136,26 @@ try{
  assert.equal(await page.locator('.timeline-years,.timeline-months').count(),0);
  await action('page',{id:'me'});await action('me-tab',{id:'settings'});await page.locator('.settings-page').waitFor();
  assert.equal(await page.locator('#login-form').count(),0);
+ await home();await source('hongguo');await page.locator('.home-section h2').filter({hasText:'热播短剧'}).waitFor();
+ const hongguoHot=page.locator('.home-section').filter({hasText:'热播短剧'}).last();
+ assert.equal(await hongguoHot.locator('.card').count(),2);
+ await hongguoHot.locator('[data-act="collection-link"]').click();await page.locator('.collection-content .card').first().waitFor();
+ assert.equal(await page.locator('.collection-content .card').count(),1);
+ await page.evaluate(()=>window.firstHongguoCard=document.querySelector('.collection-content .card'));
+ await action('more');await page.waitForFunction(()=>document.querySelectorAll('.collection-content .card').length===2);
+ assert.equal(await page.evaluate(()=>window.firstHongguoCard===document.querySelector('.collection-content .card')),true);
+ await action('collection-back');await page.locator('.hero').waitFor();
+ await action('page',{id:'discover'});await page.locator('.discover-page .card').first().waitFor();
+ assert.deepEqual(await page.locator('.discover-tabs button').allTextContents(),['热播短剧','真人剧','漫剧','AI剧']);
+ await page.locator('.discover-tabs [data-id="1"]').click();await page.locator('.discover-page .card').first().waitFor();
+ assert.equal(await page.locator('.discover-page .card').count(),1);
+ await action('discover-more');await page.waitForFunction(()=>document.querySelectorAll('.discover-page .card').length===2);
+ await page.locator('.discover-page .card[data-id="'+hgIDs[0]+'"]').click();
+ await page.getByRole('heading',{name:'红果首页短剧',exact:true}).waitFor();
+ assert.equal(await page.locator('.episodes .episode').count(),1);
+ assert.equal(await page.locator('.episodes .episode').first().innerText(),'第1集');
+ assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/detail?series_id='+hgIDs[0]));
+ assert.ok(requests.some(r=>r.url.startsWith('https://hongguoduanju.com/player/'+hgIDs[0]+'/')));
  assert.deepEqual(unexpected,[]);assert.deepEqual(errors,[]);
- console.log('Website UI passed: six sources, distinct YQK/QNTV identities, sports visibility, direct posters, website protocols, incremental category/topic/channel pagination, string movie IDs, 45-episode paging, stale-response isolation, and source-aware discovery/account controls.');
+ console.log('Website UI passed: seven sources including Hongguo, distinct YQK/QNTV identities, sports visibility, direct posters, website protocols, incremental category/topic/channel pagination, string movie IDs, 45-episode paging, public-preview-only Hongguo episodes, stale-response isolation, and source-aware discovery/account controls.');
 }finally{await browser?.close();server.kill('SIGTERM');}

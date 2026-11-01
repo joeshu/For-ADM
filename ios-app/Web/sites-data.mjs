@@ -275,5 +275,11 @@ export default [
       "aesIV": "2f13eef7dfc6c613",
       "clientVersion": 3102
     }
+  },
+  {
+    "id": "hongguo",
+    "name": "红果短剧",
+    "provider": "hongguo",
+    "origin": "https://hongguoduanju.com"
   }
 ];
