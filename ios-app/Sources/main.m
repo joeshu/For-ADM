@@ -698,7 +698,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
     NSString*requestedContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
     BOOL livePlayback=[requestedContext hasPrefix:@"live:"];
-    NSURL*playURL=livePlayback?[self.hlsProxy prepareLive:url headers:headers]:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
+    NSString*mediaHost=url.host.lowercaseString?:@"";NSRegularExpression*officialMediaHost=[NSRegularExpression regularExpressionWithPattern:@"^v[0-9]+-(?:reading|hgweb)\\.qznovelvod\\.com$" options:NSRegularExpressionCaseInsensitive error:NULL];BOOL proxyOfficialMP4=[body[@"proxyMP4"] boolValue]&&[url.scheme.lowercaseString isEqualToString:@"https"]&&[url.path.lowercaseString hasSuffix:@".mp4"]&&[officialMediaHost numberOfMatchesInString:mediaHost options:0 range:NSMakeRange(0,mediaHost.length)]==1;
+    NSURL*playURL=livePlayback?[self.hlsProxy prepareLive:url headers:headers]:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue] proxyMP4:proxyOfficialMP4];
     #if defined(SY_SIMULATOR_SMOKE)
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
     if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}

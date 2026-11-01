@@ -15,6 +15,9 @@
 @property(nonatomic) NSUInteger removed;
 @property(nonatomic,copy) NSString*lastTransportError;
 @property(nonatomic) NSInteger lastHTTPStatus;
+- (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
+- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
+- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4;
 @end
 @implementation SYHLSProxy
 - (instancetype)init {
@@ -44,7 +47,7 @@
 - (NSURL*)mapped:(NSURL*)url {
  if(![@[@"https",@"http"] containsObject:url.scheme.lowercaseString]||!url.host.length||!self.port)return nil;
  NSString*path=self.paths[url.absoluteString];
- if(!path){path=[NSString stringWithFormat:@"/%@/%@.%@",self.token,NSUUID.UUID.UUIDString,[url.path.lowercaseString hasSuffix:@".m3u8"]?@"m3u8":@"bin"];self.paths[url.absoluteString]=path;self.resources[path]=url;}
+ if(!path){NSString*extension=url.pathExtension.lowercaseString;NSSet*known=[NSSet setWithArray:@[@"m3u8",@"mp4",@"m4v",@"mov",@"ts",@"aac"]];if(![known containsObject:extension])extension=@"bin";path=[NSString stringWithFormat:@"/%@/%@.%@",self.token,NSUUID.UUID.UUIDString,extension];self.paths[url.absoluteString]=path;self.resources[path]=url;}
  return [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%u%@",self.port,path]];
 }
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers {
@@ -53,11 +56,15 @@
  return [self mapped:url]?:url;
 }
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled {
+ return [self prepare:url headers:headers enabled:enabled proxyMP4:NO];
+}
+- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4 {
  [self.session invalidateAndCancel];self.removed=0;self.enabled=enabled;self.headers=headers;self.token=NSUUID.UUID.UUIDString;
  [self.resources removeAllObjects];[self.paths removeAllObjects];
- NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=6;
+ NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=6;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
  self.session=[NSURLSession sessionWithConfiguration:config];
- if(!enabled||!self.port||![url.path.lowercaseString hasSuffix:@".m3u8"])return url;
+ BOOL playlist=[url.path.lowercaseString hasSuffix:@".m3u8"],mp4=proxyMP4&&[url.path.lowercaseString hasSuffix:@".mp4"];
+ if(!self.port||(!mp4&&(!enabled||!playlist)))return url;
  return [self mapped:url]?:url;
 }
 - (void)reply:(nw_connection_t)connection status:(NSInteger)status headers:(NSDictionary*)headers data:(NSData*)data head:(BOOL)head {
@@ -102,8 +109,8 @@
  BOOL head=parts.count>=2&&[parts[0] isEqual:@"HEAD"];
  NSURL*url=parts.count>=2?self.resources[parts[1]]:nil;
  if(!url||(!head&&![parts[0] isEqual:@"GET"])){self.lastTransportError=@"proxy-resource-not-found";[self reply:connection status:404 headers:@{} data:[NSData data] head:head];return;}
- NSMutableURLRequest*upstream=[NSMutableURLRequest requestWithURL:url];upstream.allHTTPHeaderFields=self.headers;upstream.HTTPMethod=head?@"HEAD":@"GET";
- for(NSString*line in lines)if(![url.path.lowercaseString hasSuffix:@".m3u8"]&&[line.lowercaseString hasPrefix:@"range:"])[upstream setValue:[[line substringFromIndex:6] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet] forHTTPHeaderField:@"Range"];
+ NSMutableURLRequest*upstream=[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20];upstream.allHTTPHeaderFields=self.headers;upstream.HTTPMethod=head?@"HEAD":@"GET";
+ for(NSString*line in lines)if(![url.path.lowercaseString hasSuffix:@".m3u8"]&&([line.lowercaseString hasPrefix:@"range:"]||[line.lowercaseString hasPrefix:@"if-range:"])) {NSRange colon=[line rangeOfString:@":"];if(colon.location!=NSNotFound)[upstream setValue:[[line substringFromIndex:colon.location+1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet] forHTTPHeaderField:[[line substringToIndex:colon.location] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet]];}
  NSString*token=self.token;
  __weak SYHLSProxy*weak=self;
  [[self.session dataTaskWithRequest:upstream completionHandler:^(NSData*body,NSURLResponse*response,NSError*error){
@@ -136,9 +143,13 @@
 // Experimental ABI-only build has no HLS proxy; release builds always use Apple's SDK.
 @interface SYHLSProxy:NSObject
 @property(nonatomic) NSUInteger removed;
+- (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
+- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4;
 @end
 @implementation SYHLSProxy
+- (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers{return url;}
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled{return url;}
+- (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled proxyMP4:(BOOL)proxyMP4{return url;}
 @end
 #endif

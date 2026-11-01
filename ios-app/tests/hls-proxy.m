@@ -53,6 +53,8 @@ int main(int argc,char**argv){@autoreleasepool{
  NSString*encrypted=text(get(root,@"GET",nil,NULL));NSCAssert([encrypted containsString:@"METHOD=AES-128"]&&[encrypted containsString:@"URI=\"http://127.0.0.1:"],@"key/map mapping lost");
  get(old,@"GET",nil,&response);NSCAssert(response.statusCode==404,@"old token still usable");
  NSURL*direct=[p prepare:[NSURL URLWithString:@"https://fixture.test/master.m3u8"] headers:@{} enabled:NO];NSCAssert([direct.scheme isEqual:@"https"],@"off switch still proxies");
- NSLog(@"HLS transport passed: nested playlists, ad removal, relative URLs, Referer, Range, HEAD, encrypted keys/maps, token replacement and disabled path.");
+ NSURL*mp4=[p prepare:[NSURL URLWithString:@"https://fixture.test/episode.mp4"] headers:@{@"Referer":@"https://site.test/"} enabled:NO proxyMP4:YES];NSCAssert([mp4.host isEqual:@"127.0.0.1"]&&[mp4.pathExtension isEqual:@"mp4"],@"official MP4 relay was not mapped or lost its media extension");p.session=fixtureSession();NSData*mp4Range=get(mp4,@"GET",@"bytes=2-5",&response);NSCAssert(response.statusCode==206&&[text(mp4Range) isEqual:@"2345"]&&[response.allHeaderFields[@"Content-Range"] isEqual:@"bytes 2-5/10"],@"MP4 byte-range response was not relayed");
+ NSURL*directMP4=[p prepare:[NSURL URLWithString:@"https://fixture.test/episode.mp4"] headers:@{} enabled:NO proxyMP4:NO];NSCAssert([directMP4.scheme isEqual:@"https"],@"MP4 proxy flag off still relays media");
+ NSLog(@"Media transport passed: nested playlists, ad removal, relative URLs, Referer, HLS and MP4 Range, HEAD, encrypted keys/maps, token replacement and disabled paths.");
  nw_listener_cancel(p.listener);[p.session invalidateAndCancel];return 0;
 }}
