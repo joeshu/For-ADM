@@ -26,7 +26,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit, parse_qs, urlencode
 from urllib.request import Request, build_opener, HTTPCookieProcessor, HTTPRedirectHandler
 
-VERSION = '1.0.0-public'
+VERSION = '1.0.1-public'
 ORIGIN = 'https://hongguoduanju.com'
 COMPAT_PATH = '/api/video/protected/fallback-play-info'
 UA_WEB = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -113,6 +113,10 @@ class _CheckedRedirect(HTTPRedirectHandler):
     def __init__(self, check):
         self.check = check
     def redirect_request(self, request, fp, code, message, headers, newurl):
+        if getattr(request, '_bounded_probe', False):
+            # urllib otherwise drains the redirect body outside our read limit.
+            if fp is not None: fp.close()
+            raise SourceError('视频分段检查不接受重定向，请重新获取播放地址')
         method = request.get_method()
         if code in (301, 302, 303) and method == 'POST':
             method = 'GET'
@@ -148,6 +152,7 @@ class PublicHTTP:
     def _once(self, url, method, headers, payload, limit, require_range, deadline):
         self._check(url, method)
         request = Request(url, data=payload, headers=headers, method=method)
+        request._bounded_probe = require_range
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise SourceError('请求预算已用完')
@@ -167,15 +172,22 @@ class PublicHTTP:
             chunks, total = [], 0
             reader = getattr(response, 'read1', None) or response.read
             while True:
-                if time.monotonic() >= deadline:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
                     raise SourceError('响应读取超时')
-                block = reader(min(65536, limit + 1 - total))
+                transport_socket = getattr(getattr(getattr(response, 'fp', None), 'raw', None), '_sock', None)
+                if transport_socket is not None:
+                    transport_socket.settimeout(min(self.timeout, remaining))
+                read_limit = limit - total if require_range else limit + 1 - total
+                block = reader(min(65536, read_limit))
                 if not block:
                     break
                 total += len(block)
                 if total > limit:
                     raise SourceError('响应超过大小限制')
                 chunks.append(block)
+                if require_range and total == limit:
+                    break
             return status, response_headers, b''.join(chunks)
 
     def _check(self, url, method):
@@ -186,12 +198,16 @@ class PublicHTTP:
         if not valid:
             raise SourceError('不支持的公开资源地址')
 
-    def request(self, url, method='GET', headers=None, payload=None, limit=3500000, require_range=False):
+    def request(self, url, method='GET', headers=None, payload=None, limit=3500000, require_range=False, deadline=None):
         self._check(url, method)
         fields = {'User-Agent': UA_WEB, 'Accept-Language': 'zh-CN,zh;q=0.9', 'Accept': '*/*', 'Accept-Encoding': 'identity'}
         fields.update(headers or {})
-        deadline, last = time.monotonic() + self.retry_budget, None
-        for attempt in range(self.attempts):
+        # A probe shares one deadline and byte budget across all its ranges.
+        # Retrying a partially read range would spend that byte budget twice.
+        attempts = 1 if require_range and deadline is not None else self.attempts
+        deadline = min(deadline, time.monotonic() + self.retry_budget) if deadline is not None else time.monotonic() + self.retry_budget
+        last = None
+        for attempt in range(attempts):
             wait = 0.2 * (2 ** attempt) + random.random() * 0.05
             try:
                 return self._once(url, method, fields, payload, limit, require_range, deadline)
@@ -218,7 +234,7 @@ class PublicHTTP:
                 if isinstance(getattr(error, 'reason', None), ssl.SSLError):
                     raise SourceError('TLS 证书校验失败')
                 last = SourceError('网络连接失败，请稍后重试')
-            if attempt + 1 >= self.attempts or time.monotonic() + wait >= deadline:
+            if attempt + 1 >= attempts or time.monotonic() + wait >= deadline:
                 break
             time.sleep(wait)
         raise last or SourceError('请求失败')
@@ -272,65 +288,217 @@ class PublicHTTP:
             raise SourceError('播放地址已过期或临近过期，请重试')
         return url, referer, expiry
 
-    def probe(self, url, headers=None):
-        _, headers, body = self.request(url, headers=dict(headers or {}, Range='bytes=0-65535'), limit=65536, require_range=True)
-        match = re.fullmatch(r'bytes 0-([0-9]+)/([0-9]+)', headers.get('content-range', ''), re.I)
-        if not match:
+    def _probe_range(self, url, headers, start, end, deadline, expected_total=None):
+        if time.monotonic() >= deadline:
+            raise SourceError('视频初始化检查超时')
+        fields = {key: value for key, value in (headers or {}).items() if key.lower() != 'range'}
+        fields['Range'] = 'bytes=%d-%d' % (start, end)
+        status, response_headers, body = self.request(url, headers=fields, limit=end - start + 1, require_range=True, deadline=deadline)
+        match = re.fullmatch(r'bytes ([0-9]{1,20})-([0-9]{1,20})/([0-9]{1,20})', response_headers.get('content-range', ''), re.I)
+        if status != 206 or not match:
             raise SourceError('无效的分段响应')
-        end, total = (int(value) for value in match.groups())
-        if not (0 <= end < total and end < 65536 and len(body) == end + 1):
+        actual_start, actual_end, total = (int(value) for value in match.groups())
+        if not (actual_start == start <= actual_end < total and actual_end == min(end, total - 1) and len(body) == actual_end - start + 1):
             raise SourceError('分段正文长度或范围不匹配')
-        if 'text/' in headers.get('content-type', '') or 'json' in headers.get('content-type', ''):
-            raise SourceError('返回的是网页而非视频')
-        info = inspect_mp4(body)
-        if not info['mp4'] or info['encrypted']:
-            raise SourceError('媒体不是可直接播放的普通 MP4')
+        if expected_total is not None and total != expected_total:
+            raise SourceError('视频在分段检查期间发生变化')
+        content_type = response_headers.get('content-type', '').lower()
+        encoding = response_headers.get('content-encoding', '').lower()
+        if 'text/' in content_type or 'json' in content_type or 'xml' in content_type or encoding not in ('', 'identity'):
+            raise SourceError('返回的是网页或压缩响应，而非原始视频字节')
+        if time.monotonic() >= deadline:
+            raise SourceError('视频初始化检查超时')
+        return body, total
+
+    def probe(self, url, headers=None):
+        deadline, byte_limit = time.monotonic() + 20, 1024 * 1024
+        prefix, total = self._probe_range(url, headers, 0, 65535, deadline)
+        windows, transferred, requests = [(0, prefix)], len(prefix), 1
+
+        def read_at(start, length, read_ahead=False):
+            nonlocal transferred, requests
+            if start + length > total:
+                raise SourceError('MP4 初始化信息不完整，无法确认视频轨')
+            pieces, at = [], start
+            while at < start + length:
+                if time.monotonic() >= deadline:
+                    raise SourceError('视频初始化检查超时')
+                window = next(((offset, data) for offset, data in windows if offset <= at < offset + len(data)), None)
+                if window:
+                    offset, data = window
+                    count = min(start + length - at, offset + len(data) - at)
+                    pieces.append(data[at - offset:at - offset + count])
+                    at += count
+                    continue
+                needed = start + length - at
+                count = min(max(needed, 65536) if read_ahead else needed, total - at, byte_limit - transferred)
+                if requests >= 4 or count < needed:
+                    raise SourceError('MP4 初始化信息不完整：已达到元数据检查预算')
+                data, _ = self._probe_range(url, headers, at, at + count - 1, deadline, total)
+                windows.append((at, data))
+                transferred += len(data)
+                requests += 1
+            return b''.join(pieces)
+
+        # Follow top-level box sizes; never search media payload for box names.
+        at, ftyp, moov = 0, None, None
+        for _ in range(512):
+            if at >= total:
+                break
+            head = read_at(at, 8, True)
+            size, kind = struct.unpack('>I4s', head)
+            header_size = 8
+            if size == 1:
+                size = struct.unpack_from('>Q', read_at(at, 16), 8)[0]
+                header_size = 16
+            elif size == 0:
+                size = total - at
+            if size < header_size or at + size > total:
+                raise SourceError('MP4 初始化信息不完整：文件结构或长度无效')
+            if kind in (b'ftyp', b'moov'):
+                if size > byte_limit:
+                    raise SourceError('MP4 初始化信息不完整：元数据超过检查预算')
+                box = read_at(at, size)
+                # A zero-sized terminal box was read to the known file end.
+                if head[:4] == b'\0\0\0\0':
+                    box = struct.pack('>I', size) + box[4:]
+                if kind == b'ftyp': ftyp = box
+                else: moov = box
+            at += size
+            if ftyp is not None and moov is not None:
+                break
+        if ftyp is None:
+            raise SourceError('媒体不是有效的 MP4 文件')
+        if moov is None:
+            raise SourceError('MP4 初始化信息不完整：没有取得完整 moov')
+        # Only complete metadata boxes are joined, never disjoint media bytes.
+        info = inspect_mp4(ftyp + moov)
+        if not info['mp4'] or not info['initialization_complete']:
+            raise SourceError('MP4 初始化信息不完整，无法确认视频轨')
+        if info['encrypted']:
+            raise SourceError('媒体包含加密样本，无法直接播放')
+        if not info['has_video']:
+            raise SourceError('MP4 没有具有非零画面尺寸的视频轨，可能仅含音频')
+        if time.monotonic() >= deadline:
+            raise SourceError('视频初始化检查超时')
         return info
 
 
 def inspect_mp4(data):
-    if not isinstance(data, bytes) or len(data) > 65536:
+    if not isinstance(data, bytes) or len(data) > 1024 * 1024:
         raise SourceError('无效的媒体探针大小')
-    result = {'mp4': False, 'encrypted': False, 'duration': None, 'tracks': []}
-    budget = [512]
-    def walk(start, end, depth=0, samples=False):
-        if depth > 10:
-            return
-        at = start
-        while at + 8 <= end and budget[0] > 0:
+    result = {'mp4': False, 'encrypted': False, 'duration': None, 'tracks': [],
+              'initialization_complete': False, 'has_video': None,
+              'codecs': [], 'dimensions': [], 'encryption_known': False}
+    result['video_codecs'], result['video_dimensions'] = result['codecs'], result['dimensions']
+    budget = [2048]
+
+    def boxes(start, end):
+        nodes, at = [], start
+        while at < end:
             budget[0] -= 1
+            if budget[0] < 0 or at + 8 > end:
+                raise ValueError('incomplete box or metadata budget exhausted')
             size, kind = struct.unpack_from('>I4s', data, at)
             header = 8
             if size == 1:
-                if at + 16 > end: return
-                size = struct.unpack_from('>Q', data, at + 8)[0]
-                header = 16
-            if size == 0: size = end - at
-            if size < header: return
-            stop = min(at + size, end)
-            if samples:
-                result['tracks'].append(kind.decode('ascii', 'replace'))
-                if kind in (b'encv', b'enca'): result['encrypted'] = True
-            if depth == 0 and kind == b'ftyp' and size >= header + 8 and at + size <= end:
-                result['mp4'] = True
-            if kind in (b'moov', b'trak', b'mdia', b'minf', b'stbl'):
-                walk(at + header, stop, depth + 1)
-            elif kind == b'stsd' and at + header + 8 <= stop:
-                walk(at + header + 8, stop, depth + 1, True)
-            elif kind == b'mvhd':
-                offset = at + header
-                if offset + 4 <= stop:
-                    version = data[offset]
-                    if version == 0 and offset + 20 <= stop:
-                        scale, duration = struct.unpack_from('>II', data, offset + 12)
-                        if scale: result['duration'] = duration / scale
-                    elif version == 1 and offset + 32 <= stop:
-                        scale = struct.unpack_from('>I', data, offset + 20)[0]
-                        duration = struct.unpack_from('>Q', data, offset + 24)[0]
-                        if scale: result['duration'] = duration / scale
-            if kind == b'mdat' or at + size > end: return
+                if at + 16 > end: raise ValueError('incomplete extended box')
+                size, header = struct.unpack_from('>Q', data, at + 8)[0], 16
+            if size < header or at + size > end:
+                raise ValueError('invalid or incomplete child box')
+            nodes.append((kind, at + header, at + size))
             at += size
-    walk(0, len(data))
+        return nodes
+
+    def one(nodes, kind, required=True):
+        found = [node for node in nodes if node[0] == kind]
+        if len(found) > 1 or (required and not found):
+            raise ValueError('missing or duplicate initialization box')
+        return found[0] if found else None
+
+    def movie_header(node):
+        _, start, end = node
+        if start + 4 > end: raise ValueError('incomplete movie header')
+        version = data[start]
+        if version == 0 and start + 20 <= end:
+            scale, duration = struct.unpack_from('>II', data, start + 12)
+        elif version == 1 and start + 32 <= end:
+            scale = struct.unpack_from('>I', data, start + 20)[0]
+            duration = struct.unpack_from('>Q', data, start + 24)[0]
+        else:
+            raise ValueError('unsupported or incomplete movie header')
+        if not scale: raise ValueError('invalid movie timescale')
+        return duration / scale
+
+    def track(node):
+        _, start, end = node
+        mdia = one(boxes(start, end), b'mdia')
+        children = boxes(mdia[1], mdia[2])
+        hdlr = one(children, b'hdlr')
+        if hdlr[1] + 24 > hdlr[2]: raise ValueError('incomplete media handler')
+        handler = data[hdlr[1] + 8:hdlr[1] + 12]
+        minf = one(children, b'minf', handler in (b'vide', b'soun'))
+        if minf is None: return [], [], [], False
+        stbl = one(boxes(minf[1], minf[2]), b'stbl', handler in (b'vide', b'soun'))
+        if stbl is None: return [], [], [], False
+        stsd = one(boxes(stbl[1], stbl[2]), b'stsd', handler in (b'vide', b'soun'))
+        if stsd is None: return [], [], [], False
+        start, end = stsd[1:]
+        if start + 8 > end or data[start] != 0:
+            raise ValueError('incomplete or unsupported sample description')
+        count = struct.unpack_from('>I', data, start + 4)[0]
+        entries = boxes(start + 8, end)
+        if len(entries) != count: raise ValueError('sample description count mismatch')
+        tracks, codecs, dimensions, encrypted = [], [], [], False
+        for kind, payload, stop in entries:
+            if payload + 8 > stop: raise ValueError('incomplete sample entry')
+            codec = kind.decode('ascii', 'replace')
+            tracks.append(codec)
+            encrypted |= kind in (b'encv', b'enca')
+            if handler == b'vide':
+                if kind not in (b'avc1', b'avc2', b'avc3', b'avc4', b'hvc1', b'hev1', b'av01', b'vp08', b'vp09', b'mp4v', b's263', b'jpeg', b'encv'):
+                    raise ValueError('unsupported visual sample entry')
+                if payload + 78 > stop: raise ValueError('incomplete visual sample entry')
+                width, height = struct.unpack_from('>HH', data, payload + 24)
+                codecs.append(codec)
+                if width and height:
+                    dimensions.append({'width': width, 'height': height})
+        return tracks, codecs, dimensions, encrypted
+
+    at, moov_seen = 0, False
+    while at + 8 <= len(data):
+        size, kind = struct.unpack_from('>I4s', data, at)
+        header = 8
+        if size == 1:
+            if at + 16 > len(data): break
+            size, header = struct.unpack_from('>Q', data, at + 8)[0], 16
+        # A bare prefix cannot establish the end of a zero-sized box.
+        if size < header or at + size > len(data): break
+        if kind == b'ftyp' and size >= header + 8:
+            result['mp4'] = True
+        elif kind == b'moov':
+            if moov_seen:
+                result['initialization_complete'] = result['encryption_known'] = False
+                result['has_video'] = None
+                break
+            moov_seen = True
+            try:
+                nodes = boxes(at + header, at + size)
+                duration = movie_header(one(nodes, b'mvhd'))
+                tracks, codecs, dimensions, encrypted = [], [], [], False
+                for node in nodes:
+                    if node[0] != b'trak': continue
+                    descriptions, video_codecs, sizes, protected = track(node)
+                    tracks.extend(descriptions)
+                    codecs.extend(video_codecs)
+                    dimensions.extend(sizes)
+                    encrypted |= protected
+                result.update(duration=duration, tracks=tracks, codecs=codecs, dimensions=dimensions,
+                              video_codecs=codecs, video_dimensions=dimensions, encrypted=encrypted,
+                              initialization_complete=True, encryption_known=True, has_video=bool(dimensions))
+            except (ValueError, struct.error):
+                result['has_video'] = None
+        at += size
     return result
 
 
@@ -863,7 +1031,7 @@ class Spider:
 
     def playerContent(self, flag, id, vipFlags=None):
         preview = '试看' in str(flag) or 'preview' in str(flag).lower()
-        empty = {'parse': 0, 'playUrl': '', 'url': '', 'header': {}, 'preview': preview, 'playback_verified': False}
+        empty = {'parse': 0, 'playUrl': '', 'url': '', 'header': {}, 'format': 'video/mp4', 'preview': preview, 'playback_verified': False}
         try:
             parts = str(id or '').strip().split('~')
             if len(parts) == 1:
@@ -879,13 +1047,20 @@ class Spider:
                     url, referer, expiry = ORIGIN + '/video/public/' + vid + '/360p.mp4', ORIGIN + '/', None
                 else:
                     url, referer, expiry = self.http.compat(sid, vid)
-                playback_headers = {'User-Agent': UA_WEB, 'Referer': referer}
+                playback_headers = {'User-Agent': UA_WEB, 'Referer': referer, 'Accept': '*/*', 'Accept-Encoding': 'identity'}
                 info = self.http.probe(url, playback_headers)
                 if expiry is not None and expiry <= time.time() + 2:
                     raise SourceError('播放地址在预检期间过期，请重试')
-                return dict(empty, url=url, header=playback_headers, expires_at=expiry, duration=info['duration'], verification='mp4-initialization-only', msg='公开试看片段，非整集' if preview else '官网兼容播放；已检查地址和文件头，未验证完整解码/播到结束')
+                return dict(empty, url=url, header=playback_headers, expires_at=expiry, duration=info['duration'],
+                            initialization_complete=info.get('initialization_complete', False),
+                            video_codecs=info.get('video_codecs', []),
+                            video_dimensions=info.get('video_dimensions', []),
+                            verification='mp4-video-initialization-only',
+                            msg='公开试看片段，非整集' if preview else '官网兼容播放；已检查视频轨初始化，未验证客户端完整解码/播放')
             ttl = lambda result: 10 if preview else max(0, min(10, result['expires_at'] - time.time() - 2)) if result.get('expires_at') else 0
-            return copy.deepcopy(self.cache.load(('play', preview, sid, vid), resolve_public, ttl))
+            # Resolution can use an 18s API budget plus a 20s media probe. A
+            # concurrent caller must not time out before that owner can finish.
+            return copy.deepcopy(self.cache.load(('play', preview, sid, vid), resolve_public, ttl, wait_timeout=45))
         except Exception as error:
             return dict(empty, msg=str(error), status=getattr(error, 'status', 0))
 
@@ -928,7 +1103,10 @@ def _cli(argv=None):
             raise SourceError('单次自检最多检查 500 集，请按需逐集使用 play')
         def inspect_episode(episode):
             r = sp.playerContent('full', data['id'] + '~' + episode['id'])
-            return {'episode': episode['number'], 'available': bool(r['url']), 'duration': r.get('duration'), 'message': r.get('msg'), 'status': r.get('status', 200)}
+            return {'episode': episode['number'], 'available': bool(r['url']), 'duration': r.get('duration'),
+                    'initialization_complete': r.get('initialization_complete', False),
+                    'video_codecs': r.get('video_codecs', []), 'video_dimensions': r.get('video_dimensions', []),
+                    'message': r.get('msg'), 'status': r.get('status', 200)}
         if getattr(args, 'all', False):
             with ThreadPoolExecutor(max_workers=3) as pool:
                 rows = list(pool.map(inspect_episode, targets))

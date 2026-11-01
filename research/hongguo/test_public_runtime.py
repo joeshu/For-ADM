@@ -22,8 +22,11 @@ def page(loader):
 def box(kind, body):
     return struct.pack('>I4s', len(body)+8, kind.encode())+body
 
-def media(encrypted=False, duration=108.33):
-    track = box('trak', box('mdia', box('minf', box('stbl', box('stsd', b'\0'*4+struct.pack('>I', 1)+box('encv' if encrypted else 'avc1', b'\0'*8))))))
+def media(encrypted=False, duration=108.33, video=True, width=360, height=640):
+    handler = box('hdlr', b'\0'*8 + (b'vide' if video else b'soun') + b'\0'*13)
+    sample = b'\0'*6 + struct.pack('>H', 1) + b'\0'*16 + struct.pack('>HH', width, height) + b'\0'*50
+    codec = ('encv' if encrypted else 'avc1') if video else 'mp4a'
+    track = box('trak', box('mdia', handler + box('minf', box('stbl', box('stsd', b'\0'*4+struct.pack('>I', 1)+box(codec, sample))))))
     return box('ftyp', b'isom\0\0\0\0isom')+box('moov', box('mvhd', b'\0'*12+struct.pack('>II',1000,int(duration*1000)))+track)+box('mdat', b'payload encv is not a sample entry')
 
 class Response:
@@ -121,7 +124,7 @@ class RuntimeTests(unittest.TestCase):
 
     def test_probe_uses_playback_headers_and_validates_lengths(self):
         body = media()
-        headers = {'Content-Range':'bytes 0-%d/1000'%(len(body)-1),'Content-Type':'video/mp4'}
+        headers = {'Content-Range':'bytes 0-%d/%d'%(len(body)-1,len(body)),'Content-Type':'video/mp4'}
         h, op = http([Response(body,headers,206)])
         info = h.probe('https://v3-hgweb.qznovelvod.com/video/',{'Referer':m.ORIGIN+'/player/1/2'})
         self.assertAlmostEqual(info['duration'],108.33)
@@ -132,8 +135,8 @@ class RuntimeTests(unittest.TestCase):
     def test_encrypted_samples_are_rejected_and_payload_text_is_ignored(self):
         self.assertFalse(m.inspect_mp4(media())['encrypted'])
         body = media(True)
-        h, _ = http([Response(body,{'Content-Range':'bytes 0-%d/1000'%(len(body)-1)},206)])
-        with self.assertRaises(m.SourceError): h.probe('https://v3-hgweb.qznovelvod.com/video/')
+        h, _ = http([Response(body,{'Content-Range':'bytes 0-%d/%d'%(len(body)-1,len(body))},206)])
+        with self.assertRaisesRegex(m.SourceError,'加密'): h.probe('https://v3-hgweb.qznovelvod.com/video/')
 
     def test_invalid_input_does_not_reach_network(self):
         h, op = http([])
@@ -229,6 +232,8 @@ class RuntimeTests(unittest.TestCase):
             first['header']['Referer']='changed'
             again=sp.playerContent('full','1~2')
             self.assertEqual(h.calls,1)
+            self.assertEqual(again['format'],'video/mp4')
+            self.assertEqual(again['header']['Accept-Encoding'],'identity')
             self.assertEqual(again['header']['Referer'],m.ORIGIN+'/player/1/2')
             self.assertEqual(h.probes[0][1]['Referer'],again['header']['Referer'])
             h.now=4

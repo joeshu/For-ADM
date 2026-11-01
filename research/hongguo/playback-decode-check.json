@@ -1,0 +1,252 @@
+{
+  "checkedAt": "2026-11-01T18:06:39.524708Z",
+  "seriesId": "7690961604636052505",
+  "scope": "Normal website-compatible MP4 downloaded with playback headers and fully decoded by FFmpeg; this is not playback verification in the user client.",
+  "clientPlaybackVerified": false,
+  "allEpisodesPlaybackVerified": false,
+  "decoder": "FFmpeg",
+  "samples": [
+    {
+      "episode": 1,
+      "initialization": {
+        "mp4": true,
+        "encrypted": false,
+        "duration": 108.331,
+        "tracks": [
+          "avc1",
+          "mp4a"
+        ]
+      },
+      "downloadStatus": 200,
+      "contentType": "video/mp4",
+      "bytes": 6971183,
+      "seconds": 2.167,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "width": 360,
+          "height": 640,
+          "pix_fmt": "yuv420p",
+          "duration": "108.320000",
+          "nb_frames": "2708"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "sample_rate": "44100",
+          "channels": 2,
+          "duration": "108.330680",
+          "nb_frames": "4668"
+        }
+      ],
+      "duration": "108.330680",
+      "videoDecodeExitCode": 0,
+      "decodedInitialFrames": 3,
+      "videoDecodeError": "",
+      "completeDecode": {
+        "exitCode": 0,
+        "frames": 2708,
+        "outTime": "00:01:48.320000",
+        "end": true,
+        "error": ""
+      },
+      "visualFrameCheck": {
+        "atSeconds": 5,
+        "visiblePictureVerified": true,
+        "method": "Local FFmpeg frame extraction and visual inspection; image not committed"
+      },
+      "mediaSHA256": "3c546ca47eb095dead40b385ab7cbdd79e595cad24d3bd4643f4b04f7b4d5d0c"
+    },
+    {
+      "episode": 4,
+      "initialization": {
+        "mp4": true,
+        "encrypted": false,
+        "duration": 143.403,
+        "tracks": [
+          "avc1",
+          "mp4a"
+        ]
+      },
+      "downloadStatus": 200,
+      "contentType": "video/mp4",
+      "bytes": 11775024,
+      "seconds": 6.556,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "width": 360,
+          "height": 640,
+          "pix_fmt": "yuv420p",
+          "duration": "143.400000",
+          "nb_frames": "3585"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "sample_rate": "44100",
+          "channels": 2,
+          "duration": "143.402653",
+          "nb_frames": "6178"
+        }
+      ],
+      "duration": "143.402653",
+      "videoDecodeExitCode": 0,
+      "decodedInitialFrames": 3,
+      "videoDecodeError": "",
+      "completeDecode": {
+        "exitCode": 0,
+        "frames": 3585,
+        "outTime": "00:02:23.400000",
+        "end": true,
+        "error": ""
+      },
+      "mediaSHA256": "7b3c24f76657bd3771dfbbc0839c56a2f5c59cbd07a2827e1f8d51e0f51f9cad"
+    },
+    {
+      "episode": 6,
+      "initialization": {
+        "mp4": true,
+        "encrypted": false,
+        "duration": 134.763,
+        "tracks": [
+          "avc1",
+          "mp4a"
+        ]
+      },
+      "downloadStatus": 200,
+      "contentType": "video/mp4",
+      "bytes": 8669441,
+      "seconds": 5.707,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "width": 360,
+          "height": 640,
+          "pix_fmt": "yuv420p",
+          "duration": "134.760000",
+          "nb_frames": "3369"
+        },
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "sample_rate": "44100",
+          "channels": 2,
+          "duration": "134.762653",
+          "nb_frames": "5806"
+        }
+      ],
+      "duration": "134.762653",
+      "videoDecodeExitCode": 0,
+      "decodedInitialFrames": 3,
+      "videoDecodeError": "",
+      "completeDecode": {
+        "exitCode": 0,
+        "frames": 3369,
+        "outTime": "00:02:14.760000",
+        "end": true,
+        "error": ""
+      },
+      "mediaSHA256": "5c8d9f49fcffce2697e2d1599f398fb5d1699c14489383ac5de3ecf39c1c619a"
+    }
+  ],
+  "updatedProbeChecks": [
+    {
+      "episode": 1,
+      "version": "1.0.1-public",
+      "addressReturned": true,
+      "format": "video/mp4",
+      "initialization_complete": true,
+      "video_codecs": [
+        "avc1"
+      ],
+      "video_dimensions": [
+        {
+          "width": 360,
+          "height": 640
+        }
+      ],
+      "duration": 108.331,
+      "playbackHeaders": [
+        "User-Agent",
+        "Referer",
+        "Accept",
+        "Accept-Encoding"
+      ],
+      "requestCountIncludingResolve": 3,
+      "seconds": 4.451,
+      "error": null
+    },
+    {
+      "episode": 4,
+      "version": "1.0.1-public",
+      "addressReturned": false,
+      "format": "video/mp4",
+      "initialization_complete": null,
+      "video_codecs": null,
+      "video_dimensions": null,
+      "duration": null,
+      "playbackHeaders": [],
+      "requestCountIncludingResolve": 1,
+      "seconds": 0.749,
+      "error": "站点未提供本集的整集兼容播放；可使用官方 App"
+    },
+    {
+      "episode": 6,
+      "version": "1.0.1-public",
+      "addressReturned": false,
+      "format": "video/mp4",
+      "initialization_complete": null,
+      "video_codecs": null,
+      "video_dimensions": null,
+      "duration": null,
+      "playbackHeaders": [],
+      "requestCountIncludingResolve": 1,
+      "seconds": 1.067,
+      "error": "站点未提供本集的整集兼容播放；可使用官方 App"
+    }
+  ],
+  "finalSelftest": {
+    "version": "1.0.1-public",
+    "scope": "目录、地址和 MP4 初始化；不代表完整播放或全集播放验证",
+    "full_playback_verified": false,
+    "all_episodes_playback_verified": false,
+    "catalogue_count": 46,
+    "catalogue_complete": true,
+    "checked_count": 1,
+    "episodes": [
+      {
+        "episode": 1,
+        "available": true,
+        "duration": 108.331,
+        "initialization_complete": true,
+        "video_codecs": [
+          "avc1"
+        ],
+        "video_dimensions": [
+          {
+            "width": 360,
+            "height": 640
+          }
+        ],
+        "message": "官网兼容播放；已检查视频轨初始化，未验证客户端完整解码/播放",
+        "status": 200
+      }
+    ]
+  }
+}
