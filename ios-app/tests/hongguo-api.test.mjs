@@ -11,13 +11,13 @@ function categoryPage(path){
  const list=pageNumber===2?[movie('7690961604636052506','第二页影片')]:selected?[movie('7690961604636052507','爱情分类影片')]:[movie(sid,'红果测试短剧')];
  return page({'category_$':{isSuccess:true,query:{page:pageNumber},selectorList:[{items:[{selector_item_id:'romance',show_name:'爱情'}]}],recommendList:list,pagination:{pageNum:pageNumber,totalPages:2}}});
 }
-function createClient(){
+function createClient({episodeList=vids}={}){
  const requests=[],storage={getItem(){return null;},setItem(){}};
  const transport=async request=>{
   const url=new URL(request.url);requests.push({url:url.href,method:request.method,body:request.body});
   if(url.pathname==='/')return response(page({'page':{isSuccess:true,mBannerList:[movie(sid,'首页红果短剧')],homeSections:[{tab_type:'human',tab_name:'热播短剧',video_list:[movie(sid,'红果测试短剧')]}]}}));
   if(url.pathname.startsWith('/category/'))return response(categoryPage(url.pathname+url.search));
-  if(url.pathname==='/detail')return response(page({'detail_page':{isSuccess:true,seriesDetail:{series_id:sid,series_name:'红果测试短剧',series_cover:'https://image.example/detail.jpg',series_intro:'简介',episode_cnt:4,accessible_episode_cnt:3,episode_right_text:'全4集',vid_list:vids,tags:['都市','爱情'],celebrities:[{nickname:'演员甲'}]},seriesSocialInfo:{rating:8.2}}}));
+  if(url.pathname==='/detail')return response(page({'detail_page':{isSuccess:true,seriesDetail:{series_id:sid,series_name:'红果测试短剧',series_cover:'https://image.example/detail.jpg',series_intro:'简介',episode_cnt:4,accessible_episode_cnt:3,episode_right_text:'全4集',vid_list:episodeList,tags:['都市','爱情'],celebrities:[{nickname:'演员甲'}]},seriesSocialInfo:{rating:8.2}}}));
   if(url.pathname==='/api/video/protected/play-info'){
    const body=JSON.parse(request.body);
    if(body.item_id===vids[3])return response(JSON.stringify({error:'protected_playback_unavailable'}),403,{'Content-Type':'application/json'});
@@ -30,6 +30,7 @@ function createClient(){
 
 test('Hongguo SSR extraction validates bounded JSON and maps homepage/category records',async()=>{
  const parsed=parseHongguoRouterData(page({page:{isSuccess:true}}));assert.ok(parsed.loaderData.page);
+ const globalThisRouter=parseHongguoRouterData('<script>globalThis._ROUTER_DATA = '+JSON.stringify({loaderData:{page:{}}})+';</script>');assert.ok(globalThisRouter.loaderData.page);
  assert.throws(()=>parseHongguoRouterData('<html>empty</html>'),/没有返回目录数据/);
  const {client,requests}=createClient();const home=await client.home();assert.equal(client.config.vodTabs.length,4);assert.equal(home.blocks.length,2);assert.equal(home.blocks[1].header.title,'热播短剧');assert.equal(home.blocks[1].data[0].url,'vod/detail?vodId='+sid);
  const first=await client.channel(1,{},'page=1');assert.equal(first.items[0].title,'红果测试短剧');assert.equal(first.next,'page=2');assert.equal(client.config.channelListQuery[0].items[0].data[1].id,'romance');
@@ -43,4 +44,70 @@ test('Hongguo search keeps full episode lists and uses the official anonymous pl
  const episodes=await client.episodes(sid,detail.playSources[0]);assert.deepEqual(episodes.map(item=>item.id),vids);assert.equal(detail.playSources[0].total,vids.length);assert.equal(episodes.length,4);
  const playback=await client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[1]});assert.equal(playback.playUrls.length,2);assert.match(playback.playUrls[0].url,/v26-hgweb\.qznovelvod\.com/);assert.equal(playback.playUrls[0].headers.Referer,origin+'/player/'+sid+'/'+vids[1]);
  await assert.rejects(client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[3]}),/红果网页播放器没有返回此集地址/);
+});
+
+test('Hongguo accepts official episode object variants, removes duplicate IDs, and keeps every valid episode',async()=>{
+ const episodeList=[vids[0],{vid:vids[1]},{video_id:vids[1]},{item_id:vids[2]},'bad-id'];
+ const {client}=createClient({episodeList}),detail=await client.detail(sid),episodes=await client.episodes(sid,detail.playSources[0]);
+ assert.deepEqual(episodes.map(item=>item.id),vids.slice(0,3));
+ assert.equal(detail.playSources[0].total,3);
+});
+
+test('Hongguo does not cache an invalid SSR response, so a later request can recover',async()=>{
+ const {client}=createClient();let homeCalls=0;
+ const original=client.transport;
+ client.transport=async request=>{
+  if(new URL(request.url).pathname==='/'){
+   homeCalls++;
+   if(homeCalls===1)return response('<html>temporary edge error</html>',200);
+  }
+  return original(request);
+ };
+ await assert.rejects(client.home(),/没有返回目录数据/);
+ assert.equal(client.lastDiagnostics.ok,false);
+ await client.home();
+ assert.equal(homeCalls,2,'failed parsing responses must not enter the page cache');
+ assert.equal(client.lastDiagnostics.ok,true);
+});
+
+test('Hongguo retries 5xx responses, records the SSR contract, and avoids retrying access denials',async()=>{
+ const {client,requests}=createClient();let homeAttempts=0;
+ const original=client.transport;
+ client.transport=async request=>{
+  if(new URL(request.url).pathname==='/'){
+   homeAttempts++;
+   if(homeAttempts===1)return response('upstream unavailable',503);
+  }
+  return original(request);
+ };
+ await client.home();
+ assert.equal(homeAttempts,2);
+ assert.equal(client.lastDiagnostics.kind,'home');
+ assert.equal(client.lastDiagnostics.routeKey,'page');
+ assert.equal(client.lastDiagnostics.cached,false);
+ const detail=await client.detail(sid);
+ const before=requests.filter(item=>item.url.includes('/api/video/protected/play-info')).length;
+ await assert.rejects(client.play({vodId:sid,siteId:detail.playSources[0].siteId,episodeId:vids[3]}),error=>error.code===403);
+ const after=requests.filter(item=>item.url.includes('/api/video/protected/play-info')).length;
+ assert.equal(after-before,1,'official 403 denials must not be retried');
+});
+
+test('Hongguo empty or changed detail contracts fail clearly instead of showing a broken empty detail',async()=>{
+ const {client}=createClient();
+ const original=client.transport;
+ client.transport=async request=>{
+  if(new URL(request.url).pathname==='/detail')return response(page({'detail_page':{isSuccess:true,seriesDetail:{series_id:sid,series_name:'空剧集',vid_list:[]}}}));
+  return original(request);
+ };
+ await assert.rejects(client.detail(sid),/未返回有效剧集列表/);
+ assert.equal(client.lastDiagnostics.ok,false);
+});
+
+test('Hongguo manual refresh clears cached pages and episode details',async()=>{
+ const {client,requests}=createClient();
+ await client.detail(sid);await client.detail(sid);
+ assert.equal(requests.filter(item=>item.url.includes('/detail?')).length,1);
+ client.clearCache();
+ await client.detail(sid);
+ assert.equal(requests.filter(item=>item.url.includes('/detail?')).length,2);
 });

@@ -7,187 +7,389 @@ const CATEGORIES=[
  {id:3,name:'AI剧',slug:'ai-drama',type:4},
  {id:4,name:'漫画',slug:'comic',type:2},
 ];
+const CACHE_TTL=180_000;
+const SEARCH_CACHE_TTL=120_000;
+const MAX_HTML_BYTES=3_500_000;
+const MAX_ROUTER_BYTES=2_500_000;
+const MAX_PLAY_INFO_BYTES=256_000;
+const MAX_PAGES=10_000;
+const RETRY_DELAYS=[250,700];
+const isObject=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const number=value=>/^\d{1,24}$/.test(String(value??''));
-const firstPage=value=>Math.max(1,Number(new URLSearchParams(String(value||'page=1')).get('page'))||1);
 const abort=signal=>{if(signal?.aborted)throw new DOMException('请求取消','AbortError');};
-const officialMediaURL=value=>{
- const url=safeHTTPS(value);if(!url)return '';
- try{return /^v\d+-(?:reading|hgweb)\.qznovelvod\.com$/i.test(new URL(url).hostname)?url:'';}catch{return '';}
-};
+const abortableDelay=(milliseconds,signal)=>new Promise((resolve,reject)=>{
+ const timer=setTimeout(done,milliseconds);
+ function done(){signal?.removeEventListener('abort',cancel);resolve();}
+ function cancel(){clearTimeout(timer);signal?.removeEventListener('abort',cancel);reject(new DOMException('请求取消','AbortError'));}
+ if(signal?.aborted){cancel();return;}
+ signal?.addEventListener('abort',cancel,{once:true});
+});
 
-function decodeBase64(value){
- const binary=atob(String(value||'')),bytes=new Uint8Array(binary.length);
- for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+function officialMediaURL(value){
+ const url=safeHTTPS(value);if(!url)return '';
+ try{
+  const parsed=new URL(url);
+  return !parsed.username&&!parsed.password&&/^v\d+-(?:reading|hgweb)\.qznovelvod\.com$/i.test(parsed.hostname)?url:'';
+ }catch{return '';}
+}
+
+function decodeBase64(value,maxBytes,label){
+ if(typeof value!=='string'||!value.length)throw new Error(label+'为空');
+ if(value.length>Math.ceil(maxBytes*4/3)+8)throw new Error(label+'超过大小限制');
+ let binary;try{binary=atob(value);}catch{throw new Error(label+'不是有效的 Base64 数据');}
+ if(binary.length>maxBytes)throw new Error(label+'超过大小限制');
+ const bytes=new Uint8Array(binary.length);
+ for(let index=0;index<binary.length;index++)bytes[index]=binary.charCodeAt(index);
  return new TextDecoder().decode(bytes);
 }
 
+function parseJSON(text,label){
+ try{return JSON.parse(text);}catch{throw new Error(label+'不是有效 JSON');}
+}
+
 export function parseHongguoRouterData(html){
- if(typeof html!=='string'||html.length>3_500_000)throw Error('红果页面数据过大或格式错误');
- const marker=html.indexOf('_ROUTER_DATA');if(marker<0)throw Error('红果页面没有返回目录数据');
- const start=html.indexOf('{',marker);if(start<0)throw Error('红果页面数据结构已变化');
+ if(typeof html!=='string'||html.length>MAX_HTML_BYTES)throw Error('红果页面数据过大或格式错误');
+ const marker=/(?:window\.|globalThis\.)?_ROUTER_DATA\s*=/.exec(html);
+ if(!marker)throw Error('红果页面没有返回目录数据');
+ const start=html.indexOf('{',marker.index+marker[0].length);if(start<0)throw Error('红果页面数据结构已变化');
  let depth=0,inString=false,escaped=false,end=-1;
  for(let index=start;index<html.length;index++){
   const char=html[index];
   if(inString){if(escaped)escaped=false;else if(char==='\\')escaped=true;else if(char==='"')inString=false;continue;}
   if(char==='"'){inString=true;continue;}
   if(char==='{'||char==='[')depth++;
-  else if(char==='}'||char===']'){depth--;if(depth===0){end=index+1;break;}}
-  if(depth<0)break;
+  else if(char==='}'||char===']'){
+   depth--;
+   if(depth===0){end=index+1;break;}
+   if(depth<0)break;
+  }
+  if(index-start>MAX_ROUTER_BYTES)throw Error('红果页面数据超过解析限制');
  }
- if(end<0||end-start>2_500_000)throw Error('红果页面数据不完整');
- let result;try{result=JSON.parse(html.slice(start,end));}catch{throw Error('红果页面数据解析失败');}
- if(!result||typeof result!=='object'||!result.loaderData||typeof result.loaderData!=='object')throw Error('红果页面缺少目录数据');
- return result;
+ if(end<0)throw Error('红果页面数据不完整');
+ const router=parseJSON(html.slice(start,end),'红果页面数据');
+ if(!isObject(router)||!isObject(router.loaderData))throw Error('红果页面缺少目录数据');
+ return router;
 }
 
-function firstPageData(router,kind){
- const entries=Object.entries(router?.loaderData||{});
- const preferred={home:['page'],category:['category_$'],detail:['detail_page','detail_$'],player:['player_(series_id)/page']}[kind]||[];
- for(const key of preferred){const value=router.loaderData[key];if(value&&typeof value==='object')return value;}
- const found=entries.find(([key,value])=>value&&typeof value==='object'&&key.includes(kind));
- return found?.[1]||null;
+function routeData(router,kind){
+ const preferred={
+  home:['page'],
+  category:['category_$'],
+  detail:['detail_page','detail_$'],
+  player:['player_(series_id)/page'],
+ }[kind]||[];
+ for(const key of preferred){const value=router.loaderData[key];if(isObject(value))return {key,data:value};}
+ const match=Object.entries(router.loaderData).find(([key,value])=>isObject(value)&&key.toLowerCase().includes(kind.toLowerCase()));
+ return match?{key:match[0],data:match[1]}:null;
+}
+
+function arrayField(object,...keys){
+ for(const key of keys)if(Array.isArray(object?.[key]))return object[key];
+ return [];
 }
 
 function canonicalMovie(row){
  const id=String(row?.series_id??row?.seriesId??row?.id??'');
  const title=String(row?.series_name||row?.series_title||row?.title||'').trim();
  if(!number(id)||!title)return null;
- const tags=Array.isArray(row.tags)?row.tags:Array.isArray(row.category_list)?row.category_list.map(x=>x?.name):[];
+ const rawTags=Array.isArray(row.tags)?row.tags:Array.isArray(row.category_list)?row.category_list:[];
+ const tags=rawTags.map(tag=>typeof tag==='string'?tag:tag?.name).filter(tag=>typeof tag==='string'&&tag.trim());
  const hot=row.hot_score_data?.text||row.hotScoreText||'';
- return {title,url:'vod/detail?vodId='+encodeURIComponent(id),imageURL:safeHTTPS(row.series_cover||row.cover||row.image),bottomLabel:String(row.episode_right_text||(/\d+/.test(String(row.episode_cnt||''))?'全'+row.episode_cnt+'集':'')),scoreText:String(hot),labels:tags.filter(x=>typeof x==='string'&&x).slice(0,8).map(name=>({name})),channelId:0,isAdult:false};
+ const count=row.episode_cnt??row.episodeCount;
+ const image=safeHTTPS(row.series_cover||row.cover||row.image||row.cover_url);
+ return {
+  title,url:'vod/detail?vodId='+encodeURIComponent(id),imageURL:image,
+  bottomLabel:String(row.episode_right_text||(/^\d+$/.test(String(count??''))?'全'+count+'集':'')),
+  scoreText:String(hot),labels:tags.slice(0,8).map(name=>({name})),channelId:0,isAdult:false,
+ };
 }
 
-function pageNumber(data,fallback=1){
- const n=Number(data?.pagination?.pageNum)||Number(data?.query?.page)||fallback;
- return Math.max(1,n);
+function pageFromNext(value){
+ const query=String(value||'page=1').replace(/^\?/,'');
+ const parsed=Number(new URLSearchParams(query).get('page'));
+ return Math.max(1,Math.min(MAX_PAGES,Number.isSafeInteger(parsed)?parsed:1));
+}
+
+function totalPages(data,currentPage){
+ const pagination=data?.pagination||data?.page_info||{};
+ const explicit=Number(pagination.totalPages??pagination.total_pages??pagination.pageCount??pagination.page_count);
+ if(Number.isSafeInteger(explicit)&&explicit>0)return Math.min(MAX_PAGES,explicit);
+ const total=Number(pagination.total??pagination.totalCount??pagination.total_count);
+ const size=Number(pagination.pageSize??pagination.page_size??data?.pageSize);
+ if(Number.isFinite(total)&&total>=0&&Number.isFinite(size)&&size>0)return Math.min(MAX_PAGES,Math.max(1,Math.ceil(total/size)));
+ return currentPage;
+}
+
+function episodeIDs(series){
+ const source=arrayField(series,'vid_list','video_list','videoList','episodes');
+ const seen=new Set(),result=[];
+ for(const item of source){
+  const value=isObject(item)?item.vid??item.video_id??item.videoId??item.item_id:item;
+  const id=String(value??'');
+  if(number(id)&&!seen.has(id)){seen.add(id);result.push(id);}
+ }
+ return result;
+}
+
+function expectedShape(kind,data){
+ if(kind==='home')return ['mBannerList','bannerList','banner_list','homeSections','home_sections','sections'].some(key=>Array.isArray(data[key]));
+ if(kind==='category')return ['recommendList','video_list','videoList','list'].some(key=>Array.isArray(data[key]));
+ if(kind==='detail')return isObject(data.seriesDetail)||isObject(data.series_detail);
+ return true;
 }
 
 export class HongguoClient extends SiteClient{
  constructor(site,transport,storage=globalThis.localStorage){
-  super(site,transport,storage);this.pageCache=new Map();this.details=new Map();this.searchCache=null;this.origin=new URL(site.origin).origin;this.config=null;
+  super(site,transport,storage);
+  const siteURL=new URL(site.origin);
+  if(siteURL.protocol!=='https:')throw new ServiceError('红果官网地址必须使用 HTTPS');
+  this.origin=siteURL.origin;
+  this.pageCache=new Map();
+  this.details=new Map();
+  this.searchCache=null;
+  this.searchPending=null;
+  this.preparedChannels=new Set();
+  this.channelPending=new Map();
+  this.cacheEpoch=0;
+  this.config=null;
+  this.lastDiagnostics=null;
  }
- async requestPage(path,signal,{ttl=180000}={}){
-  abort(signal);const url=new URL(path,this.origin);
-  if(url.origin!==this.origin)throw Error('红果页面地址无效');
-  const cached=this.pageCache.get(url.href);if(cached&&Date.now()-cached.at<ttl)return cached.text;
-  const response=await this.transport({url:url.href,method:'GET',headers:{Accept:'text/html,application/xhtml+xml','Accept-Language':'zh-CN,zh;q=0.9,en;q=0.5','User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1',Referer:this.origin+'/'},signal});
+
+ async requestWithRetry(request,signal,label){
+  let lastError;
+  for(let attempt=0;attempt<=RETRY_DELAYS.length;attempt++){
+   abort(signal);
+   try{
+    const response=await this.transport({...request,signal});
+    abort(signal);
+    const status=Number(response?.status)||0;
+    const retryable=status===408||status===425||status===429||status>=500;
+    if(retryable&&attempt<RETRY_DELAYS.length){await abortableDelay(RETRY_DELAYS[attempt],signal);continue;}
+    return response;
+   }catch(error){
+    if(signal?.aborted||error?.name==='AbortError')throw error;
+    lastError=error;
+    if(attempt>=RETRY_DELAYS.length)break;
+    await abortableDelay(RETRY_DELAYS[attempt],signal);
+   }
+  }
+  throw new ServiceError(label+'请求失败：'+String(lastError?.message||'网络连接异常').slice(0,180),lastError?.code);
+ }
+
+ async routerPage(path,kind,signal,{ttl=CACHE_TTL,force=false}={}){
   abort(signal);
-  if(response.status<200||response.status>=300)throw Error('红果官网返回 HTTP '+response.status);
-  let html;try{html=decodeBase64(response.bodyBase64);}catch{throw Error('红果官网页面编码错误');}
-  if(html.length>3_500_000)throw Error('红果官网页面超出安全大小限制');
-  this.pageCache.set(url.href,{at:Date.now(),text:html});while(this.pageCache.size>32)this.pageCache.delete(this.pageCache.keys().next().value);
-  return html;
+  const requestEpoch=this.cacheEpoch;
+  const url=new URL(path,this.origin);
+  if(url.origin!==this.origin||url.protocol!=='https:')throw new ServiceError('红果页面地址无效');
+  url.hash='';
+  const key=url.href,cached=this.pageCache.get(key);
+  if(!force&&cached&&cached.kind===kind&&Date.now()-cached.at<ttl){
+   this.pageCache.delete(key);this.pageCache.set(key,cached);
+   this.lastDiagnostics={...cached.diagnostics,cached:true};
+   return cached.data;
+  }
+
+  let status=0,html='';
+  try{
+   const response=await this.requestWithRetry({
+    url:key,method:'GET',headers:{Accept:'text/html,application/xhtml+xml','Accept-Language':'zh-CN,zh;q=0.9,en;q=0.5','User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1',Referer:this.origin+'/'},
+   },signal,'红果官网');
+   status=Number(response?.status)||0;
+   if(status<200||status>=300){
+    const hint=status===429?'请求过于频繁，请稍后重试':'暂时无法访问';
+    throw new ServiceError('红果官网'+hint+'（HTTP '+status+'）',status||502);
+   }
+   if(response.url){
+    let finalURL;try{finalURL=new URL(response.url);}catch{throw new ServiceError('红果官网返回了无效的页面地址',502);}
+    if(finalURL.origin!==this.origin)throw new ServiceError('红果官网将页面跳转到其他域名，已停止解析',502);
+   }
+   try{html=decodeBase64(response.bodyBase64,MAX_HTML_BYTES,'红果页面');}
+   catch(error){throw new ServiceError(error.message,502);}
+   const router=parseHongguoRouterData(html),selected=routeData(router,kind);
+   if(!selected||selected.data.isSuccess===false||!expectedShape(kind,selected.data)){
+    throw new ServiceError('红果官网'+({home:'首页',category:'分类',detail:'影片详情',player:'播放页'}[kind]||'页面')+'结构已变化，请更新适配器',502);
+   }
+   const diagnostics={kind,path:url.pathname,status,htmlBytes:html.length,loaderKeys:Object.keys(router.loaderData).slice(0,20),routeKey:selected.key,payloadKeys:Object.keys(selected.data).slice(0,32),cached:false,ok:true};
+   this.lastDiagnostics=diagnostics;
+   if(requestEpoch===this.cacheEpoch){
+    this.pageCache.set(key,{kind,at:Date.now(),data:selected.data,diagnostics});
+    while(this.pageCache.size>32)this.pageCache.delete(this.pageCache.keys().next().value);
+   }
+   return selected.data;
+  }catch(error){
+   if(error?.name==='AbortError')throw error;
+   this.lastDiagnostics={kind,path:url.pathname,status,htmlBytes:html.length,ok:false,error:String(error?.message||error).slice(0,180)};
+   throw error;
+  }
  }
- async routerPage(path,kind,signal,options){
-  const router=parseHongguoRouterData(await this.requestPage(path,signal,options)),data=firstPageData(router,kind);
-  if(!data||data.isSuccess===false)throw Error('红果官网暂时没有返回'+({home:'首页',category:'分类',detail:'影片详情',player:'播放页'}[kind]||'页面')+'数据');
-  return data;
- }
+
  async bootstrap(){
   if(this.config)return this.config;
   this.config={vodTabs:CATEGORIES.map(item=>({type:'category',channelId:item.id,text:item.name})),adultChannelIds:[],channelListQuery:[],groups:[],urls:{cache:[this.origin],logic:[this.origin]},supportsAccount:false};
   for(const category of CATEGORIES)this.config.channelListQuery.push({channelId:category.id,items:[]});
   return this.config;
  }
- async ready(signal){if(!this.config)await this.bootstrap(signal);abort(signal);}
+ async ready(signal){if(!this.config)await this.bootstrap();abort(signal);}
  category(channelId){return CATEGORIES.find(item=>Number(item.id)===Number(channelId));}
+
  async home(signal){
-  await this.ready(signal);const data=await this.routerPage('/', 'home', signal);
-  const blocks=[];
-  const banners=Array.isArray(data.mBannerList)?data.mBannerList:Array.isArray(data.bannerList)?data.bannerList:[];
-  const bannerMovies=banners.map(canonicalMovie).filter(Boolean);
-  if(bannerMovies.length)blocks.push({header:{title:'红果精选短剧',url:'catalog/channel?channelId=1'},data:bannerMovies});
-  for(const section of Array.isArray(data.homeSections)?data.homeSections:[]){
-   const category=section.tab_type==='human'?CATEGORIES[0]:section.tab_type==='comic'?CATEGORIES[1]:section.tab_type==='ai'?CATEGORIES[2]:section.tab_type==='comic-content'?CATEGORIES[3]:null;
-   const items=(Array.isArray(section.video_list)?section.video_list:[]).map(canonicalMovie).filter(Boolean);
-   if(items.length)blocks.push({header:{title:String(section.tab_name||'红果短剧'),...(category?{url:'catalog/channel?channelId='+category.id}:{url:'catalog/channel?channelId=1'})},data:items});
+  await this.ready(signal);
+  const data=await this.routerPage('/','home',signal),blocks=[];
+  const banners=arrayField(data,'mBannerList','bannerList','banner_list').map(canonicalMovie).filter(Boolean);
+  if(banners.length)blocks.push({header:{title:'红果精选短剧',url:'catalog/channel?channelId=1'},data:banners});
+  for(const section of arrayField(data,'homeSections','home_sections','sections')){
+   if(!isObject(section))continue;
+   const tabType=String(section.tab_type||section.tabType||''),category=tabType==='human'?CATEGORIES[0]:tabType==='comic'?CATEGORIES[1]:tabType==='ai'?CATEGORIES[2]:tabType==='comic-content'?CATEGORIES[3]:null;
+   const items=arrayField(section,'video_list','videoList','list').map(canonicalMovie).filter(Boolean);
+   if(items.length)blocks.push({header:{title:String(section.tab_name||section.tabName||'红果短剧'),url:'catalog/channel?channelId='+(category||CATEGORIES[0]).id},data:items});
   }
   return {blocks};
  }
+
  async categoryData(category,filters={},page=1,signal){
-  const selected=String(filters.topic||'');
+  const selected=String(filters?.topic||'');
   const filter=this.config?.channelListQuery?.find(row=>Number(row.channelId)===category.id)?.items?.find(item=>item.query==='topic');
   const option=filter?.data?.find(item=>String(item.id)===selected);
-  const path='/category/'+category.slug+(option?.path?'/'+option.path:'')+'?page='+page;
+  const slug=option?.path||'';
+  if(slug&&!/^[a-z0-9-]{1,80}$/i.test(slug))throw new ServiceError('红果题材路径无效');
+  const path='/category/'+category.slug+(slug?'/'+encodeURIComponent(slug):'')+'?page='+Math.max(1,Math.min(MAX_PAGES,Number(page)||1));
   return this.routerPage(path,'category',signal);
  }
+
  async prepareChannel(channelId,signal){
-  await this.ready(signal);const category=this.category(channelId);if(!category)throw Error('红果没有提供该分类');
-  const definitions=this.config.channelListQuery.find(row=>row.channelId===category.id);if(definitions?.items?.length)return;
-  const data=await this.categoryData(category,{},1,signal),selectors=Array.isArray(data.selectorList)?data.selectorList:[];
-  const topicOptions=[];
-  for(const row of selectors)for(const item of Array.isArray(row.items)?row.items:[]){
-   const id=String(item.selector_item_id||'').trim(),name=String(item.show_name||'').trim();
-   if(/^[a-z0-9-]{1,80}$/i.test(id)&&name)topicOptions.push({id,name,path:id});
-  }
-  if(topicOptions.length)definitions.items=[{query:'topic',name:'题材',selected:'',data:[{id:'',name:'全部'},...topicOptions]}];
+  await this.ready(signal);
+  const category=this.category(channelId);if(!category)throw new ServiceError('红果没有提供该分类');
+  if(this.preparedChannels.has(category.id))return;
+  const requestEpoch=this.cacheEpoch;
+  const pending=this.channelPending.get(category.id);if(pending){await pending;abort(signal);return;}
+  const task=(async()=>{
+   const data=await this.categoryData(category,{},1,signal),selectors=arrayField(data,'selectorList','selector_list'),topicOptions=[];
+   for(const row of selectors){
+    for(const item of arrayField(row,'items','list')){
+     const id=String(item?.selector_item_id??item?.selectorItemId??'').trim(),name=String(item?.show_name??item?.showName??'').trim();
+     if(/^[a-z0-9-]{1,80}$/i.test(id)&&name)topicOptions.push({id,name,path:id});
+    }
+   }
+   const unique=[...new Map(topicOptions.map(option=>[option.id,option])).values()];
+   const definitions=this.config.channelListQuery.find(row=>Number(row.channelId)===category.id);
+   if(unique.length)definitions.items=[{query:'topic',name:'题材',selected:'',data:[{id:'',name:'全部'},...unique]}];
+   if(requestEpoch===this.cacheEpoch)this.preparedChannels.add(category.id);
+  })();
+  this.channelPending.set(category.id,task);
+  try{await task;}finally{if(this.channelPending.get(category.id)===task)this.channelPending.delete(category.id);}
  }
+
  async channel(channelId,filters={},next='page=1',signal){
-  await this.prepareChannel(channelId,signal);const category=this.category(channelId),page=firstPage(next),data=await this.categoryData(category,filters,page,signal);
-  const items=(Array.isArray(data.recommendList)?data.recommendList:[]).map(canonicalMovie).filter(Boolean),pages=Number(data.pagination?.totalPages)||page;
-  return {items,next:page<pages?'page='+(page+1):''};
+  await this.prepareChannel(channelId,signal);
+  const category=this.category(channelId),page=pageFromNext(next),data=await this.categoryData(category,filters,page,signal);
+  const list=arrayField(data,'recommendList','video_list','videoList','list').map(canonicalMovie).filter(Boolean),pages=totalPages(data,page);
+  return {items:list,next:page<pages?'page='+(page+1):''};
  }
+
  async collection(route,next='page=1',signal){
   if(route?.kind==='channel')return this.channel(route.id,route.filters||{},next,signal);
-  throw Error('红果暂未提供该栏目');
+  throw new ServiceError('红果暂未提供该栏目');
  }
+
  async searchableCatalog(signal){
-  if(this.searchCache&&Date.now()-this.searchCache.at<120000)return this.searchCache.items;
-  await this.ready(signal);const home=await this.home(signal),fromHome=home.blocks.flatMap(block=>block.data||[]);
-  const pages=await Promise.all(CATEGORIES.map(category=>this.channel(category.id,{},'page=1',signal)));
-  const byId=new Map();for(const movie of [...fromHome,...pages.flatMap(page=>page.items)])byId.set(movie.url,movie);
-  this.searchCache={at:Date.now(),items:[...byId.values()]};return this.searchCache.items;
+  if(this.searchCache&&Date.now()-this.searchCache.at<SEARCH_CACHE_TTL)return this.searchCache.items;
+  if(this.searchPending)return this.searchPending;
+  const requestEpoch=this.cacheEpoch;
+  const task=(async()=>{
+   await this.ready(signal);
+   const [home,...pages]=await Promise.all([this.home(signal),...CATEGORIES.map(category=>this.channel(category.id,{},'page=1',signal))]);
+   const byID=new Map();
+   for(const movie of [...home.blocks.flatMap(block=>block.data||[]),...pages.flatMap(page=>page.items)])byID.set(movie.url,movie);
+   const items=[...byID.values()];if(requestEpoch===this.cacheEpoch)this.searchCache={at:Date.now(),items};return items;
+  })();
+  this.searchPending=task;
+  try{return await task;}finally{if(this.searchPending===task)this.searchPending=null;}
  }
+
  async search(keyword,next='page=1',signal){
+  abort(signal);
   const query=String(keyword||'').trim().toLocaleLowerCase();if(!query)return {items:[],next:''};
-  // The public website's search-result endpoint currently rejects requests
-  // without its browser security token. Search only the public catalog pages
-  // already served to the website instead of synthesizing that token.
+  // The public website search endpoint rejects requests without its browser token.
+  // Search the same public catalogue pages as the site instead of synthesizing a token.
   const catalog=await this.searchableCatalog(signal),items=catalog.filter(movie=>{
    const labels=(movie.labels||[]).map(item=>item.name||item).join(' ');
    return (movie.title+' '+labels).toLocaleLowerCase().includes(query);
   });
   return {items,next:''};
  }
+
+ rememberDetail(id,record){
+  this.details.delete(String(id));this.details.set(String(id),record);
+  while(this.details.size>20)this.details.delete(this.details.keys().next().value);
+ }
+
  async detail(id,signal){
-  await this.ready(signal);if(!number(id))throw Error('红果影片编号无效');
-  const data=await this.routerPage('/detail?series_id='+encodeURIComponent(String(id)),'detail',signal),series=data.seriesDetail;
-  if(!series||String(series.series_id)!==String(id))throw Error('红果影片详情与请求编号不匹配');
-  const movie=canonicalMovie({...series,series_name:series.series_name,hot_score_data:data.seriesSocialInfo?.hot_score_data}),vids=Array.isArray(series.vid_list)?series.vid_list.map(String).filter(number):[];
-  if(!movie)throw Error('红果影片详情缺少标题或编号');
-  const available=Number(series.accessible_episode_cnt)||0;
-  const detail={id:String(id),title:movie.title,imageURL:movie.imageURL,channelId:0,channelName:'短剧',labels:movie.labels,summary:String(series.series_intro||''),actors:(Array.isArray(series.celebrities)?series.celebrities:[]).map(item=>item.nickname).filter(Boolean),bottomLabel:String(series.episode_right_text||''),scoreText:data.seriesSocialInfo?.rating?String(data.seriesSocialInfo.rating)+'分':'',playSources:[{siteId:'hongguo-official',name:'红果官方线路 · 720P',total:vids.length,list:[]} ]};
-  this.details.set(String(id),{detail,vids,accessible:Math.min(available,vids.length)});while(this.details.size>20)this.details.delete(this.details.keys().next().value);
+  await this.ready(signal);if(!number(id))throw new ServiceError('红果影片编号无效');
+  const requestEpoch=this.cacheEpoch;
+  const data=await this.routerPage('/detail?series_id='+encodeURIComponent(String(id)),'detail',signal),series=data.seriesDetail||data.series_detail;
+  if(!isObject(series)||String(series.series_id??series.seriesId)!==String(id)){
+   const message='红果影片详情与请求编号不匹配';this.lastDiagnostics={...this.lastDiagnostics,ok:false,error:message};throw new ServiceError(message,502);
+  }
+  const movie=canonicalMovie({...series,series_name:series.series_name||series.seriesName,hot_score_data:data.seriesSocialInfo?.hot_score_data}),vids=episodeIDs(series);
+  if(!movie){const message='红果影片详情缺少标题或编号';this.lastDiagnostics={...this.lastDiagnostics,ok:false,error:message};throw new ServiceError(message,502);}
+  if(!vids.length){const message='红果详情未返回有效剧集列表，官网页面结构可能已变化';this.lastDiagnostics={...this.lastDiagnostics,ok:false,error:message};throw new ServiceError(message,502);}
+  const availableRaw=Number(series.accessible_episode_cnt??series.accessibleEpisodeCount??0),available=Number.isFinite(availableRaw)?Math.max(0,Math.min(Math.trunc(availableRaw),vids.length)):0;
+  const detail={id:String(id),title:movie.title,imageURL:movie.imageURL,channelId:0,channelName:'短剧',labels:movie.labels,summary:String(series.series_intro||series.seriesIntro||''),actors:arrayField(series,'celebrities','actors').map(item=>item?.nickname||item?.name).filter(Boolean),bottomLabel:String(series.episode_right_text||series.episodeRightText||''),scoreText:data.seriesSocialInfo?.rating?String(data.seriesSocialInfo.rating)+'分':'',playSources:[{siteId:'hongguo-official',name:'红果官方线路 · 720P',total:vids.length,list:[]} ]};
+  if(requestEpoch===this.cacheEpoch)this.rememberDetail(id,{detail,vids,accessible:available,at:Date.now()});
   return detail;
  }
+
  async episodes(id,line,signal){
-  abort(signal);if(!this.details.has(String(id)))await this.detail(id,signal);const record=this.details.get(String(id));
+  abort(signal);
+  if(!this.details.has(String(id)))await this.detail(id,signal);
+  const record=this.details.get(String(id));
   if(!record||line?.siteId!=='hongguo-official')return [];
   const episodes=record.vids.map((videoId,index)=>({id:videoId,title:'第'+(index+1)+'集'}));
   const target=record.detail.playSources.find(item=>item.siteId==='hongguo-official');
   if(target){target.list=episodes;target.total=episodes.length;}
   return episodes;
  }
+
  async playInfo(seriesId,videoId,signal){
-  abort(signal);const url=this.origin+'/api/video/protected/play-info',referer=this.origin+'/player/'+encodeURIComponent(seriesId)+'/'+encodeURIComponent(videoId);
-  const response=await this.transport({url,method:'POST',headers:{Accept:'application/json','Content-Type':'application/json',Origin:this.origin,Referer:referer},body:JSON.stringify({series_id:String(seriesId),item_id:String(videoId),definition:'720p'}),signal});
-  abort(signal);let data;try{data=JSON.parse(decodeBase64(response.bodyBase64));}catch{throw new ServiceError('红果播放服务返回了无法识别的数据',response.status||502);}
-  if(response.status<200||response.status>=300){
-   if(response.status===403&&data?.error==='protected_playback_unavailable')throw new ServiceError('红果网页播放器没有返回此集地址；官网提示可前往红果App免费看全集。',403);
-   throw new ServiceError('红果播放服务返回 HTTP '+response.status,response.status);
+  abort(signal);
+  const referer=this.origin+'/player/'+encodeURIComponent(seriesId)+'/'+encodeURIComponent(videoId),request={
+   url:this.origin+'/api/video/protected/play-info',method:'POST',
+   headers:{Accept:'application/json','Content-Type':'application/json',Origin:this.origin,Referer:referer},
+   body:JSON.stringify({series_id:String(seriesId),item_id:String(videoId),definition:'720p'}),
+  };
+  const response=await this.requestWithRetry(request,signal,'红果播放服务'),status=Number(response?.status)||0;
+  let text='',data=null;
+  try{text=decodeBase64(response.bodyBase64,MAX_PLAY_INFO_BYTES,'红果播放信息');data=parseJSON(text,'红果播放信息');}
+  catch(error){if(status<200||status>=300)data={};else throw new ServiceError(error.message,502);}
+  if(status<200||status>=300){
+   if(status===403&&data?.error==='protected_playback_unavailable')throw new ServiceError('红果网页播放器没有返回此集地址；官网提示可前往红果App免费看全集。',403);
+   if(status===429)throw new ServiceError('红果播放请求过于频繁，请稍后重试',429);
+   throw new ServiceError('红果播放服务暂时无法提供此集（HTTP '+status+'）',status||502);
   }
   if(Number(data?.base_resp?.StatusCode)!==0)throw new ServiceError(String(data?.base_resp?.StatusMessage||'红果播放服务暂不可用'),data?.base_resp?.StatusCode||502);
-  const info=data?.play_info;if(!info||typeof info!=='object')throw new ServiceError('红果播放服务没有返回媒体信息',502);
-  const urls=[['main_url','720P · 主线路'],['backup_url','720P · 备用线路']].map(([key,name])=>({url:officialMediaURL(info[key]),name,headers:{Referer:referer}})).filter(item=>item.url);
-  if(!urls.length)throw new ServiceError('红果播放服务没有返回可用的官方线路',502);
+  const info=data?.play_info;if(!isObject(info))throw new ServiceError('红果播放服务没有返回媒体信息',502);
+  const candidates=[['main_url','720P · 主线路'],['backup_url','720P · 备用线路']],seen=new Set(),urls=[];
+  for(const [key,name] of candidates){
+   const mediaURL=officialMediaURL(info[key]);
+   if(mediaURL&&!seen.has(mediaURL)){seen.add(mediaURL);urls.push({url:mediaURL,name,headers:{Referer:referer}});}
+  }
+  if(!urls.length)throw new ServiceError('红果播放服务没有返回可用的官方媒体线路',502);
   return urls;
  }
+
  async play({vodId,siteId,episodeId},signal){
-  const detail=this.details.get(String(vodId))?.detail||await this.detail(vodId,signal);
-  const line=detail.playSources.find(item=>item.siteId===siteId),record=this.details.get(String(vodId));
+  const detail=this.details.get(String(vodId))?.detail||await this.detail(vodId,signal),record=this.details.get(String(vodId));
+  const line=detail.playSources.find(item=>item.siteId===siteId);
   if(!line||!record?.vids.includes(String(episodeId)))throw new ServiceError('红果选集编号无效',404);
   return {playUrls:await this.playInfo(String(vodId),String(episodeId),signal)};
  }
+
+ clearCache(){
+  this.cacheEpoch++;
+  this.pageCache.clear();this.details.clear();this.searchCache=null;this.searchPending=null;
+  this.preparedChannels.clear();this.channelPending.clear();this.lastDiagnostics=null;
+ }
+
  async login(){throw new ServiceError('红果账户与会员权限由官网管理，当前不支持在 App 内登录',403);}
  async anonymous(){throw new ServiceError('红果官网访问不需要 App 访客账户',403);}
 }

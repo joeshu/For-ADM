@@ -1,0 +1,36 @@
+name: Hongguo official source contract
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '47 5 * * 1'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: ios-app/package-lock.json
+      - name: Install app test dependencies
+        working-directory: ios-app
+        run: npm ci
+      - name: Run adapter regression tests
+        working-directory: ios-app
+        run: npm test
+      - name: Crawl the official public catalogue and playback contract
+        working-directory: ios-app
+        run: node --use-env-proxy tools/hongguo-integration-probe.mjs
+      - name: Preserve schema report on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hongguo-source-contract-${{ github.run_id }}
+          path: ios-app/docs/hongguo-integration-probe.json
+          if-no-files-found: warn

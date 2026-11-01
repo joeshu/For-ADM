@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-01T11:19:27.466Z",
+  "checkedAt": "2026-11-01T11:54:20.445Z",
   "origin": "https://hongguoduanju.com",
-  "scope": "Public SSR catalogue, two catalogue pages, a topic filter, one full episode list and an anonymous official play-info request. Media validation uses HEAD only; no media bytes or account data are fetched.",
+  "scope": "Live, read-only crawl of public SSR pages, category pagination, topic filtering, a full episode list, and the official anonymous play-info endpoint. Media validation uses HEAD only; no media bytes or account data are fetched.",
   "home": {
     "sections": 5,
     "cards": 39
@@ -47,5 +47,76 @@
     "headStatus": 200,
     "contentType": "video/mp4",
     "firstBeyondWebsiteOpenCount": "official web endpoint returned 403; playback remains subject to official free-access flow"
+  },
+  "ssrContract": {
+    "home": {
+      "kind": "home",
+      "path": "/",
+      "status": 200,
+      "htmlBytes": 143788,
+      "loaderKeys": [
+        "layout",
+        "page"
+      ],
+      "routeKey": "page",
+      "payloadKeys": [
+        "isSuccess",
+        "req",
+        "bannerList",
+        "mBannerList",
+        "mBannerSchedule",
+        "bannerServerTime",
+        "homeSections",
+        "seoDescription"
+      ],
+      "cached": false,
+      "ok": true
+    },
+    "categoryPage2": {
+      "kind": "category",
+      "path": "/category/real-drama",
+      "status": 200,
+      "htmlBytes": 230807,
+      "loaderKeys": [
+        "category_layout",
+        "category_$"
+      ],
+      "routeKey": "category_$",
+      "payloadKeys": [
+        "req",
+        "isSuccess",
+        "query",
+        "apiQuery",
+        "canonicalUrl",
+        "categoryRoute",
+        "seo",
+        "noIndex",
+        "selectorList",
+        "recommendList",
+        "pagination"
+      ],
+      "cached": false,
+      "ok": true
+    },
+    "detail": {
+      "kind": "detail",
+      "path": "/detail",
+      "status": 200,
+      "htmlBytes": 523140,
+      "loaderKeys": [
+        "detail_layout",
+        "detail_page"
+      ],
+      "routeKey": "detail_page",
+      "payloadKeys": [
+        "req",
+        "recommendations",
+        "seriesDetail",
+        "seriesSocialInfo",
+        "isSuccess"
+      ],
+      "cached": false,
+      "ok": true
+    }
   }
 }
