@@ -16,6 +16,7 @@ export const NativeTransport={
   async play(url,headers={},options={}){if(native())return post('play',{url,headers,...options});return false;},
   async copyText(text){if(native())return post('copyText',{text});await navigator.clipboard.writeText(text);return {ok:true};},
   async openExternal(url,{live=false}={}){if(native())return post('openExternal',{url,live});throw Error('外部播放器仅在 iPhone 原生 App 中可用');},
+  async openOfficialURL(url){if(native())return post('openOfficialURL',{url});window.open(url,'_blank','noopener');return {ok:true};},
   async getLiveCache(){if(native())return (await post('liveCacheGet')).cache||null;try{return JSON.parse(localStorage.getItem('sanyuan:liveCache')||'null');}catch{return null;}},
   async saveLiveCache(url,text,baseURL=url){const value={url,text,baseURL};if(native())return post('liveCachePut',value);localStorage.setItem('sanyuan:liveCache',JSON.stringify(value));return {ok:true};},
   stopLive(){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'live-stop',type:'stopLive'});},

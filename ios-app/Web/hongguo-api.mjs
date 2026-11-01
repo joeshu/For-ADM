@@ -10,6 +10,10 @@ const CATEGORIES=[
 const number=value=>/^\d{1,24}$/.test(String(value??''));
 const firstPage=value=>Math.max(1,Number(new URLSearchParams(String(value||'page=1')).get('page'))||1);
 const abort=signal=>{if(signal?.aborted)throw new DOMException('请求取消','AbortError');};
+const officialMediaURL=value=>{
+ const url=safeHTTPS(value);if(!url)return '';
+ try{return /^v\d+-(?:reading|hgweb)\.qznovelvod\.com$/i.test(new URL(url).hostname)?url:'';}catch{return '';}
+};
 
 function decodeBase64(value){
  const binary=atob(String(value||'')),bytes=new Uint8Array(binary.length);
@@ -152,31 +156,37 @@ export class HongguoClient extends SiteClient{
   const movie=canonicalMovie({...series,series_name:series.series_name,hot_score_data:data.seriesSocialInfo?.hot_score_data}),vids=Array.isArray(series.vid_list)?series.vid_list.map(String).filter(number):[];
   if(!movie)throw Error('红果影片详情缺少标题或编号');
   const available=Number(series.accessible_episode_cnt)||0;
-  const detail={id:String(id),title:movie.title,imageURL:movie.imageURL,channelId:0,channelName:'短剧',labels:movie.labels,summary:String(series.series_intro||''),actors:(Array.isArray(series.celebrities)?series.celebrities:[]).map(item=>item.nickname).filter(Boolean),bottomLabel:String(series.episode_right_text||''),scoreText:data.seriesSocialInfo?.rating?String(data.seriesSocialInfo.rating)+'分':'',playSources:[{siteId:'hongguo-public',name:'红果公开试看',total:vids.length?Math.min(available||1,vids.length,10):0,list:[]} ]};
-  this.details.set(String(id),{detail,vids,accessible:Math.min(available||1,vids.length,10)});while(this.details.size>20)this.details.delete(this.details.keys().next().value);
+  const detail={id:String(id),title:movie.title,imageURL:movie.imageURL,channelId:0,channelName:'短剧',labels:movie.labels,summary:String(series.series_intro||''),actors:(Array.isArray(series.celebrities)?series.celebrities:[]).map(item=>item.nickname).filter(Boolean),bottomLabel:String(series.episode_right_text||''),scoreText:data.seriesSocialInfo?.rating?String(data.seriesSocialInfo.rating)+'分':'',playSources:[{siteId:'hongguo-official',name:'红果官方线路 · 720P',total:vids.length,list:[]} ]};
+  this.details.set(String(id),{detail,vids,accessible:Math.min(available,vids.length)});while(this.details.size>20)this.details.delete(this.details.keys().next().value);
   return detail;
  }
- async publicEpisode(seriesId,videoId,index,signal){
-  const data=await this.routerPage('/player/'+encodeURIComponent(seriesId)+'/'+encodeURIComponent(videoId),'player',signal,{ttl:30000}),seo=data.publicVideoSeo;
-  // The website marks its normal player as protected, while SEO preview media
-  // is separately published through publicVideoSeo. Only the latter is used.
-  if(seo?.available!==true||String(seo.seriesId)!==String(seriesId)||String(seo.itemId)!==String(videoId))return null;
-  const url=safeHTTPS(this.origin+'/video/public/'+encodeURIComponent(String(seo.itemId))+'/360p.mp4');if(!url)return null;
-  return {id:String(videoId),title:'第'+(index+1)+'集',open:true,playUrls:[{url,name:'官网公开试看 · 360p'}]};
- }
  async episodes(id,line,signal){
-  const cached=this.details.get(String(id)),record=cached||await this.detail(id,signal),info=this.details.get(String(id));
-  if(!info||line?.siteId!=='hongguo-public')return [];
-  const candidates=info.vids.slice(0,info.accessible),available=await Promise.all(candidates.map((videoId,index)=>this.publicEpisode(String(id),videoId,index,signal).catch(error=>{if(error.name==='AbortError'||signal?.aborted)throw error;return null;})));
-  const episodes=available.filter(Boolean);const target=info.detail.playSources.find(item=>item.siteId==='hongguo-public');
+  abort(signal);if(!this.details.has(String(id)))await this.detail(id,signal);const record=this.details.get(String(id));
+  if(!record||line?.siteId!=='hongguo-official')return [];
+  const episodes=record.vids.map((videoId,index)=>({id:videoId,title:'第'+(index+1)+'集'}));
+  const target=record.detail.playSources.find(item=>item.siteId==='hongguo-official');
   if(target){target.list=episodes;target.total=episodes.length;}
   return episodes;
  }
+ async playInfo(seriesId,videoId,signal){
+  abort(signal);const url=this.origin+'/api/video/protected/play-info',referer=this.origin+'/player/'+encodeURIComponent(seriesId)+'/'+encodeURIComponent(videoId);
+  const response=await this.transport({url,method:'POST',headers:{Accept:'application/json','Content-Type':'application/json',Origin:this.origin,Referer:referer},body:JSON.stringify({series_id:String(seriesId),item_id:String(videoId),definition:'720p'}),signal});
+  abort(signal);let data;try{data=JSON.parse(decodeBase64(response.bodyBase64));}catch{throw new ServiceError('红果播放服务返回了无法识别的数据',response.status||502);}
+  if(response.status<200||response.status>=300){
+   if(response.status===403&&data?.error==='protected_playback_unavailable')throw new ServiceError('红果网页播放器没有返回此集地址；官网提示可前往红果App免费看全集。',403);
+   throw new ServiceError('红果播放服务返回 HTTP '+response.status,response.status);
+  }
+  if(Number(data?.base_resp?.StatusCode)!==0)throw new ServiceError(String(data?.base_resp?.StatusMessage||'红果播放服务暂不可用'),data?.base_resp?.StatusCode||502);
+  const info=data?.play_info;if(!info||typeof info!=='object')throw new ServiceError('红果播放服务没有返回媒体信息',502);
+  const urls=[['main_url','720P · 主线路'],['backup_url','720P · 备用线路']].map(([key,name])=>({url:officialMediaURL(info[key]),name,headers:{Referer:referer}})).filter(item=>item.url);
+  if(!urls.length)throw new ServiceError('红果播放服务没有返回可用的官方线路',502);
+  return urls;
+ }
  async play({vodId,siteId,episodeId},signal){
   const detail=this.details.get(String(vodId))?.detail||await this.detail(vodId,signal);
-  const line=detail.playSources.find(item=>item.siteId===siteId),episodes=await this.episodes(vodId,line,signal),episode=episodes.find(item=>String(item.id)===String(episodeId));
-  if(!episode?.open||!episode.playUrls?.length)throw new ServiceError('红果官网没有提供此集的公开试看资源，请按官网权限观看',403);
-  return {playUrls:episode.playUrls};
+  const line=detail.playSources.find(item=>item.siteId===siteId),record=this.details.get(String(vodId));
+  if(!line||!record?.vids.includes(String(episodeId)))throw new ServiceError('红果选集编号无效',404);
+  return {playUrls:await this.playInfo(String(vodId),String(episodeId),signal)};
  }
  async login(){throw new ServiceError('红果账户与会员权限由官网管理，当前不支持在 App 内登录',403);}
  async anonymous(){throw new ServiceError('红果官网访问不需要 App 访客账户',403);}

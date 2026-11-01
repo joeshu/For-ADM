@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       tag:
-        description: Release tag matching ios-app/package.json (for example v0.2.41)
+        description: Release tag matching ios-app/package.json (for example v0.2.42)
         required: true
         type: string
 permissions:
@@ -69,9 +69,9 @@ jobs:
           version="${RELEASE_TAG#v}"
           notes="$RUNNER_TEMP/release-notes.md"
           cat > "$notes" <<EOF
-          三源影视 $version，包含红果短剧来源：首页、四类目录、题材筛选、分页、详情及官网公开试看。
+          三源影视 $version，包含红果短剧来源：首页、四类目录、题材筛选、分页、全量选集和官网播放入口。
 
-          红果仅播放官网明确公开的试看集；其他集仍遵循官网登录和会员权限。
+          官网网页接口返回的媒体在 App 内播放；网页接口未提供地址的选集可从详情页打开红果官方播放器页并继续进入官方 App。
 
           这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
 

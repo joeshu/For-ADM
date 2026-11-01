@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-01T09:40:48.804Z",
+  "checkedAt": "2026-11-01T11:19:27.466Z",
   "origin": "https://hongguoduanju.com",
-  "scope": "Public SSR catalogue, two catalogue pages, a topic filter, one detail and official public-preview metadata. Media validation uses HEAD only; no media bytes, account data, or protected playback URLs are fetched.",
+  "scope": "Public SSR catalogue, two catalogue pages, a topic filter, one full episode list and an anonymous official play-info request. Media validation uses HEAD only; no media bytes or account data are fetched.",
   "home": {
     "sections": 5,
     "cards": 39
@@ -37,12 +37,15 @@
   },
   "detail": {
     "title": "十八岁太奶奶驾到，重整家族荣耀第五部",
-    "siteAccessibleEpisodes": 1,
-    "publicPreviewEpisodes": 1
+    "episodeCount": 102,
+    "websiteAnonymousOpenCount": 3
   },
-  "preview": {
-    "publicEpisodes": 1,
+  "playback": {
+    "episode": "第2集",
+    "officialPlayInfo": "available",
+    "mediaHost": "v11-hgweb.qznovelvod.com",
     "headStatus": 200,
-    "contentType": "video/mp4"
+    "contentType": "video/mp4",
+    "firstBeyondWebsiteOpenCount": "official web endpoint returned 403; playback remains subject to official free-access flow"
   }
 }

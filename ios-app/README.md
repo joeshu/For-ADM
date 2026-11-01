@@ -19,11 +19,13 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.41-unsigned.ipa`。
+产物：`dist/Sanyuan-0.2.42-unsigned.ipa`。
 
 这是**未签名**的安装包，不能直接点开安装；使用自己的合法签名方式签名后安装。没有预置证书、账号或描述文件。包标识为 `com.joeshu.sanyuan`，签名时可按工具要求调整。请使用 Xcode 构建附件中的 IPA。
 
-0.2.41 新增红果短剧公开目录适配，包括首页、真人剧/漫剧/AI剧/漫画分类、题材筛选、分页、详情和官网公开试看。受保护集仍遵循官网的登录及会员权限；接口调查和实测见 [红果短剧接入说明](docs/hongguo-source.md)。
+0.2.42 修复红果短剧详情只显示公开试看集的问题：选集按官网全量视频 ID 展示；官网匿名网页接口可播放的集仍在 App 内播放，网页接口未提供地址时可从选集页直接打开红果官方页面，并继续使用官网的 App 播放入口。接口调查和实测见 [红果短剧接入说明](docs/hongguo-source.md)。
+
+0.2.41 新增红果短剧公开目录适配，包括首页、真人剧/漫剧/AI剧/漫画分类、题材筛选、分页、详情及官网公开播放。
 
 0.2.32 直播视频直接使用嵌入式 AVPlayerViewController 的渲染链路，和 CCTVHost 的 AVPlayer 页面一致；首帧检测观察控制器内部播放器层，避免独立 AVPlayerLayer 与原生控制器脱离。模拟器检查同步验证原生播放器控制器挂载并随容器缩放。
 
@@ -97,7 +99,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.32-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.42-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

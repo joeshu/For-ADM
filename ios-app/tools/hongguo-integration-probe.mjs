@@ -1,4 +1,4 @@
-// Live, read-only contract check for Hongguo's public catalogue and preview.
+// Live, read-only contract check for Hongguo's public catalogue and playback API.
 // Run with: node --use-env-proxy tools/hongguo-integration-probe.mjs
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
@@ -20,7 +20,7 @@ const transport=async({signal,...request})=>{
  return {status:response.status,bodyBase64:body.toString('base64'),url:response.url};
 };
 const client=new HongguoClient({id:'hongguo',name:'红果短剧',provider:'hongguo',origin},transport,storage);
-const report={checkedAt:new Date().toISOString(),origin,scope:'Public SSR catalogue, two catalogue pages, a topic filter, one detail and official public-preview metadata. Media validation uses HEAD only; no media bytes, account data, or protected playback URLs are fetched.',home:{},categories:[],filter:null,detail:null,preview:null};
+const report={checkedAt:new Date().toISOString(),origin,scope:'Public SSR catalogue, two catalogue pages, a topic filter, one full episode list and an anonymous official play-info request. Media validation uses HEAD only; no media bytes or account data are fetched.',home:{},categories:[],filter:null,detail:null,playback:null};
 
 const home=await client.home();
 assert.ok(home.blocks.length,'Public home returned no sections');
@@ -52,19 +52,22 @@ assert.ok(id,'Catalogue card had no series id');
 const detail=await client.detail(id),line=detail.playSources?.[0];
 assert.ok(detail.title&&Array.isArray(detail.playSources),'Detail page mapping failed');
 const episodes=await client.episodes(id,line);
-report.detail={title:detail.title,siteAccessibleEpisodes:line.total,publicPreviewEpisodes:episodes.length};
-report.preview={publicEpisodes:episodes.length,headStatus:null,contentType:null};
-for(const episode of episodes){
- const url=new URL(episode.playUrls[0].url);
- assert.equal(url.origin,origin,'Preview URL left the official origin');
- assert.ok(url.pathname.startsWith('/video/public/'),'Episode URL was not from the official public-preview path');
-}
-if(episodes[0]){
- const response=await fetch(episodes[0].playUrls[0].url,{method:'HEAD',headers:{'User-Agent':'Mozilla/5.0'},signal:AbortSignal.timeout(20000)});
- report.preview.headStatus=response.status;
- report.preview.contentType=response.headers.get('content-type');
- assert.ok(response.status>=200&&response.status<300,'Official public preview HEAD failed');
- assert.match(report.preview.contentType||'',/video\/mp4/i,'Public preview was not served as MP4');
+assert.equal(episodes.length,Number(detail.playSources[0].total),'UI episode list did not include the complete official video ID list');
+const detailRecord=client.details.get(String(id));
+report.detail={title:detail.title,episodeCount:episodes.length,websiteAnonymousOpenCount:detailRecord?.accessible||0};
+if(episodes[1]){
+ const playback=await client.play({vodId:id,siteId:line.siteId,episodeId:episodes[1].id});
+ const url=playback.playUrls[0].url,parsed=new URL(url);
+ assert.match(parsed.hostname,/^v\d+-hgweb\.qznovelvod\.com$/i,'Unexpected official video host');
+ const response=await fetch(url,{method:'HEAD',headers:{'User-Agent':'Mozilla/5.0',Referer:origin+'/player/'+id+'/'+episodes[1].id},signal:AbortSignal.timeout(20000)});
+ report.playback={episode:episodes[1].title,officialPlayInfo:'available',mediaHost:parsed.hostname,headStatus:response.status,contentType:response.headers.get('content-type')};
+ assert.ok(response.status>=200&&response.status<300,'Official play-info media HEAD failed');
+ assert.match(report.playback.contentType||'',/video\/mp4/i,'Official video was not served as MP4');
+ const protectedEpisode=episodes[detailRecord?.accessible||0];
+ if(protectedEpisode){
+  try{await client.play({vodId:id,siteId:line.siteId,episodeId:protectedEpisode.id});report.playback.firstBeyondWebsiteOpenCount='official endpoint returned a URL';}
+  catch(error){report.playback.firstBeyondWebsiteOpenCount=Number(error.code)===403?'official web endpoint returned 403; playback remains subject to official free-access flow':'official endpoint error: '+String(error.code||error.message).slice(0,120);}
+ }
 }
 
 const output=new URL('../docs/hongguo-integration-probe.json',import.meta.url);
