@@ -1,0 +1,36 @@
+name: HGTV public Python checks
+
+on:
+  push:
+    paths:
+      - 'research/hongguo/**'
+      - '.github/workflows/hgtv-public-check.yml'
+  pull_request:
+    paths:
+      - 'research/hongguo/**'
+      - '.github/workflows/hgtv-public-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        python: ['3.8', '3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run offline catalogue and runtime regressions
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python -m unittest discover -s research/hongguo -p 'test_public_*.py' -v
+      - name: Check command-line interface
+        run: python research/hongguo/hgtv_public_optimized.py --help

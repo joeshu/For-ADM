@@ -1,0 +1,51 @@
+{
+  "scope": "Explicit public MP4 resources only; ffprobe identifies durations and codecs, not full-series playback. No media is stored in the repository.",
+  "samples": [
+    {
+      "episode": 1,
+      "checkedAt": "2026-11-01T17:29:06.152839+00:00",
+      "publicResource": true,
+      "format": {
+        "duration": "10.080000",
+        "size": "493363"
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 360,
+          "height": 640,
+          "duration": "10.000000"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "duration": "9.984580"
+        }
+      ],
+      "completePlaybackVerified": false
+    },
+    {
+      "episode": 4,
+      "checkedAt": "2026-11-01T17:32:25.740079+00:00",
+      "publicResource": true,
+      "format": {
+        "duration": "10.080000",
+        "size": "643084"
+      },
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "duration": "10.000000"
+        },
+        {
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "duration": "9.984580"
+        }
+      ],
+      "completePlaybackVerified": false
+    }
+  ]
+}
