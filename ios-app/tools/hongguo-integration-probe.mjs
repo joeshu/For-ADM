@@ -3,10 +3,11 @@
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {HongguoClient} from '../Web/hongguo-api.mjs';
+import {inspectMP4Init} from '../Web/mp4-inspection.mjs';
 
 const origin='https://hongguoduanju.com';
 const output=new URL('../docs/hongguo-integration-probe.json',import.meta.url);
-const report={checkedAt:new Date().toISOString(),origin,scope:'Live public SSR catalogue, pagination, filtering and complete episode IDs. Playback follows the original publicVideoSeo route and checks at most 64 KiB of the clear preview MP4. No protected media, keys, cookies or account data are recorded. Native rendered-frame verification runs separately in the iOS simulator.',home:{},categories:[],filter:null,detail:null,playback:null,ssrContract:{}};
+const report={checkedAt:new Date().toISOString(),origin,scope:'Live public SSR catalogue, pagination, filtering and complete episode IDs. Complete playback uses the website normal compatibility endpoint; short public previews remain separate. Checks at most 64 KiB per clear MP4 and records no media URLs, keys, cookies or account data. Native full-episode rendering/end-of-playback verification runs separately in the iOS simulator.',home:{},categories:[],filter:null,detail:null,playback:null,ssrContract:{}};
 async function boundedBody(response,limit){
  const reader=response.body?.getReader();if(!reader)return Buffer.alloc(0);
  const chunks=[];let size=0;
@@ -66,22 +67,26 @@ report.detail={title:detail.title,episodeCount:episodes.length,websiteAnonymousO
 report.ssrContract.detail=client.lastDiagnostics;
 if(episodes[0]){
  const playback=await client.play({vodId:id,siteId:line.siteId,episodeId:episodes[0].id});
- const url=playback.playUrls[0].url,parsed=new URL(url);
- assert.equal(parsed.origin,origin,'Unexpected public preview host');
- assert.equal(parsed.pathname,'/video/public/'+episodes[0].id+'/360p.mp4');
- assert.equal(playback.playUrls[0].preview,true,'Public preview must be identified as a preview');
- const response=await fetch(url,{headers:{...playback.playUrls[0].headers,Range:'bytes=0-65535'},signal:AbortSignal.timeout(20000)});
- const bytes=await boundedBody(response,65536),mdat=bytes.indexOf(Buffer.from('mdat')),metadata=mdat<0?bytes:bytes.subarray(0,mdat);
- const protectedSampleEntryFound=metadata.includes(Buffer.from('encv'))||metadata.includes(Buffer.from('enca'));
- report.playback={episode:episodes[0].title,publicPreview:true,mediaHost:parsed.hostname,getStatus:response.status,contentType:response.headers.get('content-type'),contentRange:response.headers.get('content-range'),sampleBytes:bytes.length,isoBMFF:bytes.subarray(4,8).toString()==='ftyp',protectedSampleEntryFound};
+ const entry=playback.playUrls[0],parsed=new URL(entry.url);
+ assert.match(parsed.hostname,/^v\d+-(?:reading|hgweb)\.qznovelvod\.com$/i,'Unexpected complete video host');
+ assert.equal(entry.preview,false,'Complete playback must not be a ten-second preview');
+ const response=await fetch(entry.url,{headers:{...entry.headers,Range:'bytes=0-65535'},signal:AbortSignal.timeout(20000)});
+ const bytes=await boundedBody(response,65536),init=inspectMP4Init(bytes.toString('binary'));
+ report.playback={episode:episodes[0].title,fullEpisode:true,mediaHost:parsed.hostname,getStatus:response.status,contentType:response.headers.get('content-type'),contentRange:response.headers.get('content-range'),sampleBytes:bytes.length,initialization:init,contract:client.playbackDiagnostics};
+ assert.equal(response.status,206,'Complete MP4 Range GET failed');
+ assert.match(report.playback.contentType||'',/video\/mp4/i,'Complete video was not served as MP4');
+ // A long video's sample tables can put the audio track beyond this prefix.
+ // Audio presence and full decode are verified by the native playback check.
+ assert.ok(init.mp4&&!init.encrypted,'Compatibility endpoint returned invalid or protected MP4 initialization');
+ const preview=await client.play({vodId:id,siteId:'hongguo-preview',episodeId:episodes[0].id});
+ assert.equal(preview.playUrls[0].preview,true);
+ assert.equal(new URL(preview.playUrls[0].url).pathname,'/video/public/'+episodes[0].id+'/360p.mp4');
+ report.playback.separatePublicPreview=true;
  report.ssrContract.player=client.lastDiagnostics;
- assert.equal(response.status,206,'Public preview Range GET failed');
- assert.match(report.playback.contentType||'',/video\/mp4/i,'Public preview was not served as MP4');
- assert.ok(report.playback.isoBMFF&&!protectedSampleEntryFound,'Public preview returned incompatible or protected media');
- const nonPreviewCandidate=episodes[detailRecord?.accessible||0];
- if(nonPreviewCandidate){
-  try{const other=await client.play({vodId:id,siteId:line.siteId,episodeId:nonPreviewCandidate.id});report.playback.firstBeyondWebsiteOpenCount=other.playUrls[0]?.preview?'another published public preview':'unexpected media kind';}
-  catch(error){if(error.code!=='HONGGUO_OFFICIAL_REQUIRED')throw error;report.playback.firstBeyondWebsiteOpenCount='No public preview; show the official App entry without starting AVPlayer';}
+ const beyond=episodes[detailRecord?.accessible||0];
+ if(beyond){
+  try{const other=await client.play({vodId:id,siteId:line.siteId,episodeId:beyond.id});assert.equal(other.playUrls[0].preview,false);report.playback.firstBeyondWebsiteOpenCount='Official endpoint provided another complete MP4';}
+  catch(error){if(error.code!=='HONGGUO_OFFICIAL_REQUIRED')throw error;report.playback.firstBeyondWebsiteOpenCount='Official compatibility endpoint denied this episode; show the official App entry';report.playback.denialContract=client.playbackDiagnostics;}
  }
 }
 

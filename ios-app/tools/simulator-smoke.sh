@@ -79,13 +79,13 @@ if [ "${base_smoke_passed:-0}" = "1" ]; then
   # the audio-only fixture substituted for the earlier generic bridge check.
   xcrun simctl terminate "$sim_device" com.joeshu.sanyuan
   xcrun simctl launch "$sim_device" com.joeshu.sanyuan --hongguo-smoke
-  for attempt in $(seq 1 70); do
+  for attempt in $(seq 1 115); do
     if [ -f "$sim_data/Library/Caches/sanyuan-hongguo-smoke.json" ]; then
       cp "$sim_data/Library/Caches/sanyuan-hongguo-smoke.json" dist/simulator-hongguo-smoke.json
       hongguo_status="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("status","unknown"))' dist/simulator-hongguo-smoke.json)"
       if [ "$hongguo_status" = "videoReady" ]; then
         cat dist/simulator-hongguo-smoke.json
-        python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-smoke.json"));assert d["officialPublicMP4"] and d["rendererReady"] and d["inlinePlayback"] and d["previewNotice"] and not d["fixtureUsed"] and d["presentationWidth"]>0 and d["presentationHeight"]>0 and d["playbackTime"]>1 and d["duration"]>1,d'
+        python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-smoke.json"));assert d["officialCompleteMP4"] and d["fullEpisodeCompleted"] and d["fullEpisodeMode"] and d["inlinePlayback"] and not d["fixtureUsed"] and d["presentationWidth"]>0 and d["presentationHeight"]>0 and d["firstFrameTime"]<10 and d["audioTracks"]>0 and d["duration"]>30 and d["playbackTime"]>=d["duration"]-1.5,d'
         xcrun simctl io "$sim_device" screenshot dist/simulator-hongguo.png
         exit 0
       elif [ "$hongguo_status" = "failed" ]; then

@@ -1,10 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';import{createRequire}from'node:module';
 import {resolvePlayableEpisode,matchingEpisode,verifyMedia}from'../Web/playback.mjs';import {SiteClient,ServiceError}from'../Web/site-api.mjs';
+import {mp4Init} from './fixtures/mp4-init.mjs';
 globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
 const body=s=>({status:200,bodyBase64:Buffer.from(s).toString('base64')}),json=x=>body(JSON.stringify(x));const hls=body('#EXTM3U\n#EXTINF:5,\nsegment.ts\n');
 const episode=(id,title,url,open=true)=>({id,title,open,playUrls:[{url}]});
 const site={id:'test',origin:'https://origin.example',appId:'public',version:'1',signKey:'test',responseKeys:[]};
 const storage={getItem(){return null},setItem(){}};
+const clearMP4=()=>{const bytes=mp4Init();return {status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-'+(bytes.length-1)+'/1000'},bodyBase64:bytes.toString('base64')};};
 test('A TLS failure switches to the same numbered episode and retains original request headers',async()=>{
  const first=episode(1,'第02集','https://broken.example/v.m3u8'),other=episode(2,'第2集','https://good.example/v.m3u8',false),d={id:9,playSources:[{siteId:1,name:'坏线路',list:[first]},{siteId:2,name:'好线路',list:[other]}]};let authorized=0;
  const c={site,play:async p=>{authorized++;assert.equal(p.episodeId,2);return[{url:'https://good.example/v.m3u8'}]},transport:async r=>{assert.equal(r.headers.Referer,site.origin+'/');if(r.url.includes('broken')){const e=Error('bad certificate');e.code=-1202;throw e;}return hls;}};
@@ -38,16 +40,26 @@ test('Website referrer policy and per-line headers reach master and variant requ
  await verifyMedia({site,transport:async r=>{seen.push(r);return seen.length===1?body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nvariant.m3u8\n'):hls;}},'https://cdn.example/master.m3u8',undefined,headers,'no-referrer');
  assert.equal(seen.length,2);for(const r of seen)assert.deepEqual(r.headers,headers);
 });
-test('Hongguo MP4 validation uses a tiny byte-range GET instead of accepting HEAD-only availability',async()=>{
+test('Hongguo MP4 validation inspects real container metadata including URLs without a file extension',async()=>{
  const seen=[],hongguoSite={...site,provider:'hongguo'};
- await verifyMedia({site:hongguoSite,transport:async r=>{seen.push(r);return {status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-1/100'},bodyBase64:'AAE='};}},'https://hongguoduanju.com/video/public/1001/360p.mp4');
- assert.equal(seen.length,1);assert.equal(seen[0].method,'GET');assert.equal(seen[0].headers.Range,'bytes=0-1');
+ await verifyMedia({site:hongguoSite,transport:async r=>{seen.push(r);return clearMP4();}},'https://v3-hgweb.qznovelvod.com/video/clear/?mime_type=video_mp4');
+ assert.equal(seen.length,1);assert.equal(seen[0].method,'GET');assert.equal(seen[0].headers.Range,'bytes=0-65535');
  await assert.rejects(verifyMedia({site:hongguoSite,transport:async r=>{assert.equal(r.method,'GET');return {status:404,headers:{'Content-Type':'text/plain'},bodyBase64:''};}},'https://hongguoduanju.com/video/public/missing/360p.mp4'),error=>error.status===404&&/HTTP 404/.test(error.message));
 });
 test('A 404 on an expired Hongguo MP4 address refreshes official playback URLs even when the episode is not marked open',async()=>{
  const d={id:'series',playSources:[{siteId:'hongguo-official',list:[{id:'e1',title:'第1集',open:false}]}]};let requests=0,plays=0;
- const c={site:{...site,provider:'hongguo'},play:async()=>++plays===1?[{url:'https://hongguoduanju.com/video/public/1001/broken.mp4'},{url:'https://hongguoduanju.com/video/public/1001/broken-backup.mp4'}]:[{url:'https://hongguoduanju.com/video/public/1001/refreshed.mp4'}],transport:async r=>{requests++;return r.url.includes('broken')?{status:404,headers:{'Content-Type':'text/plain'}}:{status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-1/100'},bodyBase64:'AAE='};}};
+ const c={site:{...site,provider:'hongguo'},play:async()=>++plays===1?[{url:'https://hongguoduanju.com/video/public/1001/broken.mp4'},{url:'https://hongguoduanju.com/video/public/1001/broken-backup.mp4'}]:[{url:'https://hongguoduanju.com/video/public/1001/refreshed.mp4'}],transport:async r=>{requests++;return r.url.includes('broken')?{status:404,headers:{'Content-Type':'text/plain'}}:clearMP4();}};
  const result=await resolvePlayableEpisode(c,d,0,0);assert.equal(plays,2);assert.equal(result.urls[0].url,'https://hongguoduanju.com/video/public/1001/refreshed.mp4');assert.equal(requests,3);
+});
+test('Encrypted MP4 initialization is rejected even when the CDN returns a successful MP4 Range response',async()=>{
+ const data=mp4Init({video:'encv'});
+ await assert.rejects(verifyMedia({site:{...site,provider:'hongguo'},transport:async()=>({...clearMP4(),bodyBase64:data.toString('base64')})},'https://v3-hgweb.qznovelvod.com/video/protected/'),/加密媒体/);
+});
+test('Complete playback never silently downgrades to a preview, while explicit preview selection remains usable',async()=>{
+ const d={id:'series',playSources:[{siteId:'full',list:[{id:'e1',title:'第1集'}]},{siteId:'preview',preview:true,list:[{id:'e1',title:'第1集'}]}]},requested=[];
+ const c={site,preferredPlaybackSiteId:'full',play:async({siteId})=>{requested.push(siteId);return [{url:'https://media.example/'+siteId+'.mp4',preview:siteId==='preview'}];},transport:async r=>({status:r.url.includes('/full')?404:200})};
+ await assert.rejects(resolvePlayableEpisode(c,d,0,0));assert.deepEqual(requested,['full']);
+ const result=await resolvePlayableEpisode(c,d,1,0);assert.equal(result.lineIndex,1);assert.equal(result.urls[0].preview,true);assert.equal(c.preferredPlaybackSiteId,'full');
 });
 test('Resolver retains no-referrer on a website MP4 and skips broken same-episode lines',async()=>{
  const d={id:'nrLxl',channelId:1,playSources:[{siteId:'broken',list:[{id:1,title:'正片'}]},{siteId:'working',list:[{id:2,title:'HD'}]}]},seen=[];

@@ -1,0 +1,125 @@
+{
+  "checkedAt": "2026-11-01T14:43:36.027Z",
+  "title": "军需处长的账本",
+  "episodes": 46,
+  "checks": [
+    {
+      "episode": 1,
+      "itemId": "7690963410778868761",
+      "status": 200,
+      "fields": [
+        "main_url",
+        "url_expire",
+        "base_resp"
+      ],
+      "baseResponse": {
+        "StatusCode": 0,
+        "StatusMessage": ""
+      },
+      "error": null,
+      "media": {
+        "host": "v3-hgweb.qznovelvod.com",
+        "status": 206,
+        "type": "video/mp4",
+        "range": "bytes 0-65535/6971183",
+        "ftyp": "ftyp",
+        "encryptedEntry": false,
+        "audioSampleEntry": true
+      }
+    },
+    {
+      "episode": 2,
+      "itemId": "7690963562042248217",
+      "status": 200,
+      "fields": [
+        "main_url",
+        "url_expire",
+        "base_resp"
+      ],
+      "baseResponse": {
+        "StatusCode": 0,
+        "StatusMessage": ""
+      },
+      "error": null,
+      "media": {
+        "host": "v3-hgweb.qznovelvod.com",
+        "status": 206,
+        "type": "video/mp4",
+        "range": "bytes 0-65535/12088797",
+        "ftyp": "ftyp",
+        "encryptedEntry": false,
+        "audioSampleEntry": true
+      }
+    },
+    {
+      "episode": 3,
+      "itemId": "7690963468219845657",
+      "status": 200,
+      "fields": [
+        "main_url",
+        "url_expire",
+        "base_resp"
+      ],
+      "baseResponse": {
+        "StatusCode": 0,
+        "StatusMessage": ""
+      },
+      "error": null,
+      "media": {
+        "host": "v3-hgweb.qznovelvod.com",
+        "status": 206,
+        "type": "video/mp4",
+        "range": "bytes 0-65535/8503706",
+        "ftyp": "ftyp",
+        "encryptedEntry": false,
+        "audioSampleEntry": true
+      }
+    },
+    {
+      "episode": 4,
+      "itemId": "7690963464415628313",
+      "status": 403,
+      "fields": [
+        "error"
+      ],
+      "error": "public_fallback_unavailable"
+    },
+    {
+      "episode": 23,
+      "itemId": "7690963518165634073",
+      "status": 403,
+      "fields": [
+        "error"
+      ],
+      "error": "public_fallback_unavailable"
+    },
+    {
+      "episode": 46,
+      "itemId": "7690963495944211481",
+      "status": 403,
+      "fields": [
+        "error"
+      ],
+      "error": "public_fallback_unavailable"
+    }
+  ],
+  "endpoint": "/api/video/protected/fallback-play-info",
+  "normalRequestFields": [
+    "item_id"
+  ],
+  "observedInNormalOfficialBrowser": true,
+  "firstEpisodeDecode": {
+    "durationSeconds": 108.33068,
+    "videoSeconds": 108.32,
+    "width": 360,
+    "height": 640,
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "videoFrames": 2708,
+    "audioFrames": 4666,
+    "completeFileBytes": 6971183,
+    "ffmpegFullDecode": "passed"
+  },
+  "scope": "Complete episodes currently supplied by the normal official website compatibility endpoint. All catalogue IDs remain visible; episodes explicitly denied by the official endpoint are not made playable.",
+  "nativeVerification": "iOS CI requires the real complete episode to render video, include audio, and reach its end; see the release build run."
+}

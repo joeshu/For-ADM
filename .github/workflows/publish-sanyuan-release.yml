@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       tag:
-        description: Release tag matching ios-app/package.json (for example v0.2.47)
+        description: Release tag matching ios-app/package.json (for example v0.2.48)
         required: true
         type: string
 permissions:
@@ -71,9 +71,9 @@ jobs:
           cat > "$notes" <<EOF
           三源影视 $version，整合多个影视来源、原生直播页和系统播放器。
 
-          本版修复红果播放回归：恢复首次接入时可播放的官网公开试看 MP4，不再把加密 DASH 当作普通 MP4 交给 AVPlayer。试看明确标注，结束不自动跳集，旧观看进度不会跳过短试看；完整选集目录保留，未公开的剧集提供红果官方 App 入口。
+          本版接入官网正常播放器的兼容 MP4，播放网页已开放集数的完整视频，支持续播与自动下一集；公开试看作为独立手选线路，整集失败不会自动降为短试看。
 
-          注意：首次接入版本使用的也是官网公开试看，本版没有实现完整剧集的内置播放。CI 增加真实红果视频的模拟器画面和播放进度验证。
+          实测《军需处长的账本》第 1 集为约 108 秒的完整音视频，CI 验证真实视频从首帧播放到结束。该剧前 3 集官网提供整集，第 4 集、中间集和最后一集返回 403；未开放的后续集仍需红果官方 App，本版不代表全剧所有集数均可内置播放。
 
           这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
 

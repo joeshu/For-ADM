@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright-core';
+import {mp4Init} from '../tests/fixtures/mp4-init.mjs';
 
 const cwd=fileURLToPath(new URL('../',import.meta.url)),port=4175;
 execFileSync(process.execPath,['tools/build-web.mjs'],{cwd,stdio:'pipe'});
@@ -30,6 +31,9 @@ try{
   requests.push({url:req.url,path,params,headers:req.headers});
   const send=async data=>{try{await route.fulfill({json:encoded(data)});}catch(error){if(!/already handled|Invalid Interception|Target closed|Fetch.enable|interception/i.test(error.message))throw error;}};
   if(url.hostname==='posters.example'){await route.fulfill({json:{status:200,bodyBase64:png}});return;}
+  if(/^v\d+-(?:reading|hgweb)\.qznovelvod\.com$/.test(url.hostname)){
+   const bytes=mp4Init();await route.fulfill({json:{status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-'+(bytes.length-1)+'/6971183'},bodyBase64:bytes.toString('base64')}});return;
+  }
   if(path==='/js/baseUrlList.js'){await send('var baseApiList=["https://website-api.example"];');return;}
   if(path.startsWith('/v1/api/')||path.startsWith('/v2/api/')){
    const source=String(params.reqDomain||'').includes('qntv')?'QNTV':'YQK';
@@ -73,8 +77,12 @@ try{
     const itemId=path.split('/').at(-1);
     await send(hgHTML({'player_(series_id)/(vid)/page':{isSuccess:true,protectedPlayback:true,publicVideoSeo:{available:itemId===hgVideos[0],seriesId:hgIDs[0],itemId}}}));return;
    }
+   if(path==='/api/video/protected/fallback-play-info'){
+    const itemId=params.item_id,payload=itemId===hgVideos[3]?{error:'public_fallback_unavailable'}:{main_url:'https://v3-hgweb.qznovelvod.com/video/clear/'+itemId+'/?mime_type=video_mp4',base_resp:{StatusCode:0,StatusMessage:''}};
+    await route.fulfill({json:{status:itemId===hgVideos[3]?403:200,bodyBase64:Buffer.from(JSON.stringify(payload)).toString('base64')}});return;
+   }
    if(path.startsWith('/video/public/')){
-    await route.fulfill({json:{status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-1/493363'},bodyBase64:'AAA='}});return;
+    const bytes=mp4Init();await route.fulfill({json:{status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-'+(bytes.length-1)+'/493363'},bodyBase64:bytes.toString('base64')}});return;
    }
    unexpected.push(path);await send({error:'Unexpected Hongguo fixture path '+path});return;
   }
@@ -159,7 +167,7 @@ try{
  assert.equal(await page.locator('.episodes .episode').count(),hgVideos.length);
  assert.equal(await page.locator('.episodes .episode').first().innerText(),'第1集');
  assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/detail?series_id='+hgIDs[0]));
- await page.getByText('当前仅播放官网公开试看片段，非完整剧集。全集请前往红果官方 App 观看。',{exact:true}).waitFor();
+ await page.getByText('官网网页当前开放前 3 集完整播放，其余集请前往红果官方 App。',{exact:true}).waitFor();
  // Exercise the native bridge options with a stale full-video resume position.
  await page.evaluate(([sid,vid])=>{
   localStorage.setItem('sanyuan:history',JSON.stringify([{key:'hongguo:'+sid,siteId:'hongguo',movie:{id:sid,title:'红果首页短剧'},episodeId:vid,time:65,updated:Date.now()}]));
@@ -168,16 +176,25 @@ try{
   window.NativeTransport.play=async(url,headers,options)=>{window.__nativePlays.push({url,headers,options});return {ok:true};};
  },[hgIDs[0],hgVideos[0]]);
  await action('episode',{id:'0'});await page.waitForFunction(()=>window.__nativePlays.length===1);
- const preview=await page.evaluate(()=>window.__nativePlays[0]);
+ const full=await page.evaluate(()=>window.__nativePlays[0]);
+ assert.equal(full.url,'https://v3-hgweb.qznovelvod.com/video/clear/'+hgVideos[0]+'/?mime_type=video_mp4');assert.equal(full.options.startAt,65);
+ await page.evaluate(context=>window.NativeTransport.onPlaybackEvent({context,status:'ended'}),full.options.context);
+ await page.waitForFunction(()=>window.__nativePlays.length===2);
+ assert.match((await page.evaluate(()=>window.__nativePlays[1])).url,new RegExp(hgVideos[1]));
+ await action('play-source',{id:'1'});await page.waitForFunction(()=>window.__nativePage?.line===1&&!window.__nativePage.loading);
+ await page.evaluate(([sid,vid])=>localStorage.setItem('sanyuan:history',JSON.stringify([{key:'hongguo:'+sid,siteId:'hongguo',movie:{id:sid,title:'红果首页短剧'},episodeId:vid,time:65,updated:Date.now()}])),[hgIDs[0],hgVideos[0]]);
+ await action('episode',{id:'0'});await page.waitForFunction(()=>window.__nativePlays.length===3);
+ const preview=await page.evaluate(()=>window.__nativePlays[2]);
  assert.equal(preview.url,'https://hongguoduanju.com/video/public/'+hgVideos[0]+'/360p.mp4');assert.equal(preview.options.startAt,0);
  await page.evaluate(context=>window.NativeTransport.onPlaybackEvent({context,status:'ended'}),preview.options.context);
  assert.match(await page.locator('#toast').innerText(),/公开试看已结束/);
- assert.equal(await page.evaluate(()=>window.__nativePlays.length),1,'a ten-second preview must not silently advance to the next full episode');
+ assert.equal(await page.evaluate(()=>window.__nativePlays.length),3,'a ten-second preview must not silently advance to the next full episode');
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sanyuan:history'))[0].time),65,'a preview must not overwrite the full-video resume position');
+ await action('play-source',{id:'0'});await page.waitForFunction(()=>window.__nativePage?.line===0&&!window.__nativePage.loading);
  await action('episode',{id:'3'});
- await page.waitForFunction(()=>/红果官网未提供本集的公开试看/.test(window.__nativePage?.playError));
- assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/player/'+hgIDs[0]+'/'+hgVideos[3]));
- assert.ok(!requests.some(r=>r.url.startsWith('https://hongguoduanju.com/api/video/protected/')));
+ await page.waitForFunction(()=>/红果官网未提供本集的完整播放/.test(window.__nativePage?.playError));
+ assert.ok(requests.some(r=>r.url==='https://hongguoduanju.com/api/video/protected/fallback-play-info'&&r.params.item_id===hgVideos[3]));
+ assert.ok(!requests.some(r=>r.url.endsWith('/protected/play-info')));
  await page.evaluate(()=>{window.open=url=>{window.__openedOfficialURL=url;return null;};});
  await action('hongguo-official-page');
  await page.waitForFunction(()=>window.__openedOfficialURL==='https://hongguoduanju.com/player/7700000000000000001/8700000000000000004');

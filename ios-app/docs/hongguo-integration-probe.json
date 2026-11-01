@@ -1,7 +1,7 @@
 {
-  "checkedAt": "2026-11-01T14:21:34.359Z",
+  "checkedAt": "2026-11-01T14:56:38.423Z",
   "origin": "https://hongguoduanju.com",
-  "scope": "Live public SSR catalogue, pagination, filtering and complete episode IDs. Playback follows the original publicVideoSeo route and checks at most 64 KiB of the clear preview MP4. No protected media, keys, cookies or account data are recorded. Native rendered-frame verification runs separately in the iOS simulator.",
+  "scope": "Live public SSR catalogue, pagination, filtering and complete episode IDs. Complete playback uses the website normal compatibility endpoint; short public previews remain separate. Checks at most 64 KiB per clear MP4 and records no media URLs, keys, cookies or account data. Native full-episode rendering/end-of-playback verification runs separately in the iOS simulator.",
   "home": {
     "sections": 5,
     "cards": 39
@@ -42,15 +42,40 @@
   },
   "playback": {
     "episode": "第1集",
-    "publicPreview": true,
-    "mediaHost": "hongguoduanju.com",
+    "fullEpisode": true,
+    "mediaHost": "v11-hgweb.qznovelvod.com",
     "getStatus": 206,
     "contentType": "video/mp4",
-    "contentRange": "bytes 0-65535/1198345",
+    "contentRange": "bytes 0-65535/14862351",
     "sampleBytes": 65536,
-    "isoBMFF": true,
-    "protectedSampleEntryFound": false,
-    "firstBeyondWebsiteOpenCount": "No public preview; show the official App entry without starting AVPlayer"
+    "initialization": {
+      "mp4": true,
+      "moov": true,
+      "tracks": [
+        "avc1"
+      ],
+      "encrypted": false
+    },
+    "contract": {
+      "kind": "full-mp4",
+      "path": "/api/video/protected/fallback-play-info",
+      "status": 200,
+      "ok": true,
+      "responseKeys": [
+        "main_url",
+        "url_expire",
+        "base_resp"
+      ],
+      "mediaHost": "v11-hgweb.qznovelvod.com"
+    },
+    "separatePublicPreview": true,
+    "firstBeyondWebsiteOpenCount": "Official compatibility endpoint denied this episode; show the official App entry",
+    "denialContract": {
+      "kind": "full-mp4",
+      "path": "/api/video/protected/fallback-play-info",
+      "status": 403,
+      "ok": false
+    }
   },
   "ssrContract": {
     "home": {
@@ -80,7 +105,7 @@
       "kind": "category",
       "path": "/category/real-drama",
       "status": 200,
-      "htmlBytes": 230871,
+      "htmlBytes": 230833,
       "loaderKeys": [
         "category_layout",
         "category_$"
@@ -106,7 +131,7 @@
       "kind": "detail",
       "path": "/detail",
       "status": 200,
-      "htmlBytes": 523360,
+      "htmlBytes": 523297,
       "loaderKeys": [
         "detail_layout",
         "detail_page"
@@ -126,7 +151,7 @@
       "kind": "player",
       "path": "/player/7701935931787316286/7701937936731737112",
       "status": 200,
-      "htmlBytes": 130669,
+      "htmlBytes": 133428,
       "loaderKeys": [
         "player_layout",
         "player_(series_id)/(vid)/layout",
