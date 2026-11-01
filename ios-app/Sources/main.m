@@ -623,7 +623,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   NSData*data=[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:NULL];
   [data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-smoke.json"] atomically:YES];
   [self stopNativePlayback];self.smokeLiveVideoStarted=YES;
-  [self.web evaluateJavaScript:@"window.NativeTransport&&window.NativeTransport.play('http://118.190.200.12:8767/cctv2.m3u8',{}, {context:'live:smoke-cctv2',frame:{visible:true,x:0,y:0,width:390,height:220,viewportWidth:390},title:'CCTV2财经模拟实播验证'})" completionHandler:^(id result,NSError*error){if(error){NSDictionary*failure=@{@"context":@"live:smoke-cctv2",@"status":@"failed",@"error":error.localizedDescription?:@"播放器桥接失败"};NSData*failureData=[NSJSONSerialization dataWithJSONObject:failure options:NSJSONWritingPrettyPrinted error:NULL];[failureData writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"] atomically:YES];}}];
+  // The layout fixture can finish failing after this direct bridge test starts.
+  // Production channel switching updates nativeSession; this injected context
+  // bypasses it, so ignore only the earlier fixture's stale live callbacks.
+  [self.web evaluateJavaScript:@"(()=>{const forward=window.NativeTransport.onPlaybackEvent;window.NativeTransport.onPlaybackEvent=event=>{if(event.context?.startsWith('live:')&&event.context!=='live:smoke-cctv2')return;forward?.(event);};return window.NativeTransport.play('http://118.190.200.12:8767/cctv2.m3u8',{}, {context:'live:smoke-cctv2',frame:{visible:true,x:0,y:0,width:390,height:220,viewportWidth:390},title:'CCTV2财经模拟实播验证'});})()" completionHandler:^(id result,NSError*error){if(error){NSDictionary*failure=@{@"context":@"live:smoke-cctv2",@"status":@"failed",@"error":error.localizedDescription?:@"播放器桥接失败"};NSData*failureData=[NSJSONSerialization dataWithJSONObject:failure options:NSJSONWritingPrettyPrinted error:NULL];[failureData writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"] atomically:YES];}}];
 }
 #endif
 - (void)stopNativePlayback {

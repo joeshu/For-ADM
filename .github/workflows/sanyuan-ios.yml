@@ -47,12 +47,14 @@ jobs:
         if: always()
         with:
           name: Sanyuan-unsigned-ipa
+          overwrite: true
           path: ios-app/dist/Sanyuan-0.2.48-unsigned.ipa
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Sanyuan-ci-diagnostics
+          overwrite: true
           path: |
             ios-app/dist/build-report.json
             ios-app/dist/simulator-smoke.json
