@@ -47,7 +47,7 @@ jobs:
         if: always()
         with:
           name: Sanyuan-unsigned-ipa
-          path: ios-app/dist/Sanyuan-0.2.44-unsigned.ipa
+          path: ios-app/dist/Sanyuan-0.2.45-unsigned.ipa
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()

@@ -257,7 +257,7 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title"><div class="settings-card-heading"><span class="settings-icon">⌁</span><div><h2 id="settings-network-title">数据线路</h2><p>选择数据请求优先使用的线路</p></div><button class="settings-action" data-act="probe-lines">检测</button></div>
    <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${(c.config?.urls?.[kind]||[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}).slice(0,5).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button class="settings-line" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'优先':health?health.ok?`${health.ms} ms`:'暂不可用':'未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}</div>
   </section>
-  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.44 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
+  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.45 · iOS 15 及以上</p></div></div><p>整合 ${sites.map(source=>e(source.name)).join('、')} 的片库、分类及播放线路，保留原站账户和资源访问限制。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
  </div>`;
 }
 function detail(){
@@ -376,7 +376,7 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.44'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.45'};
  }
  return {...base};
 }
@@ -443,6 +443,18 @@ async function recoverPlayback(session,message=''){
   recovery.failedURLs.add(candidate.url);state.playIndex=index;state.playError='当前地址连接不稳定，正在尝试备用地址…';render();
   try{await verifyMedia(client(),candidate.url,controller?.signal,candidate.headers,candidate.referrerPolicy);if(!stillCurrent())return;state.playError='';recovery.running=false;render();if(native.native())await launchNativePlayer();else await $('#video')?.play().catch(()=>{});return;}
   catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}
+ }
+ if(client().site?.provider==='hongguo'&&/HTTP\s*(?:404|410)\b/i.test(lastError)&&!recovery.refreshed){
+  recovery.refreshed=true;
+  try{
+   if(!stillCurrent())return;
+   const line=state.detail?.playSources?.[state.line],fresh=await resolvePlayback(client(),state.detail.id,line,state.episode,controller?.signal,{refresh:true});
+   if(!stillCurrent())return;
+   for(let index=0;index<Math.min(fresh.length,3);index++){
+    const candidate=fresh[index];try{await verifyMedia(client(),candidate.url,controller?.signal,candidate.headers,candidate.referrerPolicy);if(!stillCurrent())return;state.playURLs=fresh;state.playIndex=index;state.playError='';recovery.running=false;render();toast('已刷新红果播放地址');if(native.native())await launchNativePlayer();else await $('#video')?.play().catch(()=>{});return;}
+    catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}
+   }
+  }catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;}
  }
  if(authorizationFailure(lastError)){if(stillCurrent()){recovery.running=false;state.playError='原站返回了权限或账号限制，请按原站提示处理。';render();}return;}
  const detail=state.detail,requested=state.episode,lines=detail?.playSources||[],preferred=lines.findIndex(line=>line.siteId===client().preferredPlaybackSiteId),order=[...new Set([preferred,...lines.map((_,i)=>i)].filter(i=>i>=0))];

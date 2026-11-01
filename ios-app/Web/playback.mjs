@@ -30,8 +30,15 @@ async function mediaRequest(client,url,signal,method='GET',headers={}){
 function playlist(response){if(response.status<200||response.status>=300)throw new MediaError('视频线路返回 HTTP '+response.status,response.status);let text;try{text=atob(response.bodyBase64||'').replace(/^\u00ef\u00bb\u00bf/,'').trim();}catch{throw new MediaError('视频清单格式错误');}if(!text.startsWith('#EXTM3U'))throw new MediaError('视频线路未返回有效播放清单');return text;}
 export async function verifyMedia(client,url,signal,headers={},referrerPolicy){
  headers=mediaHeaders(client,{headers,referrerPolicy});
- const hls=/\.m3u8(?:$|\?)/i.test(new URL(url).pathname+new URL(url).search),response=await mediaRequest(client,url,signal,hls?'GET':'HEAD',headers);
- if(!hls){if((response.status<200||response.status>=300)&&![405,501].includes(response.status))throw new MediaError('视频线路返回 HTTP '+response.status,response.status);const type=Object.entries(response.headers||{}).find(([k])=>k.toLowerCase()==='content-type')?.[1]||'';if(/text\/html|application\/(?:json|xml)/i.test(type))throw new MediaError('该线路返回网页，未返回媒体文件');return;}
+ const parsed=new URL(url),hls=/\.m3u8(?:$|\?)/i.test(parsed.pathname+parsed.search),hongguoMP4=client.site?.provider==='hongguo'&&/\.mp4$/i.test(parsed.pathname),probeHeaders=hongguoMP4?{...headers,Range:'bytes=0-1'}:headers,response=await mediaRequest(client,url,signal,hls||hongguoMP4?'GET':'HEAD',probeHeaders);
+ if(!hls){
+  if(hongguoMP4&&response.status!==206)throw new MediaError('红果媒体地址无法读取视频数据（HTTP '+response.status+'）',response.status);
+  if(!hongguoMP4&&(response.status<200||response.status>=300)&&![405,501].includes(response.status))throw new MediaError('视频线路返回 HTTP '+response.status,response.status);
+  const type=Object.entries(response.headers||{}).find(([k])=>k.toLowerCase()==='content-type')?.[1]||'';
+  if(/text\/html|application\/(?:json|xml)/i.test(type))throw new MediaError('该线路返回网页，未返回媒体文件');
+  if(hongguoMP4){const range=Object.entries(response.headers||{}).find(([k])=>k.toLowerCase()==='content-range')?.[1]||'';if(range&&!/^bytes\s+0-\d+\//i.test(range))throw new MediaError('红果媒体地址没有返回有效的视频字节范围');}
+  return;
+ }
  const text=playlist(response);
  if(text.includes('#EXT-X-STREAM-INF:')){const next=text.split(/\r?\n/).find(x=>x.trim()&&!x.startsWith('#'));const child=next&&safeHTTPS(new URL(next.trim(),response.url||url).href);if(!child)throw new MediaError('视频清单缺少有效子线路');playlist(await mediaRequest(client,child,signal,'GET',headers));}
 }
@@ -46,7 +53,7 @@ export async function resolvePlayableEpisode(client,detail,lineIndex,episodeInde
    let urls=await resolvePlayback(client,detail.id,line,episode,signal),checked=[],expired=false;
    const inspect=async candidates=>{for(const entry of candidates.slice(0,3)){const host=new URL(entry.url).host;if(badHosts.has(host))continue;try{await verifyMedia(client,entry.url,signal,entry.headers,entry.referrerPolicy);checked.push(entry);return;}catch(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate)badHosts.add(host);if([403,404,410].includes(error.status))expired=true;}}};
    await inspect(urls);
-   if(!checked.length&&expired&&episode.open){urls=await resolvePlayback(client,detail.id,line,episode,signal,{refresh:true});await inspect(urls);}
+   if(!checked.length&&expired&&(episode.open||client.site?.provider==='hongguo')){urls=await resolvePlayback(client,detail.id,line,episode,signal,{refresh:true});await inspect(urls);}
    if(checked.length){client.preferredPlaybackSiteId=line.siteId;return {lineIndex:index,episodeIndex:at,episode,urls:[...checked,...urls.filter(x=>!checked.some(y=>y.url===x.url))],switched:index!==lineIndex};}
   }catch(error){if(error.name==='AbortError'||error instanceof ServiceError)throw error;last=error;}
  }

@@ -38,6 +38,17 @@ test('Website referrer policy and per-line headers reach master and variant requ
  await verifyMedia({site,transport:async r=>{seen.push(r);return seen.length===1?body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nvariant.m3u8\n'):hls;}},'https://cdn.example/master.m3u8',undefined,headers,'no-referrer');
  assert.equal(seen.length,2);for(const r of seen)assert.deepEqual(r.headers,headers);
 });
+test('Hongguo MP4 validation uses a tiny byte-range GET instead of accepting HEAD-only availability',async()=>{
+ const seen=[],hongguoSite={...site,provider:'hongguo'};
+ await verifyMedia({site:hongguoSite,transport:async r=>{seen.push(r);return {status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-1/100'},bodyBase64:'AAE='};}},'https://v26-hgweb.qznovelvod.com/video/episode.mp4?sig=test');
+ assert.equal(seen.length,1);assert.equal(seen[0].method,'GET');assert.equal(seen[0].headers.Range,'bytes=0-1');
+ await assert.rejects(verifyMedia({site:hongguoSite,transport:async r=>{assert.equal(r.method,'GET');return {status:404,headers:{'Content-Type':'text/plain'},bodyBase64:''};}},'https://v26-hgweb.qznovelvod.com/video/missing.mp4?sig=test'),error=>error.status===404&&/HTTP 404/.test(error.message));
+});
+test('A 404 on an expired Hongguo MP4 address refreshes official playback URLs even when the episode is not marked open',async()=>{
+ const d={id:'series',playSources:[{siteId:'hongguo-official',list:[{id:'e1',title:'第1集',open:false}]}]};let requests=0,plays=0;
+ const c={site:{...site,provider:'hongguo'},play:async()=>++plays===1?[{url:'https://v1-hgweb.qznovelvod.com/video/broken.mp4'},{url:'https://v2-hgweb.qznovelvod.com/video/broken-backup.mp4'}]:[{url:'https://v3-hgweb.qznovelvod.com/video/refreshed.mp4'}],transport:async r=>{requests++;return r.url.includes('broken')?{status:404,headers:{'Content-Type':'text/plain'}}:{status:206,headers:{'Content-Type':'video/mp4','Content-Range':'bytes 0-1/100'},bodyBase64:'AAE='};}};
+ const result=await resolvePlayableEpisode(c,d,0,0);assert.equal(plays,2);assert.equal(result.urls[0].url,'https://v3-hgweb.qznovelvod.com/video/refreshed.mp4');assert.equal(requests,3);
+});
 test('Resolver retains no-referrer on a website MP4 and skips broken same-episode lines',async()=>{
  const d={id:'nrLxl',channelId:1,playSources:[{siteId:'broken',list:[{id:1,title:'正片'}]},{siteId:'working',list:[{id:2,title:'HD'}]}]},seen=[];
  const c={site,play:async p=>[{url:'https://cdn.example/'+p.siteId,referrerPolicy:'no-referrer',headers:{'User-Agent':'Mobile'}}],transport:async r=>{seen.push(r);assert.equal(r.headers.Referer,undefined);return {status:r.url.endsWith('broken')?404:200};}};

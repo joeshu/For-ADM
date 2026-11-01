@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       tag:
-        description: Release tag matching ios-app/package.json (for example v0.2.42)
+        description: Release tag matching ios-app/package.json (for example v0.2.45)
         required: true
         type: string
 permissions:
@@ -71,7 +71,7 @@ jobs:
           cat > "$notes" <<EOF
           三源影视 $version，整合多个影视来源、原生直播页和系统播放器。
 
-          本版修复首页推荐轮播不自动切换的问题；自动切换只更新横幅，不重建整页。分类标签加宽，可完整显示较长名称。
+          本版修复红果短剧媒体地址检查未读取实际 MP4 字节、播放器遇到 404/410 后复用旧地址的问题。App 会验证媒体字节范围，并在地址失效时重新向官网获取播放地址。
 
           这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
 
