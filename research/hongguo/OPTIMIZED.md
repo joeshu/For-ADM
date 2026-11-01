@@ -1,6 +1,6 @@
 # HGTV Python 公开兼容版 1.0.2
 
-[下载独立脚本](https://raw.githubusercontent.com/joeshu/For-ADM/master/research/hongguo/hgtv_public_optimized.py)。Python 3.8 及以上，仅使用标准库，不需要安装依赖。
+[下载带版本名的独立脚本 hgtv_public_1_0_2.py](https://raw.githubusercontent.com/joeshu/For-ADM/master/research/hongguo/downloads/hgtv_public_1_0_2.py)。Python 3.8 及以上，仅使用标准库，不需要安装依赖。版本归档与已测试的 `dc88cfd` 源码逐字节相同，校验信息见 [下载清单](downloads/hgtv_public_1_0_2.json)；主脚本仍在 `hgtv_public_optimized.py` 维护。
 
 这是基于新附件审查后整理的**独立公开兼容版**，原始附件未改动。保留 TVBox 的 `Spider` 方法：`init`、`homeContent`、`homeVideoContent`、`categoryContent`、`detailContent`、`searchContent`、`playerContent`。它使用站点页面和正常网页兼容播放接口，不包含原附件的 App 缓存提取、设备模拟、签名与内容密钥处理，也不保留其本地解密 HTTP 服务。不是原脚本的全部功能替换版。
 
@@ -47,6 +47,10 @@ HTTP 预算在连接、每次读取和重试前检查；正在阻塞的底层读
 搜索在首次使用时预热首页和四个分类的第一页，随后在已保留的标题中查找；这是有范围的本地搜索，未命中不表示全站没有该剧。分类翻页由实际站点返回值决定，不再伪造固定总页数。
 
 ## 使用
+
+CCTVHost 0.22.1 的本地文件导入不会按同名覆盖旧资源，文件名中的 `(1)` 也不是版本号。更新时先停止旧资源，确认状态已停止，再从“导入影视包 · JS / Python / ZIP”导入上述带版本名的文件，明确打开新条目。可通过查看或导出代码确认 `VERSION = '1.0.2-public'`。只启动一次并等到资源就绪，再打开影视页面；目录刷新或清响应缓存不会重新执行 Python 模块。若已有会话一直待清理，应先完全关闭并重开 App。
+
+新日志应在初始化时包含 `[HGTV]` / `hgtv_init` 和 `source_version: "1.0.2-public"`；失败提示也会带版本、阶段和集 ID。若仍是旧版“站点未提供本集的整集兼容播放；可使用官方 App”，应先核对实际导入文件和当前运行资源。
 
 在支持 Python 源的 TVBox 客户端中把脚本 URL 配为 Python 源，例如：
 
