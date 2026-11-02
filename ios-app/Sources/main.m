@@ -1,5 +1,8 @@
 #import "RuntimeSDK.h"
 #import "HLSProxy.h"
+#if __has_include(<Network/Network.h>)
+#import "HongguoRuntime.h"
+#endif
 #import <zlib.h>
 #if defined(SY_SIMULATOR_SMOKE)
 #import <CoreFoundation/CFByteOrder.h>
@@ -97,6 +100,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (NSUInteger)shelfColumnCount;
 @end
 @interface SYController:UIViewController<WKNavigationDelegate>
+@property(nonatomic,strong) id hongguoRuntime;
 @property(nonatomic,strong) WKWebView*web;
 @property(nonatomic,strong) SYHLSProxy*hlsProxy;
 @property(nonatomic,strong) SYBridge*bridge;
@@ -430,6 +434,11 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 #if defined(SY_SIMULATOR_SMOKE)
 // Compiled only into the simulator test executable, never into the delivered IPA.
 - (void)runSmokeCheck {
+  if([NSProcessInfo.processInfo.arguments containsObject:@"--hongguo-native-fixture"]){
+   if(!self.hlsProxy.port){[self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:1];return;}
+   NSString *script=@"(()=>{if(!window.NativeTransport)return false;if(window.__hgFixtureStarted)return true;window.__hgFixtureStarted=true;NativeTransport.syncPage({page:'detail',theme:'white',site:'hongguo',siteName:'测试',movie:{id:'1',title:'自生成CENC样本',metadata:'合成音视频',actors:[],summary:'',imageURLs:[]},playSources:[],line:0,episode:{title:'样本',index:0},playURLs:[],playIndex:0,loading:false});NativeTransport.hongguoResolve('1','1').then(r=>NativeTransport.play(r.url,{}, {context:'hongguo-native-fixture',cleanHLS:false,frame:{visible:true,x:0,y:100,width:390,height:220,viewportWidth:390},title:'本地音视频'})).catch(e=>webkit.messageHandlers.native.postMessage({type:'hongguoFixtureFailure',error:e.message}));return true;})()";
+   [self.web evaluateJavaScript:script completionHandler:^(id value,NSError *error){if((error||![value boolValue])&&self.smokeAttempts++<30)[self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:1];}];return;
+  }
   if([NSProcessInfo.processInfo.arguments containsObject:@"--hongguo-smoke"]){self.smokeHongguoMode=YES;[self runHongguoSmoke];return;}
   self.smokeAttempts++;
   // Native mode intentionally avoids loading a second set of poster images in
@@ -491,6 +500,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  NSURL*url=[self.nativeItem.asset isKindOfClass:AVURLAsset.class]?((AVURLAsset*)self.nativeItem.asset).URL:nil;
  NSString*host=url.host.lowercaseString?:@"";NSRegularExpression*officialHost=[NSRegularExpression regularExpressionWithPattern:@"^v[0-9]+-(?:reading|hgweb)\\.qznovelvod\\.com$" options:0 error:NULL];
  BOOL actualURL=[url.scheme isEqualToString:@"https"]&&[officialHost numberOfMatchesInString:host options:0 range:NSMakeRange(0,host.length)]==1;
+ BOOL nativePrepared=[url.scheme isEqual:@"http"]&&[host isEqual:@"127.0.0.1"]&&self.hlsProxy.localFiles[url.path]!=nil;actualURL=actualURL||nativePrepared;
  double time=CMTimeGetSeconds(self.nativeItem.currentTime),duration=CMTimeGetSeconds(self.nativeItem.duration);
  if(!__builtin_isfinite(time))time=0;if(!__builtin_isfinite(duration))duration=0;
  BOOL rendered=self.nativePlayer.readyForDisplay&&self.nativeItem.presentationSize.width>0&&self.nativeItem.presentationSize.height>0;
@@ -498,7 +508,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  NSUInteger audioTracks=0;for(AVPlayerItemTrack*track in self.nativeItem.tracks)if(track.enabled&&[track.assetTrack.mediaType isEqualToString:AVMediaTypeAudio])audioTracks++;
  BOOL ended=[event[@"status"] isEqualToString:@"ended"],fullMode=![self.pageSnapshot[@"previewPlayback"] boolValue];
  BOOL passed=actualURL&&fullMode&&self.smokeHongguoSawVideo&&self.smokeHongguoFirstFrameTime<10&&audioTracks>0&&ended&&duration>30&&time>=duration-1.5;
- NSMutableDictionary*report=[@{@"status":passed?@"videoReady":(ended?@"failed":event[@"status"]?:@"pending"),@"officialCompleteMP4":@(actualURL),@"fullEpisodeCompleted":@(passed),@"fullEpisodeMode":@(fullMode),@"firstFrameTime":@(self.smokeHongguoFirstFrameTime),@"audioTracks":@(audioTracks),@"rendererReady":@(self.nativePlayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"playbackTime":@(time),@"duration":@(duration),@"inlinePlayback":@(self.nativePlayer.parentViewController==self.appScreen&&self.nativePlayer.view.superview==self.appScreen.playerHost),@"fixtureUsed":@NO} mutableCopy];
+ NSMutableDictionary*report=[@{@"status":passed?@"videoReady":(ended?@"failed":event[@"status"]?:@"pending"),@"officialCompleteMP4":@(actualURL),@"nativePrepared":@(nativePrepared),@"fullEpisodeCompleted":@(passed),@"fullEpisodeMode":@(fullMode),@"firstFrameTime":@(self.smokeHongguoFirstFrameTime),@"audioTracks":@(audioTracks),@"rendererReady":@(self.nativePlayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"playbackTime":@(time),@"duration":@(duration),@"inlinePlayback":@(self.nativePlayer.parentViewController==self.appScreen&&self.nativePlayer.view.superview==self.appScreen.playerHost),@"fixtureUsed":@NO} mutableCopy];
  if(event[@"error"])report[@"error"]=event[@"error"];
  if(ended&&!passed)report[@"error"]=@"The real complete episode did not meet the video/audio/end-of-playback checks";
  [self writeHongguoSmoke:report];
@@ -552,6 +562,13 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 }
 - (void)sendPlayback:(NSDictionary*)event {
 #if defined(SY_SIMULATOR_SMOKE)
+  if([event[@"context"] isEqual:@"hongguo-native-fixture"]){
+    BOOL ended=[event[@"status"] isEqual:@"ended"],ready=self.nativePlayer.readyForDisplay&&self.nativeItem.presentationSize.width>0&&self.nativeItem.presentationSize.height>0;
+    NSURL *url=[self.nativeItem.asset isKindOfClass:AVURLAsset.class]?((AVURLAsset*)self.nativeItem.asset).URL:nil;
+    NSUInteger audio=[[self.nativeItem.asset tracksWithMediaType:AVMediaTypeAudio] count];
+    NSDictionary *report=@{@"fixtureUsed":@YES,@"nativeFileProxy":@([url.host isEqual:@"127.0.0.1"]),@"rendererReady":@(ready),@"audioTracks":@(audio),@"fullFixtureCompleted":@(ended&&ready&&audio>0&&[event[@"time"] doubleValue]>.5),@"status":event[@"status"]?:@"pending",@"error":event[@"error"]?:@""};
+    [[NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:nil] writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-hongguo-native-fixture.json"] atomically:YES];return;
+  }
   if(self.smokeHongguoMode){[self recordHongguoPlayback:event];if(self.smokeHongguoFinished&&[event[@"status"] isEqualToString:@"ended"])return;}else{
   if([event[@"context"] isEqualToString:@"smoke:playback"]){self.smokePlaybackDebug[@"phase"]=[event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"playback-event";if(event[@"error"])self.smokePlaybackDebug[@"playbackError"]=event[@"error"];if(event[@"time"])self.smokePlaybackDebug[@"playbackTime"]=event[@"time"];[self writeSmokePlaybackDebug];}
   if([event[@"context"] isEqualToString:@"live:smoke-cctv2"]){NSString*livePath=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"];NSDictionary*old=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:livePath]?:[NSData data] options:0 error:NULL];if(![old[@"status"] isEqualToString:@"videoReady"]){NSString*status=(self.nativeVideoReady||[event[@"status"] isEqualToString:@"videoReady"])?@"videoReady":([event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"unknown");NSMutableDictionary*liveResult=[@{@"context":event[@"context"],@"status":status,@"proxyEnabled":@(self.liveScreen!=nil),@"rendererAttached":@(self.liveRendererAttached),@"rendererReady":@(self.liveScreen.liveRendererLayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"playURLIsLoopback":@([self.nativeItem.asset isKindOfClass:AVURLAsset.class]&&[((AVURLAsset*)self.nativeItem.asset).URL.host isEqualToString:@"127.0.0.1"]),@"proxyHTTPStatus":@(self.hlsProxy.lastHTTPStatus),@"proxyError":self.hlsProxy.lastTransportError?:@""} mutableCopy];if(event[@"error"])liveResult[@"error"]=event[@"error"];NSData*liveData=[NSJSONSerialization dataWithJSONObject:liveResult options:NSJSONWritingPrettyPrinted error:NULL];if(liveData)[liveData writeToFile:livePath atomically:YES];}}
@@ -741,12 +758,36 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   if([type isEqualToString:@"copyText"]){NSString*text=[body[@"text"] isKindOfClass:NSString.class]?body[@"text"]:@"";if(!text.length||text.length>4096){[self deliver:@{@"id":identifier,@"error":@"无法复制此内容"}];return;}UIPasteboard.generalPasteboard.string=text;[self deliver:@{@"id":identifier,@"ok":@YES}];return;}
   if([type isEqualToString:@"openExternal"]){NSURL*stream=[NSURL URLWithString:[body[@"url"] isKindOfClass:NSString.class]?body[@"url"]:@""];BOOL secure=[stream.scheme.lowercaseString isEqualToString:@"https"],liveHTTP=[body[@"live"] boolValue]&&[stream.scheme.lowercaseString isEqualToString:@"http"];if((!secure&&!liveHTTP)||!stream.host.length){[self deliver:@{@"id":identifier,@"error":@"普通外部播放需使用 HTTPS；直播线路允许 HTTP"}];return;}NSURLComponents*target=[NSURLComponents new];target.scheme=@"vlc-x-callback";target.host=@"x-callback-url";target.path=@"/stream";target.queryItems=@[[NSURLQueryItem queryItemWithName:@"url" value:stream.absoluteString]];NSURL*external=target.URL;if(!external||![UIApplication.sharedApplication canOpenURL:external]){[self deliver:@{@"id":identifier,@"error":@"未检测到 VLC，请先安装 VLC"}];return;}[UIApplication.sharedApplication openURL:external options:@{} completionHandler:^(BOOL success){[self deliver:success?@{@"id":identifier,@"ok":@YES}:@{@"id":identifier,@"error":@"无法打开 VLC"}];}];return;}
   if([type isEqualToString:@"openOfficialURL"]){NSURL*external=[NSURL URLWithString:[body[@"url"] isKindOfClass:NSString.class]?body[@"url"]:@""];BOOL safe=[external.scheme.lowercaseString isEqualToString:@"https"]&&[external.host.lowercaseString isEqualToString:@"hongguoduanju.com"]&&[external.path hasPrefix:@"/player/"]&&!external.user&&![external.host containsString:@"@"];if(!safe){[self deliver:@{@"id":identifier,@"error":@"红果官方链接无效"}];return;}[UIApplication.sharedApplication openURL:external options:@{} completionHandler:^(BOOL success){[self deliver:success?@{@"id":identifier,@"ok":@YES}:@{@"id":identifier,@"error":@"无法打开红果官方页面"}];}];return;}
+#if defined(SY_SIMULATOR_SMOKE)
+  if([type isEqual:@"hongguoFixtureFailure"]){[[NSJSONSerialization dataWithJSONObject:@{@"status":@"failed",@"fixtureUsed":@YES,@"error":[body[@"error"] description]?:@"unknown"} options:0 error:nil] writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-hongguo-native-fixture.json"] atomically:YES];return;}
+#endif
+  if([type isEqualToString:@"hongguoResolve"]){
+#if __has_include(<Network/Network.h>)
+    NSString *series=[body[@"seriesId"] isKindOfClass:NSString.class]?body[@"seriesId"]:@"",*episode=[body[@"episodeId"] isKindOfClass:NSString.class]?body[@"episodeId"]:@"";
+    NSRegularExpression *ids=[NSRegularExpression regularExpressionWithPattern:@"^[0-9]{1,24}$" options:0 error:nil];
+    if(![ids firstMatchInString:series options:0 range:NSMakeRange(0,series.length)]||![ids firstMatchInString:episode options:0 range:NSMakeRange(0,episode.length)]||!self.hlsProxy.port){[self deliver:@{@"id":identifier,@"error":@"红果后台尚未就绪或选集无效"}];return;}
+    if(!self.hongguoRuntime)self.hongguoRuntime=[SYHongguoRuntime new];
+    NSURL *bridge=[NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%u/_cctvhost/host-fetch",self.hlsProxy.port]];
+    __weak SYController *weak=self;
+    [self.hongguoRuntime resolveSeries:series episode:episode bridge:bridge token:self.hlsProxy.hostFetchToken completion:^(NSURL *file,NSError *error){dispatch_async(dispatch_get_main_queue(),^{
+      SYController *owner=weak;if(!owner)return;NSURL *local=file?[owner.hlsProxy mapLocalFile:file]:nil;
+      [owner deliver:local?@{@"id":identifier,@"url":local.absoluteString,@"localPrepared":@YES}:@{@"id":identifier,@"error":error.localizedDescription?:@"红果媒体准备失败"}];
+    });}];
+#else
+    [self deliver:@{@"id":identifier,@"error":@"当前构建未包含红果原生运行时"}];
+#endif
+    return;
+  }
   if(![body[@"url"] isKindOfClass:NSString.class])return;
   NSURL*url=[NSURL URLWithString:body[@"url"]];
   BOOL https=[url.scheme.lowercaseString isEqualToString:@"https"];
   BOOL liveHTTPRequest=[type isEqualToString:@"request"]&&[body[@"method"] isEqualToString:@"GET"]&&([body[@"livePlaylist"] boolValue]||[body[@"liveGuide"] boolValue])&&[url.scheme.lowercaseString isEqualToString:@"http"];
   BOOL liveHTTPPlayback=[type isEqualToString:@"play"]&&[body[@"context"] isKindOfClass:NSString.class]&&[body[@"context"] hasPrefix:@"live:"]&&[url.scheme.lowercaseString isEqualToString:@"http"];
-  if((!https&&!liveHTTPRequest&&!liveHTTPPlayback)||!url.host.length){[self deliver:@{@"id":identifier,@"error":@"普通数据请求需使用 HTTPS；HTTP 仅用于直播列表、节目单和直播流"}];return;}
+  BOOL preparedLocal=NO;
+#if __has_include(<Network/Network.h>)
+  preparedLocal=([type isEqual:@"play"]||[type isEqual:@"request"])&&[url.scheme isEqual:@"http"]&&[url.host isEqual:@"127.0.0.1"]&&url.port.unsignedIntegerValue==self.hlsProxy.port&&self.hlsProxy.localFiles[url.path]!=nil;
+#endif
+  if((!https&&!liveHTTPRequest&&!liveHTTPPlayback&&!preparedLocal)||!url.host.length){[self deliver:@{@"id":identifier,@"error":@"普通数据请求需使用 HTTPS；HTTP 仅用于直播列表、节目单和直播流"}];return;}
   if([type isEqualToString:@"play"]){
 #if defined(SY_SIMULATOR_SMOKE)
     if([[body[@"context"] description] isEqualToString:@"smoke:playback"]){self.smokePlaybackDebug[@"phase"]=@"bridge-received";self.smokePlaybackDebug[@"bridgeURL"]=[body[@"url"] description]?:@"";[self writeSmokePlaybackDebug];}

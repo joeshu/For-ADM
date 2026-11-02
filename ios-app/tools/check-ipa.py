@@ -14,5 +14,7 @@ with zipfile.ZipFile(path) as z:
     assert z.getinfo(base+'Sanyuan').external_attr>>16&0o111
     for resource in ['Web/index.html','Web/app.js','Web/app.css','Web/hls-cleaner.js','Web/vendor/crypto-js.js']:
         assert len(z.read(base+resource))>100
+    for resource in ['node-plugin-host.cjs','node-fetch.bundle.cjs','Hongguo/hgtv.js','Frameworks/NodeMobile.framework/NodeMobile']:
+        assert len(z.read(base+resource))>100, resource
     assert b'<script type="module"' not in z.read(base+'Web/index.html')
 print(json.dumps({'validUnsignedIPA':True,'bundleId':info['CFBundleIdentifier'],'architecture':'arm64','minimumOS':info['MinimumOSVersion'],'deviceLaunchTested':False,'sha256':hashlib.sha256(open(path,'rb').read()).hexdigest()},indent=2))

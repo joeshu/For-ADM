@@ -1,3 +1,4 @@
+import {NativeTransport} from './transport.mjs';
 import {ServiceError,SiteClient} from './site-api.mjs';
 import {safeHTTPS} from './model.mjs';
 
@@ -141,6 +142,7 @@ export class HongguoClient extends SiteClient{
   if(siteURL.protocol!=='https:')throw new ServiceError('红果官网地址必须使用 HTTPS');
   this.origin=siteURL.origin;
   this.pageCache=new Map();
+  this.playCache=new Map();
   this.details=new Map();
   this.searchCache=null;
   this.searchPending=null;
@@ -331,7 +333,7 @@ export class HongguoClient extends SiteClient{
   if(!movie){const message='红果影片详情缺少标题或编号';this.lastDiagnostics={...this.lastDiagnostics,ok:false,error:message};throw new ServiceError(message,502);}
   if(!vids.length){const message='红果详情未返回有效剧集列表，官网页面结构可能已变化';this.lastDiagnostics={...this.lastDiagnostics,ok:false,error:message};throw new ServiceError(message,502);}
   const availableRaw=Number(series.accessible_episode_cnt??series.accessibleEpisodeCount??0),available=Number.isFinite(availableRaw)?Math.max(0,Math.min(Math.trunc(availableRaw),vids.length)):0;
-  const detail={id:String(id),title:movie.title,imageURL:movie.imageURL,channelId:0,channelName:'短剧',labels:movie.labels,summary:String(series.series_intro||series.seriesIntro||''),actors:arrayField(series,'celebrities','actors').map(item=>item?.nickname||item?.name).filter(Boolean),bottomLabel:String(series.episode_right_text||series.episodeRightText||''),scoreText:data.seriesSocialInfo?.rating?String(data.seriesSocialInfo.rating)+'分':'',playbackNotice:available>0?'官网网页当前开放前 '+available+' 集完整播放，其余集请前往红果官方 App。':'使用官网整集播放线路，播放范围以官网返回为准。',previewNotice:'当前为官网公开试看片段，非完整剧集。全集请前往红果官方 App 观看。',playSources:[{siteId:'hongguo-official',name:'官网完整播放',total:vids.length,list:[]},{siteId:'hongguo-preview',name:'官网公开试看',preview:true,total:vids.length,list:[]}]};
+  const detail={id:String(id),title:movie.title,imageURL:movie.imageURL,channelId:0,channelName:'短剧',labels:movie.labels,summary:String(series.series_intro||series.seriesIntro||''),actors:arrayField(series,'celebrities','actors').map(item=>item?.nickname||item?.name).filter(Boolean),bottomLabel:String(series.episode_right_text||series.episodeRightText||''),scoreText:data.seriesSocialInfo?.rating?String(data.seriesSocialInfo.rating)+'分':'',playbackNotice:NativeTransport.native()?'首次播放需稍候，已缓存剧集可快速打开。':available>0?'官网网页当前开放前 '+available+' 集完整播放，其余集请前往红果官方 App。':'使用官网整集播放线路，播放范围以官网返回为准。',previewNotice:'当前为官网公开试看片段，非完整剧集。全集请前往红果官方 App 观看。',playSources:[{siteId:'hongguo-official',name:NativeTransport.native()?'红果完整播放':'官网完整播放',total:vids.length,list:[]},{siteId:'hongguo-preview',name:'官网公开试看',preview:true,total:vids.length,list:[]}]};
   if(requestEpoch===this.cacheEpoch)this.rememberDetail(id,{detail,vids,accessible:available,at:Date.now()});
   return detail;
  }
@@ -363,9 +365,25 @@ export class HongguoClient extends SiteClient{
 
  async fullPlayback(seriesId,videoId,signal){
   const referer=this.origin+'/player/'+encodeURIComponent(seriesId)+'/'+encodeURIComponent(videoId);
+  const userAgent=globalThis.navigator?.userAgent||'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148';
   // Exactly the website's HTML-video compatibility request. Do not use the
   // similarly named play-info endpoint: it returns encrypted, split DASH.
-  const response=await this.requestWithRetry({url:this.origin+'/api/video/protected/fallback-play-info',method:'POST',headers:{Accept:'application/json','Content-Type':'application/json',Origin:this.origin,Referer:referer},body:JSON.stringify({item_id:videoId})},signal,'红果整集播放');
+  const key=seriesId+':'+videoId,cached=this.playCache.get(key);
+  if(cached&&cached.expires>Date.now()+15000)return structuredClone(cached.urls);
+  this.playCache.delete(key);
+  let response;
+  for(let attempt=0;attempt<6;attempt++){
+   response=await this.requestWithRetry({url:this.origin+'/api/video/protected/fallback-play-info',method:'POST',headers:{Accept:'application/json','Content-Type':'application/json',Origin:this.origin,Referer:referer,'User-Agent':userAgent},body:JSON.stringify({item_id:videoId})},signal,'红果整集播放');
+   if(Number(response?.status)!==403)break;
+   let reason;try{reason=parseJSON(decodeBase64(response.bodyBase64,MAX_PLAY_INFO_BYTES,'播放信息'),'播放信息')?.error;}catch{}
+   if(reason!=='public_fallback_unavailable'||attempt===5)break;
+   await new Promise((resolve,reject)=>{
+    if(signal?.aborted){reject(signal.reason||new Error('播放请求已取消'));return;}
+    const abort=()=>{clearTimeout(timer);reject(signal.reason||new Error('播放请求已取消'));};
+    const timer=setTimeout(()=>{signal?.removeEventListener('abort',abort);resolve();},[250,500,1000,1500,2000][attempt]);
+    signal?.addEventListener('abort',abort,{once:true});
+   });
+  }
   const status=Number(response?.status)||0;
   this.playbackDiagnostics={kind:'full-mp4',path:'/api/video/protected/fallback-play-info',status,ok:false};
   if(status===403||status===404)throw new ServiceError('红果官网未提供本集的完整播放。请前往红果官方 App 观看。','HONGGUO_OFFICIAL_REQUIRED');
@@ -375,19 +393,31 @@ export class HongguoClient extends SiteClient{
   const url=officialMediaURL(data.main_url);
   if(!url||data.format==='dash'||data.encrypted===true||data.audio)throw new ServiceError('红果官网未返回兼容的完整 MP4，播放接口可能已变化',502);
   this.playbackDiagnostics={...this.playbackDiagnostics,ok:true,responseKeys:Object.keys(data),mediaHost:new URL(url).hostname};
-  return [{url,name:'官网完整播放',preview:false,headers:{Referer:referer}}];
+  const urls=[{url,name:'官网完整播放',preview:false,headers:{Referer:referer,'User-Agent':userAgent,'Accept-Encoding':'identity'}}];
+  let expires=Number(data.url_expire);if(expires<1e12)expires*=1000;
+  if(Number.isFinite(expires)&&expires>Date.now()+15000){
+   this.playCache.set(key,{expires:Math.min(expires,Date.now()+300000),urls});
+   while(this.playCache.size>64)this.playCache.delete(this.playCache.keys().next().value);
+  }
+  return structuredClone(urls);
  }
 
  async play({vodId,siteId,episodeId},signal){
   const detail=this.details.get(String(vodId))?.detail||await this.detail(vodId,signal),record=this.details.get(String(vodId));
   const line=detail.playSources.find(item=>item.siteId===siteId);
   if(!line||!record?.vids.includes(String(episodeId)))throw new ServiceError('红果选集编号无效',404);
-  return {playUrls:await (line.preview?this.publicPlayback(String(vodId),String(episodeId),signal):this.fullPlayback(String(vodId),String(episodeId),signal))};
+  let nativeFailure=false;
+  if(!line.preview&&NativeTransport.native()){
+   try{const local=await NativeTransport.hongguoResolve(String(vodId),String(episodeId),signal);return {playUrls:[{url:local.url,name:'红果本地完整播放',preview:false,localPrepared:true,referrerPolicy:'no-referrer',headers:{}}]};}
+   catch(error){if(signal?.aborted||error.name==='AbortError')throw error;nativeFailure=true;this.playbackDiagnostics={kind:'native-model',ok:false,error:'native preparation failed; trying website compatibility'};}
+  }
+  try{return {playUrls:await (line.preview?this.publicPlayback(String(vodId),String(episodeId),signal):this.fullPlayback(String(vodId),String(episodeId),signal))};}
+  catch(error){if(signal?.aborted||error.name==='AbortError')throw error;if(nativeFailure)throw new ServiceError('红果媒体暂时未准备成功，请稍后重试或切换剧集','HONGGUO_PREPARATION_FAILED');throw error;}
  }
 
  clearCache(){
   this.cacheEpoch++;
-  this.pageCache.clear();this.details.clear();this.searchCache=null;this.searchPending=null;
+  this.playCache.clear();this.pageCache.clear();this.details.clear();this.searchCache=null;this.searchPending=null;
   this.preparedChannels.clear();this.channelPending.clear();this.lastDiagnostics=null;this.playbackDiagnostics=null;
  }
 

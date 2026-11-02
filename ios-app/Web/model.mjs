@@ -40,5 +40,7 @@ export function collectionGroups(data,options={}){
 }
 export function categories(config,{includeAdult=false}={}){const adult=tab=>flaggedAdult(tab,config?.adultChannelIds);return (config?.vodTabs||[]).filter(tab=>tab.type==='category'&&(includeAdult||!adult(tab))).map(tab=>({id:Number(tab.channelId),name:String(adult(tab)?'18+ · ':'')+(tab.text||tab.name),...(adult(tab)?{isAdult:true}:{})}));}
 export function imageURLs(movie,config){if(safeHTTPS(movie.imageURL))return [safeHTTPS(movie.imageURL)];const group=config?.groups?.find(x=>String(x.id)===String(movie.imageGroup));if(!movie.imagePath||!group)return [];return(group.url||[]).map(x=>safeHTTPS(String(x.domain).replace(/\/$/,'')+'/'+movie.imagePath.replace(/^\//,''))).filter(Boolean);}
-export function playbackURLs(episode){return (episode?.playUrls||[]).map(entry=>({...entry,url:safeHTTPS(entry.url)})).filter(x=>x.url);}
+export function playbackURLs(episode){return (episode?.playUrls||[]).map(entry=>({...entry,url:safeHTTPS(entry.url)||safeLocalPlayback(entry)})).filter(x=>x.url);}
 export function sourceKey(siteId,movieId){return siteId+':'+movieId;}
+
+function safeLocalPlayback(entry){if(entry?.localPrepared!==true)return '';try{const u=new URL(entry.url);return u.protocol==='http:'&&u.hostname==='127.0.0.1'&&u.port&&/^\/hongguo\/[A-Fa-f0-9-]+\.mp4$/.test(u.pathname)&&!u.username&&!u.password&&!u.search&&!u.hash?u.href:'';}catch{return '';}}

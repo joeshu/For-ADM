@@ -39,7 +39,7 @@ else:
     for provider in groups:
         link+=['-l'+provider] if provider in ('System','objc') else ['-framework',provider]
     subprocess.run(link,check=True);os.chmod(app/'Sanyuan',0o755)
-info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.2.48',CFBundleVersion='50',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsArbitraryLoads':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
+info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.2.49',CFBundleVersion='51',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsArbitraryLoads':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
 info['UIBackgroundModes']=['audio']
 info['UIApplicationSceneManifest']={'UIApplicationSupportsMultipleScenes':False,'UISceneConfigurations':{'UIWindowSceneSessionRoleApplication':[{'UISceneConfigurationName':'Default Configuration','UISceneDelegateClassName':'SYSceneDelegate'}]}}
 info['CFBundleIcons~ipad']={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon76x76','AppIcon83.5x83.5']}}
@@ -47,11 +47,16 @@ info['LSApplicationQueriesSchemes']=['vlc-x-callback']
 with (app/'Info.plist').open('wb') as f:plistlib.dump(info,f)
 (app/'PkgInfo').write_bytes(b'APPL????')
 shutil.copytree(root/'Web',app/'Web',dirs_exist_ok=True)
+shutil.copytree(root/'Resources'/'Hongguo',app/'Hongguo',dirs_exist_ok=True)
+for name in ['node-plugin-host.cjs','node-fetch.bundle.cjs']:shutil.copy2(root/'Node'/name,app/name)
+for license_file in (root/'Resources').glob('*.txt'):shutil.copy2(license_file,app/license_file.name)
+if args.binary:
+    subprocess.run(['python3',str(root/'tools/prepare_node_runtime.py'),str(app)],check=True)
 for icon in (root/'Resources').glob('*.png') if (root/'Resources').exists() else []:shutil.copy2(icon,app/icon.name)
 metadata=inspect((app/'Sanyuan').read_bytes())
 assert metadata['cpu']==0x100000c and metadata['kind']==2 and metadata['platform'][0]==2 and not metadata['signed']
 assert not (app/'embedded.mobileprovision').exists() and not (app/'_CodeSignature').exists()
-ipa=out/'Sanyuan-0.2.48-unsigned.ipa'
+ipa=out/'Sanyuan-0.2.49-unsigned.ipa'
 with zipfile.ZipFile(ipa,'w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted((out/'Payload').rglob('*')):
         if f.is_file():z.write(f,f.relative_to(out))

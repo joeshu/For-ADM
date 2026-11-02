@@ -143,3 +143,22 @@ test('Hongguo manual refresh clears cached pages and episode details',async()=>{
  await client.detail(sid);
  assert.equal(requests.filter(item=>item.url.includes('/detail?')).length,2);
 });
+
+test('Hongguo retries only transient fallback refusal and reuses unexpired playback',async()=>{
+ let calls=0;
+ const client=new HongguoClient({id:'hongguo',provider:'hongguo',origin},async()=>{
+  calls++;
+  return calls===1?response(JSON.stringify({error:'public_fallback_unavailable'}),403):response(JSON.stringify({main_url:'https://v3-hgweb.qznovelvod.com/video/clear/test/',url_expire:Math.floor(Date.now()/1000)+600,base_resp:{StatusCode:0}}));
+ },{getItem(){return null;},setItem(){}});
+ const first=await client.fullPlayback(sid,vids[0]);
+ first[0].headers.Referer='modified';
+ const again=await client.fullPlayback(sid,vids[0]);
+ assert.equal(calls,2);assert.notEqual(again[0].headers.Referer,'modified');
+ client.clearCache();await client.fullPlayback(sid,vids[0]);assert.equal(calls,3);
+});
+
+test('Hongguo does not retry an explicit permission refusal',async()=>{
+ let calls=0;
+ const client=new HongguoClient({id:'hongguo',provider:'hongguo',origin},async()=>{calls++;return response(JSON.stringify({error:'permission_denied'}),403);},{getItem(){return null;},setItem(){}});
+ await assert.rejects(client.fullPlayback(sid,vids[0]));assert.equal(calls,1);
+});
