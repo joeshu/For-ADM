@@ -46,6 +46,14 @@
   BOOL valid=[file[@"__cctvhostFileResponse"] boolValue]&&[real hasPrefix:[self.root stringByAppendingString:@"/"]]&&[parts[0] integerValue]>=200&&[parts[0] integerValue]<300;
   NSDictionary *attrs=valid?[fm attributesOfItemAtPath:real error:&error]:nil;
   if(!attrs||[attrs[NSFileSize] unsignedLongLongValue]<32||[attrs[NSFileSize] unsignedLongLongValue]>32*1024*1024){NSLog(@"SYHongguo stage=media series=%@ episode=%@ failed",series,episode);completion(nil,error?:[NSError errorWithDomain:@"SYHongguo" code:4 userInfo:@{NSLocalizedDescriptionKey:@"红果媒体准备失败，未交给播放器"}]);return;}
+  // Metadata alone does not prove that the ciphertext was transformed into
+  // decodable video. Reject and evict a bad cache before handing it to AVPlayer.
+  AVURLAsset *asset=[AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:real] options:nil];
+  AVAssetImageGenerator *generator=[AVAssetImageGenerator assetImageGeneratorWithAsset:asset];
+  generator.appliesPreferredTrackTransform=YES;
+  CGImageRef firstFrame=[generator copyCGImageAtTime:kCMTimeZero actualTime:NULL error:&error];
+  if(!firstFrame){[fm removeItemAtPath:real error:nil];[runtime stopSession:self.session error:nil];NSLog(@"SYHongguo stage=decode series=%@ episode=%@ failed",series,episode);completion(nil,[NSError errorWithDomain:@"SYHongguo" code:5 userInfo:@{NSLocalizedDescriptionKey:@"红果视频暂时无法解码，请重试或切换剧集"}]);return;}
+  CGImageRelease(firstFrame);
   [fm setAttributes:@{NSFileModificationDate:[NSDate date]} ofItemAtPath:real error:nil];
   NSString *cache=[real stringByDeletingLastPathComponent];NSMutableArray *files=[NSMutableArray array];unsigned long long total=0;
   for(NSString *name in [fm contentsOfDirectoryAtPath:cache error:nil]){if(![name hasSuffix:@".mp4"]||[name containsString:@".tmp."]||[name containsString:@".enc."])continue;NSString *path=[cache stringByAppendingPathComponent:name];NSDictionary *a=[fm attributesOfItemAtPath:path error:nil];total+=[a[NSFileSize] unsignedLongLongValue];[files addObject:@{@"path":path,@"size":a[NSFileSize]?:@0,@"date":a[NSFileModificationDate]?:[NSDate distantPast]}];}

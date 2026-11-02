@@ -12,7 +12,7 @@
 @implementation SYHGFetch
 + (void)request:(NSURLRequest*)request completion:(void(^)(NSData*,NSHTTPURLResponse*,NSError*))completion {
  SYHGFetch *job=[SYHGFetch new];job.data=[NSMutableData data];job.completion=completion;
- NSURLSessionConfiguration *config=NSURLSessionConfiguration.ephemeralSessionConfiguration;config.timeoutIntervalForResource=35;config.timeoutIntervalForRequest=30;config.URLCache=nil;config.HTTPCookieStorage=nil;
+ NSURLSessionConfiguration *config=NSURLSessionConfiguration.ephemeralSessionConfiguration;config.timeoutIntervalForResource=request.timeoutInterval+2;config.timeoutIntervalForRequest=request.timeoutInterval;config.URLCache=nil;config.HTTPCookieStorage=nil;
  job.session=[NSURLSession sessionWithConfiguration:config delegate:job delegateQueue:nil];[[job.session dataTaskWithRequest:request] resume];
 }
 - (void)URLSession:(NSURLSession*)session dataTask:(NSURLSessionDataTask*)task didReceiveResponse:(NSURLResponse*)response completionHandler:(void(^)(NSURLSessionResponseDisposition))completionHandler {
@@ -181,7 +181,8 @@
  BOOL allowed=[host isEqual:@"hongguoduanju.com"]||[host isEqual:@"api5-normal-sinfonlineb.fqnovel.com"]||[host hasSuffix:@".qznovelvod.com"];
  NSString *method=[body[@"method"] isKindOfClass:NSString.class]?body[@"method"]:@"GET";
  if(!allowed||![url.scheme isEqual:@"https"]||url.user||url.password||![@[@"GET",@"HEAD",@"POST"] containsObject:method]){[self reply:connection status:400 headers:@{} data:[NSData data] head:NO];return;}
- NSMutableURLRequest *up=[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:30];up.HTTPMethod=method;
+ double timeout=MAX(1,MIN(30,[body[@"timeoutMs"] doubleValue]/1000.0));
+ NSMutableURLRequest *up=[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:timeout];up.HTTPMethod=method;
  if([body[@"headers"] isKindOfClass:NSDictionary.class])for(NSString *key in body[@"headers"]){id v=body[@"headers"][key];if([v isKindOfClass:NSString.class]&&![@[@"host",@"content-length",@"connection"] containsObject:key.lowercaseString]&&[v rangeOfCharacterFromSet:NSCharacterSet.newlineCharacterSet].location==NSNotFound)[up setValue:v forHTTPHeaderField:key];}
  if([body[@"bodyBase64"] isKindOfClass:NSString.class])up.HTTPBody=[[NSData alloc]initWithBase64EncodedString:body[@"bodyBase64"] options:0];
  [SYHGFetch request:up completion:^(NSData *bytes,NSHTTPURLResponse *response,NSError *error){dispatch_async(dispatch_get_main_queue(),^{

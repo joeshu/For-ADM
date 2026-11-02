@@ -469,8 +469,15 @@ async function fetchModel(vid) {
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     const s = signedRequest(payload);
-    const requestModel=typeof global._sanyuanHTTPS==='function'?global._sanyuanHTTPS:httpText;
-    const r = await requestModel(s.url, { method: 'POST', headers: s.headers, body: s.body });
+    const options={method:'POST',headers:s.headers,body:s.body,timeout:8000};
+    let r;
+    if(typeof global._sanyuanHTTPS==='function'){
+      try{r=await global._sanyuanHTTPS(s.url,options);}catch{}
+      // Keep the supplied Node transport as a fallback, without retrying a
+      // permission denial or changing identity, signatures or request bytes.
+      if(!r||(r.status===200&&!r.body.length)||r.status>=500)r=await httpText(s.url,options);
+    }else r=await httpText(s.url,options);
+    if(r.body.length>2*1024*1024)return null;
     let j = null;
     try { j = JSON.parse(r.body.toString('utf8')); } catch (e) { }
     if (j && (j.code === 0 || j.code == null)) {
@@ -484,7 +491,7 @@ async function fetchModel(vid) {
           vm.video_list = m;
         }
         modelCache.delete(String(vid));modelCache.set(String(vid), { t: Date.now(), vm });
-        while(modelCache.size>128)modelCache.delete(modelCache.keys().next().value);
+        while(modelCache.size>32)modelCache.delete(modelCache.keys().next().value);
         return vm;
       }
     }
@@ -672,26 +679,33 @@ function parseTrack(moov, track) {
   moov = moov.subarray(track.offset, track.offset + track.size);
   const stbl = findBox(moov, 'stbl', track.header);
   if (!stbl) return null;
+  const stsd=findBox(moov,'stsd',stbl.body);
+  const descriptions=stsd&&boxesIn(moov,stsd.body+8,stsd.offset+stsd.size);
+  if(!descriptions)throw Error('invalid sample descriptions');
+  if(!descriptions.some(entry=>['encv','enca'].includes(entry.type)))return null;
   const stsz = boxBody(moov, 'stsz', stbl.body);
   const stsc = boxBody(moov, 'stsc', stbl.body);
   const chunk = findBox(moov, 'stco', stbl.body) || findBox(moov, 'co64', stbl.body);
   const saiz = boxBody(moov, 'saiz', stbl.body);
   const saio = boxBody(moov, 'saio', stbl.body);
-  if (!stsz || !stsc || !chunk || !saiz || !saio) return null;
+  if (!stsz || !stsc || !chunk || !saiz || !saio) throw Error('protected track is missing encryption tables');
   if (stsz.length < 12 || stsc.length < 8 || saiz.length < 9 || saio.length < 12) return null;
   const dsize = stsz.readUInt32BE(4);
   const scount = stsz.readUInt32BE(8);
+  if(scount>100000||(!dsize&&12+scount*4>stsz.length))throw Error('invalid sample count');
   const sizes = [];
   if (dsize) { for (let i = 0; i < scount; i++) sizes.push(dsize); }
   else { for (let i = 0; i < scount; i++) sizes.push(stsz.readUInt32BE(12 + i * 4)); }
   const is64 = chunk.type === 'co64';
   const ccount = moov.readUInt32BE(chunk.body + 4);
+  if(ccount>scount||chunk.body+8+ccount*(is64?8:4)>chunk.offset+chunk.size)throw Error('invalid chunk table');
   const offs = [];
   for (let i = 0; i < ccount; i++) {
     const at = chunk.body + 8 + i * (is64 ? 8 : 4);
     offs.push(is64 ? Number(moov.readBigUInt64BE(at)) : moov.readUInt32BE(at));
   }
   const ecount = stsc.readUInt32BE(4);
+  if(ecount>scount||8+ecount*12>stsc.length)throw Error('invalid sample-to-chunk table');
   const entries = [];
   for (let i = 0; i < ecount; i++) {
     const at = 8 + i * 12;
@@ -704,6 +718,7 @@ function parseTrack(moov, track) {
   });
   const auxDefault = saiz[4];
   const auxCount = saiz.readUInt32BE(5);
+  if(auxCount!==scount||(!auxDefault&&9+auxCount>saiz.length)||saio.readUInt32BE(4)!==1)throw Error('unsupported encryption auxiliary layout');
   const auxSizes = [];
   if (auxDefault) { for (let i = 0; i < auxCount; i++) auxSizes.push(auxDefault); }
   else { for (let i = 0; i < auxCount; i++) auxSizes.push(saiz[9 + i] || 0); }
@@ -740,8 +755,10 @@ function buildSamples(data, tracks) {
         off += size; idx += 1; apos += asz;
       }
     }
+    if(idx!==tr.sampleCount)throw Error('incomplete encrypted sample coverage');
   }
   out.sort((a, b) => a.start - b.start);
+  for(let i=1;i<out.length;i++)if(out[i].start<out[i-1].end)throw Error('overlapping encrypted samples');
   return out;
 }
 

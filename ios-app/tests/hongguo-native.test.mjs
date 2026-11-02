@@ -57,3 +57,23 @@ test('model signing uses the authenticated native HTTPS transport when supplied'
   assert.match(request.options.headers['x-gorgon'],/^[a-f0-9]+$/);assert.ok(request.options.headers['x-helios']);
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('a protected video track without auxiliary tables is rejected instead of producing audio-only playback',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'sanyuan-invalid-'));
+ try{
+  const bytes=fs.readFileSync(new URL('fixtures/hongguo-cenc.mp4',import.meta.url));const at=bytes.indexOf('saio');assert.ok(at>0);bytes.write('free',at,'ascii');
+  const src=path.join(root,'invalid.mp4'),dst=path.join(root,'output.mp4');fs.writeFileSync(src,bytes);
+  const c=load(root);assert.throws(()=>c.module.exports.__test.decryptCenc(src,dst,Buffer.from('000102030405060708090a0b0c0d0e0f','hex')),/missing encryption tables/);assert.equal(fs.existsSync(dst),false);
+ }finally{fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test('an empty native model response can recover through the original Node transport',async()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'sanyuan-model-fallback-'));
+ try{
+  let nativeCalls=0;const model={code:0,data:{'123':{video_model:{video_list:{one:{main_url:'https://media.invalid/video',definition:'360p'}}}}}};
+  const global={_sanyuanHTTPS:async()=>{nativeCalls++;return {status:200,body:Buffer.alloc(0)};}};
+  const c=load(root,{global,__model:model});c.nodeCalls=0;
+  vm.runInNewContext("httpText=async()=>{nodeCalls++;return {status:200,body:Buffer.from(JSON.stringify(__model))};};",c);
+  const result=await c.module.exports.play('官网完整播放','1~123');assert.equal(result.url,'cenc://123?q=360p');assert.equal(nativeCalls,1);assert.equal(c.nodeCalls,1);
+ }finally{fs.rmSync(root,{recursive:true,force:true});}
+});
