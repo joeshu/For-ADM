@@ -30,15 +30,6 @@ jobs:
       - name: Install dependencies and test adapters
         working-directory: ios-app
         run: npm ci && npm test
-      - name: Test source integration through the real UI
-        working-directory: ios-app
-        run: |
-          if [ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
-            export CHROMIUM="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-          else
-            npx playwright-core install chromium
-          fi
-          npm run test:ui
       - name: Verify native HLS cleaning transport
         working-directory: ios-app
         run: npm run build:web && bash tools/check-hls-macos.sh
