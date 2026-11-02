@@ -179,3 +179,14 @@ test('native Hongguo preparation plays a later episode without using the denied 
   assert.ok(!requests.some(x=>new URL(x.url).pathname.includes('fallback-play-info')));
  }finally{NativeTransport.native=oldNative;NativeTransport.hongguoResolve=oldResolve;}
 });
+
+test('Hongguo playback cache works without structuredClone and ignores results after manual clear',async()=>{
+ const old=globalThis.structuredClone;globalThis.structuredClone=undefined;
+ try{
+  let release,calls=0;
+  const client=new HongguoClient({id:'hongguo',provider:'hongguo',origin},async()=>{calls++;if(calls===1)await new Promise(resolve=>release=resolve);return response(JSON.stringify({main_url:'https://v3-hgweb.qznovelvod.com/video/clear/test/',url_expire:Math.floor(Date.now()/1000)+600,base_resp:{StatusCode:0}}));},{getItem(){return null;},setItem(){}});
+  const first=client.fullPlayback(sid,vids[0]);client.clearCache();release();await first;
+  const next=await client.fullPlayback(sid,vids[0]);next[0].headers.Referer='changed';
+  const cached=await client.fullPlayback(sid,vids[0]);assert.equal(calls,2);assert.notEqual(cached[0].headers.Referer,'changed');
+ }finally{globalThis.structuredClone=old;}
+});

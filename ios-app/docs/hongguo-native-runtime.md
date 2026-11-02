@@ -16,3 +16,7 @@ References:
 - https://github.com/joeshu/yqk-forward-widget/releases/tag/cctv-ios-host-4b647fd4bb91-41388762810
 - https://github.com/joeshu/yqk-forward-widget/tree/4b647fd4bb91a2eade8d1efd45defd92b5fd0725/cctv-ios-host
 - Node.js Mobile license: Resources/NodeMobile-LICENSE.txt
+
+## Verification before the release build
+
+The preview SDK build and simulator run succeeded: https://github.com/joeshu/For-ADM/actions/runs/41433964946 . The owned CENC fixture completed through the embedded Node runtime, native loopback file server and AVPlayer with video and audio. The separate real 108.33-second website sample played to the end with `nativePrepared:false`; that real-site success used the website compatibility fallback and is not evidence that the signed upstream model endpoint works in the cloud simulator. The user's supplied packages are known to work on their phone. Physical-device playback of later episodes in the integrated app still requires verification.

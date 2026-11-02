@@ -95,6 +95,7 @@ sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data
     sleep 2
   done
   [ "$fixture_passed" = 1 ]
+  cat dist/simulator-hongguo-native-fixture.json
   xcrun simctl terminate "$sim_device" com.joeshu.sanyuan
   mv "$sim_app/Hongguo/hgtv.js.original" "$sim_app/Hongguo/hgtv.js"
   codesign --force --sign - --timestamp=none "$sim_app"

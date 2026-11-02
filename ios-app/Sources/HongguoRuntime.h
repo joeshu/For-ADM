@@ -24,6 +24,7 @@
   NSError *error=nil;NSFileManager *fm=NSFileManager.defaultManager;
   [fm createDirectoryAtPath:self.root withIntermediateDirectories:YES attributes:nil error:&error];
   self.root=[NSURL fileURLWithPath:self.root].URLByResolvingSymlinksInPath.path;
+  [[NSURL fileURLWithPath:self.root] setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:nil];
   NSString *entry=[self.root stringByAppendingPathComponent:@"hgtv.js"];
   NSData *bundled=[NSData dataWithContentsOfFile:[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Hongguo/hgtv.js"]];
   if(!bundled||![[NSData dataWithContentsOfFile:entry] isEqual:bundled]){if(![bundled writeToFile:entry options:NSDataWritingAtomic error:&error]){completion(nil,error?:[NSError errorWithDomain:@"SYHongguo" code:2 userInfo:@{NSLocalizedDescriptionKey:@"红果资源文件不可用"}]);return;}}

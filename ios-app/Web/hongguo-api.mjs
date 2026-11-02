@@ -10,6 +10,7 @@ const CATEGORIES=[
 ];
 const CACHE_TTL=180_000;
 const SEARCH_CACHE_TTL=120_000;
+const clonePlayURLs=list=>list.map(item=>({...item,headers:{...item.headers}}));
 const MAX_HTML_BYTES=3_500_000;
 const MAX_ROUTER_BYTES=2_500_000;
 const MAX_PLAY_INFO_BYTES=256_000;
@@ -368,8 +369,9 @@ export class HongguoClient extends SiteClient{
   const userAgent=globalThis.navigator?.userAgent||'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148';
   // Exactly the website's HTML-video compatibility request. Do not use the
   // similarly named play-info endpoint: it returns encrypted, split DASH.
+  const playbackEpoch=this.cacheEpoch;
   const key=seriesId+':'+videoId,cached=this.playCache.get(key);
-  if(cached&&cached.expires>Date.now()+15000)return structuredClone(cached.urls);
+  if(cached&&cached.expires>Date.now()+15000)return clonePlayURLs(cached.urls);
   this.playCache.delete(key);
   let response;
   for(let attempt=0;attempt<6;attempt++){
@@ -395,11 +397,11 @@ export class HongguoClient extends SiteClient{
   this.playbackDiagnostics={...this.playbackDiagnostics,ok:true,responseKeys:Object.keys(data),mediaHost:new URL(url).hostname};
   const urls=[{url,name:'官网完整播放',preview:false,headers:{Referer:referer,'User-Agent':userAgent,'Accept-Encoding':'identity'}}];
   let expires=Number(data.url_expire);if(expires<1e12)expires*=1000;
-  if(Number.isFinite(expires)&&expires>Date.now()+15000){
+  if(playbackEpoch===this.cacheEpoch&&Number.isFinite(expires)&&expires>Date.now()+15000){
    this.playCache.set(key,{expires:Math.min(expires,Date.now()+300000),urls});
    while(this.playCache.size>64)this.playCache.delete(this.playCache.keys().next().value);
   }
-  return structuredClone(urls);
+  return clonePlayURLs(urls);
  }
 
  async play({vodId,siteId,episodeId},signal){
