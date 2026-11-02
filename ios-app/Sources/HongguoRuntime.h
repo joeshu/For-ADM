@@ -37,7 +37,7 @@
   NSDictionary *play=[self call:@"play" payload:@{@"session":self.session,@"lineId":@"官网完整播放",@"id":[NSString stringWithFormat:@"%@~%@",series,episode]} error:&error];
   NSDictionary *result=[play[@"result"] isKindOfClass:NSDictionary.class]?play[@"result"]:nil;
   NSString *url=[result[@"url"] isKindOfClass:NSString.class]?result[@"url"]:nil;
-  if(![url hasPrefix:@"cenc://"]){completion(nil,error?:[NSError errorWithDomain:@"SYHongguo" code:3 userInfo:@{NSLocalizedDescriptionKey:@"红果取流服务未返回该集的可用媒体"}]);return;}
+  if(![url hasPrefix:@"cenc://"]){NSLog(@"SYHongguo stage=model series=%@ episode=%@ failed",series,episode);completion(nil,error?:[NSError errorWithDomain:@"SYHongguo" code:3 userInfo:@{NSLocalizedDescriptionKey:@"红果取流服务未返回该集的可用媒体"}]);return;}
   NSDictionary *proxy=[self call:@"proxy" payload:@{@"session":self.session,@"url":url,@"method":@"HEAD"} error:&error];
   NSArray *parts=[proxy[@"result"] isKindOfClass:NSArray.class]?proxy[@"result"]:nil;
   NSDictionary *file=parts.count==3&&[parts[2] isKindOfClass:NSDictionary.class]?parts[2]:nil;
@@ -45,13 +45,13 @@
   NSString *real=path?[NSURL fileURLWithPath:path].URLByResolvingSymlinksInPath.path:nil;
   BOOL valid=[file[@"__cctvhostFileResponse"] boolValue]&&[real hasPrefix:[self.root stringByAppendingString:@"/"]]&&[parts[0] integerValue]>=200&&[parts[0] integerValue]<300;
   NSDictionary *attrs=valid?[fm attributesOfItemAtPath:real error:&error]:nil;
-  if(!attrs||[attrs[NSFileSize] unsignedLongLongValue]<32||[attrs[NSFileSize] unsignedLongLongValue]>32*1024*1024){completion(nil,error?:[NSError errorWithDomain:@"SYHongguo" code:4 userInfo:@{NSLocalizedDescriptionKey:@"红果媒体准备失败，未交给播放器"}]);return;}
+  if(!attrs||[attrs[NSFileSize] unsignedLongLongValue]<32||[attrs[NSFileSize] unsignedLongLongValue]>32*1024*1024){NSLog(@"SYHongguo stage=media series=%@ episode=%@ failed",series,episode);completion(nil,error?:[NSError errorWithDomain:@"SYHongguo" code:4 userInfo:@{NSLocalizedDescriptionKey:@"红果媒体准备失败，未交给播放器"}]);return;}
   [fm setAttributes:@{NSFileModificationDate:[NSDate date]} ofItemAtPath:real error:nil];
   NSString *cache=[real stringByDeletingLastPathComponent];NSMutableArray *files=[NSMutableArray array];unsigned long long total=0;
   for(NSString *name in [fm contentsOfDirectoryAtPath:cache error:nil]){if(![name hasSuffix:@".mp4"]||[name containsString:@".tmp."]||[name containsString:@".enc."])continue;NSString *path=[cache stringByAppendingPathComponent:name];NSDictionary *a=[fm attributesOfItemAtPath:path error:nil];total+=[a[NSFileSize] unsignedLongLongValue];[files addObject:@{@"path":path,@"size":a[NSFileSize]?:@0,@"date":a[NSFileModificationDate]?:[NSDate distantPast]}];}
   [files sortUsingComparator:^NSComparisonResult(NSDictionary *a,NSDictionary *b){return [a[@"date"] compare:b[@"date"]];}];
   for(NSDictionary *f in files){if(total<=256*1024*1024)break;if([f[@"path"] isEqual:real]||[f[@"path"] isEqual:self.previousFile])continue;if([fm removeItemAtPath:f[@"path"] error:nil])total-=[f[@"size"] unsignedLongLongValue];}
-  self.previousFile=real;completion([NSURL fileURLWithPath:real],nil);
+  NSLog(@"SYHongguo stage=prepared series=%@ episode=%@ bytes=%@",series,episode,attrs[NSFileSize]);self.previousFile=real;completion([NSURL fileURLWithPath:real],nil);
  }}];
 }
 @end

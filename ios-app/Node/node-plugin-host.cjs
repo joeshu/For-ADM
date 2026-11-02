@@ -18,7 +18,7 @@ const owners=new Map()
 const closedLogs=new Map()
 const hostLogs=[]
 function scopedGlobal(name){let fallback=global[name];Object.defineProperty(global,name,{configurable:true,enumerable:true,get(){const owner=scope.getStore();return owner&&Object.prototype.hasOwnProperty.call(owner.globals,name)?owner.globals[name]:fallback},set(value){const owner=scope.getStore();if(owner)owner.globals[name]=value;else fallback=value}})}
-for(const name of ['Pans','local','req','request','net','getProxy','getProxyUrl','catServerFactory','catDartServerPort','getPanName','getPanEnabled','messageToDart','websiteBundle','danmuBundle','webBundle','webHtml','webStyle','__CAT_JS_UTIL','__EXPORTED_SPIDER__','lastDanmuProxyName'])scopedGlobal(name)
+for(const name of ['_sanyuanHTTPS','Pans','local','req','request','net','getProxy','getProxyUrl','catServerFactory','catDartServerPort','getPanName','getPanEnabled','messageToDart','websiteBundle','danmuBundle','webBundle','webHtml','webStyle','__CAT_JS_UTIL','__EXPORTED_SPIDER__','lastDanmuProxyName'])scopedGlobal(name)
 let baseEnvironment=process.env
 try{Object.defineProperty(process,'env',{configurable:true,enumerable:true,get(){return scope.getStore()?.env||baseEnvironment},set(value){const owner=scope.getStore();if(owner)owner.env=value;else baseEnvironment=value}})}catch{}
 const original={setTimeout,clearTimeout,setInterval,clearInterval,setImmediate,clearImmediate}
@@ -487,6 +487,13 @@ async function start(payload){
   const owner={session:payload.session,serviceID:payload.serviceID||payload.session,root,data,cwd:data,payload,protocol:payload.protocol,timers:new Map(),sockets:new Set(),servers:new Set(),streams:new Set(),watchers:new Set(),listeners:[],closed:false,stopPromise:null,stopHookAttempted:false,providers:[],globals:{},env:{...baseEnvironment},logs:[],ready,resolveReady,rejectReady,metadata:null}
   owners.set(owner.session,owner)
   try{const metadata=await scope.run(owner,async()=>{
+    global._sanyuanHTTPS=async(url,options={})=>{
+      const target=new URL(url),method=String(options.method||'GET').toUpperCase();
+      if(target.protocol!=='https:'||target.username||target.password||!['GET','HEAD','POST'].includes(method))throw Error('Invalid native provider request');
+      const request={getHeaders:()=>options.headers||{}},details={target,method,timeoutMs:options.timeout||25000};
+      const result=await fetchHTTPSWithHost(owner,request,details,options.body?Buffer.from(options.body):Buffer.alloc(0));
+      return {status:result.incoming.statusCode,headers:result.incoming.headers,body:result.body};
+    }
     process.env.CATPAW_DATA_DIR=data;process.env.NODE_PATH=data;process.env.DEV_HTTP_PORT='0'
     if(owner.protocol==='catpaw-http'){
       process.env.CATVOD_DISABLE_AUTOSTART='1'

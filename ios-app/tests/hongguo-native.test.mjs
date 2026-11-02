@@ -45,3 +45,15 @@ test('only marked app-local media addresses survive playback normalization',()=>
  assert.equal(playbackURLs({playUrls:[{url,localPrepared:true}]}).length,1);
  assert.equal(playbackURLs({playUrls:[{url:url.replace('127.0.0.1','192.168.1.1'),localPrepared:true}]}).length,0);
 });
+
+test('model signing uses the authenticated native HTTPS transport when supplied',async()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'sanyuan-model-'));const requests=[];
+ try{
+  const global={_sanyuanHTTPS:async(url,options)=>{requests.push({url,options});return {status:200,body:Buffer.from(JSON.stringify({code:0,data:{'123':{video_model:{video_list:{one:{main_url:'https://media.invalid/video',definition:'360p'}}}}}}))};}};
+  const c=load(root,{global});vm.runInNewContext("httpText=async()=>{throw Error('unexpected Node networking');};",c);
+  const result=await c.module.exports.play('官网完整播放','1~123');assert.equal(result.url,'cenc://123?q=360p');assert.equal(requests.length,1);
+  const request=requests[0];assert.equal(request.options.method,'POST');assert.equal(new URL(request.url).hostname,'api5-normal-sinfonlineb.fqnovel.com');
+  assert.equal(JSON.parse(request.options.body.toString()).mixed_video_id_map['1004'][0],'123');
+  assert.match(request.options.headers['x-gorgon'],/^[a-f0-9]+$/);assert.ok(request.options.headers['x-helios']);
+ }finally{fs.rmSync(root,{recursive:true,force:true});}
+});

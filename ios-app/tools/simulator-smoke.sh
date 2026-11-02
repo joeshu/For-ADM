@@ -84,12 +84,20 @@ if [ "${base_smoke_passed:-0}" = "1" ]; then
   codesign --force --sign - --timestamp=none "$sim_app"
   xcrun simctl install "$sim_device" "$sim_app"
 sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
+  python3 - "$sim_data" <<'PY_CLEAN'
+import pathlib,sys
+root=pathlib.Path(sys.argv[1])
+for name in ['sanyuan-hongguo-native-fixture.json','sanyuan-hongguo-native-https.json','sanyuan-hongguo-smoke.json']:
+    (root/'Library/Caches'/name).unlink(missing_ok=True)
+cache=root/'Library/Application Support/Services/Hongguo-0.2.49/hgtv-js-cache'
+for item in cache.glob('1_*.mp4'):item.unlink()
+PY_CLEAN
   xcrun simctl launch "$sim_device" com.joeshu.sanyuan --hongguo-native-fixture
   fixture_passed=0
   for attempt in $(seq 1 55); do
     if [ -f "$sim_data/Library/Caches/sanyuan-hongguo-native-fixture.json" ]; then
       cp "$sim_data/Library/Caches/sanyuan-hongguo-native-fixture.json" dist/simulator-hongguo-native-fixture.json
-      if python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-native-fixture.json"));assert d.get("fullFixtureCompleted") and d.get("nativeFileProxy") and d.get("rendererReady") and d.get("audioTracks",0)>0' 2>/dev/null; then fixture_passed=1;break;fi
+      if python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-native-fixture.json"));assert d.get("fullFixtureCompleted") and d.get("nativeFileProxy") and d.get("nativeHTTPS") and d.get("rendererReady") and d.get("audioTracks",0)>0' 2>/dev/null; then fixture_passed=1;break;fi
       if python3 -c 'import json;assert json.load(open("dist/simulator-hongguo-native-fixture.json")).get("status")=="failed"' 2>/dev/null; then cat dist/simulator-hongguo-native-fixture.json;exit 1;fi
     fi
     sleep 2
@@ -98,6 +106,7 @@ sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data
   cat dist/simulator-hongguo-native-fixture.json
   xcrun simctl terminate "$sim_device" com.joeshu.sanyuan
   mv "$sim_app/Hongguo/hgtv.js.original" "$sim_app/Hongguo/hgtv.js"
+  rm "$sim_app/Hongguo/model-fixture.json"
   codesign --force --sign - --timestamp=none "$sim_app"
   xcrun simctl install "$sim_device" "$sim_app"
 sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"

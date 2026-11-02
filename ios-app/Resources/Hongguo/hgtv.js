@@ -469,7 +469,8 @@ async function fetchModel(vid) {
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     const s = signedRequest(payload);
-    const r = await httpText(s.url, { method: 'POST', headers: s.headers, body: s.body });
+    const requestModel=typeof global._sanyuanHTTPS==='function'?global._sanyuanHTTPS:httpText;
+    const r = await requestModel(s.url, { method: 'POST', headers: s.headers, body: s.body });
     let j = null;
     try { j = JSON.parse(r.body.toString('utf8')); } catch (e) { }
     if (j && (j.code === 0 || j.code == null)) {

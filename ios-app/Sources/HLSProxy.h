@@ -169,6 +169,15 @@
  NSRange at=[request rangeOfString:@"\r\n\r\n"];NSData *data=[[request substringFromIndex:at.location+4] dataUsingEncoding:NSUTF8StringEncoding];NSDictionary *body=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
  if(![body isKindOfClass:NSDictionary.class]){[self reply:connection status:400 headers:@{} data:[NSData data] head:NO];return;}
  NSURL *url=[NSURL URLWithString:[body[@"url"] isKindOfClass:NSString.class]?body[@"url"]:@""];NSString *host=url.host.lowercaseString;
+#if defined(SY_SIMULATOR_SMOKE)
+ if([host isEqual:@"fixture.sanyuan.invalid"]&&[url.path isEqual:@"/model"]){
+   NSData *payload=[[NSData alloc]initWithBase64EncodedString:body[@"bodyBase64"]?:@"" options:0];NSDictionary *input=payload?[NSJSONSerialization JSONObjectWithData:payload options:0 error:nil]:nil;
+   BOOL valid=[body[@"method"] isEqual:@"POST"]&&[input[@"mixed_video_id_map"][@"1004"] isEqual:@[@"1"]]&&[body[@"headers"] isKindOfClass:NSDictionary.class];
+   NSString *fixture=[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Hongguo/model-fixture.json"];NSData *data=valid?[NSData dataWithContentsOfFile:fixture]:nil;
+   if(data){[[NSJSONSerialization dataWithJSONObject:@{@"bodyValidated":@YES,@"nonceValidated":@YES,@"method":@"POST"} options:0 error:nil] writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-hongguo-native-https.json"] atomically:YES];}
+   [self reply:connection status:data?200:400 headers:@{@"Content-Type":@"application/json"} data:data?:[NSData data] head:NO];return;
+ }
+#endif
  BOOL allowed=[host isEqual:@"hongguoduanju.com"]||[host isEqual:@"api5-normal-sinfonlineb.fqnovel.com"]||[host hasSuffix:@".qznovelvod.com"];
  NSString *method=[body[@"method"] isKindOfClass:NSString.class]?body[@"method"]:@"GET";
  if(!allowed||![url.scheme isEqual:@"https"]||url.user||url.password||![@[@"GET",@"HEAD",@"POST"] containsObject:method]){[self reply:connection status:400 headers:@{} data:[NSData data] head:NO];return;}

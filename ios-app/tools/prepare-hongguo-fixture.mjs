@@ -9,4 +9,6 @@ raw[0]=raw[1]^raw[2];
 const model={video_list:{one:{main_url:'https://fixture.invalid/generated',definition:'360p',encrypt_info:{encrypt:true,spade_a:raw.toString('base64')}}}};
 const bytes=fs.readFileSync(new URL('../tests/fixtures/hongguo-cenc.mp4',import.meta.url)).toString('base64');
 fs.copyFileSync(target,target+'.original');
-fs.appendFileSync(target,'\n// Simulator-only owned-media fixture.\nfetchModel=async()=>('+JSON.stringify(model)+');\nhttpText=async()=>({status:200,body:Buffer.from('+JSON.stringify(bytes)+',"base64")});\n');
+fs.writeFileSync(path.join(app,'Hongguo/model-fixture.json'),JSON.stringify({code:0,data:{'1':{video_model:model}}}));
+fs.writeFileSync(target,fs.readFileSync(target,'utf8').replace(/const VIDEO_API = '[^']+';/,"const VIDEO_API = 'https://fixture.sanyuan.invalid/model';"));
+fs.appendFileSync(target,'\n// Simulator-only owned-media fixture.\nhttpText=async()=>({status:200,body:Buffer.from('+JSON.stringify(bytes)+',"base64")});\n');
