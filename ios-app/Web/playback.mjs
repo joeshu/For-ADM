@@ -1,6 +1,5 @@
 import {playbackURLs,safeHTTPS} from './model.mjs';
 import {ServiceError} from './site-api.mjs';
-import {inspectMP4Init} from './mp4-inspection.mjs';
 export class MediaError extends Error {constructor(message,status=0){super(message);this.status=status;}}
 const urlsFrom=data=>playbackURLs({playUrls:Array.isArray(data)?data:data?.playUrls||data?.urls||[]}).concat(data?.url?playbackURLs({playUrls:[data]}):[]);
 export function mediaHeaders(client,entry={}){
@@ -31,18 +30,11 @@ async function mediaRequest(client,url,signal,method='GET',headers={}){
 function playlist(response){if(response.status<200||response.status>=300)throw new MediaError('视频线路返回 HTTP '+response.status,response.status);let text;try{text=atob(response.bodyBase64||'').replace(/^\u00ef\u00bb\u00bf/,'').trim();}catch{throw new MediaError('视频清单格式错误');}if(!text.startsWith('#EXTM3U'))throw new MediaError('视频线路未返回有效播放清单');return text;}
 export async function verifyMedia(client,url,signal,headers={},referrerPolicy){
  headers=mediaHeaders(client,{headers,referrerPolicy});
- const parsed=new URL(url),hls=/\.m3u8(?:$|\?)/i.test(parsed.pathname+parsed.search),hongguoMP4=client.site?.provider==='hongguo'&&!hls,probeHeaders=hongguoMP4?{...headers,Range:'bytes=0-65535'}:headers,response=await mediaRequest(client,url,signal,hls||hongguoMP4?'GET':'HEAD',probeHeaders);
+ const parsed=new URL(url),hls=/\.m3u8(?:$|\?)/i.test(parsed.pathname+parsed.search),response=await mediaRequest(client,url,signal,hls?'GET':'HEAD',headers);
  if(!hls){
-  if(hongguoMP4&&response.status!==206)throw new MediaError('红果媒体地址无法读取视频数据（HTTP '+response.status+'）',response.status);
-  if(!hongguoMP4&&(response.status<200||response.status>=300)&&![405,501].includes(response.status))throw new MediaError('视频线路返回 HTTP '+response.status,response.status);
+  if((response.status<200||response.status>=300)&&![405,501].includes(response.status))throw new MediaError('视频线路返回 HTTP '+response.status,response.status);
   const type=Object.entries(response.headers||{}).find(([k])=>k.toLowerCase()==='content-type')?.[1]||'';
   if(/text\/html|application\/(?:json|xml)/i.test(type))throw new MediaError('该线路返回网页，未返回媒体文件');
-  if(hongguoMP4){
-   const range=Object.entries(response.headers||{}).find(([k])=>k.toLowerCase()==='content-range')?.[1]||'';if(!/^bytes\s+0-\d+\/\d+$/i.test(range))throw new MediaError('红果媒体地址没有返回有效的视频字节范围');
-   let init;try{init=inspectMP4Init(atob(response.bodyBase64||''));}catch{throw new MediaError('红果媒体地址没有返回有效 MP4 文件头');}
-   if(!init.mp4)throw new MediaError('红果媒体地址没有返回有效 MP4 文件头');
-   if(init.encrypted)throw new MediaError('官网兼容线路返回了加密媒体，暂时无法使用系统播放器播放');
-  }
   return;
  }
  const text=playlist(response);
@@ -59,7 +51,7 @@ export async function resolvePlayableEpisode(client,detail,lineIndex,episodeInde
    let urls=await resolvePlayback(client,detail.id,line,episode,signal),checked=[],expired=false;
    const inspect=async candidates=>{for(const entry of candidates.slice(0,3)){const host=new URL(entry.url).host;if(badHosts.has(host))continue;try{await verifyMedia(client,entry.url,signal,entry.headers,entry.referrerPolicy);checked.push(entry);return;}catch(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate)badHosts.add(host);if([403,404,410].includes(error.status))expired=true;}}};
    await inspect(urls);
-   if(!checked.length&&expired&&(episode.open||client.site?.provider==='hongguo')){urls=await resolvePlayback(client,detail.id,line,episode,signal,{refresh:true});await inspect(urls);}
+   if(!checked.length&&expired&&episode.open){urls=await resolvePlayback(client,detail.id,line,episode,signal,{refresh:true});await inspect(urls);}
    if(checked.length){if(!line.preview)client.preferredPlaybackSiteId=line.siteId;return {lineIndex:index,episodeIndex:at,episode,urls:[...checked,...urls.filter(x=>!checked.some(y=>y.url===x.url))],switched:index!==lineIndex};}
   }catch(error){if(error.name==='AbortError'||error instanceof ServiceError)throw error;last=error;}
  }

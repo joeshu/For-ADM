@@ -2,38 +2,12 @@
 #if __has_include(<Network/Network.h>)
 #import <Network/Network.h>
 #import <JavaScriptCore/JavaScriptCore.h>
-// Bounded system-network fallback for the embedded Node provider.
-@interface SYHGFetch:NSObject<NSURLSessionDataDelegate>
-@property(nonatomic,strong) NSURLSession *session;
-@property(nonatomic,strong) NSMutableData *data;
-@property(nonatomic,strong) NSHTTPURLResponse *response;
-@property(nonatomic,copy) void(^completion)(NSData*,NSHTTPURLResponse*,NSError*);
-@end
-@implementation SYHGFetch
-+ (void)request:(NSURLRequest*)request completion:(void(^)(NSData*,NSHTTPURLResponse*,NSError*))completion {
- SYHGFetch *job=[SYHGFetch new];job.data=[NSMutableData data];job.completion=completion;
- NSURLSessionConfiguration *config=NSURLSessionConfiguration.ephemeralSessionConfiguration;config.timeoutIntervalForResource=request.timeoutInterval+2;config.timeoutIntervalForRequest=request.timeoutInterval;config.URLCache=nil;config.HTTPCookieStorage=nil;
- job.session=[NSURLSession sessionWithConfiguration:config delegate:job delegateQueue:nil];[[job.session dataTaskWithRequest:request] resume];
-}
-- (void)URLSession:(NSURLSession*)session dataTask:(NSURLSessionDataTask*)task didReceiveResponse:(NSURLResponse*)response completionHandler:(void(^)(NSURLSessionResponseDisposition))completionHandler {
- self.response=(NSHTTPURLResponse*)response;completionHandler(response.expectedContentLength>16*1024*1024?NSURLSessionResponseCancel:NSURLSessionResponseAllow);
-}
-- (void)URLSession:(NSURLSession*)session dataTask:(NSURLSessionDataTask*)task didReceiveData:(NSData*)data {if(self.data.length+data.length>16*1024*1024){[task cancel];return;}[self.data appendData:data];}
-- (void)URLSession:(NSURLSession*)session task:(NSURLSessionTask*)task willPerformHTTPRedirection:(NSHTTPURLResponse*)response newRequest:(NSURLRequest*)request completionHandler:(void(^)(NSURLRequest*))completionHandler {
- NSString *host=request.URL.host.lowercaseString;BOOL allowed=[host isEqual:@"hongguoduanju.com"]||[host isEqual:@"api5-normal-sinfonlineb.fqnovel.com"]||[host hasSuffix:@".qznovelvod.com"];
- completionHandler(allowed&&[request.URL.scheme isEqual:@"https"]&&!request.URL.user&&!request.URL.password?request:nil);
-}
-- (void)URLSession:(NSURLSession*)session task:(NSURLSessionTask*)task didCompleteWithError:(NSError*)error {if(self.completion)self.completion(error?nil:self.data,self.response,error);self.completion=nil;[session finishTasksAndInvalidate];self.session=nil;}
-@end
 @interface SYHLSProxy:NSObject
 @property(nonatomic,strong) nw_listener_t listener;
 @property(nonatomic,strong) NSURLSession*session;
 @property(nonatomic,strong) NSMutableDictionary<NSString*,NSURL*>*resources;
 @property(nonatomic,strong) NSMutableDictionary<NSString*,NSString*>*paths;
 @property(nonatomic,strong) JSContext*js;
-@property(nonatomic,strong) NSMutableDictionary *localFiles;
-@property(nonatomic,copy) NSString *hostFetchToken;
-- (NSURL*)mapLocalFile:(NSURL*)file;
 @property(nonatomic,strong) NSDictionary*headers;
 @property(nonatomic,copy) NSString*token;
 @property(nonatomic) uint16_t port;
@@ -47,7 +21,7 @@
 @implementation SYHLSProxy
 - (instancetype)init {
  if((self=[super init])){
-  self.resources=[NSMutableDictionary dictionary];self.paths=[NSMutableDictionary dictionary];self.localFiles=[NSMutableDictionary dictionary];self.hostFetchToken=NSUUID.UUID.UUIDString;
+  self.resources=[NSMutableDictionary dictionary];self.paths=[NSMutableDictionary dictionary];
   self.js=[JSContext new];
   NSString*script=[NSString stringWithContentsOfFile:[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Web/hls-cleaner.js"] encoding:NSUTF8StringEncoding error:nil];
   if(script)[self.js evaluateScript:script];
@@ -131,71 +105,9 @@
  }
  return [output componentsJoinedByString:@"\n"];
 }
-- (NSURL*)mapLocalFile:(NSURL*)file {
- if(!self.port||!file.isFileURL)return nil;
- if(self.localFiles.count>=64)[self.localFiles removeObjectForKey:self.localFiles.allKeys.firstObject];
- NSString *path=[NSString stringWithFormat:@"/hongguo/%@.mp4",NSUUID.UUID.UUIDString];self.localFiles[path]=file;
- return [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%u%@",self.port,path]];
-}
-- (void)sendFile:(NSFileHandle*)file remaining:(unsigned long long)remaining connection:(nw_connection_t)connection {
- dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^{
-  NSData *chunk=nil;@try{chunk=[file readDataOfLength:(NSUInteger)MIN(remaining,512*1024)];}@catch(NSException *e){}
-  if(!chunk.length){[file closeFile];nw_connection_cancel(connection);return;}
-  dispatch_data_t data=dispatch_data_create(chunk.bytes,chunk.length,dispatch_get_global_queue(QOS_CLASS_UTILITY,0),^{(void)chunk;});
-  nw_connection_send(connection,data,NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT,chunk.length==remaining,^(nw_error_t error){if(error||chunk.length==remaining){[file closeFile];nw_connection_cancel(connection);}else [self sendFile:file remaining:remaining-chunk.length connection:connection];});
- });
-}
-- (void)serveFile:(NSURL*)url request:(NSString*)request connection:(nw_connection_t)connection head:(BOOL)head {
- unsigned long long size=[NSFileManager.defaultManager attributesOfItemAtPath:url.path error:nil].fileSize,start=0,end=size?size-1:0;BOOL partial=NO;
- NSString *range=nil;for(NSString *line in [request componentsSeparatedByString:@"\r\n"])if([line.lowercaseString hasPrefix:@"range:"])range=[[line substringFromIndex:6] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
- if(range){NSRegularExpression *re=[NSRegularExpression regularExpressionWithPattern:@"^bytes=([0-9]*)-([0-9]*)$" options:0 error:nil];NSTextCheckingResult *match=[re firstMatchInString:range options:0 range:NSMakeRange(0,range.length)];
-  if(!match){[self reply:connection status:416 headers:@{@"Content-Range":[NSString stringWithFormat:@"bytes */%llu",size]} data:[NSData data] head:head];return;}
-  NSString *a=[range substringWithRange:[match rangeAtIndex:1]],*b=[range substringWithRange:[match rangeAtIndex:2]];
-  if(a.length){start=a.longLongValue;if(b.length)end=MIN(size-1,(unsigned long long)b.longLongValue);}else if(b.longLongValue>0){start=size> b.longLongValue?size-b.longLongValue:0;}else start=size;
-  partial=YES;
- }
- if(!size||start>=size||end<start){[self reply:connection status:416 headers:@{@"Content-Range":[NSString stringWithFormat:@"bytes */%llu",size]} data:[NSData data] head:head];return;}
- unsigned long long length=end-start+1;
- NSMutableDictionary *headers=[@{@"Content-Type":@"video/mp4",@"Accept-Ranges":@"bytes",@"Content-Length":@(length)} mutableCopy];
- if(partial)headers[@"Content-Range"]=[NSString stringWithFormat:@"bytes %llu-%llu/%llu",start,end,size];
- if(head){[self reply:connection status:partial?206:200 headers:headers data:[NSData data] head:YES];return;}
- NSFileHandle *file=[NSFileHandle fileHandleForReadingAtPath:url.path];if(!file){[self reply:connection status:404 headers:@{} data:[NSData data] head:NO];return;}[file seekToFileOffset:start];
- NSMutableString *text=[NSMutableString stringWithFormat:@"HTTP/1.1 %d OK\r\nConnection: close\r\n",partial?206:200];for(NSString *k in headers)[text appendFormat:@"%@: %@\r\n",k,headers[k]];[text appendString:@"\r\n"];
- NSData *raw=[text dataUsingEncoding:NSUTF8StringEncoding];dispatch_data_t data=dispatch_data_create(raw.bytes,raw.length,dispatch_get_main_queue(),^{(void)raw;});nw_connection_send(connection,data,NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT,false,^(nw_error_t error){if(error){[file closeFile];nw_connection_cancel(connection);}else [self sendFile:file remaining:length connection:connection];});
-}
-- (void)hostFetch:(NSString*)request connection:(nw_connection_t)connection {
- NSString *auth=nil;for(NSString *line in [request componentsSeparatedByString:@"\r\n"])if([line.lowercaseString hasPrefix:@"x-cctvhost-host-fetch:"])auth=[[line substringFromIndex:[@"x-cctvhost-host-fetch:" length]] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
- if(![auth isEqual:self.hostFetchToken]){[self reply:connection status:403 headers:@{} data:[NSData data] head:NO];return;}
- NSRange at=[request rangeOfString:@"\r\n\r\n"];NSData *data=[[request substringFromIndex:at.location+4] dataUsingEncoding:NSUTF8StringEncoding];NSDictionary *body=[NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
- if(![body isKindOfClass:NSDictionary.class]){[self reply:connection status:400 headers:@{} data:[NSData data] head:NO];return;}
- NSURL *url=[NSURL URLWithString:[body[@"url"] isKindOfClass:NSString.class]?body[@"url"]:@""];NSString *host=url.host.lowercaseString;
-#if defined(SY_SIMULATOR_SMOKE)
- if([host isEqual:@"fixture.sanyuan.invalid"]&&[url.path isEqual:@"/model"]){
-   NSData *payload=[[NSData alloc]initWithBase64EncodedString:body[@"bodyBase64"]?:@"" options:0];NSDictionary *input=payload?[NSJSONSerialization JSONObjectWithData:payload options:0 error:nil]:nil;
-   BOOL valid=[body[@"method"] isEqual:@"POST"]&&[input[@"mixed_video_id_map"][@"1004"] isEqual:@[@"1"]]&&[body[@"headers"] isKindOfClass:NSDictionary.class];
-   NSString *fixture=[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Hongguo/model-fixture.json"];NSData *data=valid?[NSData dataWithContentsOfFile:fixture]:nil;
-   if(data){[[NSJSONSerialization dataWithJSONObject:@{@"bodyValidated":@YES,@"nonceValidated":@YES,@"method":@"POST"} options:0 error:nil] writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-hongguo-native-https.json"] atomically:YES];}
-   [self reply:connection status:data?200:400 headers:@{@"Content-Type":@"application/json"} data:data?:[NSData data] head:NO];return;
- }
-#endif
- BOOL allowed=[host isEqual:@"hongguoduanju.com"]||[host isEqual:@"api5-normal-sinfonlineb.fqnovel.com"]||[host hasSuffix:@".qznovelvod.com"];
- NSString *method=[body[@"method"] isKindOfClass:NSString.class]?body[@"method"]:@"GET";
- if(!allowed||![url.scheme isEqual:@"https"]||url.user||url.password||![@[@"GET",@"HEAD",@"POST"] containsObject:method]){[self reply:connection status:400 headers:@{} data:[NSData data] head:NO];return;}
- double timeout=MAX(1,MIN(30,[body[@"timeoutMs"] doubleValue]/1000.0));
- NSMutableURLRequest *up=[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:timeout];up.HTTPMethod=method;
- if([body[@"headers"] isKindOfClass:NSDictionary.class])for(NSString *key in body[@"headers"]){id v=body[@"headers"][key];if([v isKindOfClass:NSString.class]&&![@[@"host",@"content-length",@"connection"] containsObject:key.lowercaseString]&&[v rangeOfCharacterFromSet:NSCharacterSet.newlineCharacterSet].location==NSNotFound)[up setValue:v forHTTPHeaderField:key];}
- if([body[@"bodyBase64"] isKindOfClass:NSString.class])up.HTTPBody=[[NSData alloc]initWithBase64EncodedString:body[@"bodyBase64"] options:0];
- [SYHGFetch request:up completion:^(NSData *bytes,NSHTTPURLResponse *response,NSError *error){dispatch_async(dispatch_get_main_queue(),^{
-  if(error||bytes.length>16*1024*1024){[self reply:connection status:502 headers:@{} data:[NSData data] head:NO];return;}
-  NSHTTPURLResponse *http=(NSHTTPURLResponse*)response;NSMutableDictionary *headers=[NSMutableDictionary dictionary];for(NSString *key in http.allHeaderFields)if(![@[@"content-encoding",@"content-length",@"connection",@"transfer-encoding"] containsObject:key.lowercaseString])headers[key]=[http.allHeaderFields[key] description];
-  [self reply:connection status:http.statusCode?:502 headers:headers data:bytes?:[NSData data] head:NO];
- });}];
-}
 - (void)handle:(NSString*)request connection:(nw_connection_t)connection {
  NSArray*lines=[request componentsSeparatedByString:@"\r\n"],*parts=[lines.firstObject componentsSeparatedByString:@" "];
  BOOL head=parts.count>=2&&[parts[0] isEqual:@"HEAD"];
- if(parts.count>=2&&[parts[0] isEqual:@"POST"]&&[parts[1] isEqual:@"/_cctvhost/host-fetch"]){[self hostFetch:request connection:connection];return;}
- NSURL *local=parts.count>=2?self.localFiles[parts[1]]:nil;if(local){if(head||[parts[0] isEqual:@"GET"])[self serveFile:local request:request connection:connection head:head];else [self reply:connection status:405 headers:@{} data:[NSData data] head:NO];return;}
  NSURL*url=parts.count>=2?self.resources[parts[1]]:nil;
  if(!url||(!head&&![parts[0] isEqual:@"GET"])){self.lastTransportError=@"proxy-resource-not-found";[self reply:connection status:404 headers:@{} data:[NSData data] head:head];return;}
  NSMutableURLRequest*upstream=[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20];upstream.allHTTPHeaderFields=self.headers;upstream.HTTPMethod=head?@"HEAD":@"GET";

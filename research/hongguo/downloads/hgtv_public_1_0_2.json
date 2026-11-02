@@ -1,9 +1,0 @@
-{
-  "version": "1.0.2-public",
-  "file": "hgtv_public_1_0_2.py",
-  "source": "../hgtv_public_optimized.py",
-  "sourceCommit": "dc88cfdd683e7403aa6f929319c7289e04bcbf47",
-  "sha256": "33a5e3493efb934fd17d3501839c7d8a90221f97dc5b56d663591f3a57aa7946",
-  "bytes": 60373,
-  "note": "Immutable versioned download copied from the tested source commit; future source edits do not update this archive."
-}

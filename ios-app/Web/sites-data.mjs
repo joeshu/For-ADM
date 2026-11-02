@@ -277,9 +277,14 @@ export default [
     }
   },
   {
-    "id": "hongguo",
-    "name": "红果短剧",
-    "provider": "hongguo",
-    "origin": "https://hongguoduanju.com"
+    "id": "souju",
+    "name": "搜剧AI",
+    "provider": "souju",
+    "origin": "https://ai.baipiaozhe.com",
+    "version": "web-2026-11-02",
+    "sourceSha256": "44fb10e31a57eeddbd93750f16d8d42d51cb5d249ffd2844a385dd377c4e49fc",
+    "protocol": {
+      "signingKey": "f39d73aa7a6426203cdee1ef17b31d3b7ea8c23f4c59c62a3a8aa0f39ee5e79d"
+    }
   }
 ];

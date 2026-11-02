@@ -21,8 +21,7 @@ sim_arch="$(uname -m)"
 mkdir -p dist/simulator
 cp -R dist/Payload/Sanyuan.app dist/simulator/
 sim_app="$PWD/dist/simulator/Sanyuan.app"
-xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -target "$sim_arch-apple-ios15.0-simulator" -DSY_SIMULATOR_SMOKE=1 -fobjc-arc -fblocks -Oz Sources/main.m Sources/NodePluginRuntime.m -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore -lz -o "$sim_app/Sanyuan"
-python3 tools/prepare_node_runtime.py "$sim_app" --simulator
+xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -target "$sim_arch-apple-ios15.0-simulator" -DSY_SIMULATOR_SMOKE=1 -fobjc-arc -fblocks -Oz Sources/main.m -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore -lz -o "$sim_app/Sanyuan"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
@@ -30,7 +29,6 @@ with open(p,'rb') as f:d=plistlib.load(f)
 d['CFBundleSupportedPlatforms']=['iPhoneSimulator'];d.pop('UIRequiredDeviceCapabilities',None)
 with open(p,'wb') as f:plistlib.dump(d,f)
 PY
-codesign --force --sign - --timestamp=none "$sim_app/Frameworks/NodeMobile.framework"
 codesign --force --sign - --timestamp=none "$sim_app"
 sim_device="${SIMULATOR_UDID:-$(xcrun simctl list devices available --json | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(x["udid"] for k,v in d["devices"].items() if ".iOS-" in k for x in v if x.get("isAvailable") and x["name"].startswith("iPhone")))')}"
 # Fresh GitHub runners normally have no booted device.
@@ -78,59 +76,8 @@ for attempt in $(seq 1 80); do
   sleep 2
 done
 if [ "${base_smoke_passed:-0}" = "1" ]; then
-  # Exercise Node -> CENC processing -> native byte-range server -> AVPlayer.
-  xcrun simctl terminate "$sim_device" com.joeshu.sanyuan
-  node tools/prepare-hongguo-fixture.mjs "$sim_app"
-  codesign --force --sign - --timestamp=none "$sim_app"
-  xcrun simctl install "$sim_device" "$sim_app"
-sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
-  python3 - "$sim_data" <<'PY_CLEAN'
-import pathlib,sys
-root=pathlib.Path(sys.argv[1])
-for name in ['sanyuan-hongguo-native-fixture.json','sanyuan-hongguo-native-https.json','sanyuan-hongguo-smoke.json']:
-    (root/'Library/Caches'/name).unlink(missing_ok=True)
-cache=root/'Library/Application Support/Services/Hongguo-0.2.49/hgtv-js-cache'
-for item in cache.glob('1_*.mp4'):item.unlink()
-PY_CLEAN
-  xcrun simctl launch "$sim_device" com.joeshu.sanyuan --hongguo-native-fixture
-  fixture_passed=0
-  for attempt in $(seq 1 55); do
-    if [ -f "$sim_data/Library/Caches/sanyuan-hongguo-native-fixture.json" ]; then
-      cp "$sim_data/Library/Caches/sanyuan-hongguo-native-fixture.json" dist/simulator-hongguo-native-fixture.json
-      if python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-native-fixture.json"));assert d.get("fullFixtureCompleted") and d.get("nativeFileProxy") and d.get("nativeHTTPS") and d.get("rendererReady") and d.get("audioTracks",0)>0' 2>/dev/null; then fixture_passed=1;break;fi
-      if python3 -c 'import json;assert json.load(open("dist/simulator-hongguo-native-fixture.json")).get("status")=="failed"' 2>/dev/null; then cat dist/simulator-hongguo-native-fixture.json;exit 1;fi
-    fi
-    sleep 2
-  done
-  [ "$fixture_passed" = 1 ]
-  cat dist/simulator-hongguo-native-fixture.json
-  xcrun simctl terminate "$sim_device" com.joeshu.sanyuan
-  mv "$sim_app/Hongguo/hgtv.js.original" "$sim_app/Hongguo/hgtv.js"
-  rm "$sim_app/Hongguo/model-fixture.json"
-  codesign --force --sign - --timestamp=none "$sim_app"
-  xcrun simctl install "$sim_device" "$sim_app"
-sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
-  # Relaunch through the real app/adapter/player path. This test must never use
-  # the audio-only fixture substituted for the earlier generic bridge check.
-  xcrun simctl terminate "$sim_device" com.joeshu.sanyuan || true
-  xcrun simctl launch "$sim_device" com.joeshu.sanyuan --hongguo-smoke
-  for attempt in $(seq 1 115); do
-    if [ -f "$sim_data/Library/Caches/sanyuan-hongguo-smoke.json" ]; then
-      cp "$sim_data/Library/Caches/sanyuan-hongguo-smoke.json" dist/simulator-hongguo-smoke.json
-      hongguo_status="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("status","unknown"))' dist/simulator-hongguo-smoke.json)"
-      if [ "$hongguo_status" = "videoReady" ]; then
-        cat dist/simulator-hongguo-smoke.json
-        python3 -c 'import json;d=json.load(open("dist/simulator-hongguo-smoke.json"));assert d["officialCompleteMP4"] and d["fullEpisodeCompleted"] and d["fullEpisodeMode"] and d["inlinePlayback"] and not d["fixtureUsed"] and d["presentationWidth"]>0 and d["presentationHeight"]>0 and d["firstFrameTime"]<10 and d["audioTracks"]>0 and d["duration"]>30 and d["playbackTime"]>=d["duration"]-1.5,d'
-        xcrun simctl io "$sim_device" screenshot dist/simulator-hongguo.png
-        exit 0
-      elif [ "$hongguo_status" = "failed" ]; then
-        cat dist/simulator-hongguo-smoke.json >&2
-        xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png
-        exit 1
-      fi
-    fi
-    sleep 2
-  done
+  cat dist/simulator-smoke.json dist/simulator-discover-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json dist/simulator-live-video-smoke.json
+  exit 0
 fi
 if [ -f "$sim_data/Library/Caches/sanyuan-playback-smoke-debug.json" ]; then
   cp "$sim_data/Library/Caches/sanyuan-playback-smoke-debug.json" dist/simulator-playback-debug.json
