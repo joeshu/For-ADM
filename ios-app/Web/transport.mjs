@@ -2,7 +2,7 @@ let sequence=0;const pending=new Map(),memory=new Map();
 const native=()=>!!globalThis.webkit?.messageHandlers?.native;
 function post(type,options={}){
   const id='r'+(++sequence);return new Promise((resolve,reject)=>{
-    const timeout=setTimeout(()=>{pending.delete(id);globalThis.webkit?.messageHandlers?.native.postMessage({id,type:'cancel'});reject(Error('请求超时，请切换线路重试'));},type==='hongguoResolve'?270000:25000);
+    const timeout=setTimeout(()=>{options.signal?.removeEventListener('abort',abort);pending.delete(id);globalThis.webkit?.messageHandlers?.native.postMessage({id,type:'cancel'});reject(Error('请求超时，请切换线路重试'));},type==='hongguoResolve'?270000:25000);
     const abort=()=>{clearTimeout(timeout);pending.delete(id);globalThis.webkit?.messageHandlers?.native.postMessage({id,type:'cancel'});reject(new DOMException('请求取消','AbortError'));};
     if(options.signal?.aborted){abort();return;}
     options.signal?.addEventListener('abort',abort,{once:true});

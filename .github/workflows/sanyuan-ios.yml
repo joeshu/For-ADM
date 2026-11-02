@@ -65,6 +65,7 @@ jobs:
             ios-app/dist/simulator-live-video-smoke.json
             ios-app/dist/simulator-live-video.png
             ios-app/dist/simulator-hongguo-smoke.json
+            ios-app/dist/simulator-hongguo-native-fixture.json
             ios-app/dist/simulator-hongguo.png
             ios-app/dist/simulator-failure.png
             ios-app/dist/simulator-system.log

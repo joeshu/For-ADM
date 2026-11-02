@@ -14,7 +14,7 @@
  NSData *data=[NSJSONSerialization dataWithJSONObject:payload options:0 error:error];if(!data)return nil;
  NSString *reply=[[NodePluginRuntime shared] callOperation:operation json:[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding] error:error];
  NSDictionary *result=reply?[NSJSONSerialization JSONObjectWithData:[reply dataUsingEncoding:NSUTF8StringEncoding] options:0 error:error]:nil;
- if(![result[@"ok"] boolValue]){if(error&&!*error)*error=[NSError errorWithDomain:@"SYHongguo" code:1 userInfo:@{NSLocalizedDescriptionKey:@"红果后台未返回可播放媒体，请重试或切换剧集"}];return nil;}return result;
+ if(![result[@"ok"] boolValue]){NSString *reason=[result[@"error"] isKindOfClass:NSString.class]?result[@"error"]:@"runtime request failed";NSRegularExpression *redact=[NSRegularExpression regularExpressionWithPattern:@"https?://[^\\s]+" options:NSRegularExpressionCaseInsensitive error:nil];reason=[redact stringByReplacingMatchesInString:reason options:0 range:NSMakeRange(0,reason.length) withTemplate:@"[URL hidden]"];NSLog(@"SYHongguo operation=%@ error=%@",operation,[reason substringToIndex:MIN(reason.length,180)]);if(error&&!*error)*error=[NSError errorWithDomain:@"SYHongguo" code:1 userInfo:@{NSLocalizedDescriptionKey:@"红果后台未返回可播放媒体，请重试或切换剧集"}];return nil;}return result;
 }
 - (void)resolveSeries:(NSString*)series episode:(NSString*)episode bridge:(NSURL*)bridge token:(NSString*)token completion:(void(^)(NSURL*,NSError*))completion {
  // Keep only the latest queued request. An active download can finish and

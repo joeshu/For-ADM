@@ -27,13 +27,14 @@ test('Hongguo native backend decrypts owned CENC fixture and returns file ranges
  const model={video_list:{one:{main_url:'https://media.invalid/fixture',definition:'360p',vwidth:160,vheight:90,encrypt_info:{encrypt:true,spade_a:spade}}}};
  const c=load(root,{__fixtureModel:model,__fixtureBytes:encrypted});
  assert.equal(c.module.exports.__test.deriveContentKey(spade).toString('hex'),key);
- vm.runInNewContext('fetchModel=async()=>__fixtureModel;httpText=async()=>({status:200,body:__fixtureBytes});',c);
+ c.__modelCalls=0;vm.runInNewContext('fetchModel=async()=>{__modelCalls++;return __fixtureModel;};httpText=async()=>({status:200,body:__fixtureBytes});',c);
  const response=await c.module.exports.localProxy({url:'cenc://123?q=360p',method:'GET',headers:{Range:'bytes=0-31'}});
  assert.equal(response[0],206,JSON.stringify(response));assert.equal(response[1]['Content-Length'],'32');
  const descriptor=response[2];assert.equal(descriptor.__cctvhostFileResponse,true);assert.equal(descriptor.offset,0);assert.equal(descriptor.length,32);
  assert.ok(c.module.exports.__test.verifyMp4(descriptor.path));
  const decode=spawnSync('ffmpeg',['-v','error','-xerror','-i',descriptor.path,'-f','null','-'],{timeout:10000});
  if(decode.error?.code!=='ENOENT')assert.equal(decode.status,0,decode.stderr?.toString());
+ const cached=await c.module.exports.play('官网完整播放','1~123');assert.equal(cached.url,'cenc://123?q=360p');assert.equal(c.__modelCalls,1,'cached media must not require a fresh remote model');
  const head=await c.module.exports.localProxy({url:'cenc://123?q=360p',method:'HEAD'});assert.equal(head[0],200);
  const invalid=await c.module.exports.localProxy({url:'cenc://123?q=360p',headers:{Range:'bytes=999999999-'}});assert.equal(invalid[0],416);
  }finally{fs.rmSync(root,{recursive:true,force:true});}

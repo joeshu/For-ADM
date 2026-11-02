@@ -162,3 +162,20 @@ test('Hongguo does not retry an explicit permission refusal',async()=>{
  const client=new HongguoClient({id:'hongguo',provider:'hongguo',origin},async()=>{calls++;return response(JSON.stringify({error:'permission_denied'}),403);},{getItem(){return null;},setItem(){}});
  await assert.rejects(client.fullPlayback(sid,vids[0]));assert.equal(calls,1);
 });
+
+test('native Hongguo preparation plays a later episode without using the denied website endpoint',async()=>{
+ const {NativeTransport}=await import('../Web/transport.mjs');
+ const oldNative=NativeTransport.native,oldResolve=NativeTransport.hongguoResolve;
+ const calls=[];
+ try{
+  NativeTransport.native=()=>true;
+  NativeTransport.hongguoResolve=async(seriesId,episodeId)=>{calls.push([seriesId,episodeId]);return {url:'http://127.0.0.1:12345/hongguo/1234-ABCD.mp4'};};
+  const {client,requests}=createClient();const detail=await client.detail(sid);await client.episodes(sid,detail.playSources[0]);
+  const result=await client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[3]});
+  assert.deepEqual(calls,[[sid,vids[3]]]);assert.equal(result.playUrls[0].localPrepared,true);assert.equal(result.playUrls[0].preview,false);
+  assert.equal(result.playUrls[0].referrerPolicy,'no-referrer');assert.ok(!requests.some(x=>new URL(x.url).pathname.includes('fallback-play-info')));
+  const ctrl=new AbortController();ctrl.abort();NativeTransport.hongguoResolve=async()=>{throw new DOMException('cancelled','AbortError');};
+  await assert.rejects(client.play({vodId:sid,siteId:'hongguo-official',episodeId:vids[3]},ctrl.signal),e=>e.name==='AbortError');
+  assert.ok(!requests.some(x=>new URL(x.url).pathname.includes('fallback-play-info')));
+ }finally{NativeTransport.native=oldNative;NativeTransport.hongguoResolve=oldResolve;}
+});

@@ -37,6 +37,7 @@ sim_device="${SIMULATOR_UDID:-$(xcrun simctl list devices available --json | pyt
 xcrun simctl boot "$sim_device" || true
 xcrun simctl bootstatus "$sim_device" -b
 xcrun simctl install "$sim_device" "$sim_app"
+sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
 xcrun simctl launch "$sim_device" com.joeshu.sanyuan
 sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
 for attempt in $(seq 1 80); do
@@ -82,6 +83,7 @@ if [ "${base_smoke_passed:-0}" = "1" ]; then
   node tools/prepare-hongguo-fixture.mjs "$sim_app"
   codesign --force --sign - --timestamp=none "$sim_app"
   xcrun simctl install "$sim_device" "$sim_app"
+sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
   xcrun simctl launch "$sim_device" com.joeshu.sanyuan --hongguo-native-fixture
   fixture_passed=0
   for attempt in $(seq 1 55); do
@@ -97,6 +99,7 @@ if [ "${base_smoke_passed:-0}" = "1" ]; then
   mv "$sim_app/Hongguo/hgtv.js.original" "$sim_app/Hongguo/hgtv.js"
   codesign --force --sign - --timestamp=none "$sim_app"
   xcrun simctl install "$sim_device" "$sim_app"
+sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
   # Relaunch through the real app/adapter/player path. This test must never use
   # the audio-only fixture substituted for the earlier generic bridge check.
   xcrun simctl terminate "$sim_device" com.joeshu.sanyuan || true

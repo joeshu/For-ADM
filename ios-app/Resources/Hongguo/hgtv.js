@@ -570,7 +570,7 @@ function qualityCandidates(vm) {
     if (!/^(?:\d{1,4}|\d{3,4}p)$/.test(q)) continue;
     const gear = String(it.gear_des_key || '').toLowerCase();
     const meta = videoMetadata(it);
-    const bad = (/bytevc2|bvc2/.test(gear + ' ' + String(meta.vtype || '').toLowerCase())) ? 1 : 0;
+    const bad = (/bytevc2|bvc2|av01|av1|vp09|vp9/.test(gear + ' ' + String(meta.vtype || '').toLowerCase())) ? 1 : 0;
     const order = /^\d{3,4}p$/.test(q) ? -parseInt(q, 10) : 1;
     cands.push({ bad, order, q, it });
   }
@@ -835,6 +835,7 @@ function validBoxTree(data, start, end, state, depth = 0) {
       state.descriptions += entries.length;
       for (const entry of entries) {
         if (entry.type === 'encv' || entry.type === 'enca') return false;
+        if(['avc1','avc3','hvc1','hev1'].includes(entry.type)){if(entry.body+78>entry.offset+entry.size||!data.readUInt16BE(entry.body+24)||!data.readUInt16BE(entry.body+26))return false;state.video++;}
         const childStart = sampleChildStart(data, entry);
         if (childStart !== null && !validBoxTree(data, childStart, entry.offset + entry.size, state, depth + 1)) return false;
       }
@@ -850,8 +851,8 @@ function verifyMp4(p) {
     const data = fs.readFileSync(p);
     const top = boxesIn(data, 0, data.length);
     if (!top || !top.length || top[0].type !== 'ftyp' || !top.some(b => b.type === 'moov')) return false;
-    const state = { tracks: 0, media: 0, descriptions: 0 };
-    return validBoxTree(data, 0, data.length, state) && state.tracks > 0 && state.media > 0 && state.descriptions > 0;
+    const state = { tracks: 0, media: 0, descriptions: 0, video:0 };
+    return validBoxTree(data, 0, data.length, state) && state.tracks > 0 && state.media > 0 && state.descriptions > 0 && state.video>0;
   } catch (e) {
     return false;
   }
@@ -866,8 +867,9 @@ async function ensureDecrypted(vid, want) {
   finally { if (decryptFlights.get(flightKey) === flight) decryptFlights.delete(flightKey); }
 }
 
-async function decryptVideo(vid, want) {
+async function decryptVideo(vid, want, refreshed=false) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
+  if(want){const hit=path.join(CACHE_DIR,`${vid}_${want}.mp4`);if(fs.existsSync(hit)&&verifyMp4(hit))return hit;}
   const vm = await fetchModel(vid);
   if (!vm) return null;
   const pick = pickBest(vm, want);
@@ -891,7 +893,7 @@ async function decryptVideo(vid, want) {
 
   const tmp = dst + '.tmp.mp4';
   const r = await httpText(url, { headers: { 'User-Agent': UA_APP }, timeout: 180000 });
-  if (r.status !== 200) return null;
+  if (r.status !== 200){if([403,404,410].includes(r.status)){modelCache.delete(String(vid));if(!refreshed)return decryptVideo(vid,want,true);}return null;}
   fs.writeFileSync(tmp, r.body);
   if (key && isEnc) {
     const enc = dst + '.enc.mp4';
@@ -902,7 +904,7 @@ async function decryptVideo(vid, want) {
       try { fs.unlinkSync(enc); } catch (e) { }
     }
   }
-  if (!verifyMp4(tmp)) { try { fs.unlinkSync(tmp); } catch (e) { } return null; }
+  if (!verifyMp4(tmp)) { modelCache.delete(String(vid));try { fs.unlinkSync(tmp); } catch (e) { } return null; }
   fs.renameSync(tmp, dst);
   return dst;
 }
@@ -1063,8 +1065,13 @@ const site = {
     const f = String(flag || '');
     if (/试看|preview/i.test(f)) return { parse: 0, url: '', preview: true, msg: '此 JS 源未提供公开试看；请选择官网完整播放' };
     try {
-      const vm = await fetchModel(vid);
       const requested = (f.match(/\d{3,4}p/i) || [])[0];
+      if(fs.existsSync(CACHE_DIR)){
+        const files=fs.readdirSync(CACHE_DIR).filter(name=>new RegExp('^'+vid+'_[0-9]{1,4}p?\\.mp4$').test(name));
+        files.sort((a,b)=>(a.includes('_360p.')?-1:b.includes('_360p.')?1:a.localeCompare(b)));
+        for(const file of files){const q=file.slice(vid.length+1,-4);if(requested&&q!==requested.toLowerCase())continue;if(verifyMp4(path.join(CACHE_DIR,file)))return {parse:0,url:`cenc://${vid}?q=${q}`,proxy:1,format:'mp4',contentType:'video/mp4',header:{},preview:false};}
+      }
+      const vm = await fetchModel(vid);
       const pick = pickBest(vm, requested && requested.toLowerCase());
       if (!pick) return { parse: 0, url: '', msg: requested ? `此集未提供 ${requested} 清晰度` : '此集暂无可用的兼容视频清晰度' };
       const seen = new Set();
