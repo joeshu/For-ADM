@@ -10,7 +10,7 @@ const server=spawn(process.execPath,['tools/preview.mjs'],{cwd,env:{...process.e
 await new Promise((resolve,reject)=>{server.once('error',reject);server.once('exit',code=>reject(Error('Preview exited '+code)));server.stdout.on('data',data=>{if(String(data).includes('Preview:'))resolve();});});
 let browser;
 try{
- browser=await chromium.launch({executablePath:process.env.CHROMIUM||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+ browser=await chromium.launch({...(process.env.CHROMIUM?{executablePath:process.env.CHROMIUM}:process.platform==='linux'?{executablePath:'/usr/bin/chromium'}:{}),headless:true,args:process.platform==='linux'?['--no-sandbox']:[]});
  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[],requests=[],unexpected=[];
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://**',route=>route.abort());
@@ -20,6 +20,8 @@ try{
  const encoded=(data,headers={})=>({status:200,headers,bodyBase64:Buffer.from(typeof data==='string'?data:JSON.stringify(data)).toString('base64')});
  const film=(source,id)=>({vodId:id,vodName:source+'影片'+id,coverImg:'https://posters.example/'+source+'/'+id+'.png',flags:'2026 / 科幻片 / 中国',score:'8.0',iconList:[],remark:'高清'});
  const movie=id=>({id,name:'猎手影片'+id,cover:'https://posters.example/dyls/'+id+'.png',type_id:1,type_name:'电影',dynamic:'高清'});
+ const kanjuRawID='av_'+('kanju-ui-catalog-id-'.repeat(6)),kanjuEpisode=n=>'av_kanju_episode_'+n,kanjuToken=n=>'av_kanju_token_'+n;
+ const kanjuCard=(id=kanjuRawID,title='看剧AI测试剧')=>({id,title,content_kind:'series',poster_url:'https://posters.example/kanju/series.png',genres:['古装'],remarks:'更新中'});
  await page.route('**/__transport',async route=>{
   const req=route.request().postDataJSON(),url=new URL(req.url),path=url.pathname;
   const params=req.body?JSON.parse(req.body):{};
@@ -54,7 +56,20 @@ try{
    else {unexpected.push(path);await send({errorCode:400,msg:'Unexpected fixture path '+path});return;}
    await send({msg:'获取成功',data});return;
   }
-  if(path.startsWith('/v1/')){
+  if(path.startsWith('/v1/')&&url.hostname==='ai.kanju25.com'){
+   const query=Object.fromEntries(url.searchParams);
+   if(path==='/v1/runtime/bootstrap'){
+    await send({catalog_ui:{channels:[{key:'recommend',label:'AI找剧'},{key:'updates',label:'最近更新'},{key:'series',label:'电视剧'},{key:'movie',label:'电影'}],catalogs:[{kind:'series',default_sort:'heat_desc',rows:[{key:'genre',label:'类型',all_label:'全部类型',options:[{key:'古装',label:'古装',params:{genre:'古装'}}]},{key:'area',label:'地区',all_label:'全部地区',options:[{key:'cn',label:'中国大陆',params:{area:'中国大陆'}}]},{key:'sort',label:'排序',all_label:'最热',options:[{key:'heat_desc',label:'最热',params:{sort:'heat_desc'}}]}]},{kind:'movie',default_sort:'heat_desc',rows:[]}]}});return;
+   }
+   if(path==='/v1/feed/home'){await send({sections:[{id:'kanju-hot',title:'大家都在看',browse:{path:'/v1/browse/catalog',method:'GET',params:{kind:'series',sort:'heat_desc'}},cards:[kanjuCard()]},{id:'kanju-new',title:'国产新剧',cards:[kanjuCard('av_kanju_second','看剧AI第二部')]}]});return;}
+   if(path==='/v1/browse/catalog'){const page=Number(query.page||1);await send({cards:[kanjuCard(kanjuRawID,'看剧AI片库第'+page+'页')],pagination:{page,has_more:page===1,next_page:2}});return;}
+   if(path==='/v1/catalog/'+kanjuRawID+'/detail'){await send({id:kanjuRawID,variant_id:kanjuRawID,selected_variant_id:kanjuRawID,title:'看剧AI测试详情',content_kind:'series',poster_url:'https://posters.example/kanju/detail.png',description:'看剧AI原生详情回归',year:2026,area:'中国大陆',language:'普通话',genres:['古装'],actors:['测试演员'],variants:[{id:kanjuRawID,title:'第一季',selected:true,has_playback:true}]});return;}
+   if(path==='/v1/catalog/'+kanjuRawID+'/episodes'){await send({variant_id:kanjuRawID,episodes:Array.from({length:25},(_,i)=>({id:kanjuEpisode(i+1),token:kanjuToken(i+1),display_name:'第'+(i+1)+'集'})),episode_pagination:{offset:0,total_count:25,has_more:false}});return;}
+   if(path.startsWith('/v1/playback/resolve/')){const index=Number(path.split('/').pop().replace('av_kanju_token_',''));await send({current_episode:{id:kanjuEpisode(index)},line_options:[{id:'direct-main',provider_id:'direct-main',play_from:'main',label:'直连主线',url:'https://media.example/kanju.m3u8',url_kind:'m3u8',resolved:true,minimum_user_level:0},{id:'ticket-main',provider_id:'ticket-main',play_from:'official',label:'官方解析',url:'resolve://kanju-fixture-ticket',url_kind:'resolve_ticket',resolved:false,resolve_required:true,minimum_user_level:0}]});return;}
+   if(path==='/v1/playback/resolve-line'){assert.deepEqual(params,{ticket:'kanju-fixture-ticket'});await send({line:{url:'https://media.example/kanju-ticket.m3u8',url_kind:'m3u8',resolved:true}});return;}
+   unexpected.push(path);await send({error:{message:'Unexpected Kanju fixture endpoint '+path}});return;
+  }
+  if(path.startsWith('/v1/')&&url.hostname==='ai.baipiaozhe.com'){
    const rawID='av_'+('souju-long-id-'.repeat(9)),episodeID=n=>'av_souju_episode_'+n,token=n=>'av_souju_token_'+n,query=Object.fromEntries(url.searchParams);
    const soujuCard=id=>({id,title:'搜剧AI测试剧',content_kind:'series',poster_url:'https://posters.example/souju/series.png',genres:['科幻'],remarks:'更新至25集'});
    if(path==='/v1/runtime/bootstrap'){
@@ -93,7 +108,7 @@ try{
  const home=async()=>{await action('page',{id:'home'});await page.locator('.hero').waitFor();};
  const source=async id=>{await page.locator('[data-act="source"][data-id="'+id+'"]').first().click();};
  await page.goto('http://127.0.0.1:'+port+'/');await page.locator('.hero').waitFor();
- assert.equal(await page.locator('.sources button').count(),7);
+ assert.equal(await page.locator('.sources button').count(),8);
  await source('yqk');await page.getByRole('heading',{name:'YQK专题'}).waitFor();
  assert.equal(await page.locator('[data-act="category"][data-id="5"]').count(),1);
  assert.equal(await page.locator('.home-section .card').count(),2);
@@ -175,8 +190,22 @@ try{
  assert.deepEqual(await page.locator('.discover-tabs button').allTextContents(),['最新更新','今日热播','首页推荐']);
  await action('discover-tab',{id:'1'});await page.locator('.discover-page .card').first().waitFor();
  assert.ok(requests.some(r=>r.path==='/v1/browse/catalog'&&r.url.includes('sort=trending')));
- await action('discover-tab',{id:'2'});await page.waitForFunction(()=>document.querySelectorAll('.souju-discovery-section').length===11);
+ await action('discover-tab',{id:'2'});await page.waitForFunction(()=>document.querySelectorAll('.source-discovery-section').length===11);
  assert.ok(requests.some(r=>r.path==='/v1/feed/home'));
+ await home();await source('kanju');await page.getByRole('heading',{name:'大家都在看'}).waitFor();
+ assert.equal(await page.locator('.home-section .card').count(),2);
+ await page.locator('.home-section [data-act="collection-link"]').first().click();await page.locator('.collection-content .card').first().waitFor();
+ assert.equal(await page.locator('.collection-content .card').count(),1);assert.ok(requests.some(r=>r.path==='/v1/browse/catalog'&&r.url.includes('hot_list_key')===false));
+ await action('collection-back');await page.getByRole('heading',{name:'大家都在看'}).waitFor();
+ await action('category',{id:'2'});await page.getByRole('heading',{name:'电视剧',exact:true}).waitFor();await page.locator('.content .card').first().click();
+ await page.getByRole('heading',{name:'看剧AI测试详情',exact:true}).waitFor();assert.equal(await page.locator('.episode-page-chip').count(),2);assert.equal(await page.locator('[data-act="play-source"]').count(),3);
+ await page.locator('.episode-page-chip[data-id="1"]').click();assert.match(await page.locator('.episodes .episode').first().innerText(),/第21集/);
+ await action('back');await page.locator('.content .card').first().waitFor();
+ await action('page',{id:'discover'});await page.locator('.discover-page .card').first().waitFor();
+ assert.deepEqual(await page.locator('.discover-tabs button').allTextContents(),['最新更新','今日热播','首页推荐']);
+ await action('discover-tab',{id:'1'});await page.locator('.discover-page .card').first().waitFor();
+ await action('discover-tab',{id:'2'});await page.waitForFunction(()=>document.querySelectorAll('.source-discovery-section').length===2);
+ assert.ok(requests.some(r=>r.path==='/v1/runtime/bootstrap'&&r.url.startsWith('https://ai.kanju25.com/')));
  assert.deepEqual(unexpected,[]);assert.deepEqual(errors,[]);
- console.log('Source UI passed: seven sources, distinct YQK/QNTV identities, sports visibility, source-specific category and discovery, incremental pagination, Souju native home/search/detail/seasons/25-episode paging, stale-response isolation, and source-aware controls.');
+ console.log('Source UI passed: eight sources, distinct YQK/QNTV identities, sports visibility, source-specific category and discovery, incremental pagination, Souju and Kanju native home/search/detail/full episode paging, stale-response isolation, and source-aware controls.');
 }finally{await browser?.close();server.kill('SIGTERM');}

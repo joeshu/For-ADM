@@ -52,6 +52,7 @@ function mediaHeaders(line){
 
 export class DylsClient extends SiteClient {
  constructor(site,transport,storage){super(site,transport,storage);this.protocol=site.protocol||{};this.details=new Map();}
+ discoveryProfile(){return {timeline:false,timelineTab:null,sectionTab:null,tabs:[{id:'0',name:'片库',mode:'catalog'},{id:'3',name:'热播',mode:'hot'}]};}
  buildRequest(_base,path,params={}){
   const payload={timestamp:Date.now(),...params},pack=encodeDylsPack(payload,this.protocol.publicKey);
   const url=new URL('/api/v1'+path,this.site.origin);url.searchParams.set('pack',pack);url.searchParams.set('signature',crypto().HmacMD5(pack,this.protocol.signKey).toString());

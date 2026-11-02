@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies and test adapters
         working-directory: ios-app
         run: npm ci && npm test
+      - name: Test source integration through the real UI
+        working-directory: ios-app
+        run: npx playwright-core install chromium && npm run test:ui
       - name: Verify native HLS cleaning transport
         working-directory: ios-app
         run: npm run build:web && bash tools/check-hls-macos.sh
@@ -48,7 +51,7 @@ jobs:
         with:
           name: Sanyuan-unsigned-ipa
           overwrite: true
-          path: ios-app/dist/Sanyuan-0.2.52-unsigned.ipa
+          path: ios-app/dist/Sanyuan-0.2.54-unsigned.ipa
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()

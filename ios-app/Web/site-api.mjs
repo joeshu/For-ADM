@@ -100,4 +100,5 @@ export class SiteClient {
   async login(account,password,signal){const user=await this.request('/user/loginAccount',{account,password},'logic',signal,'post');this.user=user;await this.saveSession('account');return user;}
   async logout(){this.user=null;this.sessionKind='none';if(this.vault)await this.vault.remove(this.site.id);}
   async anonymous(signal){this.user=await this.request('/user/anonymous',{},'logic',signal,'post');await this.saveSession('guest');return this.user;}
+  discoveryProfile(){return {timeline:true,timelineTab:'0',sectionTab:null,tabs:[{id:'0',name:'上映表',mode:'timeline'},{id:'1',name:'Netflix',mode:'netflix'},{id:'2',name:'专题',mode:'topics'},{id:'3',name:'排行榜',mode:'ranking'}]};}
 }

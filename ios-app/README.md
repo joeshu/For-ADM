@@ -1,6 +1,6 @@
 # 三源影视 · 无签名 iOS App
 
-独立于 `universal` 去广告脚本的新应用，整合可可影视、网飞猫、好好看、一起看、青柠 TV、电影猎手和搜剧AI七个片库来源。名称暂定“三源影视”，最低 iOS 15，支持 arm64 iPhone / iPad。
+独立于 `universal` 去广告脚本的新应用，整合可可影视、网飞猫、好好看、一起看、青柠 TV、电影猎手、搜剧AI和看剧AI八个片库来源。名称暂定“三源影视”，最低 iOS 15，支持 arm64 iPhone / iPad。
 
 ## 功能
 
@@ -14,13 +14,17 @@
 - 影视卡片按网格换行显示，可在“我的 → 片库显示”设置每行 3–6 栏；选择后保存在本机。
 - 18+ 分类默认隐藏；可在“我的”页面确认已满 18 周岁后开启，也可随时关闭。成人影片不进入首页推荐，关闭后也会从片单隐藏。
 - 原站账户或原站访客会话；iOS 会话存入系统钥匙串，不保存密码，各来源分开存储。
-- 七个影视片库来源使用随 App 打包的统一原生界面，不加载对应站点的启动广告、推广横幅、网盘下载倒计时或推广脚本。当前版本不提供网盘下载入口。
+- 八个影视片库来源使用随 App 打包的统一原生界面，不加载对应站点的启动广告、推广横幅、网盘下载倒计时或推广脚本。当前版本不提供网盘下载入口。
 
 本应用仍依赖原站接口，原站账号、资源权限和服务限制照常生效。仅使用服务端明确开放或播放接口授权返回的地址，不推测受限资源地址。未处理视频流内部广告。搜索和地址获取会自动建立原站访客会话；访客失效时仅自动续期一次。已登录账号不会被替换。
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.52-unsigned.ipa`。
+产物：`dist/Sanyuan-0.2.54-unsigned.ipa`。
+
+0.2.54 将来源适配器整理为统一注册表与客户端契约，集中描述发现页栏目和时间轴能力，并在构建前校验站点清单、协议字段、源站地址和重复 ID。新增站点时先确认其协议与授权边界，再实现或复用适配器，补齐 fixtures 和 UI 回归，最后通过 `npm run validate:sites`、`npm test` 与 `npm run build:web` 验证；接入步骤见 [站点适配器开发指南](docs/site-adapter-development.md)。HTTP 源站需要在单站配置显式标记 `allowInsecureOrigin`，默认拒绝。
+
+0.2.53 新增看剧AI独立原生片源适配器，接入原站首页栏目、栏目更多、服务端分类筛选、搜索、发现页、完整选集和直连/票据线路；签名请求保持 iOS TLS 证书校验，播放地址仅在本次使用期间保留。接口资料与维护方法见 [看剧AI原生接入说明](docs/kanju-source.md)。
 
 0.2.52 新增搜剧AI独立原生片源适配器，接入原站首页、分类筛选、搜索、分页、详情、季度、全集选集和服务器返回的 HTTPS 直连线路。真实接口复测覆盖首页 11 个栏目、电视剧“嫁金钗”完整 51 集、栏目更多、搜索、26 条直连线路及 HLS 清单读取。完整集令牌只在本次请求内使用；额度不足、权限拒绝和限流按原站结果提示。
 
@@ -102,7 +106,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.52-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.54-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
@@ -113,7 +117,8 @@ python3 tools/check-ipa.py dist/Sanyuan-0.2.52-unsigned.ipa
 npm ci
 npm test
 npm run build:web
-node tools/website-ui-check.mjs
+npx playwright-core install chromium
+npm run test:ui
 # 若运行环境使用代理，给 Node 设置其支持的代理配置
 NODE_USE_ENV_PROXY=1 npm run preview
 # 另一个终端，需安装 Chromium：

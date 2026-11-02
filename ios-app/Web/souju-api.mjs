@@ -27,6 +27,7 @@ export class SoujuClient extends SiteClient {
   super(site,transport,storage);this.protocol=site.protocol||{};this.details=new Map();this.registry=new Map();this.collections=new Map();this.filterOptions=new Map();this.resolves=new Map();this.cooldownUntil=0;this.session=null;this.sessionLoad=null;this.guestPending=null;
   try{for(const [key,value]of JSON.parse(storage.getItem(this.key+'ids')||'[]'))if(/^sj_[a-f0-9]{32}$/.test(key)&&safeID(value))this.registry.set(key,value);}catch{}
  }
+ discoveryProfile(){return {timeline:false,timelineTab:null,sectionTab:'2',tabs:[{id:'0',name:'最新更新',mode:'latest'},{id:'1',name:'今日热播',mode:'trending'},{id:'2',name:'首页推荐',mode:'home'}]};}
  id(raw){if(!safeID(raw))throw Error('搜剧AI影片标识无效');if(raw.length<=80)return raw;const id='sj_'+C().SHA256(raw).toString().slice(0,32);this.registry.delete(id);this.registry.set(id,raw);while(this.registry.size>2000)this.registry.delete(this.registry.keys().next().value);return id;}
  persistIDs(){try{this.storage.setItem(this.key+'ids',JSON.stringify([...this.registry]));}catch{}}
  rawID(id){const raw=this.registry.get(String(id))||String(id);if(!safeID(raw))throw Error('此影片索引已失效，请在搜剧AI中重新搜索');return raw;}

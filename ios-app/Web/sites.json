@@ -286,5 +286,26 @@
     "protocol": {
       "signingKey": "f39d73aa7a6426203cdee1ef17b31d3b7ea8c23f4c59c62a3a8aa0f39ee5e79d"
     }
+  },
+  {
+    "id": "kanju",
+    "name": "看剧AI",
+    "provider": "kanju",
+    "origin": "https://ai.kanju25.com",
+    "version": "web-2026-11-02",
+    "sourceSha256": "f1fc0021de2ce4b30875287f237827861d37e1b9ce9ae148d8d46306f2ba0c31",
+    "protocol": {
+      "apiOrigins": [
+        "https://ai.kanju25.com",
+        "https://kanju.ai",
+        "https://kanju25.com"
+      ],
+      "signingKey": "557d0e4ae929f438da6bd84412374e6086b8af09b3fed54bf22601d5bf8c54a0",
+      "clientName": "dianyingtiantang-frontend",
+      "clientVersion": "1.0.0",
+      "buildVersion": "dianyingtiantang-v2026.10.21.6-redis-lifecycle-b85b39a9cc04-web",
+      "protocolVersion": "2026-07-05.library-v2.playback-v1",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1"
+    }
   }
 ]
