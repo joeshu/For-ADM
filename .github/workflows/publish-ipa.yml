@@ -1,0 +1,52 @@
+name: Publish unsigned iOS IPA
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Sanyuan unsigned iOS CI run ID
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify successful build run
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          HEAD_SHA="$(gh run view "$RUN_ID" --repo "$GH_REPOSITORY" --json conclusion,headSha --jq 'select(.conclusion == "success") | .headSha')"
+          test -n "$HEAD_SHA"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          name: Sanyuan-unsigned-ipa
+          path: dist
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.run_id }}
+      - name: Validate IPA and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ steps.source.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          IPA_PATH="$(find dist -maxdepth 1 -type f -name 'Sanyuan-*-unsigned.ipa' -print -quit)"
+          test -n "$IPA_PATH"
+          python3 ios-app/tools/check-ipa.py "$IPA_PATH"
+          VERSION="$(basename "$IPA_PATH" | sed -E 's/^Sanyuan-(.*)-unsigned\.ipa$/\1/')"
+          TAG="v$VERSION"
+          gh release create "$TAG" "$IPA_PATH" \
+            --repo "$GH_REPOSITORY" \
+            --target "$HEAD_SHA" \
+            --title "三源影视 $VERSION · 无签名 IPA" \
+            --notes "iOS 无签名安装包。对应提交：$HEAD_SHA。构建、站点测试、原生编译及 iOS 模拟器检查均已通过。"
