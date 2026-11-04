@@ -20,9 +20,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.57-unsigned.ipa`。
+产物：`dist/Sanyuan-0.2.58-unsigned.ipa`。
 
-0.2.57 修复多源海报显示：对可可影视、网飞猫、好好看等来源返回的 AES-CBC 加密 WebP 封面先解密再显示；一起看与青柠 TV 继续直解 JPEG。图片请求跳过可能过期的错误缓存，模拟器 CI 增加加密 WebP 解码回归检查。
+0.2.58 修复一起看、青柠 TV 等来源的海报加载稳定性：海报恢复使用系统共享的持久缓存会话，并在首次请求失败后以无 Referer 请求重试。0.2.57 为可可影视、网飞猫、好好看等来源增加 AES-CBC 加密 WebP 解码。
 
 0.2.56 修复跨站收藏和观看记录的海报显示，支持站点返回的相对、协议相对及 HTTP 图片地址；原生加载器并行探测图片镜像并覆盖完整回退列表。
 
@@ -110,7 +110,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.57-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.58-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
