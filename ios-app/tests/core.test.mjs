@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {createHmac} from 'node:crypto';
-import {collectMovies,homeSections,categories,imageURLs,playbackURLs,escapeHTML} from '../Web/model.mjs';
+import {collectMovies,homeSections,categories,imageURLs,playbackURLs,escapeHTML,safeImageURL} from '../Web/model.mjs';
 import {SiteClient,ServiceError,canonicalQuery,decodeResponse} from '../Web/site-api.mjs';
 globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
 const site={id:'test',appId:'public-app',origin:'https://origin.example',version:'1',signKey:'test-key',responseKeys:[{index:1,key:'12345678901234567890123456789012',iv:'1234567890123456'}]};
@@ -17,7 +17,8 @@ test('Home only renders internal movie cards, excludes advertisement containers 
 test('Dynamic categories and resource domains retain paths and only accept HTTPS playback',()=>{
  assert.deepEqual(categories({vodTabs:[{type:'category',channelId:1,text:'电影'},{type:'nav',channelId:2}]}),[{id:1,name:'电影'}]);
  assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/a.jpg'},{groups:[{id:'vod1',url:[{domain:'https://img.example/vod1'}]}]}),['https://img.example/vod1/a.jpg']);
- assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/cover.webp'},{groups:[{id:'vod1',url:[{domain:'https://img-a.example/vod1'},{domain:'http://insecure.example/vod1'},{domain:'https://img-b.example/vod1'}]}]}),['https://img-a.example/vod1/cover.webp','https://img-b.example/vod1/cover.webp']);
+ assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/cover.webp'},{groups:[{id:'vod1',url:[{domain:'https://img-a.example/vod1'},{domain:'http://insecure.example/vod1'},{domain:'https://img-b.example/vod1'}]}]}),['https://img-a.example/vod1/cover.webp','https://insecure.example/vod1/cover.webp','https://img-b.example/vod1/cover.webp']);
+ assert.equal(safeImageURL('//poster.example/a.jpg'),'https://poster.example/a.jpg');assert.equal(safeImageURL('http://poster.example/a.jpg'),'https://poster.example/a.jpg');assert.equal(safeImageURL('/a.jpg','https://poster.example'),'https://poster.example/a.jpg');assert.equal(safeImageURL('javascript:alert(1)'),'');
  assert.deepEqual(playbackURLs({playUrls:[{url:'http://x.test/a'},{url:'javascript:alert(1)'},{url:'https://x.test/a'}]}),[{url:'https://x.test/a'}]);
 });
 test('Website catalogs retain string IDs, direct HTTPS posters, and source-specific adult classifications',()=>{
@@ -64,6 +65,17 @@ test('Image decoder accepts real image headers, rejects HTML and oversized bodie
  assert.match(imageData({status:200,bodyBase64:Buffer.from('RIFF1234WEBP123456789012345').toString('base64')}),/^data:image\/webp;base64,/);
  assert.throws(()=>imageData({status:200,bodyBase64:Buffer.from('<html>advertisement</html>').toString('base64')}));
  assert.throws(()=>imageData({status:403,bodyBase64:'/9j/'}));
+});
+test('Poster loading tries later CDN mirrors and keeps the movie site Referer',async()=>{
+ const {loadVisibleImages}=await import('../Web/image-loader.mjs'),oldObserver=globalThis.IntersectionObserver,calls=[];
+ const image={dataset:{image:'cover'},isConnected:true,src:'',hasAttribute(name){return name==='src'&&!!this.src;},remove(){this.isConnected=false;}};
+ globalThis.IntersectionObserver=class{constructor(callback){this.callback=callback;}observe(target){queueMicrotask(()=>this.callback([{target,isIntersecting:true}]));}unobserve(){}disconnect(){}};
+ try{
+  const urls=Array.from({length:5},(_,i)=>'https://cdn'+i+'.example/poster.webp'),referer='https://qntv.example/';
+  const stop=loadVisibleImages({querySelectorAll:()=>[image]},new Map([['cover',{urls,referer}]]),async request=>{calls.push(request);return calls.length<5?{status:403,bodyBase64:''}:{status:200,bodyBase64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII='};},'https://wrong-source.example/');
+  for(let i=0;i<40&&!image.src;i++)await new Promise(resolve=>setTimeout(resolve,5));
+  stop();assert.equal(calls.length,5);assert.equal(calls[4].url,urls[4]);assert.equal(calls[4].headers.Referer,referer);assert.match(image.src,/^data:image\/png;base64,/);
+ }finally{globalThis.IntersectionObserver=oldObserver;}
 });
 test('Closed episodes require server authorization even if a cached URL exists',async()=>{
  const {resolvePlayback}=await import('../Web/playback.mjs');let calls=0;const episode={id:9,open:false,playUrls:[{url:'https://old.example/v.m3u8'}]},line={siteId:4};

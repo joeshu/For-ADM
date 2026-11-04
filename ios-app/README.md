@@ -20,9 +20,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.55-unsigned.ipa`。
+产物：`dist/Sanyuan-0.2.56-unsigned.ipa`。
 
-0.2.55 修复原生片库海报加载：按顺序尝试最多三个图片镜像，携带站点来源 Referer，并在布局完成后启动可视范围内的海报加载。
+0.2.56 修复跨站收藏和观看记录的海报显示，支持站点返回的相对、协议相对及 HTTP 图片地址；原生加载器并行探测图片镜像并覆盖完整回退列表。
 
 0.2.54 将来源适配器整理为统一注册表与客户端契约，集中描述发现页栏目和时间轴能力，并在构建前校验站点清单、协议字段、源站地址和重复 ID。新增站点时先确认其协议与授权边界，再实现或复用适配器，补齐 fixtures 和 UI 回归，最后通过 `npm run validate:sites`、`npm test` 与 `npm run build:web` 验证；接入步骤见 [站点适配器开发指南](docs/site-adapter-development.md)。HTTP 源站需要在单站配置显式标记 `allowInsecureOrigin`，默认拒绝。
 
@@ -108,7 +108,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.55-unsigned.ipa
+python3 tools/check-ipa.py dist/Sanyuan-0.2.56-unsigned.ipa
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

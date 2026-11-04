@@ -1,5 +1,5 @@
 import {SiteClient,ServiceError} from './site-api.mjs';
-import {safeHTTPS} from './model.mjs';
+import {safeHTTPS,safeImageURL} from './model.mjs';
 
 const C=()=>{if(!globalThis.CryptoJS)throw Error('加密组件未加载');return globalThis.CryptoJS;};
 const KINDS=[['movie',1,'电影'],['series',2,'电视剧'],['anime',3,'动漫'],['variety',4,'综艺'],['short_drama',6,'短剧'],['documentary',7,'纪录片']];
@@ -94,7 +94,7 @@ export class SoujuClient extends SiteClient {
  }
  movies(cards){
   if(!Array.isArray(cards))throw Error('搜剧AI片单结构已变化');const out=[];
-  for(const movie of cards){if(!safeID(movie?.id)||!movie.title||movie.content_kind==='adult')continue;const kind=KINDS.find(k=>k[0]===movie.content_kind),id=this.id(movie.id);out.push({title:String(movie.title),url:'vod/detail?vodId='+id,imageURL:safeHTTPS(movie.poster_url),channelId:kind?.[1]||0,isAdult:false,bottomLabel:String(movie.remarks||movie.availability?.label||''),topLeftLabel:movie.availability?.disabled?'暂未上线':'',labels:names(movie.genres).map(name=>({name}))});}
+  for(const movie of cards){if(!safeID(movie?.id)||!movie.title||movie.content_kind==='adult')continue;const kind=KINDS.find(k=>k[0]===movie.content_kind),id=this.id(movie.id);out.push({title:String(movie.title),url:'vod/detail?vodId='+id,imageURL:safeImageURL(movie.poster_url,this.site.origin),channelId:kind?.[1]||0,isAdult:false,bottomLabel:String(movie.remarks||movie.availability?.label||''),topLeftLabel:movie.availability?.disabled?'暂未上线':'',labels:names(movie.genres).map(name=>({name}))});}
   this.persistIDs();return out;
  }
  async home(signal){
@@ -142,7 +142,7 @@ export class SoujuClient extends SiteClient {
   const lines=episodes.length?await this.resolve(raw,episodes[0],signal):[],direct=lines.filter(directLine),unique=[...new Map(direct.map(l=>[lineKey(l),l])).values()];
   const playSources=episodes.length?[{siteId:'auto',name:'智能直连',total:episodes.length,list:episodes},...unique.map(line=>({siteId:lineKey(line),name:mediaLine(line).name,total:episodes.length,list:episodes}))]:[];
   const seasons=(data.variants||data.seasons||[]).filter(v=>safeID(v.id)&&v.has_playback!==false).map(v=>({id:this.id(v.id),title:String(v.season_label||v.title||'其他季'),selected:v.id===raw}));
-  const out={id:encoded,title:String(data.title||''),imageURL:safeHTTPS(data.poster_url),year:data.year,area:data.area?[{name:String(data.area)}]:[],language:data.language?[{name:String(data.language)}]:[],channelId:kind?.[1]||0,channelName:kind?.[2]||'影片',isAdult:false,summary:String(data.description||''),actors:names(data.actors),directors:names(data.directors),labels:names(data.genres),bottomLabel:String(data.remarks||''),playSources,seasons};
+  const out={id:encoded,title:String(data.title||''),imageURL:safeImageURL(data.poster_url,this.site.origin),year:data.year,area:data.area?[{name:String(data.area)}]:[],language:data.language?[{name:String(data.language)}]:[],channelId:kind?.[1]||0,channelName:kind?.[2]||'影片',isAdult:false,summary:String(data.description||''),actors:names(data.actors),directors:names(data.directors),labels:names(data.genres),bottomLabel:String(data.remarks||''),playSources,seasons};
   this.details.delete(encoded);this.details.set(encoded,out);while(this.details.size>12)this.details.delete(this.details.keys().next().value);this.persistIDs();return out;
  }
  async episodes(id,line,signal){const d=this.details.get(String(id))||await this.detail(id,signal);return d.playSources.find(x=>x.siteId===line.siteId)?.list||[];}

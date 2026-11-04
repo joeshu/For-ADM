@@ -35,6 +35,9 @@ test('Bootstrap uses configured API origins directly and keeps sports category 5
  assert.deepEqual(cfg.vodTabs.map(x=>[x.channelId,x.isAdult]),[[2,false],[5,false]]);
  assert.ok(calls.some(call=>new URL(call.url).pathname==='/v2/api/home/header'));assert.equal(calls.some(call=>new URL(call.url).pathname==='/js/baseUrlList.js'),false);assert.equal(client.user,null);
 });
+test('YQK poster URLs resolve relative/protocol-relative covers and upgrade HTTP image links',()=>{
+ const {client}=harness();assert.equal(client.movie({...film(3),coverImg:'//images.example/cover.webp'}).imageURL,'https://images.example/cover.webp');assert.equal(client.movie({...film(4),coverImg:'http://images.example/cover.webp'}).imageURL,'https://images.example/cover.webp');assert.equal(client.movie({...film(5),coverImg:'/covers/5.webp'}).imageURL,'https://yqk.example/covers/5.webp');
+});
 test('Cached YQK API origin is reused immediately and home content starts alongside bootstrap',async()=>{
  const calls=[],store=storage();store.setItem('sanyuan:yqk:apiOrigins',JSON.stringify(['https://api.example']));
  let releaseHeader;const headerGate=new Promise(resolve=>releaseHeader=resolve);

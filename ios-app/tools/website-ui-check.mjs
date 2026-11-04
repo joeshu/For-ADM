@@ -206,6 +206,10 @@ try{
  await action('discover-tab',{id:'1'});await page.locator('.discover-page .card').first().waitFor();
  await action('discover-tab',{id:'2'});await page.waitForFunction(()=>document.querySelectorAll('.source-discovery-section').length===2);
  assert.ok(requests.some(r=>r.path==='/v1/runtime/bootstrap'&&r.url.startsWith('https://ai.kanju25.com/')));
+ await page.evaluate(()=>localStorage.setItem('sanyuan:favorites',JSON.stringify([{siteId:'qntv',movie:{id:'saved-qntv',title:'跨站收藏海报',imageURL:'http://posters.example/QNTV/saved.png'},updated:1}])));
+ await action('page',{id:'me'});await action('me-tab',{id:'favorites'});await page.locator('.my-library .card').waitFor();
+ await page.waitForFunction(()=>document.querySelector('.my-library img')?.src.startsWith('data:image/'));
+ const savedPosterRequest=requests.find(request=>request.url==='https://posters.example/QNTV/saved.png');assert.equal(savedPosterRequest?.headers?.Referer,'https://qntv28.app/');
  assert.deepEqual(unexpected,[]);assert.deepEqual(errors,[]);
  console.log('Source UI passed: eight sources, distinct YQK/QNTV identities, sports visibility, source-specific category and discovery, incremental pagination, Souju and Kanju native home/search/detail/full episode paging, stale-response isolation, and source-aware controls.');
 }finally{await browser?.close();server.kill('SIGTERM');}

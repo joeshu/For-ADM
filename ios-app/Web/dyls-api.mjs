@@ -1,5 +1,6 @@
 import JSEncrypt from '../node_modules/jsencrypt/bin/jsencrypt.min.js';
 import {SiteClient,ServiceError} from './site-api.mjs';
+import {safeImageURL} from './model.mjs';
 
 const crypto=()=>{if(!globalThis.CryptoJS)throw Error('加密组件未加载');return globalThis.CryptoJS;};
 const validId=value=>/^[A-Za-z0-9_-]{1,100}$/.test(String(value??''));
@@ -102,7 +103,7 @@ export class DylsClient extends SiteClient {
   const id=row?.id??row?.movie_id,title=row?.name||row?.title;
   if(!validId(id)||!title||row?.isAd||row?.type==='ad')return null;
   const sourceChannel=Number(row.type_id),cat=this.config?.vodTabs?.find(t=>t.channelId===sourceChannel),isAdult=adultMovie(row)||cat?.isAdult===true;
-  return {title:String(title),url:'vod/detail?vodId='+encodeURIComponent(String(id)),imageURL:https(row.cover||row.image),channelId:row.type_name==='电影'||cat?.text==='电影'?1:0,isAdult,bottomLabel:String(row.dynamic||row.label||''),scoreText:String(row.score||''),labels:[row.type_name?{name:String(row.type_name)}:null].filter(Boolean)};
+  return {title:String(title),url:'vod/detail?vodId='+encodeURIComponent(String(id)),imageURL:safeImageURL(row.cover||row.image,this.site.origin),channelId:row.type_name==='电影'||cat?.text==='电影'?1:0,isAdult,bottomLabel:String(row.dynamic||row.label||''),scoreText:String(row.score||''),labels:[row.type_name?{name:String(row.type_name)}:null].filter(Boolean)};
  }
  async home(signal){
   const [,blocks]=await Promise.all([this.config?Promise.resolve(this.config):this.bootstrap(signal),this.api('/movie/index_recommend',{},signal)]);if(!Array.isArray(blocks))throw Error('电影猎手首页结构已变化');
@@ -138,7 +139,7 @@ export class DylsClient extends SiteClient {
   if(!validId(id))throw Error('无效影片编号');if(!this.config)await this.bootstrap(signal);
   const raw=await this.api('/movie/detail',{id:String(id)},signal);if(!raw||!validId(raw.id))throw Error('影片详情结构已变化');
   const cat=this.config.vodTabs.find(t=>Number(t.channelId)===Number(raw.type_id));
-  const result={id:String(raw.id),title:String(raw.name||'影片'),imageURL:https(raw.cover),channelId:cat?.text==='电影'?1:0,sourceChannelId:raw.type_id,isAdult:adultMovie(raw)||cat?.isAdult===true,channelName:raw.type_name||cat?.text||'',year:raw.year,area:raw.area?[{name:raw.area}]:[],language:[],summary:String(raw.content||''),scoreText:raw.score?String(raw.score)+'分':'',bottomLabel:String(raw.dynamic||''),labels:names(raw.tags),actors:names(array(raw.members).filter(x=>Number(x.type)===1)),directors:names(array(raw.members).filter(x=>Number(x.type)===3)),playSources:array(raw.play_from).map(line=>({siteId:String(line.code),name:String(line.name||line.code),total:Number(line.total)||array(line.list).length,list:array(line.list).map(ep=>this.normalizeEpisode(ep)),sourceLine:line}))};
+  const result={id:String(raw.id),title:String(raw.name||'影片'),imageURL:safeImageURL(raw.cover,this.site.origin),channelId:cat?.text==='电影'?1:0,sourceChannelId:raw.type_id,isAdult:adultMovie(raw)||cat?.isAdult===true,channelName:raw.type_name||cat?.text||'',year:raw.year,area:raw.area?[{name:raw.area}]:[],language:[],summary:String(raw.content||''),scoreText:raw.score?String(raw.score)+'分':'',bottomLabel:String(raw.dynamic||''),labels:names(raw.tags),actors:names(array(raw.members).filter(x=>Number(x.type)===1)),directors:names(array(raw.members).filter(x=>Number(x.type)===3)),playSources:array(raw.play_from).map(line=>({siteId:String(line.code),name:String(line.name||line.code),total:Number(line.total)||array(line.list).length,list:array(line.list).map(ep=>this.normalizeEpisode(ep)),sourceLine:line}))};
   this.details.set(String(id),result);while(this.details.size>12)this.details.delete(this.details.keys().next().value);return result;
  }
  async episodes(id,line,signal){

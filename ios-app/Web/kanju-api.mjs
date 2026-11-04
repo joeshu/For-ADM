@@ -1,5 +1,5 @@
 import {SiteClient,ServiceError} from './site-api.mjs';
-import {safeHTTPS} from './model.mjs';
+import {safeHTTPS,safeImageURL} from './model.mjs';
 
 const C=()=>{if(!globalThis.CryptoJS)throw Error('加密组件未加载');return globalThis.CryptoJS;};
 const KINDS=[['series',2,'电视剧'],['movie',1,'电影'],['short_drama',6,'短剧'],['anime',3,'动漫'],['variety',4,'综艺'],['documentary',7,'纪录片'],['sports',8,'体育'],['adult',5,'限制级']];
@@ -117,7 +117,7 @@ export class KanjuClient extends SiteClient {
    const raw=item?.selected_variant_id||item?.variant_id||item?.default_variant_id||item?.id;
    if(!safeID(raw)||!item?.title)continue;
    const kind=KINDS.find(row=>row[0]===item.content_kind),id=this.id(raw),availability=item.availability||{};
-   out.push({title:String(item.title),url:'vod/detail?vodId='+id,imageURL:safeHTTPS(item.poster_url),channelId:kind?.[1]||0,isAdult:item.content_kind==='adult'||kind?.[0]==='adult',bottomLabel:String(item.remarks||item.episode_progress_text||availability.label||''),topLeftLabel:availability.disabled?'暂未上线':'',labels:names(item.genres).map(name=>({name}))});
+   out.push({title:String(item.title),url:'vod/detail?vodId='+id,imageURL:safeImageURL(item.poster_url,this.site.origin),channelId:kind?.[1]||0,isAdult:item.content_kind==='adult'||kind?.[0]==='adult',bottomLabel:String(item.remarks||item.episode_progress_text||availability.label||''),topLeftLabel:availability.disabled?'暂未上线':'',labels:names(item.genres).map(name=>({name}))});
   }
   this.persistIDs();return out;
  }
@@ -207,7 +207,7 @@ export class KanjuClient extends SiteClient {
   for(const line of tickets)sourceFor(lineKey(line),String(line.label||line.display_label||line.provider_name||'解析线路'),'ticket');
   const seasonRows=(data.variants||data.seasons||[]).filter(item=>safeID(item.variant_id||item.id)&&item.has_playback!==false);
   const seasons=seasonRows.map(item=>({id:this.id(item.variant_id||item.id),title:String(item.season_label||item.title||'其他季'),selected:(item.variant_id||item.id)===raw}));
-  const out={id:encoded,title:String(data.title||''),imageURL:safeHTTPS(data.poster_url),year:data.year,area:data.area?[{name:String(data.area)}]:[],language:data.language?[{name:String(data.language)}]:[],channelId:kind?.[1]||0,channelName:kind?.[2]||'影片',isAdult:data.content_kind==='adult'||kind?.[0]==='adult',summary:String(data.description||data.overview||''),actors:names(data.actors),directors:names(data.directors),labels:names(data.genres),bottomLabel:String(data.remarks||data.episode_progress_text||''),playSources,seasons};
+  const out={id:encoded,title:String(data.title||''),imageURL:safeImageURL(data.poster_url,this.site.origin),year:data.year,area:data.area?[{name:String(data.area)}]:[],language:data.language?[{name:String(data.language)}]:[],channelId:kind?.[1]||0,channelName:kind?.[2]||'影片',isAdult:data.content_kind==='adult'||kind?.[0]==='adult',summary:String(data.description||data.overview||''),actors:names(data.actors),directors:names(data.directors),labels:names(data.genres),bottomLabel:String(data.remarks||data.episode_progress_text||''),playSources,seasons};
   Object.defineProperty(out,'_kanjuRoutes',{value:routes});this.details.delete(encoded);this.details.set(encoded,out);while(this.details.size>12)this.details.delete(this.details.keys().next().value);this.persistIDs();return out;
  }
  async episodes(id,line,signal){const detail=this.details.get(String(id))||await this.detail(id,signal);return detail.playSources.find(item=>item.siteId===line.siteId)?.list||[];}

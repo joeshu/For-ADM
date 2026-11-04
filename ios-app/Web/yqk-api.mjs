@@ -1,5 +1,5 @@
 import {SiteClient,ServiceError} from './site-api.mjs';
-import {safeHTTPS} from './model.mjs';
+import {safeHTTPS,safeImageURL} from './model.mjs';
 
 const crypto=()=>{if(!globalThis.CryptoJS)throw Error('加密组件未加载');return globalThis.CryptoJS;};
 const decode=response=>JSON.parse(crypto().enc.Utf8.stringify(crypto().enc.Base64.parse(response.bodyBase64||'')));
@@ -73,7 +73,7 @@ export class YqkClient extends SiteClient {
  async ready(signal){if(!this.config)await this.bootstrap(signal);}
  movie(item){
   if(!item||!numeric(item.vodId)||!item.vodName)return null;
-  const flags=String(item.flags||''),row={title:String(item.vodName),url:'vod/detail?vodId='+item.vodId,imageURL:safeHTTPS(item.coverImg),bottomLabel:String(item.remark||''),scoreText:item.score?String(item.score)+'分':'',topLeftLabel:(item.iconList||[]).map(x=>x.iconText).filter(Boolean).slice(0,1).join(''),labels:flags.split('/').map(x=>({name:x.trim()})).filter(x=>x.name),channelId:/(?:^|\s|\/)[^/]*片(?:\s|\/|$)/.test(flags)?1:0,isAdult:false};
+  const flags=String(item.flags||''),row={title:String(item.vodName),url:'vod/detail?vodId='+item.vodId,imageURL:safeImageURL(item.coverImg,this.site.origin),bottomLabel:String(item.remark||''),scoreText:item.score?String(item.score)+'分':'',topLeftLabel:(item.iconList||[]).map(x=>x.iconText).filter(Boolean).slice(0,1).join(''),labels:flags.split('/').map(x=>({name:x.trim()})).filter(x=>x.name),channelId:/(?:^|\s|\/)[^/]*片(?:\s|\/|$)/.test(flags)?1:0,isAdult:false};
   this.movieHints.set(String(item.vodId),row);return row;
  }
  movies(value){return (Array.isArray(value)?value:[]).map(x=>this.movie(x)).filter(Boolean);}
@@ -93,7 +93,7 @@ export class YqkClient extends SiteClient {
  async search(keyword,next='page=1',signal){await this.ready(signal);const d=await this.post('/v1/api/search/search',{keyword:String(keyword),nextCount:24,nextVal:firstCursor(next)},signal);if(!Array.isArray(d?.items))throw Error('网站搜索列表格式已变化');return {items:this.movies(d.items),next:nextCursor(d)};}
  async collection(route,next='page=1',signal){
   await this.ready(signal);if(route?.kind==='channel')return this.channel(route.id,{},next,signal);
-  if(route?.kind==='topics')return {items:(await this.home(signal)).blocks.filter(b=>b.header.url).map(b=>({title:b.header.title,url:b.header.url,imageURL:safeHTTPS(this.topicHints.get(String(new URLSearchParams(b.header.url.split('?')[1]).get('specialTopicId')))?.coverImg)})),next:''};
+  if(route?.kind==='topics')return {items:(await this.home(signal)).blocks.filter(b=>b.header.url).map(b=>({title:b.header.title,url:b.header.url,imageURL:safeImageURL(this.topicHints.get(String(new URLSearchParams(b.header.url.split('?')[1]).get('specialTopicId')))?.coverImg,this.site.origin)})),next:''};
   if(route?.kind!=='topic'||!numeric(route.id))throw Error('此网站没有提供该类栏目');
   const page=pageIndex(next),data=await this.post('/v1/api/vodTopic/getVodList',{vodTopicId:Number(route.id),pageIndex:page,pageSize:18},signal);
   if(!Array.isArray(data?.items))throw Error('网站专题列表格式已变化');return {items:this.movies(data.items),next:Number(data.totalPages)>page?'page='+(page+1):''};
@@ -102,7 +102,7 @@ export class YqkClient extends SiteClient {
   await this.ready(signal);if(!numeric(id))throw Error('无效影片');const d=await this.post('/v2/api/vodInfo/index',{vodId:Number(id)},signal);
   if(!numeric(d?.vodId)||!Array.isArray(d.playerList))throw Error('网站影片详情结构已变化');
   const hint=this.movieHints.get(String(id)),playSources=d.playerList.map((line,index)=>({siteId:String(line.vodPlayerKind??'line')+':'+index,name:String(line.playerName||'线路 '+(index+1)),total:Number(line.totalEpCount)||line.epList?.length||0,list:(line.epList||[]).filter(e=>numeric(e.epId)).map(e=>({id:Number(e.epId),title:String(e.epName||'选集'),open:false}))}));
-  const out={id:String(d.vodId),title:String(d.vodName||''),imageURL:safeHTTPS(d.coverImg),scoreText:d.score?String(d.score)+'分':'',bottomLabel:String(d.updateRemark||''),year:d.year,area:d.areaName?[{name:String(d.areaName)}]:[],language:[],channelId:hint?.channelId||0,channelName:hint?.channelId===1?'电影':'影片',isAdult:false,summary:String(d.intro||''),actors:names(d.actorList),directors:names(d.directorList),labels:names(d.tagList),playSources};
+  const out={id:String(d.vodId),title:String(d.vodName||''),imageURL:safeImageURL(d.coverImg,this.site.origin),scoreText:d.score?String(d.score)+'分':'',bottomLabel:String(d.updateRemark||''),year:d.year,area:d.areaName?[{name:String(d.areaName)}]:[],language:[],channelId:hint?.channelId||0,channelName:hint?.channelId===1?'电影':'影片',isAdult:false,summary:String(d.intro||''),actors:names(d.actorList),directors:names(d.directorList),labels:names(d.tagList),playSources};
   this.details.set(String(id),out);while(this.details.size>12)this.details.delete(this.details.keys().next().value);return out;
  }
  async episodes(id,line,signal){const d=this.details.get(String(id))||await this.detail(id,signal);return d.playSources.find(x=>x.siteId===line.siteId)?.list||[];}
