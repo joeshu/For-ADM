@@ -11,6 +11,16 @@ const CryptoJS=require('../ios-app/Web/vendor/crypto-js.js');
 const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
+const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
+assert.equal(catalog.sites.length,names.length,'the CCTVHost TVBox catalog lists all eight standalone sources');
+assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
+for(const id of names){
+  const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
+  assert.ok(entry,id+' is present in the CCTVHost catalog');
+  assert.equal(entry.type,'script',id+' is marked as an importable script');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js',id+' points to its standalone CCTVHost widget');
+  assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
+}
 const makeContext=(id,respond)=>{
   const values=new Map();
   const Widget={
