@@ -17,6 +17,7 @@ test('Home only renders internal movie cards, excludes advertisement containers 
 test('Dynamic categories and resource domains retain paths and only accept HTTPS playback',()=>{
  assert.deepEqual(categories({vodTabs:[{type:'category',channelId:1,text:'电影'},{type:'nav',channelId:2}]}),[{id:1,name:'电影'}]);
  assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/a.jpg'},{groups:[{id:'vod1',url:[{domain:'https://img.example/vod1'}]}]}),['https://img.example/vod1/a.jpg']);
+ assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/cover.webp'},{groups:[{id:'vod1',url:[{domain:'https://img-a.example/vod1'},{domain:'http://insecure.example/vod1'},{domain:'https://img-b.example/vod1'}]}]}),['https://img-a.example/vod1/cover.webp','https://img-b.example/vod1/cover.webp']);
  assert.deepEqual(playbackURLs({playUrls:[{url:'http://x.test/a'},{url:'javascript:alert(1)'},{url:'https://x.test/a'}]}),[{url:'https://x.test/a'}]);
 });
 test('Website catalogs retain string IDs, direct HTTPS posters, and source-specific adult classifications',()=>{
