@@ -9,10 +9,15 @@ const here=path.dirname(fileURLToPath(import.meta.url));
 const require=createRequire(import.meta.url);
 const CryptoJS=require('../ios-app/Web/vendor/crypto-js.js');
 const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
+const pythonSources=[
+  ['duoduo','多多影视'],['fengshang','风尚影视'],['junnian','君念影院'],
+  ['haokankan','好好看'],['chabeihu','茶杯狐'],['dida','嘀嗒影视'],
+  ['douhua','豆花影视'],['qilin','麒麟影视'],['nunu','努努影院']
+];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length,'the CCTVHost TVBox catalog lists all eight standalone sources');
+assert.equal(catalog.sites.length,names.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, nine verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -21,6 +26,21 @@ for(const id of names){
   assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=3',id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
+for(const [id,title] of pythonSources){
+  const entry=catalog.sites.find(site=>site.key==='joeshu.hawk.'+id);
+  assert.ok(entry,title+' is present in the CCTVHost catalog');
+  assert.equal(entry.type,'script',title+' is marked as an importable script');
+  assert.equal(entry.name,title+'（PY）',title+' is labeled as a Python Spider source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/'+id+'.py',title+' points to its standalone Python source');
+  const source=fs.readFileSync(path.join(here,'python-spiders',id+'.py'),'utf8');
+  assert.match(source,/class Spider\s*\(/,title+' declares a Python Spider');
+  for(const method of ['homeContent','categoryContent','searchContent','detailContent','playerContent'])
+    assert.match(source,new RegExp('def\\s+'+method+'\\s*\\('),title+' implements '+method);
+}
+const douban=catalog.sites.find(site=>site.key==='joeshu.douban-index');
+assert.ok(douban,'the source JSON native Douban index is present');
+assert.equal(douban.type,3,'the Douban metadata index retains TVBox type 3 for the native iOS adapter');
+assert.equal(douban.api,'csp_DouDou','the Douban index does not point iOS users at the Android APK');
 const makeWidgetContext=(id,respond)=>{
   const values=new Map();
   const Widget={
@@ -272,4 +292,4 @@ for(const id of names){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost Widget compatibility plus CatVod detection and mocked home/category/search/detail/play calls passed for all eight sources.');
+console.log('CCTVHost catalog checks passed for 18 entries (including nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the eight existing JavaScript sources.');

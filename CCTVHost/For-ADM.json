@@ -48,6 +48,66 @@
       "name": "看剧 AI",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/kanju.js?v=3",
       "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.duoduo",
+      "name": "多多影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.fengshang",
+      "name": "风尚影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/fengshang.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.junnian",
+      "name": "君念影院（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/junnian.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.haokankan",
+      "name": "好好看（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/haokankan.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.chabeihu",
+      "name": "茶杯狐（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/chabeihu.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.dida",
+      "name": "嘀嗒影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/dida.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.douhua",
+      "name": "豆花影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/douhua.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.qilin",
+      "name": "麒麟影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/qilin.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.nunu",
+      "name": "努努影院（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/nunu.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.douban-index",
+      "name": "豆瓣片名索引（跨源搜索）",
+      "api": "csp_DouDou",
+      "type": 3
     }
   ],
   "lives": []
