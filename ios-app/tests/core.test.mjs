@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {createHmac} from 'node:crypto';
-import {collectMovies,homeSections,categories,imageURLs,playbackURLs,escapeHTML,safeImageURL} from '../Web/model.mjs';
+import {collectMovies,homeSections,categories,imageURLs,imageURLsForSource,playbackURLs,escapeHTML,safeImageURL} from '../Web/model.mjs';
 import {SiteClient,ServiceError,canonicalQuery,decodeResponse} from '../Web/site-api.mjs';
 globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
 const site={id:'test',appId:'public-app',origin:'https://origin.example',version:'1',signKey:'test-key',responseKeys:[{index:1,key:'12345678901234567890123456789012',iv:'1234567890123456'}]};
@@ -20,6 +20,13 @@ test('Dynamic categories and resource domains retain paths and only accept HTTPS
  assert.deepEqual(imageURLs({imageGroup:'vod1',imagePath:'/cover.webp'},{groups:[{id:'vod1',url:[{domain:'https://img-a.example/vod1'},{domain:'http://insecure.example/vod1'},{domain:'https://img-b.example/vod1'}]}]}),['https://img-a.example/vod1/cover.webp','https://insecure.example/vod1/cover.webp','https://img-b.example/vod1/cover.webp']);
  assert.equal(safeImageURL('//poster.example/a.jpg'),'https://poster.example/a.jpg');assert.equal(safeImageURL('http://poster.example/a.jpg'),'https://poster.example/a.jpg');assert.equal(safeImageURL('/a.jpg','https://poster.example'),'https://poster.example/a.jpg');assert.equal(safeImageURL('javascript:alert(1)'),'');
  assert.deepEqual(playbackURLs({playUrls:[{url:'http://x.test/a'},{url:'javascript:alert(1)'},{url:'https://x.test/a'}]}),[{url:'https://x.test/a'}]);
+});
+test('YQK and QNTV posters keep their primary URL and add the verified alternate CDN host',()=>{
+ const movie={imageURL:'https://yqk.j3kjn242sq.com/image/cover/poster.jpg?size=small'};
+ assert.deepEqual(imageURLsForSource(movie,'yqk',{}),['https://yqk.j3kjn242sq.com/image/cover/poster.jpg?size=small','https://qntv.j3kjn242sq.com/image/cover/poster.jpg?size=small']);
+ assert.deepEqual(imageURLsForSource(movie,'qntv',{}),['https://yqk.j3kjn242sq.com/image/cover/poster.jpg?size=small','https://qntv.j3kjn242sq.com/image/cover/poster.jpg?size=small']);
+ assert.deepEqual(imageURLsForSource({imageURLs:[movie.imageURL]},'qntv',{}),imageURLsForSource(movie,'qntv',{}));
+ assert.deepEqual(imageURLsForSource(movie,'kkapp',{}),[movie.imageURL]);
 });
 test('Website catalogs retain string IDs, direct HTTPS posters, and source-specific adult classifications',()=>{
  const rows=collectMovies([{title:'影片',url:'vod/detail?vodId=Lg5BX',imageURL:'https://poster.example/a.jpg',channelId:0,isAdult:false},{title:'无效ID',url:'vod/detail?vodId=../../oops'}]);

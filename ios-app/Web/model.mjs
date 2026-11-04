@@ -47,5 +47,18 @@ export function collectionGroups(data,options={}){
 }
 export function categories(config,{includeAdult=false}={}){const adult=tab=>flaggedAdult(tab,config?.adultChannelIds);return (config?.vodTabs||[]).filter(tab=>tab.type==='category'&&(includeAdult||!adult(tab))).map(tab=>({id:Number(tab.channelId),name:String(adult(tab)?'18+ · ':'')+(tab.text||tab.name),...(adult(tab)?{isAdult:true}:{})}));}
 export function imageURLs(movie,config){if(safeImageURL(movie?.imageURL))return [safeImageURL(movie.imageURL)];const group=config?.groups?.find(x=>String(x.id)===String(movie?.imageGroup));if(!movie?.imagePath||!group)return [];return [...new Set((group.url||[]).map(x=>safeImageURL(String(x.domain||'').replace(/\/$/,'')+'/'+String(movie.imagePath).replace(/^\//,''))).filter(Boolean))];}
+// YQK and QNTV publish cover paths on a shared CDN hostname. The same bucket
+// is also available under a QNTV hostname; keep the API URL first and add this
+// independently verified hostname as a fallback.
+export function imageURLsForSource(movie,source,config){
+ const urls=Array.isArray(movie?.imageURLs)&&movie.imageURLs.length?movie.imageURLs.filter(value=>safeImageURL(value)):imageURLs(movie,config);
+ if(!['yqk','qntv'].includes(source))return urls;
+ const mirror='qntv.j3kjn242sq.com',out=[];
+ for(const value of urls){
+  const url=safeImageURL(value);if(!url)continue;out.push(url);
+  try{const alternate=new URL(url);if(alternate.hostname.toLowerCase()==='yqk.j3kjn242sq.com'){alternate.hostname=mirror;out.push(alternate.href);}}catch{}
+ }
+ return [...new Set(out)];
+}
 export function playbackURLs(episode){return (episode?.playUrls||[]).map(entry=>({...entry,url:safeHTTPS(entry.url)})).filter(x=>x.url);}
 export function sourceKey(siteId,movieId){return siteId+':'+movieId;}

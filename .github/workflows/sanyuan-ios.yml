@@ -48,7 +48,7 @@ jobs:
         with:
           name: Sanyuan-unsigned-ipa
           overwrite: true
-          path: ios-app/dist/Sanyuan-0.2.58-unsigned.ipa
+          path: ios-app/dist/Sanyuan-0.2.59-unsigned.ipa
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
