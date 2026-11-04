@@ -18,7 +18,7 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=2',id+' points to its standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=3',id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 const makeWidgetContext=(id,respond)=>{
@@ -51,7 +51,12 @@ for(const id of names){
     assert.doesNotMatch(source,/yqk\.v2\./,'QNTV does not share YQK storage');
     assert.match(source,/0576435a23b94990806ca98e54f95adf/,'QNTV uses its own app ID');
   }
-  if(id==='yqk')assert.match(source,/yqk\.v2\./,'YQK retains its own storage namespace');
+  if(id==='yqk'){
+    assert.match(source,/yqk\.v2\./,'YQK retains its own storage namespace');
+    assert.match(source,/function yqkRequestTimeout\(budget,fallback\)/,'YQK centralizes request timeout calculation');
+    assert.match(source,/timeout:yqkRequestTimeout\(budget,15000\)/,'YQK applies the remaining playback budget to API and HLS requests');
+    assert.match(source,/value:"30",enumOptions:/,'YQK defaults to the full 30-second playback budget');
+  }
   if(id==='kanju'){
     assert.ok(source.includes("site:'https://ai.kanju25.com'"),'Kanju uses its current site origin');
     assert.ok(source.includes("SOUJU.site+'/player/'"),'Kanju generates player links from its independent origin');
@@ -65,7 +70,10 @@ for(const id of ['kkapp','ncat','happ']){
   const calls=[];
   const context=makeWidgetContext(id,async(method,url,options={})=>{
     calls.push({method,url,options});
-    if(url.includes('/config/prod/appInit.html'))return {statusCode:200,data:{data:{urls:{cache:[site.origin],logic:[site.origin]},groups:[{id:'vod1',url:[{domain:'https://img.example/vod1'}]}]}}};
+    if(url.startsWith('https://img-encrypted.example/'))return {statusCode:200,headers:{'Content-Type':'application/octet-stream','Encrypted':'1'},data:''};
+    if(url.startsWith('https://img-clear.example/'))return {statusCode:200,headers:{'Content-Type':'image/webp'},data:''};
+    if(url.startsWith('https://img-only-encrypted.example/'))return {statusCode:200,headers:{'Content-Type':'application/octet-stream','Encrypted':'1'},data:''};
+    if(url.includes('/config/prod/appInit.html'))return {statusCode:200,data:{data:{urls:{cache:[site.origin],logic:[site.origin]},groups:[{id:'vod1',url:[{domain:'https://img-encrypted.example/vod1'},{domain:'https://img-clear.example/vod1'}]}]}}};
     if(url.includes('/v2/vod/detail.capi'))return {statusCode:200,data:{data:{id:'movie-1',title:'测试影片',imagePath:'/poster.webp',imageGroup:'vod1',playSources:[{siteId:'line-a',name:'主线路',episodeVodId:'season-1',list:[{id:'ep-1',title:'第1集'}]}]}}};
     if(url.includes('/user/anonymous'))return {statusCode:200,data:{data:{id:'guest-1',token:'guest-token'}}};
     if(url.includes('/vod/episodePlayUrl'))return {statusCode:200,data:{data:{playUrls:[{name:'主线路',url:'https://media.example/master.m3u8',headers:{'User-Agent':'fixture'}}]}}};
@@ -73,7 +81,10 @@ for(const id of ['kkapp','ncat','happ']){
   });
   const detail=await context.loadDetail(site.origin+'/__cctvhost__/'+id+'/vod?id=movie-1');
   assert.equal(detail.episodeItems.length,1,id+' exposes the selected episode in its detail view');
-  assert.equal(detail.coverUrl,'https://img.example/vod1/poster.webp',id+' resolves a source CDN poster group');
+  assert.equal(detail.coverUrl,'https://img-clear.example/vod1/poster.webp',id+' skips the encrypted mirror and selects the clear image mirror');
+  const probes=calls.filter(call=>call.options&&call.options.buffer===1);
+  assert.equal(probes.length,2,id+' probes each image mirror once');
+  assert.ok(probes.every(call=>call.options.timeout===3000),id+' bounds image mirror probes');
   assert.match(detail.episodeItems[0].link,/siteId=line-a/,id+' keeps the selected source route in the episode link');
   const link=site.origin+'/__cctvhost__/'+id+'/episode?vodId=movie-1&siteId=line-a&episodeId=ep-1';
   const resources=await context.loadResource({link});
@@ -81,8 +92,38 @@ for(const id of ['kkapp','ncat','happ']){
   assert.equal(resources[0].url,'https://media.example/master.m3u8');
   assert.equal(resources[0].playerType,'app');
   assert.equal(resources[0].customHeaders['User-Agent'],'fixture');
+  assert.equal(resources[0].customHeaders.Referer,site.origin+'/',id+' supplies the source Referer for protected media');
   assert.ok(calls.some(call=>call.url.includes('/user/anonymous')),id+' obtains a source-local guest session');
   assert.ok(calls.some(call=>call.url.includes('/vod/episodePlayUrl')),id+' calls its own play endpoint');
+}
+
+{
+  const calls=[];
+  const context=makeWidgetContext('kkapp',async(method,url,options={})=>{
+    calls.push({method,url,options});
+    if(url.startsWith('https://img-only-encrypted.example/'))return {statusCode:200,headers:{'Content-Type':'application/octet-stream','Encrypted':'1'},data:''};
+    return {statusCode:200,data:{data:{}}};
+  });
+  context.siteConfig={groups:[{id:'cipher-only',url:[{domain:'https://img-only-encrypted.example/vod1'}]}]};
+  await context.sitePrepareImageDomains({imagePath:'/poster.webp',imageGroup:'cipher-only'});
+  assert.equal(context.siteImageDomains['cipher-only'].domain,'','no encrypted mirror is selected as a displayable image');
+  assert.equal(context.siteCard({id:'m1',title:'密文封面',imagePath:'/poster.webp',imageGroup:'cipher-only'}).coverUrl,'','an encrypted-only group yields a safe placeholder instead of a broken image URL');
+}
+
+{
+  const calls=[];
+  const context=makeWidgetContext('yqk',async(method,url,options={})=>{
+    calls.push({method,url,options});
+    if(url.includes('/js/baseUrlList.js'))return {statusCode:200,data:'var baseApiList = ["https://api.example"];'};
+    if(method==='POST')return {statusCode:200,data:{result:true,data:{ok:true}}};
+    throw Error('unexpected YQK request '+url);
+  });
+  const budget={deadline:Date.now()+5000,seconds:5};
+  await context.apiRequest('/fixture',{},budget);
+  const discovery=calls.find(call=>call.url.includes('/js/baseUrlList.js'));
+  const request=calls.find(call=>call.method==='POST');
+  assert.ok(discovery&&discovery.options.timeout>0&&discovery.options.timeout<=5000,'YQK base discovery is bounded by the remaining playback budget');
+  assert.ok(request&&request.options.timeout>0&&request.options.timeout<=5000,'YQK API requests are bounded by the remaining playback budget');
 }
 
 for(const id of ['kkapp','ncat','happ']){
@@ -100,8 +141,9 @@ for(const id of ['kkapp','ncat','happ']){
   const context=makeWidgetContext('dyls',async(method,url,options={})=>{
     calls.push({method,url,options});
     if(url.includes('/app/config'))return {statusCode:200,data:{data:{movie_screen:{filter:[]},index_top_nav:[{id:1,name:'电影'}]}}};
-    if(url.includes('/movie/detail'))return {statusCode:200,data:{data:{id:'m-1',name:'测试电影',type_name:'电影',play_from:[{code:'line-a',name:'公开线路',list:[{episode_id:'e-1',episode_name:'正片',play_url:'https://media.example/movie.m3u8',ready_to_play:true}]}]}}};
-    if(url.includes('/movie_addr/list'))return {statusCode:200,data:{data:[{episode_id:'e-1',episode_name:'正片',play_url:'https://media.example/movie.m3u8',ready_to_play:true}]}};
+    if(url.includes('/movie/detail'))return {statusCode:200,data:{data:{id:'m-1',name:'测试电影',type_name:'电影',play_from:[{code:'line-a',name:'公开线路',list:[{episode_id:'e-1',episode_name:'正片',play_url:'https://media.example/movie.m3u8',ready_to_play:false}]}]}}};
+    if(url.includes('/movie_addr/list'))return {statusCode:200,data:{data:[{episode_id:'e-1',episode_name:'正片',play_url:'https://media.example/movie.m3u8',ready_to_play:false}]}};
+    if(url==='https://media.example/movie.m3u8')return {statusCode:200,data:'#EXTM3U\n#EXTINF:6,segment\nsegment-1.ts\n#EXT-X-ENDLIST\n'};
     throw Error('unexpected Dyls endpoint '+url);
   });
   assert.equal(typeof context.JSEncrypt,'function','Dyls bundles the RSA helper');
@@ -110,6 +152,8 @@ for(const id of ['kkapp','ncat','happ']){
   assert.equal(resources[0].url,'https://media.example/movie.m3u8');
   assert.equal(resources[0].customHeaders.Referer,undefined,'Dyls does not invent a media Referer');
   assert.ok(calls.some(call=>call.url.includes('signature=')),'Dyls signs the original request pack');
+  assert.ok(calls.some(call=>call.url==='https://media.example/movie.m3u8'&&call.options.timeout===15000),'Dyls validates direct HLS manifests with a bounded timeout');
+  assert.equal(calls.filter(call=>call.url.includes('/movie_addr/parse_url')).length,0,'Dyls does not send a direct playable URL through its parser');
 }
 
 const makeCatVodContext=id=>{

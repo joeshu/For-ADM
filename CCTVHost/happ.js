@@ -1,6 +1,6 @@
 /* Standalone CCTVHost WidgetAdapter for the three signed-app sources. */
 var Source={"id":"happ","name":"好好看","origin":"https://a.happ3.com:51111","version":"2.5.24","appId":"hkan","signKey":"a1id2db7ced05pwnc323gezxyb","responseKeys":[{"index":1,"key":"ayt5wy5afwmwrpb19k9s3psx3dymyd0n","iv":"b3t069ijy7pirw0j"}]};
-var CCTVHostMetadata={id:'joeshu.'+Source.id,title:Source.name,author:'joeshu',site:Source.origin,version:'0.1.0',requiredVersion:'0.0.1',description:'独立站点适配：原站首页、分类、搜索、详情、分集与公开播放地址。',detailCacheDuration:0,
+var CCTVHostMetadata={id:'joeshu.'+Source.id,title:Source.name,author:'joeshu',site:Source.origin,version:'0.1.1',requiredVersion:'0.0.1',description:'独立站点适配：原站首页、分类、搜索、详情、分集与公开播放地址。',detailCacheDuration:0,
  modules:[
   {id:'home',title:'首页推荐',functionName:'loadHome',cacheDuration:60,params:[]},
   {id:'category',title:'分类片库',functionName:'loadCatalog',cacheDuration:0,params:[{name:'channelId',title:'分类',type:'enumeration',value:'1',enumOptions:[{title:'电影',value:'1'},{title:'剧集',value:'2'},{title:'动漫',value:'3'},{title:'综艺纪录',value:'4'},{title:'Netflix',value:'1000'},{title:'短剧',value:'6'}]},{name:'page',title:'页码',type:'page',value:'1'}]},
@@ -26,13 +26,45 @@ var siteCard=function(row){
  if(!siteIdOK(id))return null;
  var title=siteText(siteGet(row,['title','vodName','vod_name','name']));if(!title)return null;
  var image=siteSafeURL(siteGet(row,['imageURL','coverImg','cover','image','vod_pic']));
- if(!image){var path=String(siteGet(row,['imagePath','coverPath','vodPic','vod_pic'])||'');if(path.indexOf('//')===0)image='https:'+path;else if(path.charAt(0)==='/'){var group=siteArray(siteConfig&&siteConfig.groups).find(function(x){return String(x.id)===String(row.imageGroup||'');}),domains=siteArray(group&&group.url).map(function(x){return siteSafeURL(String(x&&x.domain||''));}).filter(Boolean);image=domains.length?domains[0].replace(/\/$/,'')+'/'+path.replace(/^\//,''):Source.origin+path;}else image=siteSafeURL(path);}
+ if(!image){var path=String(siteGet(row,['imagePath','coverPath','vodPic','vod_pic'])||'');if(path.indexOf('//')===0)image='https:'+path;else if(path.charAt(0)==='/'){var group=siteArray(siteConfig&&siteConfig.groups).find(function(x){return String(x.id)===String(row.imageGroup||'');}),domains=siteArray(group&&group.url).map(function(x){return siteSafeURL(String(x&&x.domain||''));}).filter(Boolean),probe=siteImageDomains[String(row.imageGroup||'')],domain=probe?probe.domain:(domains[0]||'');image=domain?domain.replace(/\/$/,'')+'/'+path.replace(/^\//,''):domains.length?'':Source.origin+path;}else image=siteSafeURL(path);}
  var subtitle=siteText(siteGet(row,['bottomLabel','remark','vod_remarks','scoreText','dynamic'])||'');
  var labels=siteArray(row.labels||row.tags).map(function(x){return siteText(x&&typeof x==='object'?x.name||x.title:x);}).filter(Boolean).slice(0,4);
  return {id:siteLink('vod',{id:id}),type:'url',link:siteLink('vod',{id:id}),title:title,coverUrl:image,posterPath:image,description:subtitle,mediaType:Number(row.channelId)===1?'movie':'tv',labels:labels.map(function(name){return {name:name};})};
 };
 var siteCards=function(value){var out=[],seen=Object.create(null);function visit(v,depth){if(depth>8||!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(function(x){visit(x,depth+1);});return;}var item=siteCard(v);if(item){var key=item.link;if(!seen[key]){seen[key]=true;out.push(item);}return;}['blocks','data','items','list','vods','vodList','recommendList'].forEach(function(k){if(v[k])visit(v[k],depth+1);});}visit(value,0);return out;};
 var siteHeaders=function(raw){var out={};if(Array.isArray(raw))raw.forEach(function(x){if(x&&x.name&&x.value)out[String(x.name)]=String(x.value);});else if(raw&&typeof raw==='object')Object.keys(raw).forEach(function(k){var v=raw[k];if(typeof v==='string'&&/^[A-Za-z][A-Za-z0-9-]*$/.test(k)&&!/host|content-length/i.test(k))out[k]=v;});return out;};
+var siteImageDomains=Object.create(null),siteImageDomainFlights=Object.create(null);
+function siteHeaderValue(headers,name){if(!headers||typeof headers!=='object')return '';name=String(name||'').toLowerCase();var keys=Object.keys(headers);for(var i=0;i<keys.length;i++)if(String(keys[i]).toLowerCase()===name)return String(headers[keys[i]]||'');return '';}
+async function sitePrepareImageDomains(value){
+ if(!siteConfig)return;
+ var samples=Object.create(null),visited=0;
+ function visit(v,depth){
+  if(depth>8||!v||typeof v!=='object'||visited++>1200)return;
+  if(Array.isArray(v)){for(var i=0;i<Math.min(v.length,300);i++)visit(v[i],depth+1);return;}
+  var path=String(siteGet(v,['imagePath','coverPath','vodPic','vod_pic'])||''),group=String(v.imageGroup||'');
+  if(path.charAt(0)==='/'&&path.slice(0,2)!=='//'&&path.length<2048&&group&&!samples[group])samples[group]=path;
+  Object.keys(v).slice(0,48).forEach(function(key){visit(v[key],depth+1);});
+ }
+ visit(value,0);
+ await Promise.all(Object.keys(samples).map(async function(groupID){
+  var cached=siteImageDomains[groupID],cacheAge=cached&&cached.domain?1800000:60000;
+  if(cached&&Date.now()-cached.time<cacheAge)return;
+  var active=siteImageDomainFlights[groupID];if(active){try{await active;}catch(_){}return;}
+  var flight=(async function(){
+   var group=siteArray(siteConfig.groups).find(function(row){return String(row.id)===groupID;}),mirrors=siteArray(group&&group.url).map(function(row){return siteSafeURL(String(row&&row.domain||''));}).filter(Boolean).slice(0,9),selected='';
+   for(var offset=0;offset<mirrors.length&&!selected;offset+=3){
+    var probes=await Promise.all(mirrors.slice(offset,offset+3).map(async function(mirror){
+     try{var base=mirror;while(base.charAt(base.length-1)==='/')base=base.slice(0,-1);var result=await CCTVHttp.get(base+samples[groupID],{buffer:1,timeout:3000,headers:{Referer:Source.origin+'/',Accept:'image/*'}}),status=Number(result.statusCode||result.status||0),headers=result.headers||{},contentType=siteHeaderValue(headers,'content-type').toLowerCase();return status>=200&&status<300&&contentType.indexOf('image/')===0&&siteHeaderValue(headers,'encrypted')!=='1'?mirror:'';}catch(_){return '';}
+    }));
+    selected=probes.find(function(mirror){return !!mirror;})||'';
+   }
+   siteImageDomains[groupID]={domain:selected,time:Date.now()};
+  })();
+  siteImageDomainFlights[groupID]=flight;
+  try{await flight;}catch(_){siteImageDomains[groupID]={domain:'',time:Date.now()};}
+  finally{if(siteImageDomainFlights[groupID]===flight)delete siteImageDomainFlights[groupID];}
+ }));
+}
 
 var SiteAdapter=function(){this.key='cctvhost.signed.'+Source.id;};
 SiteAdapter.prototype.storageGet=async function(key){try{var v=await CCTVStorage.get(this.key+'.'+key);if(typeof v==='string')return JSON.parse(v);return v||null;}catch(_){return null;}};
@@ -50,10 +82,10 @@ SiteAdapter.prototype.build=async function(base,path,params,method){
  var C=SiteCrypto(),dev=await this.deviceInfo(),get=method==='GET',user=siteUser;
  var data=get?Object.assign({os:'webapp',appId:Source.appId,userLevel:String(user&&user.level||0)},params||{}):(params||{});
  var session='appId='+Source.appId+'&deviceCreatedAt='+dev.created+'&deviceId='+dev.id+'&st=2'+(user&&user.id?'&userId='+user.id:'');
- var query=get?Object.keys(data).sort().filter(function(k){return data[k]!==''&&data[k]!=null;}).map(function(k){return k+'='+data[k]+'&';}).join(''):'';
- var ts=String(Date.now()),sig=C.HmacSHA1(method+'|'+path+'|'+query+'|'+ts+'|'+session+'|',Source.signKey).toString(C.enc.Hex);
+ var query=get?Object.keys(data).sort().filter(function(k){return data[k]!==''&&data[k]!=null;}).map(function(k){return k+'='+data[k];}).join('&'):'';
+ var signMethod=path==='/config/prod/appInit.html'?method:method.toLowerCase(),ts=String(Date.now()),sig=C.HmacSHA1(signMethod+'|'+path+'|'+query+'|'+ts+'|'+session+'|',Source.signKey).toString(C.enc.Hex);
  var headers={os:'webapp',appId:Source.appId,appVersion:Source.version,package:Source.appId,channelId:'c1',deviceId:dev.id,deviceCreatedAt:String(dev.created),st:'2',ts:ts,sign:sig,Referer:Source.origin+'/'};
- if(user&&user.id&&user.token){headers.userId=String(user.id);headers['x-token']=String(user.token);}
+ if(!get)headers['Content-Type']='application/json';if(user&&user.id&&user.token){headers.userId=String(user.id);headers['x-token']=String(user.token);}
  var url=base+path;if(get){var parts=[];Object.keys(data).forEach(function(k){if(data[k]!==''&&data[k]!=null)parts.push(encodeURIComponent(k)+'='+encodeURIComponent(String(data[k])));});if(parts.length)url+=(url.indexOf('?')<0?'?':'&')+parts.join('&');}
  if(path==='/user/anonymous'||path==='/user/loginAccount')headers.apiVer='v2';
  return {url:url,method:method,headers:headers,body:get?undefined:JSON.stringify(data)};
@@ -76,7 +108,7 @@ SiteAdapter.prototype.api=async function(path,params,kind,method){
  throw last||Error(Source.name+'接口暂时不可用');
 };
 SiteAdapter.prototype.ensureGuest=async function(){if(siteUser&&siteUser.id&&siteUser.token)return siteUser;if(siteGuest)return siteGuest;var self=this;siteGuest=(async function(){var old=await self.storageGet('guest');if(old&&old.id&&old.token){siteUser=old;return old;}var data=await self.api('/user/anonymous',{},'logic','POST'),user=data&&data.user||data;if(!user||!user.id||!user.token)throw Error(Source.name+'没有返回公开访客会话');siteUser=user;await self.storageSet('guest',user);return user;})();try{return await siteGuest;}finally{siteGuest=null;}};
-SiteAdapter.prototype.sessionApi=async function(path,params){await this.ensureGuest();return this.api(path,params,'logic','POST');};
+SiteAdapter.prototype.sessionApi=async function(path,params){await this.ensureGuest();return this.api(path,params,'logic','GET');};
 SiteAdapter.prototype.home=async function(){return this.api('/v5/vod/home.capi',{},'cache','GET');};
 SiteAdapter.prototype.category=async function(p){return this.api('/vod/channel/list.capi',{channelId:Number(p.channelId||1),category:'',sort:'3',area:'',year:'',language:'',next:'page='+sitePage(p.page)},'cache','GET');};
 SiteAdapter.prototype.search=async function(p){var q=siteText(p.keyword);if(!q)return {items:[]};if(q.length>100)throw Error('搜索词过长');return this.sessionApi('/vod/search/query',{k:q,type:'title',channelId:0,next:'page='+sitePage(p.page)});};
@@ -85,12 +117,12 @@ SiteAdapter.prototype.episodes=async function(id,line){var d=await this.api('/v2
 SiteAdapter.prototype.play=async function(vodId,line,episode){var data=await this.sessionApi('/vod/episodePlayUrl',{vodId:vodId,siteId:line.siteId,episodeId:episode.id,episodeVodId:line.episodeVodId||0});return data;};
 var adapter=new SiteAdapter();
 
-async function loadHome(){return siteCards(await adapter.home());}
-async function loadCatalog(p){p=p||{};var d=await adapter.category(p);return siteCards(d);}
-async function search(p){p=p||{};return siteCards(await adapter.search(p));}
+async function loadHome(){var data=await adapter.home();await sitePrepareImageDomains(data);return siteCards(data);}
+async function loadCatalog(p){p=p||{};var d=await adapter.category(p);await sitePrepareImageDomains(d);return siteCards(d);}
+async function search(p){p=p||{};var data=await adapter.search(p);await sitePrepareImageDomains(data);return siteCards(data);}
 async function loadDetail(link){
  link=typeof link==='string'?link:String(link&&link.link||'');var isEp=link.indexOf('/episode?')>=0||link.indexOf('/episode&')>=0,id=siteQueryValue(link,'vodId')||siteQueryValue(link,'id');if(!siteIdOK(id))throw Error('影片链接不属于'+Source.name);
- var d=siteDetails[id]||await adapter.detail(id),lines=siteArray(d.playSources||d.playerList||d.lines).filter(function(x){return x&&x.needLogin!==true;});if(!lines.length)throw Error('原站未提供访客可用线路');
+ var d=siteDetails[id]||await adapter.detail(id);await sitePrepareImageDomains(d);var lines=siteArray(d.playSources||d.playerList||d.lines).filter(function(x){return x&&x.needLogin!==true;});if(!lines.length)throw Error('原站未提供访客可用线路');
  var normalized=[];for(var i=0;i<lines.length;i++){var line=lines[i],list=siteArray(line.list||line.epList||line.episodes).map(function(ep){return {id:String(siteGet(ep,['id','episodeId','epId','vodEpId','episodeVodId'])||''),title:siteText(siteGet(ep,['title','name','epName','episodeName'])||'选集'),raw:ep};}).filter(function(ep){return siteIdOK(ep.id);});if(!list.length)list=await adapter.episodes(id,line);normalized.push({line:line,list:list});}
  siteDetails[id]={detail:d,lines:normalized};var firstLine=normalized.find(function(x){return x.list.length;});if(!firstLine)throw Error('原站没有返回可选分集');
  var requested=isEp?siteQueryValue(link,'episodeId'):'';if(requested){var match=normalized.find(function(x){return x.list.some(function(ep){return ep.id===requested;});});if(match)firstLine=match;}
@@ -102,8 +134,8 @@ async function resolveResource(p){
  var data=siteDetails[vodId]||await adapter.detail(vodId),rawLines=siteArray(data.detail?data.detail.playSources||data.detail.playerList:data.playSources||data.playerList),lines=data.lines||[];if(!lines.length){for(var i=0;i<rawLines.length;i++){var one=rawLines[i];if(one.needLogin===true||one.canPlay===false)continue;var eps=siteArray(one.list||one.epList||one.episodes).map(function(ep){return {id:String(siteGet(ep,['id','episodeId','epId','vodEpId','episodeVodId'])||''),title:siteText(siteGet(ep,['title','name','epName','episodeName'])||'选集'),raw:ep};}).filter(function(ep){return siteIdOK(ep.id);});if(!eps.length)eps=await adapter.episodes(vodId,one);lines.push({line:one,list:eps});}siteDetails[vodId]={detail:data.detail||data,lines:lines};}
  var chosen=lines.find(function(x){return String((x.line||x).siteId)===siteId;});if(!chosen)throw Error('所选线路不属于此影片');var ep=chosen.list.find(function(x){return String(x.id)===episodeId;});if(!ep)throw Error('所选分集不属于此影片线路');
  var candidates=[chosen];lines.forEach(function(x){if(x===chosen)return;var other=x.list.find(function(y){return y.title===ep.title;});if(other)candidates.push({line:x.line||x,list:[other]});});var errors=[];
- for(var c=0;c<Math.min(3,candidates.length);c++){var item=candidates[c],line=item.line||item,selected=item===chosen?ep:item.list[0];if(line.needLogin===true||line.canPlay===false)continue;try{var result=await adapter.play(vodId,line,selected),rows=siteArray(result&& (result.playUrls||result.urls));if(!rows.length){var url=siteSafeURL(siteGet(result,['url','playUrl','play_url']));if(url)rows=[{url:url,name:line.name||'原站线路',headers:result.headers||result.header||{}}];}
-   var out=rows.map(function(row){var url=siteSafeURL(row.url||row.playUrl);if(!url)return null;return {name:String(row.name||line.name||'原站线路'),url:url,playerType:'app',customHeaders:siteHeaders(row.customHeaders||row.headers||row.header)};}).filter(Boolean);if(out.length)return out;
+ for(var c=0;c<Math.min(3,candidates.length);c++){var item=candidates[c],line=item.line||item,selected=item===chosen?ep:item.list[0];if(line.needLogin===true||line.canPlay===false)continue;try{var result=await adapter.play(vodId,line,selected),rows=Array.isArray(result)?result:siteArray(result&& (result.playUrls||result.urls));if(!rows.length){var url=siteSafeURL(siteGet(result,['url','playUrl','play_url']));if(url)rows=[{url:url,name:line.name||'原站线路',headers:result.headers||result.header||{}}];}
+   var out=rows.map(function(row){var url=siteSafeURL(row.url||row.playUrl);if(!url)return null;var headers=siteHeaders(row.customHeaders||row.headers||row.header);if(row.referrerPolicy!=='no-referrer'&&!headers.Referer&&!headers.referer)headers.Referer=Source.origin+'/';return {name:String(row.name||line.name||'原站线路'),url:url,playerType:'app',customHeaders:headers};}).filter(Boolean);if(out.length)return out;
    throw Error(result&&result.message||'原站没有返回可播放的HTTPS地址');
   }catch(e){if(Number(e.code)===401||Number(e.code)===403||Number(e.code)===402)throw e;errors.push(String((item.line||item).name||'线路')+': '+String(e.message||e).slice(0,120));}}
  throw Error(Source.name+'所选集播放失败'+(errors.length?'（'+errors.join('；')+'）':''));

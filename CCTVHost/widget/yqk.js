@@ -1,7 +1,7 @@
 var WidgetMetadata = {
   id: "joeshu.yqk", title: "一起看", author: "joeshu",
   description: "首页精选、电影/电视剧/动漫/综艺、搜索、热搜、分集与访客播放资源。",
-  site: "https://yqk18.app", version:"0.9.2", requiredVersion: "0.0.1",
+  site: "https://yqk18.app", version:"0.9.3", requiredVersion: "0.0.1",
   detailCacheDuration: 60,
   modules: [
     { id: "home", title: "首页精选", functionName: "loadHome", cacheDuration: 300, params: [] },
@@ -66,7 +66,7 @@ WidgetMetadata.modules.forEach(function(m){if(m.cacheDuration===300)m.cacheDurat
 WidgetMetadata.modules.find(function(m){return m.id==="loadResource";}).params.push(
  yqkMenu("lineMode","线路模式",[["auto","自动回退"],["multiple","检查多条备用"],["manual","只用所选线路"]],"auto"),
  yqkMenu("sourceLimit","最大尝试线路",[["4","4 条（较快）"],["8","8 条（推荐）"],["12","12 条（更多回退）"]],"8"),
- {name:"checkBudget",title:"线路检查预算",description:"默认15秒，可选8/15/30秒；到时停止后续检查。当前请求的超时由客户端控制，可能超过此预算。",type:"enumeration",value:"15",enumOptions:[{title:"8秒（较快）",value:"8"},{title:"15秒（推荐）",value:"15"},{title:"30秒（更多检查）",value:"30"}]} );
+ {name:"checkBudget",title:"线路检查预算",description:"默认30秒，可选8/15/30秒；预算同时约束接口发现、详情和播放地址请求。",type:"enumeration",value:"30",enumOptions:[{title:"8秒（较快）",value:"8"},{title:"15秒",value:"15"},{title:"30秒（推荐）",value:"30"}]} );
 
 // Public H5 application constants extracted from the site's entry.34539261.js.
 // No account token is embedded or accepted. Keep these synchronized with site updates.
@@ -152,17 +152,23 @@ async function makeBody(params) {
   body.sign = md5(text+"appKey="+YQK.appKey); return body;
 }
 function origin(url) { if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?\/?$/i.test(url)) throw new Error("接口地址必须为 HTTPS 域名"); return url.replace(/\/$/,""); }
-async function apiBases(force) {
+function yqkRequestTimeout(budget,fallback) {
+  return budget?Math.max(1,Math.min(20000,budget.deadline-Date.now())):fallback;
+}
+async function apiBases(force,budget) {
+  if(budget)return discoverBases(force,budget);
   return runOnce("bases."+YQK.site+"."+YQK.apiOverride+"."+!!force,function(){return discoverBases(force);});
 }
-async function discoverBases(force) {
+async function discoverBases(force,budget) {
   if (YQK.apiOverride) return [origin(YQK.apiOverride)];
   var cached = await getStored("bases");
   if (!force && cached && Number.isFinite(cached.time) && Date.now()>=cached.time && Date.now()-cached.time<3600000 && Array.isArray(cached.urls) && cached.urls.length) {
     try { return cached.urls.map(origin); } catch (_) { /* Recover corrupt/stale configuration. */ }
   }
   try {
-    var response = await Widget.http.get(YQK.site+"/js/baseUrlList.js", { headers: { Referer: YQK.site+"/" } });
+    yqkBudgetCheck(budget);
+    var response = await Widget.http.get(YQK.site+"/js/baseUrlList.js", { timeout:yqkRequestTimeout(budget,12000), headers: { Referer: YQK.site+"/" } });
+    yqkBudgetCheck(budget);
     var match = String(response.data).match(/(?:var|let|const)\s+baseApiList\s*=\s*(\[[\s\S]*?\])/);
     if (match) {
       var parsed=JSON.parse(match[1]);
@@ -183,21 +189,21 @@ async function api(path, params, budget) {
   return runOnce("api."+md5(YQK.site+YQK.apiOverride+path+JSON.stringify(params)),function(){return apiRequest(path,params);});
 }
 async function apiRequest(path, params, budget) {
-  var bases = await apiBases(), errors = [], preferred = await getStored("lastBase");
+  var bases = await apiBases(false,budget), errors = [], preferred = await getStored("lastBase");
   if (bases.indexOf(preferred)>=0) bases=[preferred].concat(bases.filter(function(b){return b!==preferred;}));
   var tried={};
   // Do not discard working origins just because the first three are obsolete.
   // If the cached list is obsolete, refresh once and try only newly discovered origins.
   for (var phase=0;phase<(YQK.apiOverride?1:2);phase++) {
   yqkBudgetCheck(budget);
-  if (phase===1) bases=await apiBases(true);
+  if (phase===1) bases=await apiBases(true,budget);
   for (var i=0; i<bases.length; i++) {
     yqkBudgetCheck(budget);
     if (tried[bases[i]]) continue; tried[bases[i]]=true;
     var response;
     try {
       var body=await makeBody(params);yqkBudgetCheck(budget);
-      response = await Widget.http.post(bases[i]+path, body, { headers: {
+      response = await Widget.http.post(bases[i]+path, body, { timeout:yqkRequestTimeout(budget,15000), headers: {
         "Content-Type": "application/json;charset=UTF-8", Referer: YQK.site+"/", Origin: YQK.site,
         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"
       } });
@@ -434,7 +440,7 @@ async function loadDetail(link) {
 }
 async function loadResource(params) {
   params=params||{}; var ids=parseLink(params.link||params.id), epId=ids.epId;
-  var seconds=Number(params.checkBudget==null?15:params.checkBudget);if([8,15,30].indexOf(seconds)<0)throw new Error("线路检查预算无效");
+  var seconds=Number(params.checkBudget==null?30:params.checkBudget);if([8,15,30].indexOf(seconds)<0)throw new Error("线路检查预算无效");
   var budget={deadline:Date.now()+seconds*1000,seconds:seconds};
   var selection=(await resolveDetail(ids,budget)).selection, player=selection.selected;
   yqkBudgetCheck(budget);
@@ -502,7 +508,7 @@ async function yqkProbeHls(url,headers,budget,preference,info){var reads=0,seen=
   async function read(url,depth,keepMaster){
     yqkBudgetCheck(budget);
     if(depth>=3||reads>=5||seen[url])throw new Error("播放清单检查达到上限");seen[url]=true;reads++;
-    var r;try{r=await Widget.http.get(url,{headers:headers});}catch(error){if(/^(?:ETIMEDOUT|ESOCKETTIMEDOUT|ECONNABORTED|TIMEOUT)$/.test(error.code||'')||error.name==='TimeoutError')error.lineFailureReason='timeout';throw error;}
+    var r;try{r=await Widget.http.get(url,{timeout:yqkRequestTimeout(budget,15000),headers:headers});}catch(error){if(/^(?:ETIMEDOUT|ESOCKETTIMEDOUT|ECONNABORTED|TIMEOUT)$/.test(error.code||'')||error.name==='TimeoutError')error.lineFailureReason='timeout';throw error;}
     var status=Number(r.statusCode||r.status);
     if(status===429){var limited=new Error("播放线路请求过于频繁，请稍后重试");limited.code="RATE_LIMIT";throw limited;}
     yqkBudgetCheck(budget);
