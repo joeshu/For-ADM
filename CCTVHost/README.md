@@ -1,6 +1,6 @@
-# CCTVHost 独立站点播放组件
+# CCTVHost 独立影视源合集
 
-此目录提供按站点拆分的 CCTVHost JavaScript Widget 组件，每个文件都包含站点入口、详情/分集处理和 `loadResource` 播放资源入口。
+主合集提供 8 个可独立浏览的 CatVod / TVBox JavaScript 影视源，按 CCTVHost 实际运行接口实现首页、分类、搜索、详情和播放。每个站点都使用单独的适配文件。
 
 ## CCTVHost 统一合集导入
 
@@ -10,11 +10,11 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 8 个站点；点选某站并选择“导入并打开资源”或“仅导入到资源页”，该站的 JS 才会经 CCTVHost 现有脚本导入器下载和检查，不会导入合集时批量执行脚本。合集索引保存在本机；如需重新读取更新后的索引，先移除本地合集，再导入同一地址。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 8 个站点；点选某站后，CCTVHost 会按脚本接口识别为 CatVod / TVBox JavaScript 源，再下载和检查对应文件。合集只保存索引，不会批量执行脚本。修复版入口带 `v=2`，会与此前误识别的旧 Widget 副本区分。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
-Forward/Rex 用户仍可使用 [For-ADM.fwd](For-ADM.fwd) 订阅。也可以从下表单独导入任意 CCTVHost JS。
+Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
-| 文件 | 来源 | 实现方式 |
+| CatVod / TVBox 脚本 | 来源 | 实现方式 |
 | --- | --- | --- |
 | `kkapp.js` | 可可影视 | 原站签名接口、访客会话和播放 API |
 | `ncat.js` | 网飞猫 | 独立 appId、源站和会话命名空间 |
@@ -25,7 +25,7 @@ Forward/Rex 用户仍可使用 [For-ADM.fwd](For-ADM.fwd) 订阅。也可以从�
 | `souju.js` | 搜剧 AI | 独立访客会话、签名接口和分集播放线路 |
 | `kanju.js` | 看剧 AI | 独立公开目录接口和授权线路解析 |
 
-`kkapp.js`、`ncat.js` 和 `happ.js` 由 `generic-site.template.js` 生成。修改通用请求逻辑后执行：
+`kkapp.js`、`ncat.js` 和 `happ.js` 由 `generic-site.template.js` 生成到 `widget/`，TVBox 主脚本由适配器构建生成。修改通用请求逻辑后执行：
 
 ```sh
 cd ios-app
@@ -33,6 +33,8 @@ npm run build:cctvhost
 npm run test:cctvhost
 ```
 
-组件实现使用 CCTVHost WidgetAdaptor 提供的 `Widget.http` / `Widget.storage` 接口。测试用模拟响应验证组件能被加载、媒体 URL 校验、同集资源选择、权限拒绝和站点隔离。它不会替换网站的账号、订阅或地区授权，不解密 DRM，也不把网页解析结果猜作直链。返回的临时播放地址由源站当前接口提供，站点策略、接口版本、网络环境和具体片源会影响可用性。
+`widget/` 子目录保留 Forward/Rex 兼容的旧版 Widget 解析脚本。TVBox 主脚本由这些原始适配器生成，并附带 CCTVHost 的 CatVod 接口层；更新源站适配时先修改 `widget/` 对应原文件，再运行构建命令生成主合集脚本。测试会模拟 CCTVHost 的首页、分类、搜索、详情和播放调用，并验证导入识别协议、播放线路和站点隔离。
+
+脚本只使用各站点公开接口返回的数据和播放地址；站点账号、付费或地区权限仍由源站控制。返回的临时播放地址可能因接口版本、网络环境和具体片源而变化。
 
 这批资源文件尚未在用户设备的 CCTVHost 中完成导入和原生解码验收；HTTP/HLS 地址返回成功不代表 iPhone 上已经验证出画面。

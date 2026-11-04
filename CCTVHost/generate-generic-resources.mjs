@@ -9,5 +9,6 @@ for(const id of ['kkapp','ncat','happ']){
   const site=sites.find(item=>item.id===id);
   if(!site)throw Error('missing source '+id);
   const source={id:site.id,name:site.name,origin:site.origin,version:site.version,appId:site.appId,signKey:site.signKey,responseKeys:site.responseKeys};
-  fs.writeFileSync(path.join(root,id+'.js'),template.replace('__SOURCE__',JSON.stringify(source)));
+  fs.mkdirSync(path.join(root,'widget'),{recursive:true});
+  fs.writeFileSync(path.join(root,'widget',id+'.js'),template.replace('__SOURCE__',JSON.stringify(source)));
 }

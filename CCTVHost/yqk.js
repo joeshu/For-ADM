@@ -1,4 +1,4 @@
-var WidgetMetadata = {
+var CCTVHostMetadata = {
   id: "joeshu.yqk", title: "一起看", author: "joeshu",
   description: "首页精选、电影/电视剧/动漫/综艺、搜索、热搜、分集与访客播放资源。",
   site: "https://yqk18.app", version:"0.9.2", requiredVersion: "0.0.1",
@@ -18,7 +18,7 @@ var WidgetMetadata = {
     { id: "hotSearch", title: "热搜榜", functionName: "loadHotSearch", cacheDuration: 300,
       params: [{ name: "channelId", title: "榜单分类", type: "enumeration", value: "0",
         enumOptions: [{ title: "综合", value: "0" }, { title: "电影", value: "2" }, { title: "电视剧", value: "3" }, { title: "动漫", value: "8" }, { title: "综艺", value: "10" }] }] },
-    { id: "loadResource", title: "获取播放线路", type: "stream", functionName: "loadResource", cacheDuration: 0, params: [] }
+    { id: "resolveResource", title: "获取播放线路", type: "stream", functionName: "resolveResource", cacheDuration: 0, params: [] }
   ],
   search: { title: "一起看搜索", functionName: "search", params: [
     { name: "keyword", title: "片名或关键词", description: "例如：流浪地球、庆余年", type: "input" }, { name: "page", title: "页码", type: "page", value: "1" }
@@ -35,7 +35,7 @@ var YqkCategories = [
 ];
 var YqkTopics = [[93,"每日推荐"],[77,"抖音推荐电影"],[95,"抖音推荐电视剧"],[82,"48小时飙升榜"],[2,"爱优腾芒"],[20,"下饭短剧"],[74,"经典TVB剧"],[10,"美剧热播"],[76,"毒舌电影"],[58,"网络电影"],[52,"爆笑喜剧"],[6,"胆小误入"],[7,"拳拳到肉"],[48,"韩国高分电影"],[53,"情投意合"],[70,"刺激战场"],[81,"十年经典"],[75,"怀旧剧场"],[19,"悬疑剧场"],[45,"男人减速带"],[72,"热播日剧"],[57,"港片名导"],[44,"好莱坞影视"],[43,"梦幻迪士尼"],[42,"DC世界"],[40,"漫威宇宙"],[39,"灾难降临"]];
 function topicOptions() {return YqkTopics.map(function(t){return {title:t[1],value:String(t[0])};});}
-var homeModule=WidgetMetadata.modules[0];
+var homeModule=CCTVHostMetadata.modules[0];
 homeModule.title="每日推荐";
 homeModule.params=[{name:"topicId",title:"推荐专题",type:"enumeration",value:"93",enumOptions:[{title:"全部首页精选",value:"all"}].concat(topicOptions())}];
 var categoryModules=YqkCategories.filter(function(c){return c.id!==50;}).map(function(c){return {
@@ -44,15 +44,15 @@ var categoryModules=YqkCategories.filter(function(c){return c.id!==50;}).map(fun
     {name:"childChannelId",title:"类型 / 地区",type:"enumeration",value:"",enumOptions:[{title:"全部",value:""}].concat(c.children.map(function(t){return {title:t[1],value:String(t[0])};}))},
     {name:"page",title:"页码",type:"page",value:"1"}]
 };});
-var oldModules=WidgetMetadata.modules;
-WidgetMetadata.modules=[homeModule,oldModules[3]].concat(categoryModules,[
+var oldModules=CCTVHostMetadata.modules;
+CCTVHostMetadata.modules=[homeModule,oldModules[3]].concat(categoryModules,[
   {id:"shortDrama",title:"短剧",description:"原站下饭短剧专题",functionName:"loadTopic",cacheDuration:300,params:[{name:"topicId",title:"专题",type:"constant",value:"20"},{name:"page",title:"页码",type:"page",value:"1"}]},
   {id:"netflix",title:"奈飞 Netflix",functionName:"loadCollection",cacheDuration:300,params:[{name:"channelId",title:"频道",type:"constant",value:"65"},{name:"collection",title:"片单",type:"enumeration",value:"latest",enumOptions:[{title:"最新月份",value:"latest"},{title:"TOP100",value:"top100"}]},{name:"page",title:"页码",type:"page",value:"1"}]},
   {id:"korean",title:"高清韩剧",functionName:"loadCollection",cacheDuration:300,params:[{name:"channelId",title:"频道",type:"constant",value:"56"},{name:"collection",title:"片单",type:"enumeration",value:"latest",enumOptions:[{title:"新剧秒播",value:"latest"},{title:"热播 TOP100",value:"top100"},{title:"甜蜜清新",value:"60"},{title:"鬼怪来袭",value:"66"},{title:"层层迷雾",value:"62"},{title:"经典必看",value:"65"},{title:"家族那些事",value:"61"},{title:"宫廷之争",value:"64"}]},{name:"page",title:"页码",type:"page",value:"1"}]},
   {id:"topics",title:"专题片单",functionName:"loadTopic",cacheDuration:300,params:[{name:"topicId",title:"专题",type:"enumeration",value:"2",enumOptions:topicOptions()},{name:"page",title:"页码",type:"page",value:"1"}]},
   oldModules[1],oldModules[2],oldModules[4]
 ]);
-WidgetMetadata.modules[WidgetMetadata.modules.length-1].params=[{name:"qualityPreference",title:"画质优先级",type:"enumeration",value:"highest",enumOptions:[{title:"最高画质（自适应）",value:"highest"},{title:"清晰优先（固定高画质）",value:"fixed"},{title:"站点默认",value:"default"}]}];
+CCTVHostMetadata.modules[CCTVHostMetadata.modules.length-1].params=[{name:"qualityPreference",title:"画质优先级",type:"enumeration",value:"highest",enumOptions:[{title:"最高画质（自适应）",value:"highest"},{title:"清晰优先（固定高画质）",value:"fixed"},{title:"站点默认",value:"default"}]}];
 var yqkChannelOptions=[{title:"电影",value:"2"},{title:"电视剧",value:"3"},{title:"动漫",value:"8"},{title:"综艺",value:"10"},{title:"短剧",value:"50"},{title:"Netflix",value:"65"},{title:"高清韩剧",value:"56"}];
 function yqkMenu(name,title,values,value){return {name:name,title:title,type:"enumeration",value:value||"",enumOptions:values.map(function(v){return {title:v[1],value:v[0]};})};}
 var yqkFilterParams=[{name:"channelId",title:"频道",type:"enumeration",value:"2",enumOptions:yqkChannelOptions},
@@ -60,10 +60,10 @@ var yqkFilterParams=[{name:"channelId",title:"频道",type:"enumeration",value:"
  yqkMenu("area","地区",[["","全部"],["大陆","大陆"],["美国","美国"],["韩国","韩国"],["香港","香港"],["日本","日本"],["台湾","台湾"],["英国","英国"],["泰国","泰国"],["印度","印度"],["其他","其他"]]),
  yqkMenu("year","年份",[["","全部"],["current","当年"],["previous","上一年"],["previous2","前两年"],["previous3","前三年"],["older","更早"]]),
  yqkMenu("sortType","排序",[["1","最新"],["2","人气"],["3","评分"],["4","热搜"]],"1"),{name:"page",title:"页码",type:"page",value:"1"}];
-WidgetMetadata.modules.unshift({id:"latest",title:"最新片单",description:"按原站最新排序，非首映日期承诺；每分钟刷新。",functionName:"loadLatest",cacheDuration:60,params:[yqkFilterParams[0],yqkFilterParams[3],yqkFilterParams[5]]},
+CCTVHostMetadata.modules.unshift({id:"latest",title:"最新片单",description:"按原站最新排序，非首映日期承诺；每分钟刷新。",functionName:"loadLatest",cacheDuration:60,params:[yqkFilterParams[0],yqkFilterParams[3],yqkFilterParams[5]]},
  {id:"filters",title:"多条件筛选",description:"题材、地区、年份组合筛选；题材编号随频道实时匹配。",functionName:"loadFiltered",cacheDuration:60,params:yqkFilterParams});
-WidgetMetadata.modules.forEach(function(m){if(m.cacheDuration===300)m.cacheDuration=60;});
-WidgetMetadata.modules.find(function(m){return m.id==="loadResource";}).params.push(
+CCTVHostMetadata.modules.forEach(function(m){if(m.cacheDuration===300)m.cacheDuration=60;});
+CCTVHostMetadata.modules.find(function(m){return m.id==="resolveResource";}).params.push(
  yqkMenu("lineMode","线路模式",[["auto","自动回退"],["multiple","检查多条备用"],["manual","只用所选线路"]],"auto"),
  yqkMenu("sourceLimit","最大尝试线路",[["4","4 条（较快）"],["8","8 条（推荐）"],["12","12 条（更多回退）"]],"8"),
  {name:"checkBudget",title:"线路检查预算",description:"默认15秒，可选8/15/30秒；到时停止后续检查。当前请求的超时由客户端控制，可能超过此预算。",type:"enumeration",value:"15",enumOptions:[{title:"8秒（较快）",value:"8"},{title:"15秒（推荐）",value:"15"},{title:"30秒（更多检查）",value:"30"}]} );
@@ -126,7 +126,7 @@ async function getStored(key) {
   // The current session is newer than a failed/late persistent write.
   if (Object.prototype.hasOwnProperty.call(yqkMemory,key)) return yqkMemory[key];
   var value;
-  try { value = await Widget.storage.get("yqk.v2."+key); } catch (_) { return yqkMemory[key]; }
+  try { value = await CCTVStorage.get("yqk.v2."+key); } catch (_) { return yqkMemory[key]; }
   if (value==null) return yqkMemory[key];
   if (typeof value==="string") { try { return JSON.parse(value); } catch (_) { return undefined; } }
   return value;
@@ -138,7 +138,7 @@ async function setStored(key, value) {
     yqkMemoryOrder.push(key);
     while(yqkMemoryOrder.length>80) delete yqkMemory[yqkMemoryOrder.shift()];
   }
-  try { await Widget.storage.set("yqk.v2."+key, JSON.stringify(value)); } catch (_) { /* Session cache still works. */ }
+  try { await CCTVStorage.set("yqk.v2."+key, JSON.stringify(value)); } catch (_) { /* Session cache still works. */ }
 }
 async function makeBody(params) {
   var body = Object.assign({}, params), udid = await runOnce("udid",async function(){
@@ -162,7 +162,7 @@ async function discoverBases(force) {
     try { return cached.urls.map(origin); } catch (_) { /* Recover corrupt/stale configuration. */ }
   }
   try {
-    var response = await Widget.http.get(YQK.site+"/js/baseUrlList.js", { headers: { Referer: YQK.site+"/" } });
+    var response = await CCTVHttp.get(YQK.site+"/js/baseUrlList.js", { headers: { Referer: YQK.site+"/" } });
     var match = String(response.data).match(/(?:var|let|const)\s+baseApiList\s*=\s*(\[[\s\S]*?\])/);
     if (match) {
       var parsed=JSON.parse(match[1]);
@@ -197,7 +197,7 @@ async function apiRequest(path, params, budget) {
     var response;
     try {
       var body=await makeBody(params);yqkBudgetCheck(budget);
-      response = await Widget.http.post(bases[i]+path, body, { headers: {
+      response = await CCTVHttp.post(bases[i]+path, body, { headers: {
         "Content-Type": "application/json;charset=UTF-8", Referer: YQK.site+"/", Origin: YQK.site,
         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148"
       } });
@@ -432,7 +432,7 @@ async function loadDetail(link) {
   if (sources.length>1) item.childItems=sources;
   return item;
 }
-async function loadResource(params) {
+async function resolveResource(params) {
   params=params||{}; var ids=parseLink(params.link||params.id), epId=ids.epId;
   var seconds=Number(params.checkBudget==null?15:params.checkBudget);if([8,15,30].indexOf(seconds)<0)throw new Error("线路检查预算无效");
   var budget={deadline:Date.now()+seconds*1000,seconds:seconds};
@@ -502,7 +502,7 @@ async function yqkProbeHls(url,headers,budget,preference,info){var reads=0,seen=
   async function read(url,depth,keepMaster){
     yqkBudgetCheck(budget);
     if(depth>=3||reads>=5||seen[url])throw new Error("播放清单检查达到上限");seen[url]=true;reads++;
-    var r;try{r=await Widget.http.get(url,{headers:headers});}catch(error){if(/^(?:ETIMEDOUT|ESOCKETTIMEDOUT|ECONNABORTED|TIMEOUT)$/.test(error.code||'')||error.name==='TimeoutError')error.lineFailureReason='timeout';throw error;}
+    var r;try{r=await CCTVHttp.get(url,{headers:headers});}catch(error){if(/^(?:ETIMEDOUT|ESOCKETTIMEDOUT|ECONNABORTED|TIMEOUT)$/.test(error.code||'')||error.name==='TimeoutError')error.lineFailureReason='timeout';throw error;}
     var status=Number(r.statusCode||r.status);
     if(status===429){var limited=new Error("播放线路请求过于频繁，请稍后重试");limited.code="RATE_LIMIT";throw limited;}
     yqkBudgetCheck(budget);
@@ -595,7 +595,7 @@ var CollectionConfig={"description":"电影/剧集/动漫/综艺 · 资源更新
 // Common presentation and request lifecycle. Site parsers and permissions remain in their adapters.
 var CollectionCooldownUntil=0;
 (function collectionInstall(root) {
-  var meta=WidgetMetadata, config=CollectionConfig, pending=Object.create(null), last=null;
+  var meta=CCTVHostMetadata, config=CollectionConfig, pending=Object.create(null), last=null;
   var storeKey='collection.status.v1.'+meta.id, guideLink=meta.site.replace(/\/$/,'')+'/#joeshu-widget-guide';
   function text(value){return String(value==null?'':value).trim();}
   function scrub(value){return text(value).replace(/https?:\/\/\S+/g,'[地址]').replace(/(?:cookie|token|sessionSign|captcha_login_sign)\s*[:=]\s*\S+/gi,'[会话信息]').replace(/\b[a-f\d]{32,}\b/gi,'[标识]').slice(0,240);}
@@ -619,18 +619,18 @@ var CollectionCooldownUntil=0;
     e.message=(s.indexOf(meta.title)===0?'':meta.title+'：')+s;
     ['code','status','apiCode','name'].forEach(function(k){if(error&&error[k]!=null)e[k]=error[k];});return e;
   }
-  async function record(row){last={version:1,id:meta.id,at:Date.now(),stage:({loadDetail:'完整分集',loadResource:'线路检查',search:'搜索',loadHome:'首页推荐',loadLatest:'近期更新',loadCatalog:'分类片库',loadCategory:'分类片库',loadFiltered:'条件筛选'})[row.stage]||'片单加载',ok:row.ok,count:row.count==null?null:row.count,elapsedMs:row.elapsedMs,error:row.error||''};try{if(Widget.storage&&typeof Widget.storage.set==='function')await Widget.storage.set(storeKey,JSON.stringify(last));}catch(e){}}
-  async function status(){var row=last;try{if(!row&&Widget.storage){var raw=await Widget.storage.get(storeKey);if(typeof raw==='string'&&raw.length<4096){var data=JSON.parse(raw);if(data.version===1&&data.id===meta.id&&typeof data.ok==='boolean'&&Number.isFinite(data.at)&&data.at>0&&data.at<=Date.now()+60000)row=data;}}}catch(e){}
+  async function record(row){last={version:1,id:meta.id,at:Date.now(),stage:({loadDetail:'完整分集',resolveResource:'线路检查',search:'搜索',loadHome:'首页推荐',loadLatest:'近期更新',loadCatalog:'分类片库',loadCategory:'分类片库',loadFiltered:'条件筛选'})[row.stage]||'片单加载',ok:row.ok,count:row.count==null?null:row.count,elapsedMs:row.elapsedMs,error:row.error||''};try{if(CCTVStorage&&typeof CCTVStorage.set==='function')await CCTVStorage.set(storeKey,JSON.stringify(last));}catch(e){}}
+  async function status(){var row=last;try{if(!row&&CCTVStorage){var raw=await CCTVStorage.get(storeKey);if(typeof raw==='string'&&raw.length<4096){var data=JSON.parse(raw);if(data.version===1&&data.id===meta.id&&typeof data.ok==='boolean'&&Number.isFinite(data.at)&&data.at>0&&data.at<=Date.now()+60000)row=data;}}}catch(e){}
     var title=meta.title+' · '+(row?(row.ok?'最近加载成功':'最近加载受阻'):'使用说明'),description=config.guide;
     if(row){var date=new Date(row.at+8*3600000).toISOString().slice(0,16).replace('T',' ');description='最近记录：北京时间 '+date+' · '+(row.stage||'加载')+' · '+Math.round(Number(row.elapsedMs)||0)+'毫秒'+(row.count!=null?' · '+row.count+'项':'')+'\n'+(!row.ok?scrub(row.error)+'\n':'')+description+'\n这是一条历史记录，不代表原站当前在线状态。';}
     return [{id:guideLink,type:'url',link:guideLink,title:title,description:description,coverUrl:config.poster}];
   }
   root.collectionStatus=status;
-  var functions=Object.create(null);meta.modules.forEach(function(m){if(m.functionName&&!/^(?:configureSession|loadAiQuotaStatus|collectionStatus)$/.test(m.functionName))functions[m.functionName]=true;});if(meta.search)functions[meta.search.functionName]=true;functions.loadDetail=true;functions.loadResource=true;
+  var functions=Object.create(null);meta.modules.forEach(function(m){if(m.functionName&&!/^(?:configureSession|loadAiQuotaStatus|collectionStatus)$/.test(m.functionName))functions[m.functionName]=true;});if(meta.search)functions[meta.search.functionName]=true;functions.loadDetail=true;functions.resolveResource=true;
   Object.keys(functions).forEach(function(name){var original=root[name];if(typeof original!=='function')return;root[name]=function(){var args=Array.prototype.slice.call(arguments),self=this;if(name==='search'&&!text(args[0]&&args[0].keyword).replace(/[\u200b-\u200d\ufeff]/g,''))return Promise.resolve([]);
     if(name==='loadDetail'&&args[0]===guideLink)return status().then(function(items){return items[0];});
     if(Date.now()<CollectionCooldownUntil){var e=new Error(meta.title+'：原站请求过于频繁，请在30秒后重试');e.code='RATE_LIMIT';return Promise.reject(e);}
-    var key=requestKey(name,args);if(Object.keys(pending).length>=64)key=null;if(key&&pending[key])return pending[key];var start=Date.now();var promise=Promise.resolve().then(function(){return original.apply(self,args);}).then(function(value){return name==='loadDetail'||name==='loadResource'?value:resultList(value);}).then(async function(out){await record({stage:name,ok:true,count:Array.isArray(out)?out.length:null,elapsedMs:Date.now()-start});return out;},async function(error){var e=errorHint(error);await record({stage:name,ok:false,elapsedMs:Date.now()-start,error:e.message});throw e;});
+    var key=requestKey(name,args);if(Object.keys(pending).length>=64)key=null;if(key&&pending[key])return pending[key];var start=Date.now();var promise=Promise.resolve().then(function(){return original.apply(self,args);}).then(function(value){return name==='loadDetail'||name==='resolveResource'?value:resultList(value);}).then(async function(out){await record({stage:name,ok:true,count:Array.isArray(out)?out.length:null,elapsedMs:Date.now()-start});return out;},async function(error){var e=errorHint(error);await record({stage:name,ok:false,elapsedMs:Date.now()-start,error:e.message});throw e;});
     if(key){pending[key]=promise;function clean(){if(pending[key]===promise)delete pending[key];}promise.then(clean,clean);}return promise;
   };});
   meta.description=config.description;meta.detailCacheDuration=0;
@@ -640,3 +640,146 @@ var CollectionCooldownUntil=0;
   meta.modules=meta.modules.map(function(m,i){return {m:m,i:i};}).sort(function(a,b){return order(a.m)-order(b.m)||a.i-b.i;}).map(function(x){return x.m;});
   meta.modules.splice(meta.modules.findIndex(function(m){return m.type==='stream';})<0?meta.modules.length:meta.modules.findIndex(function(m){return m.type==='stream';}),0,{id:'collectionGuide',title:'使用说明与状态',functionName:'collectionStatus',cacheDuration:0,params:[]});
 })(globalThis);
+
+/* CCTVHost CatVod contract. This adapter is intentionally self-contained. */
+var CCTVHttp=(function(){
+  async function request(url,options){
+    options=options||{};
+    if(typeof net==='undefined'||!net||typeof net.http!=='function')throw new Error('CCTVHost 网络接口不可用');
+    var result=await net.http(String(url),options);
+    if(result&&result.error)throw new Error(String(result.error));
+    var content=result&&result.content,data=content;
+    if(options.buffer===1)data='';
+    else if(typeof content==='string'){
+      try{data=JSON.parse(content);}catch(_){data=content;}
+    }
+    return {statusCode:Number(result&&result.code)||0,status:Number(result&&result.code)||0,
+      headers:result&&result.headers||{},data:data,bodyBase64:options.buffer===1&&typeof content==='string'?content:''};
+  }
+  return {request:request,get:function(url,options){return request(url,options);},
+    post:function(url,body,options){options=Object.assign({},options||{},{method:'POST',body:body});return request(url,options);}};
+})();
+var CCTVStorage={
+  get:async function(key){if(typeof local==='undefined'||!local||typeof local.get!=='function')return null;return local.get('cctvhost.'+String(CCTVHostMetadata.id)+'.'+String(key));},
+  set:async function(key,value){if(typeof local==='undefined'||!local||typeof local.set!=='function')return;local.set('cctvhost.'+String(CCTVHostMetadata.id)+'.'+String(key),value==null?'':String(value));},
+  remove:async function(key){if(typeof local==='undefined'||!local||typeof local.delete!=='function')return;local.delete('cctvhost.'+String(CCTVHostMetadata.id)+'.'+String(key));}
+};
+
+function cctvCatVodText(value){return String(value==null?'':value).replace(/[\r\n\t]+/g,' ').replace(/\s+/g,' ').trim();}
+function cctvCatVodValue(item,keys){for(var i=0;i<keys.length;i++)if(item&&item[keys[i]]!=null&&item[keys[i]]!=='')return item[keys[i]];return '';}
+function cctvCatVodCards(items){
+  return (Array.isArray(items)?items:[]).map(function(item){
+    if(!item||typeof item!=='object')return null;
+    var id=cctvCatVodValue(item,['id','link']),name=cctvCatVodValue(item,['title','name']);
+    if(!id||!name)return null;
+    var cover=cctvCatVodValue(item,['coverUrl','posterPath','vod_pic']);
+    return {vod_id:String(id),vod_name:cctvCatVodText(name),vod_pic:String(cover||''),
+      vod_remarks:cctvCatVodText(cctvCatVodValue(item,['description','remark','vod_remarks'])),
+      vod_content:cctvCatVodText(cctvCatVodValue(item,['description','summary','vod_content'])),
+      vod_year:cctvCatVodText(cctvCatVodValue(item,['releaseDate','year','vod_year'])),
+      vod_area:cctvCatVodText(cctvCatVodValue(item,['area','vod_area'])),
+      vod_class:cctvCatVodText(cctvCatVodValue(item,['genreTitle','type','vod_class'])),
+      vod_actor:cctvCatVodText(cctvCatVodValue(item,['actor','vod_actor'])),
+      vod_director:cctvCatVodText(cctvCatVodValue(item,['director','vod_director']))};
+  }).filter(Boolean);
+}
+function cctvCatVodPage(items,page,maxPage){
+  var list=cctvCatVodCards(items),current=Math.max(1,Math.floor(Number(page)||1));
+  var count=Number(maxPage)||0;
+  if(!count)count=list.length?current+1:current;
+  return {page:String(current),pagecount:String(Math.max(current,count)),limit:String(list.length||20),total:String(list.length),list:list};
+}
+function cctvCatVodClasses(){
+  if(typeof Source!=='undefined'&&CCTVHostMetadata.modules){
+    var module=CCTVHostMetadata.modules.find(function(row){return row&&row.functionName==='loadCatalog';});
+    var param=module&&module.params&&module.params.find(function(row){return row.name==='channelId';});
+    if(param&&Array.isArray(param.enumOptions))return param.enumOptions.map(function(row){return {type_id:String(row.value),type_name:String(row.title)};});
+  }
+  if(typeof DYL!=='undefined')return (dylConfig&&dylConfig.index_top_nav||[]).filter(function(row){return row&&/^\d+$/.test(String(row.id));}).map(function(row){return {type_id:String(row.id),type_name:cctvCatVodText(row.name||row.title)};});
+  if(typeof YqkCategories!=='undefined'){
+    var out=[];
+    YqkCategories.forEach(function(row){out.push({type_id:String(row.id),type_name:String(row.title)});(row.children||[]).forEach(function(child){out.push({type_id:String(row.id)+':'+String(child[0]),type_name:String(row.title)+' · '+String(child[1])});});});
+    out.push({type_id:'65',type_name:'奈飞 Netflix'},{type_id:'56',type_name:'高清韩剧'});
+    return out;
+  }
+  if(typeof SjKinds!=='undefined')return SjKinds.map(function(row){return {type_id:String(row[0]),type_name:String(row[1])};});
+  return [];
+}
+function cctvCatVodEpisode(item){
+  var route=cctvCatVodValue(item,['link','id']);
+  if(!route)return null;
+  var title=cctvCatVodText(cctvCatVodValue(item,['title','name']))||'正片';
+  return {title:title.replace(/[$#]/g,' '),url:String(route)};
+}
+function cctvCatVodGroups(item){
+  var episodes=Array.isArray(item&&item.episodeItems)?item.episodeItems:[],groups=Object.create(null),order=[];
+  function add(name,episode){if(!episode)return;name=cctvCatVodText(name)||'原站线路';if(!groups[name]){groups[name]=[];order.push(name);}groups[name].push(episode);}
+  episodes.forEach(function(ep){
+    var children=Array.isArray(ep&&ep.childItems)?ep.childItems:[];
+    if(children.length){children.forEach(function(child){var title=cctvCatVodText(child&&child.title),split=title.indexOf(' · '),line=split>0?title.slice(0,split):'原站线路',episodeTitle=split>0?title.slice(split+3):cctvCatVodText(ep.title);add(line,{title:(episodeTitle||ep.title||'正片').replace(/[$#]/g,' '),url:String(child.link||child.id||'')});});}
+    else add('原站线路',cctvCatVodEpisode(ep));
+  });
+  return order.map(function(name){return {name:name,episodes:groups[name]};});
+}
+function cctvCatVodDetailRow(item,groups){
+  var row=cctvCatVodCards([item])[0];if(!row)throw new Error('站点详情缺少有效影片信息');
+  groups=(groups||cctvCatVodGroups(item)).filter(function(group){return group&&group.episodes&&group.episodes.length;});
+  if(!groups.length)throw new Error('站点没有返回可选分集');
+  row.vod_play_from=groups.map(function(group){return cctvCatVodText(group.name).replace(/[$#]/g,' ');}).join('$$$');
+  row.vod_play_url=groups.map(function(group){return group.episodes.map(function(ep){return ep.title+'$'+ep.url;}).join('#');}).join('$$$');
+  return row;
+}
+async function cctvCatVodMap(items,mapper,limit){
+  var out=new Array(items.length),next=0,workers=[];limit=Math.max(1,Math.min(Number(limit)||4,items.length||1));
+  for(var i=0;i<limit;i++)workers.push((async function(){while(next<items.length){var index=next++;out[index]=await mapper(items[index],index);}})());
+  await Promise.all(workers);return out;
+}
+async function cctvCatVodHome(){
+  if(typeof DYL!=='undefined')await dylEnsure();
+  var classes=cctvCatVodClasses(),items;
+  if(typeof YQK!=='undefined')items=await loadHome({topicId:'all'});else items=await loadHome({});
+  return {class:classes,list:cctvCatVodCards(items)};
+}
+async function cctvCatVodCategory(tid,page,filter,extend){
+  var id=String(tid||''),current=Math.max(1,Math.floor(Number(page)||1)),items,maxPage=0;
+  if(typeof YQK!=='undefined'){
+    if(id==='65'||id==='56')items=await loadCollection({channelId:id,collection:'latest',page:current});
+    else{var match=id.match(/^(\d+)(?::(\d+))?$/);if(!match)throw new Error('分类编号无效');
+      items=await loadCategory({parentChannelId:match[1],childChannelId:match[2]||extend&&extend.childChannelId||'',page:current});}
+    maxPage=Number(YQK.maxPage)||0;
+  }else if(typeof SjKinds!=='undefined'){
+    items=await loadCatalog({kind:id,genre:extend&&extend.genre||'',area:extend&&extend.area||'',year:extend&&extend.year||'',sort:extend&&extend.sort||'updated_desc',page:current});
+  }else items=await loadCatalog({channelId:id,page:current});
+  return cctvCatVodPage(items,current,maxPage);
+}
+async function cctvCatVodSearch(keyword,quick,page){
+  return cctvCatVodPage(await search({keyword:String(keyword||''),page:Math.max(1,Math.floor(Number(page)||1))}),page);
+}
+async function cctvCatVodDetail(ids){
+  var id=Array.isArray(ids)?ids[0]:ids,detail=await loadDetail(String(id||''));
+  var groups=cctvCatVodGroups(detail);
+  if(typeof YQK!=='undefined'&&Array.isArray(detail.childItems)&&detail.childItems.length){
+    var sources=detail.childItems.slice(0,24);
+    var resolved=await cctvCatVodMap(sources,async function(source){
+      try{var lineDetail=await loadDetail(String(source.link||source.id||'')),episodes=Array.isArray(lineDetail.episodeItems)?lineDetail.episodeItems:[];
+        var name=cctvCatVodText(source.title).replace(/\s*[（(].*[）)]\s*$/,'')||'原站线路';
+        return {name:name,episodes:episodes.map(cctvCatVodEpisode).filter(Boolean)};
+      }catch(_){return null;}
+    },4);
+    groups=resolved.filter(function(group){return group&&group.episodes.length;});
+  }
+  return {list:[cctvCatVodDetailRow(detail,groups)]};
+}
+async function cctvCatVodPlay(flag,id,vipFlags){
+  var result=await resolveResource({link:String(id||'')}),media=Array.isArray(result)?result[0]:result;
+  var url=String(media&&media.url||media&&media.playUrl||'');
+  if(!/^https?:\/\//i.test(url))throw new Error('站点没有返回可播放的视频地址');
+  return {parse:0,url:url,header:media.customHeaders||media.headers||media.header||{}};
+}
+module.exports={
+  home:async function(filter){return cctvCatVodHome();},
+  category:async function(tid,page,filter,extend){return cctvCatVodCategory(tid,page,filter,extend||{});},
+  search:async function(keyword,quick,page){return cctvCatVodSearch(keyword,quick,page);},
+  detail:async function(ids){return cctvCatVodDetail(ids);},
+  play:async function(flag,id,vipFlags){return cctvCatVodPlay(flag,id,vipFlags);}
+};

@@ -18,10 +18,10 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js',id+' points to its standalone CCTVHost widget');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=2',id+' points to its standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
-const makeContext=(id,respond)=>{
+const makeWidgetContext=(id,respond)=>{
   const values=new Map();
   const Widget={
     http:{get:(url,options)=>respond('GET',url,options),post:(url,body,options)=>respond('POST',url,{...options,body}),request:(options)=>respond(options.method||'GET',options.url,options)},
@@ -30,18 +30,18 @@ const makeContext=(id,respond)=>{
   };
   const context={Widget,CryptoJS,console,setTimeout,clearTimeout,Promise,Date,Math,Uint8Array,ArrayBuffer,TextEncoder,TextDecoder,atob,btoa,Buffer,process,AbortController,URL,URLSearchParams};
   context.globalThis=context;
-  vm.runInNewContext(fs.readFileSync(path.join(here,id+'.js'),'utf8'),context,{filename:id+'.js',timeout:10000});
+  vm.runInNewContext(fs.readFileSync(path.join(here,'widget',id+'.js'),'utf8'),context,{filename:'widget/'+id+'.js',timeout:10000});
   return context;
 };
 
 for(const id of names){
-  const source=fs.readFileSync(path.join(here,id+'.js'),'utf8');
-  const context=makeContext(id,async()=>{throw Error('unexpected network call');});
+  const source=fs.readFileSync(path.join(here,'widget',id+'.js'),'utf8');
+  const context=makeWidgetContext(id,async()=>{throw Error('unexpected network call');});
   const subscriptionEntry=subscription.widgets.find(widget=>widget.id==='joeshu.'+id);
   assert.equal(context.WidgetMetadata.id,'joeshu.'+id,id+' has a source-scoped identity');
   assert.ok(subscriptionEntry,id+' is present in the importable subscription');
   assert.equal(subscriptionEntry.version,context.WidgetMetadata.version,id+' subscription version matches its script');
-  assert.equal(subscriptionEntry.url,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js',id+' uses a direct raw GitHub URL');
+  assert.equal(subscriptionEntry.url,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/'+id+'.js',id+' uses a direct raw GitHub URL');
   assert.equal(typeof context.loadDetail,'function',id+' exposes detail lookup');
   assert.equal(typeof context.loadResource,'function',id+' exposes CCTVHost loadResource');
   assert.ok(context.WidgetMetadata.modules.some(module=>module.type==='stream'&&module.functionName==='loadResource'),id+' registers a playback resource module');
@@ -63,7 +63,7 @@ for(const id of names){
 for(const id of ['kkapp','ncat','happ']){
   const site=JSON.parse(fs.readFileSync(path.join(here,'../ios-app/Web/sites.json'),'utf8')).find(item=>item.id===id);
   const calls=[];
-  const context=makeContext(id,async(method,url,options={})=>{
+  const context=makeWidgetContext(id,async(method,url,options={})=>{
     calls.push({method,url,options});
     if(url.includes('/config/prod/appInit.html'))return {statusCode:200,data:{data:{urls:{cache:[site.origin],logic:[site.origin]},groups:[{id:'vod1',url:[{domain:'https://img.example/vod1'}]}]}}};
     if(url.includes('/v2/vod/detail.capi'))return {statusCode:200,data:{data:{id:'movie-1',title:'测试影片',imagePath:'/poster.webp',imageGroup:'vod1',playSources:[{siteId:'line-a',name:'主线路',episodeVodId:'season-1',list:[{id:'ep-1',title:'第1集'}]}]}}};
@@ -87,7 +87,7 @@ for(const id of ['kkapp','ncat','happ']){
 
 for(const id of ['kkapp','ncat','happ']){
   const site=JSON.parse(fs.readFileSync(path.join(here,'../ios-app/Web/sites.json'),'utf8')).find(item=>item.id===id);
-  const context=makeContext(id,async(method,url)=>{
+  const context=makeWidgetContext(id,async(method,url)=>{
     if(url.includes('/config/prod/appInit.html'))return {statusCode:200,data:{data:{urls:{cache:[site.origin],logic:[site.origin]}}}};
     if(url.includes('/v2/vod/detail.capi'))return {statusCode:200,data:{data:{id:'movie-1',title:'测试影片',playSources:[{siteId:'locked',name:'登录线路',needLogin:true,list:[{id:'ep-1',title:'第1集'}]}]}}};
     throw Error('locked route must fail closed');
@@ -97,7 +97,7 @@ for(const id of ['kkapp','ncat','happ']){
 
 {
   const calls=[];
-  const context=makeContext('dyls',async(method,url,options={})=>{
+  const context=makeWidgetContext('dyls',async(method,url,options={})=>{
     calls.push({method,url,options});
     if(url.includes('/app/config'))return {statusCode:200,data:{data:{movie_screen:{filter:[]},index_top_nav:[{id:1,name:'电影'}]}}};
     if(url.includes('/movie/detail'))return {statusCode:200,data:{data:{id:'m-1',name:'测试电影',type_name:'电影',play_from:[{code:'line-a',name:'公开线路',list:[{episode_id:'e-1',episode_name:'正片',play_url:'https://media.example/movie.m3u8',ready_to_play:true}]}]}}};
@@ -112,4 +112,120 @@ for(const id of ['kkapp','ncat','happ']){
   assert.ok(calls.some(call=>call.url.includes('signature=')),'Dyls signs the original request pack');
 }
 
-console.log('CCTVHost source contracts and mock playback paths passed for all eight sources.');
+const makeCatVodContext=id=>{
+  const values=new Map(),module={exports:{}};
+  const context={module,exports:module.exports,CryptoJS,console,setTimeout,clearTimeout,Promise,Date,Math,
+    Uint8Array,Uint16Array,Uint32Array,ArrayBuffer,TextEncoder,TextDecoder,atob,btoa,Buffer,process,
+    AbortController,URL,URLSearchParams,net:{http:async()=>{throw Error('unexpected network call');}},
+    local:{get:key=>values.get(String(key))||'',set:(key,value)=>values.set(String(key),value),delete:key=>values.delete(String(key))}};
+  context.globalThis=context;
+  const source=fs.readFileSync(path.join(here,id+'.js'),'utf8');
+  const testSetter="__testSet:function(name,value){if(name==='loadHome')loadHome=value;else if(name==='loadCatalog')loadCatalog=value;else if(name==='loadCategory')loadCategory=value;else if(name==='search')search=value;else if(name==='loadDetail')loadDetail=value;else if(name==='resolveResource')resolveResource=value;else if(name==='dylEnsure')dylEnsure=value;else if(name==='dylConfig')dylConfig=value;},";
+  const executable=source.replace('module.exports={','module.exports={__testHttp:CCTVHttp,__testStorage:CCTVStorage,'+testSetter);
+  assert.notEqual(executable,source,id+' CommonJS module has an injectable test boundary');
+  const cjsFactory=vm.runInNewContext('(function(source){return new Function("module","exports",source);})',context);
+  cjsFactory(executable)(module,module.exports);
+  return {context,source,plugin:context.module.exports};
+};
+
+function detectHostProtocol(source){
+  const widgetExtractor=source.includes('WidgetMetadata')&&source.includes('Widget.http')&&/(?:async\s+)?function\s+loadResource\s*\(/.test(source);
+  const catVodMethods=[
+    /(?:(?:async\s+)?(?:home|homeContent)\s*\(|\b(?:home|homeContent)\s*:\s*(?:async\s*)?(?:function\b|\())/,
+    /(?:(?:async\s+)?category\s*\(|\bcategory\s*:\s*(?:async\s*)?(?:function\b|\())/,
+    /(?:(?:async\s+)?detail\s*\(|\bdetail\s*:\s*(?:async\s*)?(?:function\b|\())/,
+    /(?:(?:async\s+)?play\s*\(|\bplay\s*:\s*(?:async\s*)?(?:function\b|\())/
+  ].every(pattern=>pattern.test(source));
+  const catVodQuickJS=catVodMethods&&(source.includes('export default')||source.includes('module.exports'));
+  if(widgetExtractor)return 'widget-extractor';
+  if(catVodQuickJS)return 'catvod-js';
+  return 'cctvhost.media/1';
+}
+
+for(const id of names){
+  const {context,source,plugin}=makeCatVodContext(id);
+  assert.equal(detectHostProtocol(source),'catvod-js',id+' is recognized by CCTVHost as a complete CatVod JavaScript source');
+  assert.doesNotMatch(source,/\brequire\s*\(\s*['"]/,id+' does not trigger a missing external Node dependency');
+  for(const method of ['home','category','search','detail','play'])assert.equal(typeof plugin[method],'function',id+' exports CatVod '+method);
+
+  const httpCalls=[];
+  context.net.http=async(url,options)=>{httpCalls.push({url,options});return {code:200,headers:{'content-type':'application/json'},content:'{"ok":true}'};};
+  const bridged=await plugin.__testHttp.get('https://fixture.example/api',{headers:{'X-Fixture':'yes'}});
+  assert.equal(bridged.statusCode,200,id+' bridges CCTVHost net.http status');
+  assert.equal(bridged.data.ok,true,id+' decodes JSON responses for the source adapters');
+  assert.equal(httpCalls[0].options.headers['X-Fixture'],'yes',id+' preserves request headers');
+  await plugin.__testHttp.post('https://fixture.example/api','payload',{headers:{'X-Method':'post'}});
+  assert.equal(httpCalls[1].options.method,'POST',id+' bridges source POST requests');
+  assert.equal(httpCalls[1].options.body,'payload',id+' preserves POST bodies');
+  await plugin.__testStorage.set('fixture-key','fixture-value');
+  assert.equal(await plugin.__testStorage.get('fixture-key'),'fixture-value',id+' maps persistent storage');
+
+  const fixtureCard={id:'https://media.example/'+id+'/movie?id=movie-1',title:'测试影片',coverUrl:'https://img.example/poster.jpg',description:'测试简介'};
+  const fixtureDetail={...fixtureCard,episodeItems:[{id:'https://media.example/'+id+'/episode?id=ep-1',link:'https://media.example/'+id+'/episode?id=ep-1',title:'第1集'}]};
+  let categoryArgs=null,searchArgs=null;
+  const mockLoadHome=async()=>[fixtureCard];
+  const mockLoadCatalog=async args=>{categoryArgs=args;return [fixtureCard];};
+  const mockLoadCategory=async args=>{categoryArgs=args;return [fixtureCard];};
+  const mockSearch=async args=>{searchArgs=args;return [fixtureCard];};
+  const mockLoadDetail=async link=>{
+    if(id==='yqk'||id==='qntv'){
+      if(String(link).includes('line-a'))return {...fixtureDetail,episodeItems:[{id:'https://media.example/yqk/a-1',link:'https://media.example/yqk/a-1',title:'第1集'}]};
+      if(String(link).includes('line-b'))return {...fixtureDetail,episodeItems:[{id:'https://media.example/yqk/b-1',link:'https://media.example/yqk/b-1',title:'第1集'}]};
+      return {...fixtureDetail,childItems:[
+        {id:'https://media.example/yqk/line-a',link:'https://media.example/yqk/line-a',title:'线路A（1集）'},
+        {id:'https://media.example/yqk/line-b',link:'https://media.example/yqk/line-b',title:'线路B（1集）'}]};
+    }
+    if(['kkapp','ncat','happ','dyls'].includes(id))return {...fixtureDetail,episodeItems:[{...fixtureDetail.episodeItems[0],childItems:[
+      {id:'https://media.example/'+id+'/line-a-1',link:'https://media.example/'+id+'/line-a-1',title:'线路A · 第1集'},
+      {id:'https://media.example/'+id+'/line-b-1',link:'https://media.example/'+id+'/line-b-1',title:'线路B · 第1集'}]}]};
+    return fixtureDetail;
+  };
+  const mockResolveResource=async()=>[{url:'https://media.example/play/master.m3u8',customHeaders:{Referer:'https://media.example/'}}];
+  plugin.__testSet('loadHome',mockLoadHome);
+  plugin.__testSet('loadCatalog',mockLoadCatalog);
+  plugin.__testSet('loadCategory',mockLoadCategory);
+  plugin.__testSet('search',mockSearch);
+  plugin.__testSet('loadDetail',mockLoadDetail);
+  plugin.__testSet('resolveResource',mockResolveResource);
+  if(id==='dyls'){
+    const config={index_top_nav:[{id:1,name:'电影'}]};
+    plugin.__testSet('dylConfig',config);
+    plugin.__testSet('dylEnsure',async()=>config);
+  }
+
+  const home=await plugin.home(true);
+  assert.equal(home.list.length,1,id+' home call returns playable cards');
+  assert.equal(home.list[0].vod_name,'测试影片',id+' maps site cards to CatVod fields');
+  assert.ok(Array.isArray(home.class),id+' home call returns site categories');
+
+  const typeId=id==='yqk'||id==='qntv'?'2:9':(id==='souju'||id==='kanju'?'movie':'1');
+  const category=await plugin.category(typeId,'2',true,{});
+  assert.equal(category.list.length,1,id+' category call returns playable cards');
+  assert.equal(category.page,'2',id+' category call preserves requested page');
+  assert.ok(categoryArgs,id+' category call reaches the source adapter');
+  if(id==='yqk'||id==='qntv'){
+    assert.equal(String(categoryArgs.parentChannelId),'2',id+' maps parent channel');
+    assert.equal(String(categoryArgs.childChannelId),'9',id+' maps child category');
+  }else if(id==='souju'||id==='kanju')assert.equal(categoryArgs.kind,'movie',id+' maps content kind');
+  else assert.equal(String(categoryArgs.channelId),'1',id+' maps source channel');
+
+  const search=await plugin.search('关键词',false,'3');
+  assert.equal(search.list.length,1,id+' search call returns playable cards');
+  assert.equal(searchArgs.keyword,'关键词',id+' forwards the search query');
+  assert.equal(String(searchArgs.page),'3',id+' forwards the search page');
+
+  const detail=await plugin.detail(fixtureCard.id);
+  assert.equal(detail.list.length,1,id+' detail call returns a video record');
+  assert.equal(detail.list[0].vod_name,'测试影片',id+' maps detail to CatVod fields');
+  assert.ok(detail.list[0].vod_play_from,id+' detail call exposes a selectable line');
+  assert.ok(detail.list[0].vod_play_url.includes('$https://media.example/'),id+' detail call exposes episode routes');
+  if(['kkapp','ncat','happ','dyls'].includes(id))assert.match(detail.list[0].vod_play_from,/线路A.*线路B/,id+' preserves alternate episode sources');
+  if(id==='yqk'||id==='qntv')assert.match(detail.list[0].vod_play_from,/线路A.*线路B/,id+' expands top-level source routes');
+
+  const playback=await plugin.play('线路A','https://media.example/'+id+'/episode?id=ep-1',[]);
+  assert.equal(playback.parse,0,id+' marks resolved media as a direct stream');
+  assert.equal(playback.url,'https://media.example/play/master.m3u8',id+' returns the source media URL');
+  assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
+}
+
+console.log('CCTVHost Widget compatibility plus CatVod detection and mocked home/category/search/detail/play calls passed for all eight sources.');
