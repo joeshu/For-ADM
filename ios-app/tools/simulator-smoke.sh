@@ -10,7 +10,7 @@ simulator_failure() {
   mkdir -p dist
   if [ -n "${sim_device:-}" ]; then
     xcrun simctl list devices available >&2
-    xcrun simctl spawn "$sim_device" log show --last 10m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log
+    xcrun simctl spawn "$sim_device" log show --last 2m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log
     xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png >&2
   fi
   exit "$status"
@@ -38,7 +38,7 @@ xcrun simctl install "$sim_device" "$sim_app"
 sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
 xcrun simctl launch "$sim_device" com.joeshu.sanyuan
 sim_data="$(xcrun simctl get_app_container "$sim_device" com.joeshu.sanyuan data)"
-for attempt in $(seq 1 80); do
+for attempt in $(seq 1 200); do
   if [ -f "$sim_data/Library/Caches/sanyuan-smoke.json" ] && [ ! -f dist/simulator-smoke.json ]; then
     cp "$sim_data/Library/Caches/sanyuan-smoke.json" dist/simulator-smoke.json
     xcrun simctl io "$sim_device" screenshot dist/simulator-home.png
@@ -87,7 +87,7 @@ if [ -f "$sim_data/Library/Caches/sanyuan-navigation-smoke-debug.json" ]; then
   cp "$sim_data/Library/Caches/sanyuan-navigation-smoke-debug.json" dist/simulator-navigation-debug.json
   cat dist/simulator-navigation-debug.json >&2
 fi
-xcrun simctl spawn "$sim_device" log show --last 10m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log || true
+xcrun simctl spawn "$sim_device" log show --last 2m --style compact --predicate 'process == "Sanyuan" OR eventMessage CONTAINS[c] "Sanyuan"' 2>&1 | tail -n 250 > dist/simulator-system.log || true
 find "$sim_data/Library/Logs/CrashReporter" -type f -iname '*sanyuan*' -print -exec cat {} \; >> dist/simulator-system.log 2>/dev/null || true
 find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 2 -type f \( -iname '*sanyuan*' -o -iname '*com.joeshu.sanyuan*' \) -print -exec cat {} \; >> dist/simulator-system.log 2>/dev/null || true
 xcrun simctl io "$sim_device" screenshot dist/simulator-failure.png || true

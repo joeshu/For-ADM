@@ -11,7 +11,7 @@ guard FileManager.default.fileExists(atPath: path),
 }
 
 let request = VNRecognizeTextRequest()
-request.recognitionLevel = .accurate
+request.recognitionLevel = .fast
 request.recognitionLanguages = ["zh-Hans", "en-US"]
 request.usesLanguageCorrection = false
 do {
