@@ -45,8 +45,11 @@ jobs:
           python3 ios-app/tools/check-ipa.py "$IPA_PATH"
           VERSION="$(basename "$IPA_PATH" | sed -E 's/^Sanyuan-(.*)-unsigned\.ipa$/\1/')"
           TAG="v$VERSION"
-          gh release create "$TAG" "$IPA_PATH" \
-            --repo "$GH_REPOSITORY" \
-            --target "$HEAD_SHA" \
-            --title "三源影视 $VERSION · 无签名 IPA" \
-            --notes "iOS 无签名安装包。对应提交：$HEAD_SHA。构建、站点测试、原生编译及 iOS 模拟器检查均已通过。"
+          if ! gh release view "$TAG" --repo "$GH_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --repo "$GH_REPOSITORY" \
+              --target "$HEAD_SHA" \
+              --title "三源影视 $VERSION · 无签名 IPA" \
+              --notes "iOS 无签名安装包。对应提交：$HEAD_SHA。构建、站点测试、原生编译及 iOS 模拟器检查均已通过。"
+          fi
+          gh release upload "$TAG" "$IPA_PATH" --repo "$GH_REPOSITORY" --clobber
