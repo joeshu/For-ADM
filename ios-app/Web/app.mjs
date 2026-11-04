@@ -276,7 +276,7 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title"><div class="settings-card-heading"><span class="settings-icon">⌁</span><div><h2 id="settings-network-title">数据线路</h2><p>选择数据请求优先使用的线路</p></div><button class="settings-action" data-act="probe-lines">检测</button></div>
    <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${(c.config?.urls?.[kind]||[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}).slice(0,5).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button class="settings-line" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'优先':health?health.ok?`${health.ms} ms`:'暂不可用':'未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}</div>
   </section>
-  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.56 · iOS 15 及以上</p></div></div><p>八个影视片库来源提供原生首页、分类、搜索、详情与播放线路。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
+  <section class="settings-card settings-about" aria-labelledby="settings-about-title"><div class="settings-card-heading"><span class="settings-icon">✦</span><div><h2 id="settings-about-title">关于三源影视</h2><p>版本 0.2.57 · iOS 15 及以上</p></div></div><p>八个影视片库来源提供原生首页、分类、搜索、详情与播放线路。</p><button class="settings-about-action" data-act="refresh-config">更新站点配置 <span>›</span></button></section>
  </div>`;
 }
 function isPreviewPlayback(){return state.detail?.playSources?.[state.line]?.preview===true||state.playURLs[state.playIndex]?.preview===true;}
@@ -372,7 +372,7 @@ function nativeMovieCard(movie,source=state.site,subtitle){
  return {...movie,id:String(movie.id||''),source,subtitle:subtitle||movie.subtitle||'',imageURLs:posterURLsFor(movie,source),imageReferer:sourceSite?.origin?new URL(sourceSite.origin).origin+'/':'',route:movie.route||null};
 }
 function nativePageSnapshot(){
- const source=state.site,detailData=state.detail,origin=site()?.origin||'',posterReferer=/^https:\/\//i.test(origin)?new URL(origin).origin+'/':'',base={page:state.page,theme:state.theme,site:source,siteName:site().name,posterReferer,sites:sites.map(item=>({id:item.id,name:item.name})),loading:state.loading,error:state.error||'',columns:state.columns,adultEnabled:state.adultEnabled,query:state.query,clearConfirm:nativeClearConfirm};
+ const source=state.site,detailData=state.detail,origin=site()?.origin||'',posterReferer=/^https:\/\//i.test(origin)?new URL(origin).origin+'/':'',posterKeysBySite=Object.fromEntries(sites.filter(item=>Array.isArray(item.assetKeys)&&item.assetKeys.length).map(item=>[item.id,item.assetKeys])),base={page:state.page,theme:state.theme,site:source,siteName:site().name,posterReferer,posterKeysBySite,sites:sites.map(item=>({id:item.id,name:item.name})),loading:state.loading,error:state.error||'',columns:state.columns,adultEnabled:state.adultEnabled,query:state.query,clearConfirm:nativeClearConfirm};
  if(state.page==='home'){
   const picks=homePicks(),hero=picks[state.heroIndex%Math.max(1,picks.length)];
   const recent=read('history').filter(row=>row.siteId===source&&(state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5))).sort((a,b)=>b.updated-a.updated).slice(0,8).map(row=>nativeMovieCard(row.movie,row.siteId,row.episodeTitle));
@@ -398,7 +398,7 @@ function nativePageSnapshot(){
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,list=read(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated).map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.56'};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},cleanHLS:state.cleanHLS,playbackRate:state.playbackRate,version:'0.2.57'};
  }
  return {...base};
 }
