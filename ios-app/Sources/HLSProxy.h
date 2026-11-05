@@ -51,7 +51,7 @@
 }
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers {
  [self prepare:url headers:headers enabled:NO];
- if(!self.port||![url.path.lowercaseString hasSuffix:@".m3u8"])return url;
+ if(!self.port)return url;
  return [self mapped:url]?:url;
 }
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled {

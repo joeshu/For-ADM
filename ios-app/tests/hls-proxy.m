@@ -54,6 +54,8 @@ int main(int argc,char**argv){@autoreleasepool{
  get(old,@"GET",nil,&response);NSCAssert(response.statusCode==404,@"old token still usable");
  NSURL*direct=[p prepare:[NSURL URLWithString:@"https://fixture.test/master.m3u8"] headers:@{} enabled:NO];NSCAssert([direct.scheme isEqual:@"https"],@"off switch still proxies");
  NSURL*directMP4=[p prepare:[NSURL URLWithString:@"https://fixture.test/episode.mp4"] headers:@{} enabled:YES];NSCAssert([directMP4.scheme isEqual:@"https"],@"clear MP4 should use the original direct playback path");
+ NSURL*liveNoExt=[p prepareLive:[NSURL URLWithString:@"https://fixture.test/608807420"] headers:@{}];NSCAssert([liveNoExt.host isEqual:@"127.0.0.1"],@"live URL without .m3u8 should be proxied so the proxy can follow its redirect to the real HLS stream");
+ NSURL*liveM3U8=[p prepareLive:[NSURL URLWithString:@"https://fixture.test/relay/cctv1.m3u8"] headers:@{}];NSCAssert([liveM3U8.host isEqual:@"127.0.0.1"],@"live .m3u8 URL should stay proxied");
  NSLog(@"Media transport passed: nested playlists, ad removal, relative URLs, Referer, Range, HEAD, encrypted keys/maps, token replacement and direct MP4.");
  nw_listener_cancel(p.listener);[p.session invalidateAndCancel];return 0;
 }}
