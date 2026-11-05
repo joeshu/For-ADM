@@ -24,7 +24,7 @@
 
 构建号（CFBundleVersion）由 CI 工作流运行号派生，本地构建默认 61；`Web/app.js`、`Web/hls-cleaner.js`、`Web/sites-data.mjs` 是 `npm run build:web` 的生成物，不提交进仓库，构建前会自动生成。
 
-1.0 首个 1.x 版本。版本号集中到 `package.json` 一个来源（构建、App 内显示、CI 产物路径均由此派生）；构建号（CFBundleVersion）改由 CI 运行号自动派生，发布时校验与构建记录一致；删除已废弃的旧发布工作流与 3 个无引用死工具；`Web/app.js` 等生成物移出版本库（构建时自动重建）；`Sources/main.m` 抽取重复的卡片创建逻辑；新增 build-web 回归测试。
+1.0.0 首个 1.x 版本。版本号集中到 `package.json` 一个来源（构建、App 内显示、CI 产物路径均由此派生）；构建号（CFBundleVersion）改由 CI 运行号自动派生，发布时校验与构建记录一致；删除已废弃的旧发布工作流与 3 个无引用死工具；`Web/app.js` 等生成物移出版本库（构建时自动重建）；`Sources/main.m` 抽取重复的卡片创建逻辑；新增 build-web 回归测试。
 
 0.2.59 回退 0.2.58 的图片会话改动，恢复上一版原生图片请求路径；同时为一起看、青柠 TV 的 `yqk.j3kjn242sq.com` 封面增加经线上实测的 `qntv.j3kjn242sq.com` 镜像地址作为备用。抽测同一路径在两个域名均返回相同 JPEG 数据；原生端并行尝试两址，任一成功即显示。保留站点加密 WebP 解码。
 
