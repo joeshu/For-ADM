@@ -5,6 +5,14 @@ The stubs are link-time metadata only. System frameworks ship on the device.
 import argparse,os,pathlib,subprocess,json,plistlib,zipfile,shutil,hashlib
 from macho import inspect
 root=pathlib.Path(__file__).resolve().parents[1]
+# Marketing version comes from package.json (single source of truth); the IPA
+# filename and CFBundleShortVersionString derive from it. CFBundleVersion is a
+# monotonically increasing build counter: CI sets SANYUAN_BUILD_NUMBER to the
+# workflow run number (133 at 2d8c7b7, well past the old manual counter 61);
+# local builds without it keep '61'.
+version=json.loads((root/'package.json').read_text())['version']
+build_number=os.environ.get('SANYUAN_BUILD_NUMBER','61')
+if not build_number.isdigit() or int(build_number)<=0:raise ValueError('SANYUAN_BUILD_NUMBER must be a positive integer, got '+repr(build_number))
 p=argparse.ArgumentParser();p.add_argument('--clang');p.add_argument('--linker');p.add_argument('--binary',help='Package an existing SDK-built executable');p.add_argument('--out',default=str(root/'dist'));args=p.parse_args()
 out=pathlib.Path(args.out).resolve();work=out/'build';work.mkdir(parents=True,exist_ok=True)
 app=out/'Payload/Sanyuan.app';app.mkdir(parents=True,exist_ok=True)
@@ -39,7 +47,7 @@ else:
     for provider in groups:
         link+=['-l'+provider] if provider in ('System','objc') else ['-framework',provider]
     subprocess.run(link,check=True);os.chmod(app/'Sanyuan',0o755)
-info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString='0.2.59',CFBundleVersion='61',CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsArbitraryLoads':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
+info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString=version,CFBundleVersion=build_number,CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsArbitraryLoads':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
 info['UIBackgroundModes']=['audio']
 info['UIApplicationSceneManifest']={'UIApplicationSupportsMultipleScenes':False,'UISceneConfigurations':{'UIWindowSceneSessionRoleApplication':[{'UISceneConfigurationName':'Default Configuration','UISceneDelegateClassName':'SYSceneDelegate'}]}}
 info['CFBundleIcons~ipad']={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon76x76','AppIcon83.5x83.5']}}
@@ -52,7 +60,7 @@ for icon in (root/'Resources').glob('*.png') if (root/'Resources').exists() else
 metadata=inspect((app/'Sanyuan').read_bytes())
 assert metadata['cpu']==0x100000c and metadata['kind']==2 and metadata['platform'][0]==2 and not metadata['signed']
 assert not (app/'embedded.mobileprovision').exists() and not (app/'_CodeSignature').exists()
-ipa=out/'Sanyuan-0.2.59-unsigned.ipa'
+ipa=out/f'Sanyuan-{version}-unsigned.ipa'
 with zipfile.ZipFile(ipa,'w',zipfile.ZIP_DEFLATED) as z:
     for f in sorted((out/'Payload').rglob('*')):
         if f.is_file():z.write(f,f.relative_to(out))

@@ -20,7 +20,9 @@
 
 ## 安装
 
-产物：`dist/Sanyuan-0.2.59-unsigned.ipa`。
+产物：`dist/Sanyuan-<版本号>-unsigned.ipa`（版本号与 `package.json` 一致，由构建脚本自动生成）。
+
+构建号（CFBundleVersion）由 CI 工作流运行号派生，本地构建默认 61；`Web/app.js`、`Web/hls-cleaner.js`、`Web/sites-data.mjs` 是 `npm run build:web` 的生成物，不提交进仓库，构建前会自动生成。
 
 0.2.59 回退 0.2.58 的图片会话改动，恢复上一版原生图片请求路径；同时为一起看、青柠 TV 的 `yqk.j3kjn242sq.com` 封面增加经线上实测的 `qntv.j3kjn242sq.com` 镜像地址作为备用。抽测同一路径在两个域名均返回相同 JPEG 数据；原生端并行尝试两址，任一成功即显示。保留站点加密 WebP 解码。
 
@@ -110,7 +112,7 @@ bash tools/build-macos.sh
 npm ci
 npm run build:web
 python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py dist/Sanyuan-0.2.59-unsigned.ipa
+python3 tools/check-ipa.py "dist/Sanyuan-$(node -p "require('./package.json').version")-unsigned.ipa"
 ```
 
 `Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。

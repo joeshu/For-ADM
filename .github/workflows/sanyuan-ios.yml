@@ -11,6 +11,9 @@ on:
       - '.github/workflows/sanyuan-ios.yml'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: macos-15-intel
@@ -35,6 +38,10 @@ jobs:
         run: npm run build:web && bash tools/check-hls-macos.sh
       - name: Compile with iPhoneOS SDK and package without signing
         working-directory: ios-app
+        env:
+          # CFBundleVersion derives from the workflow run number (monotonic);
+          # cross-build.py falls back to 61 for local builds without this env.
+          SANYUAN_BUILD_NUMBER: ${{ github.run_number }}
         run: bash tools/build-macos.sh
       - name: Launch in iOS simulator and verify native media playback
         working-directory: ios-app
@@ -48,7 +55,9 @@ jobs:
         with:
           name: Sanyuan-unsigned-ipa
           overwrite: true
-          path: ios-app/dist/Sanyuan-0.2.59-unsigned.ipa
+          # IPA filename carries the package.json version; match it by glob so
+          # a version bump does not break the upload (fresh checkout = one IPA).
+          path: ios-app/dist/Sanyuan-*-unsigned.ipa
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()

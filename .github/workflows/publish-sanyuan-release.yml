@@ -39,18 +39,22 @@ jobs:
           run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID")"
           jq -e '.name == "Sanyuan unsigned iOS app" and .event == "push" and .head_branch == "master" and .conclusion == "success"' <<<"$run_json" >/dev/null
           source_sha="$(jq -r '.head_sha' <<<"$run_json")"
+          run_number="$(jq -r '.run_number' <<<"$run_json")"
           mapfile -t ipa_files < <(find dist -maxdepth 2 -type f -name 'Sanyuan-*-unsigned.ipa' -print)
           [[ "${#ipa_files[@]}" -eq 1 ]]
           ipa="${ipa_files[0]}"
           expected_ipa="dist/Sanyuan-${expected_tag#v}-unsigned.ipa"
           [[ "$ipa" == "$expected_ipa" ]]
           python3 ios-app/tools/check-ipa.py "$ipa"
-          python3 - "$ipa" "${expected_tag#v}" <<'PY'
+          python3 - "$ipa" "${expected_tag#v}" "$run_number" <<'PY'
           import plistlib,sys,zipfile
           with zipfile.ZipFile(sys.argv[1]) as archive:
               info=plistlib.loads(archive.read('Payload/Sanyuan.app/Info.plist'))
           assert info['CFBundleShortVersionString']==sys.argv[2], info
-          print('Verified release version:',info['CFBundleShortVersionString'])
+          # CFBundleVersion must equal the source build run number (cross-build
+          # derives it from SANYUAN_BUILD_NUMBER=github.run_number in CI).
+          assert info['CFBundleVersion']==sys.argv[3], info
+          print('Verified release version:',info['CFBundleShortVersionString'],'build:',info['CFBundleVersion'])
           PY
           echo "SOURCE_SHA=$source_sha" >> "$GITHUB_ENV"
           echo "IPA_PATH=$ipa" >> "$GITHUB_ENV"
@@ -71,9 +75,7 @@ jobs:
           cat > "$notes" <<EOF
           三源影视 $version，整合多个影视来源、原生直播页和系统播放器。
 
-          本版回到上一版原生图片会话实现，并为一起看、青柠 TV 增加经实测可用的备用海报域名；原地址和备用地址会同时尝试，任一成功即显示。CI 检查封面 URL 映射、加密 WebP 解码、未签名 IPA 与原生页面集成。
-
-          CI 检查未签名 IPA 结构、原生页面和播放器集成。模拟器检查不代表所有设备或线路都已通过验证。上游接口与客户端参数仍可能变化。
+          CI 检查未签名 IPA 结构、原生页面和播放器集成。模拟器检查不代表所有设备或线路都已通过验证。上游接口与客户端参数仍可能变化。各版本的具体改动见仓库 README 的版本记录。
 
           这是未签名 IPA，安装前需使用自己的合法签名方式签名。CI 构建与 iOS 模拟器播放检查：[运行 #$BUILD_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN_ID)。
 
