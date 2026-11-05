@@ -104,6 +104,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.ystj",
+      "name": "影视追剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/ystj.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
