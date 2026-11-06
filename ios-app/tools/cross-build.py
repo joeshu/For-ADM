@@ -21,7 +21,8 @@ if args.binary:
     shutil.copy2(args.binary,app/'Sanyuan')
 else:
     subprocess.run([args.clang,'-target','arm64-apple-ios15.0','-fobjc-arc','-fblocks','-Oz','-fno-ident','-c',str(root/'Sources/main.m'),'-o',str(work/'app.o')],check=True)
-    imports=inspect((work/'app.o').read_bytes())['undefined'];groups={}
+    subprocess.run([args.clang,'-target','arm64-apple-ios15.0','-fobjc-arc','-fblocks','-Oz','-fno-ident','-c',str(root/'Sources/SYCicadaLivePlayer.m'),'-o',str(work/'cicada.o')],check=True)
+    imports=sorted(set(inspect((work/'app.o').read_bytes())['undefined'])|set(inspect((work/'cicada.o').read_bytes())['undefined']));groups={}
     for symbol in imports:
         if symbol.startswith(('_CMTime','_CMFormatDescription')):provider='CoreMedia'
         elif symbol.startswith(('_SecItem','_kSec')):provider='Security'
@@ -30,9 +31,10 @@ else:
         elif symbol.startswith('_OBJC_CLASS_$_WK'):provider='WebKit'
         elif symbol in ('_OBJC_CLASS_$_AVPlayerViewController','_OBJC_METACLASS_$_AVPlayerViewController'):provider='AVKit'
         elif symbol.startswith(('_OBJC_CLASS_$_AV','_AVAudioSession','_AVAudioTimePitch','_AVLayerVideoGravity','_AVMetadata')):provider='AVFoundation'
+        elif symbol.startswith('_CG'):provider='CoreGraphics'
         elif symbol=='___CFConstantStringClassReference':provider='CoreFoundation'
-        elif symbol.startswith('_OBJC_CLASS_$_NS') or symbol in ('_NSStringFromClass','___NSDictionary0__','___NSArray0__'):provider='Foundation'
-        elif symbol.startswith(('__NSConcrete','__Block_','_dispatch_','__dispatch_','__Unwind_')) or symbol in ('___stack_chk_fail','___stack_chk_guard','_memcpy','_memset'):provider='System'
+        elif symbol.startswith('_OBJC_CLASS_$_NS') or symbol in ('_NSStringFromClass','___NSDictionary0__','___NSArray0__','_NSClassFromString','_NSSelectorFromString','_NSLocalizedDescriptionKey'):provider='Foundation'
+        elif symbol.startswith(('__NSConcrete','__Block_','_dispatch_','__dispatch_','__Unwind_')) or symbol in ('___stack_chk_fail','___stack_chk_guard','_memcpy','_memset','_llround'):provider='System'
         else:raise RuntimeError('Unreviewed framework import: '+symbol)
         groups.setdefault(provider,[]).append(symbol)
     groups.setdefault('System',[]).append('dyld_stub_binder')
@@ -43,7 +45,7 @@ else:
             folder=work/(provider+'.framework');folder.mkdir(exist_ok=True);file=folder/(provider+'.tbd');install='/System/Library/Frameworks/'+provider+'.framework/'+provider
         file.write_text('--- !tapi-tbd\ntbd-version: 4\ntargets: [ arm64-ios ]\ninstall-name: '+json.dumps(install)+'\nexports:\n  - targets: [ arm64-ios ]\n    symbols: '+json.dumps(symbols)+'\n...\n')
     app=out/'Payload/Sanyuan.app';app.mkdir(parents=True,exist_ok=True)
-    link=[args.linker,'-arch','arm64','-platform_version','ios','15.0','18.0','-e','_main','-pie','-dead_strip','-no_adhoc_codesign','-no_fixup_chains','-headerpad','0x1000','-L'+str(work),'-F'+str(work),str(work/'app.o'),'-o',str(app/'Sanyuan')]
+    link=[args.linker,'-arch','arm64','-platform_version','ios','15.0','18.0','-e','_main','-pie','-dead_strip','-no_adhoc_codesign','-no_fixup_chains','-headerpad','0x1000','-L'+str(work),'-F'+str(work),'-F'+str(root/'Frameworks'),str(work/'app.o'),str(work/'cicada.o'),'-framework','CicadaPlayerSDK','-framework','alivcffmpeg','-rpath','@executable_path/Frameworks','-o',str(app/'Sanyuan')]
     for provider in groups:
         link+=['-l'+provider] if provider in ('System','objc') else ['-framework',provider]
     subprocess.run(link,check=True);os.chmod(app/'Sanyuan',0o755)
@@ -57,6 +59,14 @@ with (app/'Info.plist').open('wb') as f:plistlib.dump(info,f)
 shutil.copytree(root/'Web',app/'Web',dirs_exist_ok=True)
 for license_file in (root/'Resources').glob('*.txt'):shutil.copy2(license_file,app/license_file.name)
 for icon in (root/'Resources').glob('*.png') if (root/'Resources').exists() else []:shutil.copy2(icon,app/icon.name)
+# Embed bundled device frameworks (CicadaPlayerSDK + alivcffmpeg, arm64 thin)
+# into the app bundle so the @rpath-linked main binary finds them at runtime.
+# Skipped when ios-app/Frameworks/ is absent (--binary may be reused elsewhere).
+frameworks_dir=root/'Frameworks'
+if frameworks_dir.is_dir():
+    app_frameworks=app/'Frameworks';app_frameworks.mkdir(exist_ok=True)
+    for framework in sorted(frameworks_dir.glob('*.framework')):
+        shutil.copytree(framework,app_frameworks/framework.name,dirs_exist_ok=True)
 metadata=inspect((app/'Sanyuan').read_bytes())
 assert metadata['cpu']==0x100000c and metadata['kind']==2 and metadata['platform'][0]==2 and not metadata['signed']
 assert not (app/'embedded.mobileprovision').exists() and not (app/'_CodeSignature').exists()
