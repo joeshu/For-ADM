@@ -1,5 +1,6 @@
 #import "RuntimeSDK.h"
 #import "HLSProxy.h"
+#import "SYCicadaLivePlayer.h"
 #import <zlib.h>
 #import <CommonCrypto/CommonCryptor.h>
 #import <objc/runtime.h>
@@ -119,7 +120,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (SYLiveActionButton*)shelfCardForMovie:(NSDictionary*)movie frame:(CGRect)frame cardWidth:(CGFloat)cardWidth posterHeight:(CGFloat)posterHeight;
 - (NSUInteger)shelfColumnCount;
 @end
-@interface SYController:UIViewController<WKNavigationDelegate>
+@interface SYController:UIViewController<WKNavigationDelegate,SYCicadaLivePlayerDelegate>
 @property(nonatomic,strong) WKWebView*web;
 @property(nonatomic,strong) SYHLSProxy*hlsProxy;
 @property(nonatomic,strong) SYBridge*bridge;
@@ -142,6 +143,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic) BOOL nativeVideoReady;
 @property(nonatomic) BOOL liveRendererAttached;
 @property(nonatomic) NSUInteger liveRendererAttachAttempts;
+@property(nonatomic,strong,nullable) SYCicadaLivePlayer*cicadaLivePlayer;
+@property(nonatomic) BOOL cicadaFallbackActive;
+@property(nonatomic) BOOL cicadaFallbackAttempted;
+@property(nonatomic,strong,nullable) NSDictionary*livePlaybackHeaders;
 #if defined(SY_SIMULATOR_SMOKE)
 @property(nonatomic) NSInteger smokeAttempts;
 @property(nonatomic) BOOL smokePlayerReady;
@@ -160,6 +165,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)receive:(WKScriptMessage*)message;
 - (void)inspectLiveVideoTracksForItem:(AVPlayerItem*)item;
 - (void)attachLiveLayerRendererForItem:(AVPlayerItem*)item;
+- (BOOL)tryCicadaFallbackForItem:(AVPlayerItem*)item;
+- (void)destroyCicadaPlayer;
 - (void)sendLiveActionScript:(NSString*)script;
 - (void)sendPageAction:(NSString*)action payload:(NSDictionary*)payload;
 @end
@@ -196,6 +203,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)layoutEmbeddedPlayer {
  SYController*owner=self.owner;SYPlayerViewController*player=owner.nativePlayer;
  if(!player||player.fullScreen||player.pictureInPicture||![owner.playContext hasPrefix:@"live:"])return;
+ if(owner.cicadaFallbackActive&&owner.cicadaLivePlayer){UIView*cicadaView=owner.cicadaLivePlayer.playerView;if(cicadaView.superview!=self.playerHost){[cicadaView removeFromSuperview];[self.playerHost addSubview:cicadaView];}cicadaView.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;cicadaView.hidden=NO;cicadaView.frame=self.playerHost.bounds;[self.playerHost bringSubviewToFront:cicadaView];[self.playerHost bringSubviewToFront:self.routePicker];return;}
  if(player.view.superview!=self.playerHost){[player.view removeFromSuperview];[self.playerHost addSubview:player.view];}
  player.showsPlaybackControls=NO;player.videoGravity=AVLayerVideoGravityResizeAspect;player.view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;player.view.hidden=NO;player.view.alpha=1;player.view.frame=self.playerHost.bounds;
  [self.playerHost bringSubviewToFront:self.routePicker];
@@ -619,6 +627,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 }
 #endif
 - (void)stopNativePlayback {
+  [self destroyCicadaPlayer];
   if(self.nativeItem){@try{[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}@try{[self.nativeItem removeObserver:self forKeyPath:@"presentationSize" context:&SYVideoPresentationSize];}@catch(NSException*exception){}self.nativeItem=nil;}
   if(self.liveScreen.liveRendererLayer){@try{[self.liveScreen.liveRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYLiveRendererDisplayReady];}@catch(NSException*exception){}self.liveScreen.liveRendererLayer=nil;}
   if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
@@ -633,7 +642,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   self.liveTrackInspectionItem=item;AVAsset*asset=item.asset;__weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;
   [asset loadTracksWithMediaType:AVMediaTypeVideo completionHandler:^(NSArray<AVAssetTrack*>*tracks,NSError*error){
     dispatch_async(SYMainQueue(),^{SYController*owner=weakSelf;AVPlayerItem*current=weakItem;if(!owner||owner.nativeItem!=current||![owner.playContext hasPrefix:@"live:"])return;
-      if(tracks.count==0){[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":error?@"videoTrackUnknown":@"audioOnly",@"error":error.localizedDescription?:@"这条直播流没有可识别的视频轨道"}];return;}
+      if(tracks.count==0){if(!error&&[owner tryCicadaFallbackForItem:current])return;[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":error?@"videoTrackUnknown":@"audioOnly",@"error":error.localizedDescription?:@"这条直播流没有可识别的视频轨道"}];return;}
       AVAssetTrack*track=tracks.firstObject;CGSize size=track.naturalSize;FourCharCode subtype=0;id description=track.formatDescriptions.firstObject;if(description)subtype=CMFormatDescriptionGetMediaSubType((__bridge CMFormatDescriptionRef)description);
       NSString*codec=(description&&subtype)?[NSString stringWithFormat:@"%c%c%c%c",(int)((subtype>>24)&0xff),(int)((subtype>>16)&0xff),(int)((subtype>>8)&0xff),(int)(subtype&0xff)]:@"未知";NSUInteger width=(NSUInteger)(size.width<0?-size.width:size.width),height=(NSUInteger)(size.height<0?-size.height:size.height);
       [owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"videoTrack",@"width":@(width),@"height":@(height),@"codec":codec?:@""}];
@@ -643,6 +652,66 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     });
   }];
 }
+// ---------- Cicada 软解回退（AVPlayer 报 audioOnly 时，同一条流换 Cicada 解） ----------
+
+- (BOOL)tryCicadaFallbackForItem:(AVPlayerItem*)item {
+    if(!item||item!=self.nativeItem||![self.playContext hasPrefix:@"live:"])return NO;
+    if(self.cicadaFallbackAttempted)return NO;
+    if(![SYCicadaLivePlayer isAvailable])return NO;
+    if(!self.liveScreen)return NO;
+    NSURL*playURL=nil;
+    if([item.asset isKindOfClass:AVURLAsset.class])playURL=((AVURLAsset*)item.asset).URL;
+    if(!playURL)return NO;
+    self.cicadaFallbackAttempted=YES;
+    // 先停 AVPlayer 的声音，避免与 Cicada 的声音重叠；画面由 Cicada 接管。
+    [self.nativePlayer.player pause];
+    SYCicadaLivePlayer*cicada=[[SYCicadaLivePlayer alloc]initWithURL:playURL headers:self.livePlaybackHeaders networkTimeout:20];
+    cicada.delegate=self;
+    self.cicadaLivePlayer=cicada;
+    self.cicadaFallbackActive=YES;
+    UIView*view=cicada.playerView;
+    view.frame=self.liveScreen.playerHost.bounds;
+    view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    [self.liveScreen.playerHost addSubview:view];
+    [self.liveScreen.playerHost bringSubviewToFront:view];
+    [self.liveScreen.playerHost bringSubviewToFront:self.liveScreen.routePicker];
+    // 盖住 AVPlayer 的黑画面层，避免布局回调把它重新顶到前面。
+    self.nativePlayer.view.hidden=YES;
+    [cicada applyVideoGravity:AVLayerVideoGravityResizeAspect];
+    [cicada prepare];
+    [cicada start];
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"cicadaFallback"}];
+    return YES;
+}
+
+- (void)destroyCicadaPlayer {
+    SYCicadaLivePlayer*cicada=self.cicadaLivePlayer;
+    self.cicadaLivePlayer=nil;
+    self.cicadaFallbackActive=NO;
+    if(!cicada)return;
+    [cicada destroy];
+    [cicada.playerView removeFromSuperview];
+    // 恢复 AVPlayer 画面的可见性（若之后 AVPlayer 重新接管）。
+    if(self.nativePlayer)self.nativePlayer.view.hidden=NO;
+}
+
+// SYCicadaLivePlayerDelegate
+- (void)cicadaLivePlayerDidShowFirstFrame:(id)player size:(CGSize)size {
+    if(player!=self.cicadaLivePlayer||![self.playContext hasPrefix:@"live:"])return;
+    self.nativeVideoReady=YES;
+    NSMutableDictionary*event=[@{@"context":self.playContext?:@"",@"status":@"cicadaVideoReady"} mutableCopy];
+    if(size.width>0&&size.height>0){event[@"width"]=@(size.width);event[@"height"]=@(size.height);}
+    [self sendPlayback:event];
+}
+
+- (void)cicadaLivePlayer:(id)player didFailWithError:(NSError *)error {
+    if(player!=self.cicadaLivePlayer)return;
+    // Cicada 也失败：拆掉它，恢复 AVPlayer 的声音，回落到原 audioOnly 文案，不换线路。
+    [self destroyCicadaPlayer];
+    if(self.nativePlayer&&self.nativePlayer.player)[self.nativePlayer.player play];
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"audioOnly",@"error":error.localizedDescription?:@"这条直播流没有可识别的视频轨道"}];
+}
+
 - (void)attachLiveLayerRendererForItem:(AVPlayerItem*)item {
   if(!item||item!=self.nativeItem||!self.nativePlayer||!self.liveScreen||![self.playContext hasPrefix:@"live:"]||self.liveRendererAttached)return;
   [self.liveScreen layoutEmbeddedPlayer];AVPlayerLayer*layer=SYFindPlayerLayer(self.nativePlayer.view.layer,self.nativePlayer.player);
@@ -747,6 +816,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
     if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}
 #endif
+    [self destroyCicadaPlayer];self.cicadaFallbackAttempted=NO;if(livePlayback)self.livePlaybackHeaders=headers;
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];
     // Live playlists must keep enough media queued to survive segment jitter.
@@ -790,6 +860,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}handler(weakPlayer.parentViewController==strongOwner||weakPlayer.parentViewController==strongOwner.appScreen||weakPlayer.parentViewController==strongOwner.liveScreen);};
     self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(livePlayback?3:5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
       SYController*strongOwner=owner;if(!strongOwner||strongOwner.nativePlayer!=weakPlayer)return;
+      if(strongOwner.cicadaFallbackActive)return;
       double seconds=CMTimeGetSeconds(time);if(!__builtin_isfinite(seconds)||seconds<0)return;
       [strongOwner sendPlayback:@{@"context":strongOwner.playContext?:@"",@"status":@"progress",@"time":@(seconds)}];
     }];
