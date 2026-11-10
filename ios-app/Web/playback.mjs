@@ -6,8 +6,16 @@ export function mediaHeaders(client,entry={}){
  const headers={...(entry.referrerPolicy==='no-referrer'?{}:{Referer:client.site.origin+'/'}),...entry.headers};
  return Object.fromEntries(Object.entries(headers).filter(([,v])=>typeof v==='string'&&v.length));
 }
+export function prioritizeMediaCandidates(urls=[]){
+ if(!Array.isArray(urls)||urls.length<=1)return Array.isArray(urls)?urls:[];
+ const isM3U8=entry=>{try{const u=new URL(entry?.url||'');return /\.m3u8(?:$|\?)/i.test(u.pathname+u.search);}catch{return false;}};
+ const hls=[],other=[];
+ for(const item of urls)(isM3U8(item)?hls:other).push(item);
+ return [...hls,...other];
+}
 export async function resolvePlayback(client,vodId,line,episode,signal,{refresh=false}={}){
- const urls=episode.open&&!refresh?playbackURLs(episode):urlsFrom(await client.play({vodId,siteId:line.siteId,episodeId:episode.id},signal));
+ const raw=episode.open&&!refresh?playbackURLs(episode):urlsFrom(await client.play({vodId,siteId:line.siteId,episodeId:episode.id},signal));
+ const urls=prioritizeMediaCandidates(raw);
  if(!urls.length)throw new MediaError('这条线路暂未返回播放地址');
  return urls;
 }
@@ -28,6 +36,31 @@ async function mediaRequest(client,url,signal,method='GET',headers={}){
  finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
 }
 function playlist(response){if(response.status<200||response.status>=300)throw new MediaError('视频线路返回 HTTP '+response.status,response.status);let text;try{text=atob(response.bodyBase64||'').replace(/^\u00ef\u00bb\u00bf/,'').trim();}catch{throw new MediaError('视频清单格式错误');}if(!text.startsWith('#EXTM3U'))throw new MediaError('视频线路未返回有效播放清单');return text;}
+export function parseMasterVariants(text,baseURL){
+ const lines=String(text||'').split(/\r?\n/),variants=[];
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i].trim();
+  if(!line.startsWith('#EXT-X-STREAM-INF:'))continue;
+  const bwMatch=line.match(/BANDWIDTH=(\d+)/i),resMatch=line.match(/RESOLUTION=(\d+)x(\d+)/i);
+  const bandwidth=bwMatch?Number(bwMatch[1]):0,width=resMatch?Number(resMatch[1]):0,height=resMatch?Number(resMatch[2]):0;
+  const label=height>=2160?'4K UHD':height>=1080?'1080p FHD':height>=720?'720p HD':height>0?`${height}p`:bandwidth>=2500000?'高码率':bandwidth>0?`${Math.round(bandwidth/1000)}kbps`:'自适应';
+  for(let j=i+1;j<lines.length;j++){
+   const candidate=lines[j].trim();if(!candidate)continue;if(candidate.startsWith('#'))break;
+   const href=safeHTTPS(new URL(candidate,baseURL).href);
+   if(href)variants.push({href,bandwidth,width,height,label,order:variants.length});
+   break;
+  }
+ }
+ variants.sort((a,b)=>(b.height-a.height)||(b.bandwidth-a.bandwidth)||(a.order-b.order));
+ return variants;
+}
+export function selectBestMasterVariant(text,baseURL){
+ const variants=parseMasterVariants(text,baseURL);
+ if(variants.length)return variants[0].href;
+ const lines=String(text||'').split(/\r?\n/);
+ const next=lines.find(x=>x.trim()&&!x.trim().startsWith('#'));
+ return next?safeHTTPS(new URL(next.trim(),baseURL).href):'';
+}
 export async function verifyMedia(client,url,signal,headers={},referrerPolicy){
  headers=mediaHeaders(client,{headers,referrerPolicy});
  const parsed=new URL(url),hls=/\.m3u8(?:$|\?)/i.test(parsed.pathname+parsed.search),response=await mediaRequest(client,url,signal,hls?'GET':'HEAD',headers);
@@ -35,10 +68,16 @@ export async function verifyMedia(client,url,signal,headers={},referrerPolicy){
   if((response.status<200||response.status>=300)&&![405,501].includes(response.status))throw new MediaError('视频线路返回 HTTP '+response.status,response.status);
   const type=Object.entries(response.headers||{}).find(([k])=>k.toLowerCase()==='content-type')?.[1]||'';
   if(/text\/html|application\/(?:json|xml)/i.test(type))throw new MediaError('该线路返回网页，未返回媒体文件');
-  return;
+  return {hls:false,qualityLabel:'',bandwidth:0};
  }
  const text=playlist(response);
- if(text.includes('#EXT-X-STREAM-INF:')){const next=text.split(/\r?\n/).find(x=>x.trim()&&!x.startsWith('#'));const child=next&&safeHTTPS(new URL(next.trim(),response.url||url).href);if(!child)throw new MediaError('视频清单缺少有效子线路');playlist(await mediaRequest(client,child,signal,'GET',headers));}
+ if(text.includes('#EXT-X-STREAM-INF:')){
+  const variants=parseMasterVariants(text,response.url||url),child=variants[0]?.href||selectBestMasterVariant(text,response.url||url);
+  if(!child)throw new MediaError('视频清单缺少有效子线路');
+  playlist(await mediaRequest(client,child,signal,'GET',headers));
+  return {hls:true,qualityLabel:variants[0]?.label||'',bandwidth:variants[0]?.bandwidth||0,variants};
+ }
+ return {hls:true,qualityLabel:'',bandwidth:0,variants:[]};
 }
 export async function resolvePlayableEpisode(client,detail,lineIndex,episodeIndex,signal,onAttempt=()=>{},{excludedSites=[],excludedLines=[]}={}){
  const lines=detail.playSources||[],original=lines[lineIndex],requested=original?.list?.[episodeIndex];if(!requested)throw new MediaError('未找到选集');
@@ -48,11 +87,11 @@ export async function resolvePlayableEpisode(client,detail,lineIndex,episodeInde
   try{
    if(!Array.isArray(line.list)||!line.list.length)line.list=await client.episodes(detail.id,line,signal);
    const at=index===lineIndex?episodeIndex:matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&original.list.length===1,singleEpisodeSource:original.list.length===1});if(at<0)continue;const episode=line.list[at];
-   let urls=await resolvePlayback(client,detail.id,line,episode,signal),checked=[],expired=false;
-   const inspect=async candidates=>{for(const entry of candidates.slice(0,3)){const host=new URL(entry.url).host;if(badHosts.has(host))continue;try{await verifyMedia(client,entry.url,signal,entry.headers,entry.referrerPolicy);checked.push(entry);return;}catch(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate)badHosts.add(host);if([403,404,410].includes(error.status))expired=true;}}};
+   let urls=await resolvePlayback(client,detail.id,line,episode,signal),checked=[],expired=false,latencyMs=0,qualityLabel='',bandwidth=0;
+   const inspect=async candidates=>{for(const entry of candidates.slice(0,3)){const host=new URL(entry.url).host;if(badHosts.has(host))continue;const t0=Date.now();try{const meta=await verifyMedia(client,entry.url,signal,entry.headers,entry.referrerPolicy);latencyMs=Math.max(1,Date.now()-t0);qualityLabel=meta?.qualityLabel||'';bandwidth=meta?.bandwidth||0;checked.push(entry);return;}catch(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate)badHosts.add(host);if([403,404,410].includes(error.status))expired=true;}}};
    await inspect(urls);
    if(!checked.length&&expired&&episode.open){urls=await resolvePlayback(client,detail.id,line,episode,signal,{refresh:true});await inspect(urls);}
-   if(checked.length){if(!line.preview)client.preferredPlaybackSiteId=line.siteId;return {lineIndex:index,episodeIndex:at,episode,urls:[...checked,...urls.filter(x=>!checked.some(y=>y.url===x.url))],switched:index!==lineIndex};}
+   if(checked.length){if(!line.preview)client.preferredPlaybackSiteId=line.siteId;return {lineIndex:index,episodeIndex:at,episode,urls:[...checked,...urls.filter(x=>!checked.some(y=>y.url===x.url))],switched:index!==lineIndex,latencyMs,qualityLabel,bandwidth};}
   }catch(error){if(error.name==='AbortError'||error instanceof ServiceError)throw error;last=error;}
  }
  throw new MediaError('暂未找到可用的同集线路。'+(last?.message||'请稍后重试或手动切换线路。'));

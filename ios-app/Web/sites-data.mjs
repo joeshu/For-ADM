@@ -1,0 +1,311 @@
+export default [
+  {
+    "id": "kkapp",
+    "name": "可可影视",
+    "version": "2.5.16",
+    "origin": "https://a.kkapp06.com",
+    "appId": "kkdy",
+    "signKey": "a1id2db7ced05pwnc323gezxyb",
+    "initKey": "f0c9bb729c939a350b5e56049fd562fc",
+    "initIV": "d96b212338ec775c",
+    "responseKeys": [
+      {
+        "index": 1,
+        "key": "ayt5wy5afwmwrpb19k9s3psx3dymyd0n",
+        "iv": "b3t069ijy7pirw0j"
+      }
+    ],
+    "sourceSha256": "d24f55a5c703446468cd30cc0523de3540e151d6020c76621a45b03367b30d96",
+    "assetKeys": [
+      {
+        "index": 1,
+        "key": "otxtqra0kt78a506rbf2neiyv9z19642",
+        "iv": "aghjvy51d8qifqzf"
+      },
+      {
+        "index": 2,
+        "key": "5kiwicd7c5d6l6yuuq5ngmdvchp8xnha",
+        "iv": "ykha1ekypnpvy224"
+      },
+      {
+        "index": 3,
+        "key": "wga8225bhoo2s6455k9rmnvl8t0wvj2s",
+        "iv": "9lk30q8wch7qhefg"
+      },
+      {
+        "index": 4,
+        "key": "5egzkoxlvv33becwz8mv4rgxtndp8ydh",
+        "iv": "xz33oqwo0crm7gx5"
+      },
+      {
+        "index": 5,
+        "key": "fb65723e4tpzz7vp8ie6psk61hz1zszn",
+        "iv": "aegcz7vjpnpvozme"
+      },
+      {
+        "index": 6,
+        "key": "51idij4atjynzvw0tzbacr8hyej01iby",
+        "iv": "vxmjgcu286wcfnel"
+      },
+      {
+        "index": 7,
+        "key": "qabrbw59b96l92qi0mdg6vxwq1u1g1px",
+        "iv": "wzxysfk50d4ccsk1"
+      },
+      {
+        "index": 8,
+        "key": "83jisi29us0pn1p2bcafeqvyqb32dvop",
+        "iv": "biykrrn0w7ve5fim"
+      },
+      {
+        "index": 9,
+        "key": "rly05dia390jqzfid1i3oxlqlbjgb8p1",
+        "iv": "uactsgpja4ac7u9i"
+      },
+      {
+        "index": 10,
+        "key": "s71h4uw00dc38b0u5uptmdiecyey1j35",
+        "iv": "gznsj9fd6crv8t8v"
+      }
+    ]
+  },
+  {
+    "id": "ncat",
+    "name": "网飞猫",
+    "version": "2.5.31",
+    "origin": "https://a.napp03.com:51111",
+    "appId": "ncat",
+    "signKey": "a1id2db7ced05pwnc323gezxyb",
+    "initKey": "f0c9bb729c939a350b5e56049fd562fc",
+    "initIV": "d96b212338ec775c",
+    "responseKeys": [
+      {
+        "index": 1,
+        "key": "ayt5wy5afwmwrpb19k9s3psx3dymyd0n",
+        "iv": "b3t069ijy7pirw0j"
+      }
+    ],
+    "sourceSha256": "3f7c2a8bbf59a70ac644d11361499f8d8fb3a45ccdc2dc481ae46ee29e552097",
+    "assetKeys": [
+      {
+        "index": 1,
+        "key": "otxtqra0kt78a506rbf2neiyv9z19642",
+        "iv": "aghjvy51d8qifqzf"
+      },
+      {
+        "index": 2,
+        "key": "5kiwicd7c5d6l6yuuq5ngmdvchp8xnha",
+        "iv": "ykha1ekypnpvy224"
+      },
+      {
+        "index": 3,
+        "key": "wga8225bhoo2s6455k9rmnvl8t0wvj2s",
+        "iv": "9lk30q8wch7qhefg"
+      },
+      {
+        "index": 4,
+        "key": "5egzkoxlvv33becwz8mv4rgxtndp8ydh",
+        "iv": "xz33oqwo0crm7gx5"
+      },
+      {
+        "index": 5,
+        "key": "fb65723e4tpzz7vp8ie6psk61hz1zszn",
+        "iv": "aegcz7vjpnpvozme"
+      },
+      {
+        "index": 6,
+        "key": "51idij4atjynzvw0tzbacr8hyej01iby",
+        "iv": "vxmjgcu286wcfnel"
+      },
+      {
+        "index": 7,
+        "key": "qabrbw59b96l92qi0mdg6vxwq1u1g1px",
+        "iv": "wzxysfk50d4ccsk1"
+      },
+      {
+        "index": 8,
+        "key": "83jisi29us0pn1p2bcafeqvyqb32dvop",
+        "iv": "biykrrn0w7ve5fim"
+      },
+      {
+        "index": 9,
+        "key": "rly05dia390jqzfid1i3oxlqlbjgb8p1",
+        "iv": "uactsgpja4ac7u9i"
+      },
+      {
+        "index": 10,
+        "key": "s71h4uw00dc38b0u5uptmdiecyey1j35",
+        "iv": "gznsj9fd6crv8t8v"
+      }
+    ]
+  },
+  {
+    "id": "happ",
+    "name": "好好看",
+    "version": "2.5.24",
+    "origin": "https://a.happ3.com:51111",
+    "appId": "hkan",
+    "signKey": "a1id2db7ced05pwnc323gezxyb",
+    "initKey": "f0c9bb729c939a350b5e56049fd562fc",
+    "initIV": "d96b212338ec775c",
+    "responseKeys": [
+      {
+        "index": 1,
+        "key": "ayt5wy5afwmwrpb19k9s3psx3dymyd0n",
+        "iv": "b3t069ijy7pirw0j"
+      }
+    ],
+    "sourceSha256": "0f236977c330eedae7806a823f12285c27fafe63967dd8d751ab2ddfca14a7cc",
+    "assetKeys": [
+      {
+        "index": 1,
+        "key": "otxtqra0kt78a506rbf2neiyv9z19642",
+        "iv": "aghjvy51d8qifqzf"
+      },
+      {
+        "index": 2,
+        "key": "5kiwicd7c5d6l6yuuq5ngmdvchp8xnha",
+        "iv": "ykha1ekypnpvy224"
+      },
+      {
+        "index": 3,
+        "key": "wga8225bhoo2s6455k9rmnvl8t0wvj2s",
+        "iv": "9lk30q8wch7qhefg"
+      },
+      {
+        "index": 4,
+        "key": "5egzkoxlvv33becwz8mv4rgxtndp8ydh",
+        "iv": "xz33oqwo0crm7gx5"
+      },
+      {
+        "index": 5,
+        "key": "fb65723e4tpzz7vp8ie6psk61hz1zszn",
+        "iv": "aegcz7vjpnpvozme"
+      },
+      {
+        "index": 6,
+        "key": "51idij4atjynzvw0tzbacr8hyej01iby",
+        "iv": "vxmjgcu286wcfnel"
+      },
+      {
+        "index": 7,
+        "key": "qabrbw59b96l92qi0mdg6vxwq1u1g1px",
+        "iv": "wzxysfk50d4ccsk1"
+      },
+      {
+        "index": 8,
+        "key": "83jisi29us0pn1p2bcafeqvyqb32dvop",
+        "iv": "biykrrn0w7ve5fim"
+      },
+      {
+        "index": 9,
+        "key": "rly05dia390jqzfid1i3oxlqlbjgb8p1",
+        "iv": "uactsgpja4ac7u9i"
+      },
+      {
+        "index": 10,
+        "key": "s71h4uw00dc38b0u5uptmdiecyey1j35",
+        "iv": "gznsj9fd6crv8t8v"
+      }
+    ]
+  },
+  {
+    "id": "yqk",
+    "name": "一起看",
+    "provider": "yqk",
+    "origin": "https://yqk18.app",
+    "version": "1.2.7.194",
+    "sourceSha256": "8083cb56c452a3fd47030d1e4f12693de40af38c956e26b881b6a373538b99b1",
+    "protocol": {
+      "appId": "e6ddefe09e0349739874563459f56c54",
+      "appKey": "3359de478f8d45638125e446a10ec541",
+      "version": "1.2.7.194",
+      "apiOrigins": [
+        "https://yz260324.bzy42ezt.com",
+        "https://yz250907.zazy3mc5.com",
+        "https://yz250907.7k5jb8t9.com",
+        "https://yz250907.3nyk7h9o.com",
+        "https://yz250907.jba2yo1c.com",
+        "https://yz250907.hzkeka49.com",
+        "https://yzy0916.q8nsderug.com",
+        "https://yz1018.o5r52at9v.com",
+        "https://yz1018.tgs2hl4ut.com",
+        "https://yz1018.goi6lhmry.com",
+        "https://yz1018.6vh3qyu9x.com"
+      ]
+    }
+  },
+  {
+    "id": "qntv",
+    "name": "青柠 TV",
+    "provider": "yqk",
+    "origin": "https://qntv28.app",
+    "version": "1.0.0.109",
+    "sourceSha256": "c77aa657ba5ecabbc17b38498c1e73b2313d61e4f8b57b98b50be0f55b7fe2be",
+    "protocol": {
+      "appId": "0576435a23b94990806ca98e54f95adf",
+      "appKey": "99595b5da5d245b59aa73714b96ea73d",
+      "version": "1.0.0.109",
+      "apiOrigins": [
+        "https://yz260324.bzy42ezt.com",
+        "https://yz250907.zazy3mc5.com",
+        "https://yz250907.7k5jb8t9.com",
+        "https://yz250907.3nyk7h9o.com",
+        "https://yz250907.jba2yo1c.com",
+        "https://yz250907.hzkeka49.com",
+        "https://yzy0916.q8nsderug.com",
+        "https://yz1018.o5r52at9v.com",
+        "https://yz1018.tgs2hl4ut.com",
+        "https://yz1018.goi6lhmry.com",
+        "https://yz1018.6vh3qyu9x.com"
+      ]
+    }
+  },
+  {
+    "id": "dyls",
+    "name": "电影猎手",
+    "provider": "dyls",
+    "origin": "https://dyls1.mbxqnb.cn",
+    "version": "3102",
+    "sourceSha256": "4455dc920ed1797bd133d6394ff3449e1d538199840d85e389ef928d09cd2d26",
+    "protocol": {
+      "publicKey": "-----BEGIN RSA PUBLIC KEY-----MIIBCgKCAQEA02F/kPg5A2NX4qZ5JSns+bjhVMCC6JbTiTKpbgNgiXU+Kkorg6Dj76gS68gB8llhbUKCXjIdygnHPrxVHWfzmzisq9P9awmXBkCk74Skglx2LKHa/mNz9ivg6YzQ5pQFUEWS0DfomGBXVtqvBlOXMCRxp69oWaMsnfjnBV+0J7vHbXzUIkqBLdXSNfM9Ag5qdRDrJC3CqB65EJ3ARWVzZTTcXSdMW9i3qzEZPawPNPe5yPYbMZIoXLcrqvEZnRK1oak67/ihf7iwPJqdc+68ZYEmmdqwunOvRdjq89fQMVelmqcRD9RYe08v+xDxG9Co9z7hcXGTsUquMxkh29uNawIDAQAB-----END RSA PUBLIC KEY-----",
+      "signKey": "635a580fcb5dc6e60caa39c31a7bde48",
+      "aesKey": "e6d5de5fcc51f53d",
+      "aesIV": "2f13eef7dfc6c613",
+      "clientVersion": 3102
+    }
+  },
+  {
+    "id": "souju",
+    "name": "搜剧AI",
+    "provider": "souju",
+    "origin": "https://ai.baipiaozhe.com",
+    "version": "web-2026-11-02",
+    "sourceSha256": "44fb10e31a57eeddbd93750f16d8d42d51cb5d249ffd2844a385dd377c4e49fc",
+    "protocol": {
+      "signingKey": "f39d73aa7a6426203cdee1ef17b31d3b7ea8c23f4c59c62a3a8aa0f39ee5e79d"
+    }
+  },
+  {
+    "id": "kanju",
+    "name": "看剧AI",
+    "provider": "kanju",
+    "origin": "https://ai.kanju25.com",
+    "version": "web-2026-11-02",
+    "sourceSha256": "f1fc0021de2ce4b30875287f237827861d37e1b9ce9ae148d8d46306f2ba0c31",
+    "protocol": {
+      "apiOrigins": [
+        "https://ai.kanju25.com",
+        "https://kanju.ai",
+        "https://kanju25.com"
+      ],
+      "signingKey": "557d0e4ae929f438da6bd84412374e6086b8af09b3fed54bf22601d5bf8c54a0",
+      "clientName": "dianyingtiantang-frontend",
+      "clientVersion": "1.0.0",
+      "buildVersion": "dianyingtiantang-v2026.10.21.6-redis-lifecycle-b85b39a9cc04-web",
+      "protocolVersion": "2026-07-05.library-v2.playback-v1",
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1"
+    }
+  }
+];

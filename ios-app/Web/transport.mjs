@@ -14,6 +14,7 @@ export const NativeTransport={
   deliver(message){const item=pending.get(message.id);if(!item)return;pending.delete(message.id);clearTimeout(item.timeout);item.signal?.removeEventListener('abort',item.abort);if(message.error){const error=Error(message.error);error.code=message.errorCode;item.reject(error);}else item.resolve(message);},
   async request(options){if(native())return post('request',options);const {signal,...payload}=options;const response=await fetch('/__transport',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal});if(!response.ok)throw Error('本地预览服务不可用');const data=await response.json();if(data.error)throw Error(data.error);return data;},
   async play(url,headers={},options={}){if(native())return post('play',{url,headers,...options});return false;},
+  controlPlayer(action,payload={}){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'player-control',type:'playerControl',action,...payload});},
   async copyText(text){if(native())return post('copyText',{text});await navigator.clipboard.writeText(text);return {ok:true};},
   async openExternal(url,{live=false}={}){if(native())return post('openExternal',{url,live});throw Error('外部播放器仅在 iPhone 原生 App 中可用');},
   async getLiveCache(){if(native())return (await post('liveCacheGet')).cache||null;try{return JSON.parse(localStorage.getItem('sanyuan:liveCache')||'null');}catch{return null;}},

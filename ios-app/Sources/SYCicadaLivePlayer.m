@@ -72,6 +72,11 @@ static void SYCicadaCallVoidInt(id target, SEL sel, int arg) {
     @try { ((void (*)(id, SEL, int))objc_msgSend)(target, sel, arg); } @catch (NSException *e) {}
 }
 
+static void SYCicadaCallVoidFloat(id target, SEL sel, float arg) {
+    if (!target || !sel || ![target respondsToSelector:sel]) return;
+    @try { ((void (*)(id, SEL, float))objc_msgSend)(target, sel, arg); } @catch (NSException *e) {}
+}
+
 static double SYCicadaCallDouble(id target, SEL sel) {
     if (!target || !sel || ![target respondsToSelector:sel]) return 0;
     @try { return ((double (*)(id, SEL))objc_msgSend)(target, sel); } @catch (NSException *e) { return 0; }
@@ -302,6 +307,18 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     if ([gravity isEqualToString:AVLayerVideoGravityResizeAspectFill]) mode = 2;
     else if ([gravity isEqualToString:AVLayerVideoGravityResize]) mode = 0;
     SYCicadaCallVoidInt(self.player, NSSelectorFromString(@"setScalingMode:"), mode);
+}
+
+- (void)setMuted:(BOOL)muted {
+    if (!self.player) return;
+    SYCicadaCallVoidBool(self.player, NSSelectorFromString(@"setMuted:"), muted);
+    SYCicadaCallVoidFloat(self.player, NSSelectorFromString(@"setVolume:"), muted ? 0.0f : 1.0f);
+}
+
+- (void)setVolume:(float)volume {
+    if (!self.player) return;
+    float clamped = fmaxf(0.0f, fminf(1.0f, volume));
+    SYCicadaCallVoidFloat(self.player, NSSelectorFromString(@"setVolume:"), clamped);
 }
 
 // ---------- 位置轮询（首帧兜底） ----------

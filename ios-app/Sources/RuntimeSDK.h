@@ -93,6 +93,7 @@ __attribute__((objc_root_class))
 + (instancetype)arrayWithObjects:(const id[])objects count:(NSUInteger)count;
 @property(readonly) NSUInteger count;
 @property(readonly) id firstObject;
+@property(readonly) id lastObject;
 @end
 @interface NSDictionary:NSObject
 + (instancetype)dictionaryWithObjects:(const id[])objects forKeys:(const id[])keys count:(NSUInteger)count;
@@ -195,17 +196,22 @@ extern CGFloat UIFontWeightMedium;
 @property CGFloat shadowRadius;
 @property void*shadowColor;
 @property CGSize shadowOffset;
+@property(readonly) NSArray*sublayers;
 @end
 @interface UIView:NSObject
 - (instancetype)initWithFrame:(CGRect)frame;
 @property CGRect frame;
 @property CGRect bounds;
+@property CGFloat alpha;
 @property UIEdgeInsets safeAreaInsets;
 @property NSUInteger autoresizingMask;
 @property BOOL hidden;
 @property BOOL userInteractionEnabled;
 @property NSInteger tag;
 @property(copy) NSString*accessibilityIdentifier;
+@property(copy) NSString*accessibilityHint;
+@property(copy) NSString*accessibilityLabel;
+@property NSUInteger accessibilityTraits;
 @property(strong) UIColor*backgroundColor;
 @property BOOL clipsToBounds;
 @property(readonly) CALayer*layer;
@@ -216,12 +222,16 @@ extern CGFloat UIFontWeightMedium;
 - (void)bringSubviewToFront:(UIView*)view;
 - (void)removeFromSuperview;
 - (void)setNeedsLayout;
+- (void)layoutIfNeeded;
+- (void)sizeToFit;
 - (CGRect)convertRect:(CGRect)rect toView:(UIView*)view;
++ (void)animateWithDuration:(double)duration animations:(void(^)(void))animations;
 @end
 @interface UIControl:UIView
 @property BOOL enabled;
 @property BOOL selected;
 - (void)addTarget:(id)target action:(SEL)action forControlEvents:(NSUInteger)events;
+- (void)sendActionsForControlEvents:(NSUInteger)events;
 @end
 @interface UILabel:UIView
 @property(copy) NSString*text;
@@ -230,6 +240,8 @@ extern CGFloat UIFontWeightMedium;
 @property NSInteger numberOfLines;
 @property NSInteger textAlignment;
 @property NSInteger lineBreakMode;
+@property BOOL adjustsFontSizeToFitWidth;
+@property CGFloat minimumScaleFactor;
 @property(strong) UIColor*shadowColor;
 @property CGSize shadowOffset;
 @end
@@ -254,7 +266,11 @@ extern CGFloat UIFontWeightMedium;
 @interface UIScrollView:UIView
 @property CGSize contentSize;
 @property CGPoint contentOffset;
+@property UIEdgeInsets contentInset;
 @property(weak) id delegate;
+@property BOOL scrollEnabled;
+@property BOOL bounces;
+@property BOOL directionalLockEnabled;
 @property BOOL showsVerticalScrollIndicator;
 @property BOOL showsHorizontalScrollIndicator;
 @property BOOL alwaysBounceVertical;
@@ -263,6 +279,8 @@ extern CGFloat UIFontWeightMedium;
 @end
 @interface UIImage:NSObject
 + (instancetype)imageWithData:(NSData*)data;
+@property(readonly) CGSize size;
+- (void)drawInRect:(CGRect)rect;
 @end
 @interface UIImageView:UIView
 @property(strong) UIImage*image;
@@ -346,6 +364,7 @@ extern NSString*NSHomeDirectory(void);
 @end
 @interface AVURLAsset:AVAsset
 + (instancetype)URLAssetWithURL:(NSURL*)url options:(NSDictionary*)options;
+@property(readonly) NSURL*URL;
 @end
 @interface AVPlayerItem:NSObject
 + (instancetype)playerItemWithAsset:(AVURLAsset*)asset;
@@ -360,20 +379,28 @@ extern NSString*NSHomeDirectory(void);
 @end
 @interface AVPlayer:NSObject
 + (instancetype)playerWithPlayerItem:(AVPlayerItem*)item;
++ (instancetype)playerWithURL:(NSURL*)url;
 - (void)replaceCurrentItemWithPlayerItem:(AVPlayerItem*)item;
 - (void)play;
 - (void)pause;
 @property float rate;
+@property BOOL muted;
 @property BOOL automaticallyWaitsToMinimizeStalling;
 - (void)seekToTime:(CMTime)time;
 @property(readonly) CMTime currentTime;
 - (id)addPeriodicTimeObserverForInterval:(CMTime)time queue:(struct dispatch_queue_s*)queue usingBlock:(void(^)(CMTime))block;
 - (void)removeTimeObserver:(id)observer;
 @end
+@interface AVPlayerLayer:CALayer
+@property(strong) AVPlayer*player;
+@property(copy) NSString*videoGravity;
+@property(readonly,getter=isReadyForDisplay) BOOL readyForDisplay;
+@end
 @protocol AVPlayerViewControllerDelegate<NSObject> @end
 @interface AVPlayerViewController:UIViewController
 @property(strong) AVPlayer*player;
 @property(weak) id<AVPlayerViewControllerDelegate>delegate;
+@property BOOL showsPlaybackControls;
 @property BOOL allowsPictureInPicturePlayback;
 @property BOOL entersFullScreenWhenPlaybackBegins;
 @property BOOL exitsFullScreenWhenPlaybackEnds;
@@ -388,6 +415,8 @@ extern NSString*NSHomeDirectory(void);
 - (instancetype)initWithFrame:(CGRect)frame;
 @end
 extern NSString*const AVLayerVideoGravityResizeAspect;
+extern NSString*const AVLayerVideoGravityResizeAspectFill;
+extern NSString*const AVLayerVideoGravityResize;
 extern NSString*const AVPlayerItemPlaybackStalledNotification;
 extern NSString*const AVAudioSessionCategoryPlayback;
 extern NSString*const AVAudioTimePitchAlgorithmTimeDomain;

@@ -63,6 +63,8 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 // 映射到 CicadaPlayer scalingMode（0=SCALETOFILL、1=SCALEASPECTFIT、
 // 2=SCALEASPECTFILL）。SDK 不支持时静默保留默认。
 - (void)applyVideoGravity:(NSString *)gravity;
+- (void)setMuted:(BOOL)muted;
+- (void)setVolume:(float)volume;
 
 @end
 

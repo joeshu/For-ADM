@@ -43,8 +43,8 @@ export class YqkClient extends SiteClient {
     if(response.status<200||response.status>=300)throw Error('网站接口返回 HTTP '+response.status);
     let body;try{body=decode(response);}catch{throw Error('网站接口数据格式已变化');}
     if(body?.result!==true){const message=body?.msg||'网站暂时无法提供数据';if(authDenial(body?.operateCode,message))throw new ServiceError(message,Number(body.operateCode)||403);throw Object.assign(Error(message),{businessDenial:true});}
-    this.recordHealth(base,'cache',Date.now()-started,true);return {base,data:body.data};
-   }).catch(error=>{if(!controllers.get(base).controller.signal.aborted)this.recordHealth(base,'cache',Date.now()-started,false);throw Object.assign(error,{failedBase:base});});});
+    const ms=Date.now()-started;this.recordHealth(base,'cache',ms,true);this.recordHealth(base,'logic',ms,true);return {base,data:body.data};
+   }).catch(error=>{if(!controllers.get(base).controller.signal.aborted){const ms=Date.now()-started;this.recordHealth(base,'cache',ms,false);this.recordHealth(base,'logic',ms,false);}throw Object.assign(error,{failedBase:base});});});
    let remaining=pending.slice();
    while(remaining.length){
     const outcome=await Promise.race(remaining.map(p=>p.then(value=>({ok:true,p,value}),error=>({ok:false,p,error}))));
@@ -82,7 +82,7 @@ export class YqkClient extends SiteClient {
  async prepareChannel(channelId,signal){
   await this.ready(signal);if(!numeric(channelId))throw Error('无效分类');
   if(!this.childFilters.has(String(channelId))){const d=await this.post('/v2/api/channel/childListView',{channelId:Number(channelId)},signal);const children=(d?.childChannelList||[]).filter(c=>numeric(c.channelId)&&c.channelName);this.childFilters.set(String(channelId),children);
-   this.config.channelListQuery.push({channelId:Number(channelId),items:[{query:'childChannelId',name:'类型',selected:'',data:[{id:'',name:'全部'},...children.map(c=>({id:String(c.channelId),name:String(c.channelName)}))]}]});
+   this.config.channelListQuery=this.config.channelListQuery.filter(x=>Number(x.channelId)!==Number(channelId));this.config.channelListQuery.push({channelId:Number(channelId),items:[{query:'childChannelId',name:'类型',selected:'',data:[{id:'',name:'全部'},...children.map(c=>({id:String(c.channelId),name:String(c.channelName)}))]}]});
   }
  }
  async channel(channelId,filters={},next='page=1',signal){

@@ -67,8 +67,12 @@ function xmlTime(value){
 }
 export function parseXMLTV(xml,channelId){
  if(typeof xml!=='string'||!channelId)return [];
- const wanted=channelId.trim(),rows=[],programmes=/<programme\b([^>]*)>([\s\S]*?)<\/programme\s*>/gi;let match;
- while((match=programmes.exec(xml))){const attrs=match[1];if(xmlAttribute(attrs,'channel')!==wanted)continue;
+ const norm=s=>String(s||'').trim().toLocaleLowerCase().replace(/[\s_-]+/g,'');
+ const wanted=channelId.trim(),wantedLower=wanted.toLocaleLowerCase(),wantedNorm=norm(wanted),matchedIds=new Set([wantedLower]);
+ const chanRe=/<channel\b([^>]*)>([\s\S]*?)<\/channel\s*>/gi;let cm;
+ while((cm=chanRe.exec(xml))){const cid=xmlAttribute(cm[1],'id').trim();if(!cid)continue;if(cid.toLocaleLowerCase()===wantedLower||norm(cid)===wantedNorm){matchedIds.add(cid.toLocaleLowerCase());continue;}for(const dm of cm[2].matchAll(/<display-name\b[^>]*>([\s\S]*?)<\/display-name\s*>/gi)){const dname=xmlText(dm[1]).trim();if(dname&&(dname.toLocaleLowerCase()===wantedLower||norm(dname)===wantedNorm)){matchedIds.add(cid.toLocaleLowerCase());break;}}}
+ const rows=[],programmes=/<programme\b([^>]*)>([\s\S]*?)<\/programme\s*>/gi;let match;
+ while((match=programmes.exec(xml))){const attrs=match[1],chAttr=xmlAttribute(attrs,'channel').trim().toLocaleLowerCase();if(!matchedIds.has(chAttr))continue;
   const start=xmlTime(xmlAttribute(attrs,'start')),stop=xmlTime(xmlAttribute(attrs,'stop')),
    tag=name=>{const found=match[2].match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}\\s*>`,'i'));return found?xmlText(found[1]).trim():'';},
    title=tag('title'),subtitle=tag('sub-title'),description=tag('desc'),categories=[...match[2].matchAll(/<category\b[^>]*>([\s\S]*?)<\/category\s*>/gi)].map(row=>xmlText(row[1]).trim()).filter(Boolean);

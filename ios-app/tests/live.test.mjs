@@ -115,3 +115,10 @@ test('normalizes bare HTTP playlist hosts and rejects unsupported schemes',()=>{
  assert.equal(normalizePlaylistURL('https://example.com/live.m3u').protocol,'https:');
  assert.throws(()=>normalizePlaylistURL('ftp://example.com/live.m3u'),/有效的 HTTP 或 HTTPS/);
 });
+
+test('parseXMLTV resolves channel id via display-name and case-insensitive normalization',()=>{
+ const xml='<tv><channel id="cctv1_hd"><display-name>CCTV-1 综合</display-name></channel><programme start="20261024090000 +0800" stop="20261024100000 +0800" channel="CCTV1_HD"><title>朝闻天下</title></programme></tv>';
+ const rows=parseXMLTV(xml,'CCTV1综合');
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].title,'朝闻天下');
+});

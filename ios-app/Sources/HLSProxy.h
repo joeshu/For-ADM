@@ -7,12 +7,14 @@
 @property(nonatomic,strong) NSURLSession*session;
 @property(nonatomic,strong) NSMutableDictionary<NSString*,NSURL*>*resources;
 @property(nonatomic,strong) NSMutableDictionary<NSString*,NSString*>*paths;
+@property(nonatomic,strong) NSMutableDictionary<NSString*,NSData*>*playlistCache;
 @property(nonatomic,strong) JSContext*js;
 @property(nonatomic,strong) NSDictionary*headers;
 @property(nonatomic,copy) NSString*token;
 @property(nonatomic) uint16_t port;
 @property(nonatomic) BOOL enabled;
 @property(nonatomic) NSUInteger removed;
+@property(nonatomic) double removedSeconds;
 @property(nonatomic,copy) NSString*lastTransportError;
 @property(nonatomic) NSInteger lastHTTPStatus;
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
@@ -21,10 +23,13 @@
 @implementation SYHLSProxy
 - (instancetype)init {
  if((self=[super init])){
-  self.resources=[NSMutableDictionary dictionary];self.paths=[NSMutableDictionary dictionary];
+  self.resources=[NSMutableDictionary dictionary];self.paths=[NSMutableDictionary dictionary];self.playlistCache=[NSMutableDictionary dictionary];
   self.js=[JSContext new];
   NSString*script=[NSString stringWithContentsOfFile:[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Web/hls-cleaner.js"] encoding:NSUTF8StringEncoding error:nil];
   if(script)[self.js evaluateScript:script];
+  NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];
+  config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=8;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
+  self.session=[NSURLSession sessionWithConfiguration:config];
   nw_parameters_t parameters=nw_parameters_create_secure_tcp(NW_PARAMETERS_DISABLE_PROTOCOL,NW_PARAMETERS_DEFAULT_CONFIGURATION);
   nw_parameters_set_local_endpoint(parameters,nw_endpoint_create_host("127.0.0.1","0"));
   self.listener=nw_listener_create(parameters);
@@ -55,10 +60,12 @@
  return [self mapped:url]?:url;
 }
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled {
- [self.session invalidateAndCancel];self.removed=0;self.enabled=enabled;self.headers=headers;self.token=NSUUID.UUID.UUIDString;
- [self.resources removeAllObjects];[self.paths removeAllObjects];
- NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=6;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
- self.session=[NSURLSession sessionWithConfiguration:config];
+ self.removed=0;self.removedSeconds=0;self.enabled=enabled;self.headers=headers;self.token=NSUUID.UUID.UUIDString;
+ [self.resources removeAllObjects];[self.paths removeAllObjects];[self.playlistCache removeAllObjects];
+ if(!self.session){
+  NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=8;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
+  self.session=[NSURLSession sessionWithConfiguration:config];
+ }
  if(!enabled||!self.port||![url.path.lowercaseString hasSuffix:@".m3u8"])return url;
  return [self mapped:url]?:url;
 }
@@ -110,6 +117,10 @@
  BOOL head=parts.count>=2&&[parts[0] isEqual:@"HEAD"];
  NSURL*url=parts.count>=2?self.resources[parts[1]]:nil;
  if(!url||(!head&&![parts[0] isEqual:@"GET"])){self.lastTransportError=@"proxy-resource-not-found";[self reply:connection status:404 headers:@{} data:[NSData data] head:head];return;}
+ if(!head&&self.enabled&&self.playlistCache[url.absoluteString]){
+  [self reply:connection status:200 headers:@{@"Content-Type":@"application/vnd.apple.mpegurl"} data:self.playlistCache[url.absoluteString] head:NO];
+  return;
+ }
  NSMutableURLRequest*upstream=[NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:20];upstream.allHTTPHeaderFields=self.headers;upstream.HTTPMethod=head?@"HEAD":@"GET";
  for(NSString*line in lines)if(![url.path.lowercaseString hasSuffix:@".m3u8"]&&([line.lowercaseString hasPrefix:@"range:"]||[line.lowercaseString hasPrefix:@"if-range:"])) {NSRange colon=[line rangeOfString:@":"];if(colon.location!=NSNotFound)[upstream setValue:[[line substringFromIndex:colon.location+1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet] forHTTPHeaderField:[[line substringToIndex:colon.location] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet]];}
  NSString*token=self.token;
@@ -127,12 +138,18 @@
    if(!head&&http.statusCode==200&&body.length<4*1024*1024){
     NSString*text=[[NSString alloc]initWithData:body encoding:NSUTF8StringEncoding];
     if([[text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] hasPrefix:@"#EXTM3U"]){
+     BOOL isStaticVOD=[text containsString:@"#EXT-X-ENDLIST"]||[text containsString:@"#EXT-X-STREAM-INF:"];
      JSValue*clean=owner.js[@"SYHLS"][@"cleanPlaylist"];
      NSDictionary*report=[[clean callWithArguments:@[text,@{@"enabled":@(owner.enabled)}]] toDictionary];
-     if([report[@"body"] isKindOfClass:NSString.class]){text=report[@"body"];owner.removed+=[report[@"removed"] unsignedIntegerValue];}
+     if([report[@"body"] isKindOfClass:NSString.class]){
+      text=report[@"body"];
+      owner.removed+=[report[@"removed"] unsignedIntegerValue];
+      if([report[@"seconds"] respondsToSelector:@selector(doubleValue)])owner.removedSeconds+=[report[@"seconds"] doubleValue];
+     }
      NSString*rewritten=[owner rewrite:text base:http.URL?:url];
      if(!rewritten){[owner reply:connection status:502 headers:@{} data:[NSData data] head:NO];return;}
      result=[rewritten dataUsingEncoding:NSUTF8StringEncoding];headers[@"Content-Type"]=@"application/vnd.apple.mpegurl";
+     if(owner.enabled&&isStaticVOD&&owner.playlistCache.count<24)owner.playlistCache[url.absoluteString]=result;
     }
    }
    [owner reply:connection status:http.statusCode?:502 headers:headers data:result head:head];
@@ -144,6 +161,7 @@
 // Experimental ABI-only build has no HLS proxy; release builds always use Apple's SDK.
 @interface SYHLSProxy:NSObject
 @property(nonatomic) NSUInteger removed;
+@property(nonatomic) double removedSeconds;
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
 @end

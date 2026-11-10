@@ -68,17 +68,17 @@ export class DylsClient extends SiteClient {
  }
  async api(path,params={},signal){
   abort(signal);const started=Date.now();let response;
-  try{response=await this.request(this.buildRequest(this.site.origin,path,params),signal);abort(signal);}catch(error){if(error.name!=='AbortError')this.recordHealth(this.site.origin,'cache',Date.now()-started,false);throw error;}
+  try{response=await this.request(this.buildRequest(this.site.origin,path,params),signal);abort(signal);}catch(error){if(error.name!=='AbortError'){const ms=Date.now()-started;this.recordHealth(this.site.origin,'cache',ms,false);this.recordHealth(this.site.origin,'logic',ms,false);}throw error;}
   let data;
   try{data=decodeDylsResponse(response,this.protocol);}catch(error){
    if(response.status>=200&&response.status<300)throw error;
-   this.recordHealth(this.site.origin,'cache',Date.now()-started,false);
+   const ms=Date.now()-started;this.recordHealth(this.site.origin,'cache',ms,false);this.recordHealth(this.site.origin,'logic',ms,false);
    const message='电影猎手请求失败（HTTP '+response.status+'）';
    if([401,403].includes(response.status))throw new ServiceError(message,response.status);
    const failure=new Error(message);failure.status=response.status;throw failure;
   }
   const errorCode=Number(data?.errorCode||0);
-  this.recordHealth(this.site.origin,'cache',Date.now()-started,response.status>=200&&response.status<300&&!errorCode);
+  const ms=Date.now()-started,ok=response.status>=200&&response.status<300&&!errorCode;this.recordHealth(this.site.origin,'cache',ms,ok);this.recordHealth(this.site.origin,'logic',ms,ok);
   if(response.status<200||response.status>=300||errorCode){
    const message=data?.msg||data?.message||'电影猎手请求失败（HTTP '+response.status+'）';
    if([401,403].includes(response.status)||/登录|登陆|授权|会员|付费|权限/.test(message))throw new ServiceError(message,errorCode||response.status);

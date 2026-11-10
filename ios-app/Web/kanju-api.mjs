@@ -74,9 +74,9 @@ export class KanjuClient extends SiteClient {
     if(status<200||status>=300){const error=Error('看剧AI请求失败（HTTP '+status+'）');error.status=status;throw error;}
     if(data?.error||data?.success===false){const statusCode=Number(data?.error?.status||data?.status||0),message=String(data?.error?.message||data?.message||'看剧AI暂时无法提供此内容');if(statusCode===429){this.cooldownUntil=Date.now()+30000;throw new ServiceError('看剧AI请求过于频繁，请稍后重试',429);}throw new ServiceError(message,statusCode||400);}
     if(!data||typeof data!=='object'||Array.isArray(data))throw Error('看剧AI响应结构已变化');
-    this.preferredOrigin=origin;this.badOrigins.delete(origin);this.recordHealth(origin,'cache',Date.now()-started,true);return data;
+    const ms=Date.now()-started;this.preferredOrigin=origin;this.preferred.cache=origin;this.preferred.logic=origin;this.badOrigins.delete(origin);this.recordHealth(origin,'cache',ms,true);this.recordHealth(origin,'logic',ms,true);return data;
    }catch(error){
-    abortIf(signal);if(error instanceof ServiceError)throw error;last=error;this.badOrigins.set(origin,Date.now()+60000);this.recordHealth(origin,'cache',Date.now()-started,false);
+    abortIf(signal);if(error instanceof ServiceError)throw error;last=error;const ms=Date.now()-started;this.badOrigins.set(origin,Date.now()+60000);this.recordHealth(origin,'cache',ms,false);this.recordHealth(origin,'logic',ms,false);
    }
   }
   throw last||Error('看剧AI暂时没有可用接口线路');

@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import{createRequire}from'node:module';
-import {resolvePlayableEpisode,matchingEpisode,verifyMedia}from'../Web/playback.mjs';import {SiteClient,ServiceError}from'../Web/site-api.mjs';
+import {resolvePlayableEpisode,matchingEpisode,verifyMedia,prioritizeMediaCandidates,selectBestMasterVariant,parseMasterVariants}from'../Web/playback.mjs';import {SiteClient,ServiceError}from'../Web/site-api.mjs';
 globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
 const body=s=>({status:200,bodyBase64:Buffer.from(s).toString('base64')}),json=x=>body(JSON.stringify(x));const hls=body('#EXTM3U\n#EXTINF:5,\nsegment.ts\n');
 const episode=(id,title,url,open=true)=>({id,title,open,playUrls:[{url}]});
@@ -8,7 +8,7 @@ const storage={getItem(){return null},setItem(){}};
 test('A TLS failure switches to the same numbered episode and retains original request headers',async()=>{
  const first=episode(1,'第02集','https://broken.example/v.m3u8'),other=episode(2,'第2集','https://good.example/v.m3u8',false),d={id:9,playSources:[{siteId:1,name:'坏线路',list:[first]},{siteId:2,name:'好线路',list:[other]}]};let authorized=0;
  const c={site,play:async p=>{authorized++;assert.equal(p.episodeId,2);return[{url:'https://good.example/v.m3u8'}]},transport:async r=>{assert.equal(r.headers.Referer,site.origin+'/');if(r.url.includes('broken')){const e=Error('bad certificate');e.code=-1202;throw e;}return hls;}};
- const r=await resolvePlayableEpisode(c,d,0,0);assert.equal(r.lineIndex,1);assert.equal(r.episode.id,2);assert.equal(authorized,1);assert.equal(r.switched,true);
+ const r=await resolvePlayableEpisode(c,d,0,0);assert.equal(r.lineIndex,1);assert.equal(r.episode.id,2);assert.equal(authorized,1);assert.equal(r.switched,true);assert.ok(typeof r.latencyMs==='number');
 });
 test('Unmatched episode titles are skipped instead of using an unrelated array index',async()=>{
  assert.equal(matchingEpisode({id:3,title:'第03集'},[{id:4,title:'第04集'}]),-1);
@@ -29,9 +29,23 @@ test('Expired cached URLs refresh through the service rather than changing their
  const c={site,play:async()=>{refresh++;return[{url:'https://cdn.example/fresh.m3u8'}]},transport:async r=>r.url.includes('expired')?{status:403}:hls};
  const r=await resolvePlayableEpisode(c,d,0,0);assert.equal(refresh,1);assert.equal(r.urls[0].url,'https://cdn.example/fresh.m3u8');
 });
-test('Master playlist validation checks a variant without downloading segments',async()=>{
- const requests=[];await verifyMedia({site,transport:async r=>{requests.push(r.url);return requests.length===1?body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nvariant.m3u8\n'):hls;}},'https://cdn.example/master.m3u8');
- assert.deepEqual(requests,['https://cdn.example/master.m3u8','https://cdn.example/variant.m3u8']);
+test('Master playlist validation checks the highest-bandwidth HTTPS variant without downloading segments',async()=>{
+ const requests=[];await verifyMedia({site,transport:async r=>{requests.push(r.url);return requests.length===1?body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=1280x720\n720p.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1920x1080\n1080p.m3u8\n'):hls;}},'https://cdn.example/master.m3u8');
+ assert.deepEqual(requests,['https://cdn.example/master.m3u8','https://cdn.example/1080p.m3u8']);
+});
+test('prioritizeMediaCandidates ranks HLS playlists ahead of direct files while preserving relative order',()=>{
+ const list=[{url:'https://cdn.example/video.mp4'},{url:'https://cdn.example/index.m3u8?token=1'},{url:'https://cdn.example/backup.m3u8'}];
+ assert.deepEqual(prioritizeMediaCandidates(list).map(x=>x.url),['https://cdn.example/index.m3u8?token=1','https://cdn.example/backup.m3u8','https://cdn.example/video.mp4']);
+});
+test('parseMasterVariants labels 4K/1080p/720p variants and sorts by resolution then bandwidth',()=>{
+ const master='#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=1280x720\n720p.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=6500000,RESOLUTION=3840x2160\n4k.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=3200000,RESOLUTION=1920x1080\n1080p.m3u8\n';
+ const parsed=parseMasterVariants(master,'https://cdn.example/master.m3u8');
+ assert.deepEqual(parsed.map(v=>v.label),['4K UHD','1080p FHD','720p HD']);
+ assert.equal(parsed[0].bandwidth,6500000);
+});
+test('selectBestMasterVariant selects highest bandwidth and resolution HTTPS variant',()=>{
+ const master='#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=600000,RESOLUTION=854x480\n480p.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=3200000,RESOLUTION=1920x1080\nhttps://cdn.example/1080p.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=1280x720\n720p.m3u8\n';
+ assert.equal(selectBestMasterVariant(master,'https://cdn.example/master.m3u8'),'https://cdn.example/1080p.m3u8');
 });
 test('Website referrer policy and per-line headers reach master and variant requests unchanged',async()=>{
  const seen=[],headers={'User-Agent':'Source Mobile UA','X-Playback':'source-value'};
