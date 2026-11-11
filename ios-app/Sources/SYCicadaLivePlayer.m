@@ -347,6 +347,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 - (void)handlePrepared {
     if (self.preparedReported || self.destroyed) return;
     self.preparedReported = YES;
+    [self.preparedFallbackTimer invalidate]; self.preparedFallbackTimer = nil;
     if (self.startRequested) [self start];
 }
 
@@ -354,6 +355,8 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     if (self.firstFrameReported || self.destroyed) return;
     self.firstFrameReported = YES;
     [self.firstFrameWatchdog invalidate]; self.firstFrameWatchdog = nil;
+    [self.preparedFallbackTimer invalidate]; self.preparedFallbackTimer = nil;
+    [self.pollTimer invalidate]; self.pollTimer = nil;
     if ([self.delegate respondsToSelector:@selector(cicadaLivePlayerDidShowFirstFrame:size:)]) {
         [self.delegate cicadaLivePlayerDidShowFirstFrame:self size:self.videoSize];
     }
@@ -409,18 +412,18 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     // 5=LoadingEnd、6=SeekEnd、7=LoopingStart。
     if (eventType == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!self.destroyed) [self handlePrepared];
+            if (!self.destroyed && (!player || !self.player || player == self.player)) [self handlePrepared];
         });
     } else if (eventType == 2) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!self.destroyed) [self handleFirstFrame];
+            if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleFirstFrame];
         });
     }
 }
 
 - (void)onError:(id)player errorModel:(id)errorModel {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self.destroyed) return;
+        if (self.destroyed || (player && self.player && player != self.player)) return;
         NSInteger code = SYCicadaLiveCodeFromModel(errorModel);
         NSString *message = SYCicadaLiveStringFromModel(errorModel, @[@"errorMsg", @"message", @"localizedDescription"]);
         [self reportErrorWithCode:code message:message ?: @"CicadaPlayer 播放失败"];

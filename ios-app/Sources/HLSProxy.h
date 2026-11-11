@@ -19,6 +19,7 @@
 @property(nonatomic) NSInteger lastHTTPStatus;
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
+- (void)seedPlaylists:(NSArray*)items;
 @end
 @implementation SYHLSProxy
 - (instancetype)init {
@@ -30,28 +31,34 @@
   NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];
   config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=8;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
   self.session=[NSURLSession sessionWithConfiguration:config];
-  nw_parameters_t parameters=nw_parameters_create_secure_tcp(NW_PARAMETERS_DISABLE_PROTOCOL,NW_PARAMETERS_DEFAULT_CONFIGURATION);
-  nw_parameters_set_local_endpoint(parameters,nw_endpoint_create_host("127.0.0.1","0"));
-  self.listener=nw_listener_create(parameters);
-  if(self.listener){
-   __weak SYHLSProxy*weak=self;
-   nw_listener_set_queue(self.listener,dispatch_get_main_queue());
-   nw_listener_set_state_changed_handler(self.listener,^(nw_listener_state_t state,nw_error_t error){if(state==nw_listener_state_ready)weak.port=nw_listener_get_port(weak.listener);else if(state==nw_listener_state_failed)weak.port=0;});
-   nw_listener_set_new_connection_handler(self.listener,^(nw_connection_t connection){
-    SYHLSProxy*owner=weak;if(!owner){nw_connection_cancel(connection);return;}
-    nw_connection_set_queue(connection,dispatch_get_main_queue());nw_connection_start(connection);
-    [owner read:connection data:[NSMutableData data]];
-   });
-   nw_listener_start(self.listener);
-  }
+  [self startListener];
  }
  return self;
+}
+- (void)startListener {
+ if(self.listener){nw_listener_cancel(self.listener);self.listener=nil;}
+ nw_parameters_t parameters=nw_parameters_create_secure_tcp(NW_PARAMETERS_DISABLE_PROTOCOL,NW_PARAMETERS_DEFAULT_CONFIGURATION);
+ nw_parameters_set_local_endpoint(parameters,nw_endpoint_create_host("127.0.0.1","0"));
+ self.listener=nw_listener_create(parameters);
+ if(!self.listener)return;
+ __weak SYHLSProxy*weak=self;
+ nw_listener_set_queue(self.listener,dispatch_get_main_queue());
+ nw_listener_set_state_changed_handler(self.listener,^(nw_listener_state_t state,nw_error_t error){
+  if(state==nw_listener_state_ready)weak.port=nw_listener_get_port(weak.listener);
+  else if(state==nw_listener_state_failed||state==nw_listener_state_cancelled)weak.port=0;
+ });
+ nw_listener_set_new_connection_handler(self.listener,^(nw_connection_t connection){
+  SYHLSProxy*owner=weak;if(!owner){nw_connection_cancel(connection);return;}
+  nw_connection_set_queue(connection,dispatch_get_main_queue());nw_connection_start(connection);
+  [owner read:connection data:[NSMutableData data]];
+ });
+ nw_listener_start(self.listener);
 }
 - (void)dealloc {if(_listener)nw_listener_cancel(_listener);[_session invalidateAndCancel];}
 - (NSURL*)mapped:(NSURL*)url {
  if(![@[@"https",@"http"] containsObject:url.scheme.lowercaseString]||!url.host.length||!self.port)return nil;
  NSString*path=self.paths[url.absoluteString];
- if(!path){NSString*extension=url.pathExtension.lowercaseString;NSSet*known=[NSSet setWithArray:@[@"m3u8",@"mp4",@"m4v",@"mov",@"ts",@"aac"]];if(![known containsObject:extension])extension=@"bin";path=[NSString stringWithFormat:@"/%@/%@.%@",self.token,NSUUID.UUID.UUIDString,extension];self.paths[url.absoluteString]=path;self.resources[path]=url;}
+ if(!path){if(self.paths.count>=4096){[self.paths removeAllObjects];[self.resources removeAllObjects];}NSString*extension=url.pathExtension.lowercaseString;NSSet*known=[NSSet setWithArray:@[@"m3u8",@"mp4",@"m4v",@"mov",@"ts",@"aac"]];if(![known containsObject:extension])extension=@"bin";path=[NSString stringWithFormat:@"/%@/%@.%@",self.token,NSUUID.UUID.UUIDString,extension];self.paths[url.absoluteString]=path;self.resources[path]=url;}
  return [NSURL URLWithString:[NSString stringWithFormat:@"http://127.0.0.1:%u%@",self.port,path]];
 }
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers {
@@ -66,8 +73,33 @@
   NSURLSessionConfiguration*config=[NSURLSessionConfiguration ephemeralSessionConfiguration];config.timeoutIntervalForRequest=20;config.HTTPMaximumConnectionsPerHost=8;config.URLCache=nil;config.requestCachePolicy=NSURLRequestReloadIgnoringLocalCacheData;
   self.session=[NSURLSession sessionWithConfiguration:config];
  }
+ if(!self.port)[self startListener];
  if(!enabled||!self.port||![url.path.lowercaseString hasSuffix:@".m3u8"])return url;
  return [self mapped:url]?:url;
+}
+- (void)seedPlaylists:(NSArray*)items {
+ if(!self.enabled||!self.port||![items isKindOfClass:NSArray.class])return;
+ for(NSDictionary*entry in items){
+  if(![entry isKindOfClass:NSDictionary.class])continue;
+  NSString*urlText=[entry[@"url"] isKindOfClass:NSString.class]?entry[@"url"]:@"",*rawText=[entry[@"text"] isKindOfClass:NSString.class]?entry[@"text"]:@"";
+  NSURL*u=[NSURL URLWithString:urlText];
+  if(!u||!rawText.length||rawText.length>2*1024*1024||![[rawText stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] hasPrefix:@"#EXTM3U"])continue;
+  BOOL isStaticVOD=[rawText containsString:@"#EXT-X-ENDLIST"]||[rawText containsString:@"#EXT-X-STREAM-INF:"];
+  if(!isStaticVOD)continue;
+  NSString*text=rawText;
+  JSValue*clean=self.js[@"SYHLS"][@"cleanPlaylist"];
+  NSDictionary*report=[[clean callWithArguments:@[text,@{@"enabled":@(self.enabled)}]] toDictionary];
+  if([report[@"body"] isKindOfClass:NSString.class]){
+   text=report[@"body"];
+   self.removed+=[report[@"removed"] unsignedIntegerValue];
+   if([report[@"seconds"] respondsToSelector:@selector(doubleValue)])self.removedSeconds+=[report[@"seconds"] doubleValue];
+  }
+  NSString*rewritten=[self rewrite:text base:u];
+  if(rewritten&&self.playlistCache.count<24){
+   NSData*data=[rewritten dataUsingEncoding:NSUTF8StringEncoding];
+   if(data)self.playlistCache[u.absoluteString]=data;
+  }
+ }
 }
 - (void)reply:(nw_connection_t)connection status:(NSInteger)status headers:(NSDictionary*)headers data:(NSData*)data head:(BOOL)head {
  NSMutableString*text=[NSMutableString stringWithFormat:@"HTTP/1.1 %ld Response\r\nConnection: close\r\nContent-Length: %lu\r\n",(long)status,(unsigned long)(headers[@"Content-Length"]?[headers[@"Content-Length"] unsignedLongLongValue]:data.length)];
@@ -81,10 +113,10 @@
  nw_connection_receive(connection,1,16384,^(dispatch_data_t content,nw_content_context_t context,bool complete,nw_error_t error){
   SYHLSProxy*owner=weak;if(!owner){nw_connection_cancel(connection);return;}
   if(content)dispatch_data_apply(content,^bool(dispatch_data_t region,size_t offset,const void*bytes,size_t size){[data appendBytes:bytes length:size];return true;});
-  NSString*request=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+  NSString*request=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding]?:[[NSString alloc]initWithData:data encoding:NSISOLatin1StringEncoding];
   if(data.length>2*1024*1024||error){nw_connection_cancel(connection);return;}
-  NSRange separator=[request rangeOfString:@"\r\n\r\n"];
-  if(separator.location!=NSNotFound){
+  NSRange separator=request?[request rangeOfString:@"\r\n\r\n"]:NSMakeRange(NSNotFound,0);
+  if(separator.location!=NSNotFound&&separator.length>0){
    NSUInteger needed=0;for(NSString *line in [[request substringToIndex:separator.location] componentsSeparatedByString:@"\r\n"])if([line.lowercaseString hasPrefix:@"content-length:"])needed=[[line substringFromIndex:15] integerValue];
    if(needed>2*1024*1024){nw_connection_cancel(connection);return;}
    NSUInteger received=[[request substringFromIndex:separator.location+4] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
@@ -160,13 +192,16 @@
 #else
 // Experimental ABI-only build has no HLS proxy; release builds always use Apple's SDK.
 @interface SYHLSProxy:NSObject
+@property(nonatomic,strong) NSMutableDictionary*playlistCache;
 @property(nonatomic) NSUInteger removed;
 @property(nonatomic) double removedSeconds;
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers;
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled;
+- (void)seedPlaylists:(NSArray*)items;
 @end
 @implementation SYHLSProxy
 - (NSURL*)prepareLive:(NSURL*)url headers:(NSDictionary*)headers{return url;}
 - (NSURL*)prepare:(NSURL*)url headers:(NSDictionary*)headers enabled:(BOOL)enabled{return url;}
+- (void)seedPlaylists:(NSArray*)items{}
 @end
 #endif

@@ -74,15 +74,24 @@ export class YqkClient extends SiteClient {
  movie(item){
   if(!item||!numeric(item.vodId)||!item.vodName)return null;
   const flags=String(item.flags||''),row={title:String(item.vodName),url:'vod/detail?vodId='+item.vodId,imageURL:safeImageURL(item.coverImg,this.site.origin),bottomLabel:String(item.remark||''),scoreText:item.score?String(item.score)+'分':'',topLeftLabel:(item.iconList||[]).map(x=>x.iconText).filter(Boolean).slice(0,1).join(''),labels:flags.split('/').map(x=>({name:x.trim()})).filter(x=>x.name),channelId:/(?:^|\s|\/)[^/]*片(?:\s|\/|$)/.test(flags)?1:0,isAdult:false};
-  this.movieHints.set(String(item.vodId),row);return row;
+  const key=String(item.vodId);this.movieHints.delete(key);this.movieHints.set(key,row);while(this.movieHints.size>500)this.movieHints.delete(this.movieHints.keys().next().value);return row;
  }
  movies(value){return (Array.isArray(value)?value:[]).map(x=>this.movie(x)).filter(Boolean);}
- sections(value){return (Array.isArray(value)?value:[]).map(t=>{if(numeric(t.vodTopicId))this.topicHints.set(String(t.vodTopicId),t);return {header:{title:String(t.topicName||'精选片库'),...(numeric(t.vodTopicId)?{url:'specialTopic/vods?specialTopicId='+t.vodTopicId}:{})},data:this.movies(t.vodList)};}).filter(b=>b.data.length);}
+ sections(value){return (Array.isArray(value)?value:[]).map(t=>{if(numeric(t.vodTopicId)){const tk=String(t.vodTopicId);this.topicHints.delete(tk);this.topicHints.set(tk,t);while(this.topicHints.size>100)this.topicHints.delete(this.topicHints.keys().next().value);}return {header:{title:String(t.topicName||'精选片库'),...(numeric(t.vodTopicId)?{url:'specialTopic/vods?specialTopicId='+t.vodTopicId}:{})},data:this.movies(t.vodList)};}).filter(b=>b.data.length);}
  async home(signal){const [,d]=await Promise.all([this.ready(signal),this.post('/v2/api/home/body',{},signal)]);if(!Array.isArray(d?.vodTopicList))throw Error('网站首页结构已变化');return {blocks:this.sections(d.vodTopicList)};}
  async prepareChannel(channelId,signal){
   await this.ready(signal);if(!numeric(channelId))throw Error('无效分类');
-  if(!this.childFilters.has(String(channelId))){const d=await this.post('/v2/api/channel/childListView',{channelId:Number(channelId)},signal);const children=(d?.childChannelList||[]).filter(c=>numeric(c.channelId)&&c.channelName);this.childFilters.set(String(channelId),children);
-   this.config.channelListQuery=this.config.channelListQuery.filter(x=>Number(x.channelId)!==Number(channelId));this.config.channelListQuery.push({channelId:Number(channelId),items:[{query:'childChannelId',name:'类型',selected:'',data:[{id:'',name:'全部'},...children.map(c=>({id:String(c.channelId),name:String(c.channelName)}))]}]});
+  if(!this.childFilters.has(String(channelId))){
+   let children=[];
+   try{
+    const d=await this.post('/v2/api/channel/childListView',{channelId:Number(channelId)},signal);
+    children=(d?.childChannelList||[]).filter(c=>numeric(c.channelId)&&c.channelName);
+    this.childFilters.set(String(channelId),children);
+   }catch(error){
+    if(error.name==='AbortError'||signal?.aborted)throw error;
+   }
+   this.config.channelListQuery=this.config.channelListQuery.filter(x=>Number(x.channelId)!==Number(channelId));
+   this.config.channelListQuery.push({channelId:Number(channelId),items:[{query:'childChannelId',name:'类型',selected:'',data:[{id:'',name:'全部'},...children.map(c=>({id:String(c.channelId),name:String(c.channelName)}))]}]});
   }
  }
  async channel(channelId,filters={},next='page=1',signal){

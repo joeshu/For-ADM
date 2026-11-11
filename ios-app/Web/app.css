@@ -625,3 +625,122 @@ html[data-theme="black"] .maintenance-btn{background:#0f1722;border-color:#fffff
 .settings-segmented button{min-height:36px;font-size:12px;padding:0 8px;border-radius:9px}
 .theme-card{padding:10px 11px;gap:8px}
 .theme-swatch{width:28px;height:28px;flex:0 0 28px;border-radius:8px}
+
+.cross-source-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.cross-source-chips .chip{min-height:36px;padding:7px 14px;border-radius:18px;font-weight:600;border:1px solid var(--line)}
+
+.saved-sort-chip{margin-left:auto;color:var(--accent)!important;border-color:var(--accent)!important}
+
+/* Round 3 Visual Polish, Contrast Alignment & Interactive Ergonomics */
+.herocopy{max-width:94%}
+.herocopy h1{font-size:clamp(24px,6.4vw,30px);text-wrap:balance}
+@media(min-width:650px){.herocopy{max-width:68%}.herocopy h1{font-size:36px}}
+
+.poster:has(img.is-loaded)>span:first-child{opacity:0;transition:opacity .18s ease}
+
+.episodes-heading{align-items:center;gap:10px}
+.episodes-heading>div:first-child{min-width:0;flex:1}
+.episodes-heading .subtle{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.episode-steps{flex-shrink:0;align-items:center;gap:6px}
+.episode-steps button{white-space:nowrap;flex-shrink:0;padding:8px 11px;border-radius:10px;font-weight:600}
+
+html[data-theme="white"] .summary-toggle{color:#1768df;font-weight:600}
+html[data-theme="white"] .playback-section .route-help,html[data-theme="white"] .selected-episode{color:#5c6678}
+html[data-theme="white"] .playback-section .route-card span{color:#6b7485}
+html[data-theme="white"] .playback-section .route-card.active span{color:#1768df;font-weight:600}
+html[data-theme="white"] .playback-section .episode small{color:#6b7485}
+html[data-theme="white"] .playback-section .episode.active small{color:#1768df;font-weight:600}
+html[data-theme="white"] .playback-section .episode-pages{background:#f2f5fa;border:1px solid #e4e8f0;color:#5c6678}
+html[data-theme="white"] .playback-section .episode-page-chip{background:#fff;color:#252b37;border-color:#d8dfe9;box-shadow:0 1px 3px #18233a08}
+html[data-theme="white"] .playback-section .episode-page-chip.active{background:#2878f0;color:#fff;border-color:#2878f0;box-shadow:0 2px 8px #2878f033}
+html[data-theme="white"] .detail-content .playtoolbar button{color:#1768df;font-weight:650}
+
+.live-fullscreen{top:8px;right:10px;bottom:auto;display:grid;place-items:center;width:32px;height:32px;border:1px solid #ffffff2e;border-radius:9px;background:#0d1520cc;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:17px;line-height:1;box-shadow:0 2px 8px #0005;transition:transform .12s ease,background-color .15s ease}
+.live-fullscreen:active{transform:scale(.92);background:#1b2838e6}
+
+.my-clear-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;margin:18px 0 4px;padding:0 16px;border-radius:18px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);font-size:12px;font-weight:600;transition:transform .12s ease,background-color .15s ease,color .15s ease,border-color .15s ease}
+.my-clear-button:active{transform:scale(.97)}
+.my-clear-button[data-confirm="yes"]{background:#fff1f2;border-color:#fecdd3;color:#e11d48}
+html[data-theme="black"] .my-clear-button[data-confirm="yes"]{background:#3b1620;border-color:#f43f5e55;color:#fda4af}
+
+.back-to-top{position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:16;min-height:36px;padding:0 13px;border-radius:18px;background:#ffffffeb;border:1px solid #d8e0ec;color:#1768df;font-size:11px;font-weight:700;box-shadow:0 6px 20px #18233a1f;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:transform .15s ease,opacity .15s ease}
+.back-to-top:active{transform:scale(.94)}
+html[data-theme="black"] .back-to-top{background:#15222eeb;border-color:#8ce1cf44;color:#8ce1cf;box-shadow:0 6px 22px #0008}
+html[data-page="detail"] .back-to-top,html[data-page="collection"] .back-to-top{bottom:calc(24px + env(safe-area-inset-bottom))}
+
+/* Round 4 Episode Quick-Jump, Located Pulse & Cross-Source Search Bar */
+.episode-jump-input{width:54px;height:32px;flex:0 0 54px;padding:0 6px;border-radius:8px;border:1px solid #ffffff22;background:#1b302d;color:#edf5f1;font-size:11px;text-align:center;-moz-appearance:textfield}
+.episode-jump-input::-webkit-outer-spin-button,.episode-jump-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+html[data-theme="white"] .playback-section .episode-jump-input{background:#fff;border-color:#d8dfe9;color:#252b37}
+@keyframes locatedPulse{0%,100%{box-shadow:0 0 0 0 #2878f066}50%{box-shadow:0 0 0 4px #2878f033}}
+.episode.is-located{border-color:var(--accent)!important;animation:locatedPulse 1.2s ease 2}
+
+.search-source-bar{display:flex;align-items:center;gap:8px;margin:6px 0 8px;padding:7px 11px;border-radius:13px;background:var(--panel);border:1px solid var(--line)}
+.search-source-bar>.subtle{flex:0 0 auto;font-weight:600}
+.search-source-chips{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.search-source-chips::-webkit-scrollbar{display:none}
+.search-source-chips .chip{min-height:28px;padding:4px 11px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);font-size:11px;color:var(--text)}
+
+
+/* Cross-Site Health & Connectivity Monitor Styling */
+.site-connectivity-card{border-color:#2878f02b;box-shadow:0 6px 20px #18233a0c}
+.settings-heading-btns{display:flex;align-items:center;gap:6px;margin-left:auto}
+.site-recommend-banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:13px;margin:2px 0 12px;border:1px solid transparent}
+.site-recommend-banner.alert{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-color:#3b82f640}
+.site-recommend-banner.success{background:linear-gradient(135deg,#f0fdf4,#f8fafc);border-color:#22c55e40}
+html[data-theme="black"] .site-recommend-banner.alert{background:linear-gradient(135deg,#132838,#132b26);border-color:#38bdf855}
+html[data-theme="black"] .site-recommend-banner.success{background:linear-gradient(135deg,#132b26,#121d28);border-color:#34d39955}
+.recommend-badge{flex:0 0 auto;padding:4px 8px;border-radius:8px;background:#2878f0;color:#fff;font-size:10px;font-weight:750}
+html[data-theme="black"] .recommend-badge{background:#0ea5e9;color:#031525}
+.recommend-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.recommend-info strong{font-size:12px;color:var(--text);line-height:1.35}
+.recommend-info small{font-size:10px;color:var(--muted);line-height:1.45}
+.site-recommend-banner .settings-action{flex:0 0 auto}
+
+.site-connectivity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0 4px}
+.site-conn-tile{display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:12px 13px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;transition:transform .14s ease,border-color .16s ease,box-shadow .16s ease}
+.site-conn-tile:hover{border-color:#cbd5e1}
+.site-conn-tile.is-current{background:#f0f6ff;border-color:#2878f0;box-shadow:0 3px 12px #2878f018}
+html[data-theme="black"] .site-conn-tile{background:#0f1722;border-color:#ffffff14}
+html[data-theme="black"] .site-conn-tile.is-current{background:#14272c;border-color:#8ce1cf77;box-shadow:none}
+
+.site-conn-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.site-conn-title-group{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.site-conn-title-group strong{font-size:13px;font-weight:750;color:var(--text)}
+.site-curr-tag{padding:2px 6px;border-radius:6px;background:#2878f0;color:#fff;font-size:9px;font-weight:750}
+html[data-theme="black"] .site-curr-tag{background:#2dd4bf;color:#042f2e}
+
+.site-latency-pill{flex:0 0 auto;padding:3px 7px;border-radius:6px;font-size:9px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.site-latency-pill.fast{background:#dcfce7;color:#15803d}
+.site-latency-pill.medium{background:#fef3c7;color:#b45309}
+.site-latency-pill.slow{background:#ffedd5;color:#c2410c}
+.site-latency-pill.error{background:#fee2e2;color:#b91c1c}
+.site-latency-pill.none{background:#f1f5f9;color:#64748b}
+html[data-theme="black"] .site-latency-pill.fast{background:#14532d;color:#86efac}
+html[data-theme="black"] .site-latency-pill.medium{background:#78350f;color:#fde68a}
+html[data-theme="black"] .site-latency-pill.slow{background:#7c2d12;color:#fed7aa}
+html[data-theme="black"] .site-latency-pill.error{background:#7f1d1d;color:#fca5a5}
+html[data-theme="black"] .site-latency-pill.none{background:#1e293b;color:#94a3b8}
+
+.site-conn-meta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.site-conn-domain{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-conn-feature{font-size:10px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.site-conn-protocol{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.site-conn-footer{display:flex;align-items:center;gap:6px;margin-top:4px}
+.site-probe-btn,.site-switch-btn{flex:1;min-height:30px;padding:0 8px;border-radius:8px;font-size:11px;font-weight:650;text-align:center;transition:transform .12s ease}
+.site-probe-btn{background:#eef2f6;border:1px solid #d8e0eb;color:#334155}
+.site-probe-btn:active{transform:scale(.96)}
+.site-switch-btn{background:#2878f0;border:1px solid #2878f0;color:#fff}
+.site-switch-btn:active{transform:scale(.96)}
+.site-switch-btn.current{background:#e2e8f0;border-color:#cbd5e1;color:#64748b;cursor:default}
+html[data-theme="black"] .site-probe-btn{background:#1e293b;border-color:#334155;color:#cbd5e1}
+html[data-theme="black"] .site-switch-btn{background:#14b8a6;border-color:#14b8a6;color:#042f2e}
+html[data-theme="black"] .site-switch-btn.current{background:#1e293b;border-color:#334155;color:#64748b}
+
+@media(max-width:380px){.site-connectivity-grid{grid-template-columns:1fr}}
+@media(min-width:700px){.site-connectivity-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* Round 6 Fast-Start Prefetch Telemetry & Sleep Timer Styling */
+.cockpit-badge.prefetch-ready{background:#16384c;color:#7dd3fc;border:1px solid #38bdf844}
+html[data-theme="white"] .detail-content .cockpit-badge.prefetch-ready{background:#e0f2fe;color:#0369a1;border-color:#0284c730}
