@@ -85,7 +85,7 @@ test('SYCicadaLivePlayer talks to the SDK only through runtime reflection',()=>{
  assert.ok(impl.includes('mode = 0')&&impl.includes('mode = 1')&&impl.includes('mode = 2'),'scaling must map 0/1/2 (fill/fit/fill-aspect)');
  assert.ok(impl.includes('softwareRetryDone'),'a hardware-decode failure must retry once in software');
  assert.ok(impl.includes('setNetworkRetryCount:'),'the SDK retry count must be configured');
- assert.ok(impl.includes('20 秒内未显示首帧'),'the first-frame watchdog must be 20 seconds');
+ assert.ok(impl.includes('_firstFrameTimeout = 20.0'),'the first-frame watchdog must default to 20 seconds');
 });
 
 test('Cicada frameworks are bundled for device builds and excluded from the simulator build',()=>{

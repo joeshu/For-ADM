@@ -42,7 +42,6 @@
 
 NSString * const SYCicadaLivePlayerErrorDomain = @"SYCicadaLivePlayerErrorDomain";
 
-static const NSTimeInterval SYCicadaLiveFirstFrameTimeout = 20.0;
 static const NSTimeInterval SYCicadaLivePositionPollInterval = 1.0;
 static const NSTimeInterval SYCicadaLivePreparedFallbackDelay = 0.5;
 
@@ -75,6 +74,16 @@ static void SYCicadaCallVoidInt(id target, SEL sel, int arg) {
 static void SYCicadaCallVoidFloat(id target, SEL sel, float arg) {
     if (!target || !sel || ![target respondsToSelector:sel]) return;
     @try { ((void (*)(id, SEL, float))objc_msgSend)(target, sel, arg); } @catch (NSException *e) {}
+}
+
+static void SYCicadaCallVoidDouble(id target, SEL sel, double arg) {
+    if (!target || !sel || ![target respondsToSelector:sel]) return;
+    @try { ((void (*)(id, SEL, double))objc_msgSend)(target, sel, arg); } @catch (NSException *e) {}
+}
+
+static void SYCicadaCallVoidDoubleLong(id target, SEL sel, double arg, long arg2) {
+    if (!target || !sel || ![target respondsToSelector:sel]) return;
+    @try { ((void (*)(id, SEL, double, long))objc_msgSend)(target, sel, arg, arg2); } @catch (NSException *e) {}
 }
 
 static double SYCicadaCallDouble(id target, SEL sel) {
@@ -134,6 +143,13 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 @property (nonatomic) BOOL enableHardwareDecoder;
 @property (nonatomic) BOOL softwareRetryDone;
 @property (nonatomic) CGSize videoSize;
+@property (nonatomic) float pendingRate;
+@property (nonatomic) BOOL hasPendingRate;
+@property (nonatomic) BOOL startPositionApplied;
+@property (nonatomic) BOOL paused;
+@property (nonatomic) BOOL completedReported;
+@property (nonatomic) NSTimeInterval lastProgressPosition;
+@property (nonatomic) NSInteger stallSeconds;
 @end
 
 @implementation SYCicadaLivePlayer
@@ -152,6 +168,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         _playerView.clipsToBounds = YES;
         _state = SYCicadaLivePlayerStateIdle;
         _videoSize = CGSizeZero;
+        _firstFrameTimeout = 20.0;
     }
     return self;
 }
@@ -202,6 +219,11 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
             if (userAgent.length) SYCicadaCallVoidObject(config, NSSelectorFromString(@"setUserAgent:"), userAgent);
             if (referer.length) SYCicadaCallVoidObject(config, NSSelectorFromString(@"setReferer:"), referer);
         }
+        // 点播缓冲：起播 300ms 即出画面，高水位 5s，最大 30s（与 AVPlayer 点播
+        // 前向缓冲一致），让慢线路分片有足够时间到达；选择器不存在时静默跳过。
+        SYCicadaCallVoidInt(config, NSSelectorFromString(@"setStartBufferDuration:"), 300);
+        SYCicadaCallVoidInt(config, NSSelectorFromString(@"setHighBufferDuration:"), 5000);
+        SYCicadaCallVoidInt(config, NSSelectorFromString(@"setMaxBufferDuration:"), 30000);
         SYCicadaCallVoidObject(player, NSSelectorFromString(@"setConfig:"), config);
     }
     SYCicadaCallVoidBool(player, NSSelectorFromString(@"setEnableHardwareDecoder:"), self.enableHardwareDecoder);
@@ -216,14 +238,14 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     SYCicadaCallVoidObject(player, NSSelectorFromString(@"setDelegate:"), self);
     SYCicadaCallVoid(player, NSSelectorFromString(@"prepare"));
 
-    // 首帧看门狗：20 秒内无首帧即报错（硬解时走软解重试，软解时上报失败）。
+    // 首帧看门狗：firstFrameTimeout 秒内无首帧即报错（硬解时走软解重试，软解时上报失败）。
     __weak typeof(self) weakSelf = self;
     NSUInteger generation = self.generation;
-    self.firstFrameWatchdog = [NSTimer scheduledTimerWithTimeInterval:SYCicadaLiveFirstFrameTimeout repeats:NO block:^(NSTimer *timer) {
+    self.firstFrameWatchdog = [NSTimer scheduledTimerWithTimeInterval:self.firstFrameTimeout repeats:NO block:^(NSTimer *timer) {
         SYCicadaLivePlayer *owner = weakSelf;
         if (!owner || generation != owner.generation || owner.destroyed) return;
         if (owner.firstFrameReported || owner.state == SYCicadaLivePlayerStateFailed) return;
-        [owner reportErrorWithCode:-1001 message:@"CicadaPlayer 20 秒内未显示首帧"];
+        [owner reportErrorWithCode:-1001 message:[NSString stringWithFormat:@"CicadaPlayer %.0f 秒内未显示首帧", owner.firstFrameTimeout]];
     }];
     // onPrepared 回调的 selector 拼写未在二进制中直接确认：0.5 秒后无论是否收到
     // 回调都按已准备处理，保证起播不会因回调缺失而卡住。
@@ -264,10 +286,56 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         return;
     }
     self.startRequested = NO;
+    self.paused = NO;
+    self.completedReported = NO;
+    if (self.startPosition > 0 && !self.startPositionApplied) {
+        self.startPositionApplied = YES;
+        [self seekToTime:self.startPosition];
+    }
+    if (self.hasPendingRate) [self applyPendingRate];
     SYCicadaCallVoid(self.player, NSSelectorFromString(@"start"));
     if (self.state != SYCicadaLivePlayerStateFailed) {
         self.state = SYCicadaLivePlayerStatePlaying;
     }
+}
+
+- (void)pause {
+    if (self.destroyed || !self.player) return;
+    self.startRequested = NO;
+    self.paused = YES;
+    SYCicadaCallVoid(self.player, NSSelectorFromString(@"pause"));
+}
+
+- (void)resume {
+    if (self.destroyed || !self.player) return;
+    if (!self.preparedReported) {
+        self.startRequested = YES;
+        return;
+    }
+    self.paused = NO;
+    SYCicadaCallVoid(self.player, NSSelectorFromString(@"start"));
+    if (self.state != SYCicadaLivePlayerStateFailed) {
+        self.state = SYCicadaLivePlayerStatePlaying;
+    }
+}
+
+- (void)seekToTime:(NSTimeInterval)seconds {
+    if (self.destroyed || !self.player || !isfinite(seconds)) return;
+    if (![self.player respondsToSelector:NSSelectorFromString(@"seekToTime:seekMode:")]) return;
+    // CICADA_SEEKMODE_ACCURATE（0x01，见 CicadaSDK.h；cctvhost 适配器同值）。
+    SYCicadaCallVoidDoubleLong(self.player, NSSelectorFromString(@"seekToTime:seekMode:"), MAX(0, seconds), 0x01);
+}
+
+- (void)setRate:(float)rate {
+    if (!isfinite(rate)) return;
+    self.pendingRate = MIN(3.0f, MAX(0.5f, rate));
+    self.hasPendingRate = YES;
+    [self applyPendingRate];
+}
+
+- (void)applyPendingRate {
+    if (!self.player || !self.hasPendingRate) return;
+    SYCicadaCallVoidDouble(self.player, NSSelectorFromString(@"setRate:"), (double)self.pendingRate);
 }
 
 - (void)stop {
@@ -329,6 +397,48 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     return SYCicadaLiveNormalizeTimeValue(@(position));
 }
 
+- (NSTimeInterval)duration {
+    if (!self.player) return 0;
+    NSTimeInterval duration = SYCicadaCallDouble(self.player, NSSelectorFromString(@"duration"));
+    if (duration <= 0) duration = SYCicadaCallDouble(self.player, NSSelectorFromString(@"getDuration"));
+    return SYCicadaLiveNormalizeTimeValue(@(duration));
+}
+
+- (void)reportVODProgressWithPosition:(NSTimeInterval)position duration:(NSTimeInterval)duration {
+    if (self.completedReported) return;
+    if ([self.delegate respondsToSelector:@selector(cicadaLivePlayer:didUpdatePosition:duration:)]) {
+        [self.delegate cicadaLivePlayer:self didUpdatePosition:position duration:duration];
+    }
+    // 播完兜底：位置到达时长末尾即视为播完（onCompletion 未到时也生效）。
+    if (self.state == SYCicadaLivePlayerStatePlaying && duration > 0 && position >= duration - 0.1) {
+        [self handleCompletion];
+        return;
+    }
+    // 卡顿超时：首帧后 15 秒位置无推进即报错，交给调用方切线；暂停时不计。
+    // 网络卡顿不是解码问题，不走软解重试，直接上报失败。
+    if (self.firstFrameReported && !self.paused && self.state == SYCicadaLivePlayerStatePlaying) {
+        if (position > self.lastProgressPosition + 0.5) {
+            self.lastProgressPosition = position;
+            self.stallSeconds = 0;
+        } else if (++self.stallSeconds >= 15) {
+            self.stallSeconds = 0;
+            [self reportErrorWithCode:-1003 message:@"CicadaPlayer 缓冲超时" allowSoftwareRetry:NO];
+        }
+    } else {
+        self.stallSeconds = 0;
+        self.lastProgressPosition = position;
+    }
+}
+
+- (void)handleCompletion {
+    if (self.completedReported || self.destroyed) return;
+    self.completedReported = YES;
+    self.state = SYCicadaLivePlayerStateIdle;
+    if ([self.delegate respondsToSelector:@selector(cicadaLivePlayerDidComplete:)]) {
+        [self.delegate cicadaLivePlayerDidComplete:self];
+    }
+}
+
 - (void)startPollTimer {
     [self.pollTimer invalidate];
     __weak typeof(self) weakSelf = self;
@@ -339,6 +449,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         NSTimeInterval position = owner.currentPosition;
         // 首帧兜底：位置推进即视为画面已出（onFirstFrameShow 未到时也生效）。
         if (!owner.firstFrameReported && position > 0.5) [owner handleFirstFrame];
+        if (owner.vodMode) [owner reportVODProgressWithPosition:position duration:owner.duration];
     }];
 }
 
@@ -356,19 +467,25 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     self.firstFrameReported = YES;
     [self.firstFrameWatchdog invalidate]; self.firstFrameWatchdog = nil;
     [self.preparedFallbackTimer invalidate]; self.preparedFallbackTimer = nil;
-    [self.pollTimer invalidate]; self.pollTimer = nil;
+    // 点播要持续轮询进度/播完/卡顿，首帧后不停止轮询；直播仍按旧逻辑停掉。
+    if (!self.vodMode) { [self.pollTimer invalidate]; self.pollTimer = nil; }
     if ([self.delegate respondsToSelector:@selector(cicadaLivePlayerDidShowFirstFrame:size:)]) {
         [self.delegate cicadaLivePlayerDidShowFirstFrame:self size:self.videoSize];
     }
 }
 
 - (void)reportErrorWithCode:(NSInteger)code message:(NSString *)message {
+    [self reportErrorWithCode:code message:message allowSoftwareRetry:YES];
+}
+
+- (void)reportErrorWithCode:(NSInteger)code message:(NSString *)message allowSoftwareRetry:(BOOL)allowSoftwareRetry {
     if (self.destroyed || self.state == SYCicadaLivePlayerStateFailed) return;
     // 硬解失败时先重试一次软解（与 cctvhost 的软件解码重试一致）：
     // 拆掉当前播放器，用 setEnableHardwareDecoder:NO 重建。软解也失败
     // 或已重试过，才真正上报失败。
-    if (self.enableHardwareDecoder && !self.softwareRetryDone && self.player) {
+    if (allowSoftwareRetry && self.enableHardwareDecoder && !self.softwareRetryDone && self.player) {
         self.softwareRetryDone = YES;
+        NSTimeInterval retryPosition = [self currentPosition];
         id player = self.player;
         self.player = nil;
         self.config = nil;
@@ -378,6 +495,8 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         self.preparedReported = NO;
         self.firstFrameReported = NO;
         self.startRequested = YES;
+        // 点播重试：从断点续播，而不是回到起播位置；直播保持 0，不 seek。
+        if (self.vodMode) { self.startPosition = MAX(self.startPosition, retryPosition); self.startPositionApplied = NO; }
         if (player) {
             SYCicadaCallVoidObject(player, NSSelectorFromString(@"setDelegate:"), nil);
             SYCicadaCallVoid(player, NSSelectorFromString(@"stop"));
@@ -417,6 +536,10 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     } else if (eventType == 2) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleFirstFrame];
+        });
+    } else if (eventType == 3) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleCompletion];
         });
     }
 }
@@ -487,7 +610,9 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 }
 
 - (void)onCompletion:(id)player {
-    // 直播没有“播完”，只作代收点。
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!self.destroyed) [self handleCompletion];
+    });
 }
 
 - (void)onLoadingStart:(id)player {

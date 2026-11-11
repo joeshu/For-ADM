@@ -152,6 +152,13 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic) BOOL cicadaFallbackActive;
 @property(nonatomic) BOOL cicadaFallbackAttempted;
 @property(nonatomic,strong,nullable) NSDictionary*livePlaybackHeaders;
+// 点播 Cicada 回退：AVPlayer 卡顿时同线同清晰度换 Cicada 解。vodCicadaURL 为
+// 最高清晰度分变体直连地址（JS 传 cicadaURL），没有时退回原站直连地址，
+// 再没有时退回代理地址；headers 与 AVPlayer 用同一份。
+@property(nonatomic,strong,nullable) NSURL*vodDirectURL;
+@property(nonatomic,strong,nullable) NSURL*vodCicadaURL;
+@property(nonatomic,strong,nullable) NSDictionary*vodCicadaHeaders;
+@property(nonatomic) BOOL cicadaVODFallbackAttempted;
 #if defined(SY_SIMULATOR_SMOKE)
 @property(nonatomic) NSInteger smokeAttempts;
 @property(nonatomic) BOOL smokePlayerReady;
@@ -171,6 +178,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)inspectLiveVideoTracksForItem:(AVPlayerItem*)item;
 - (void)attachLiveLayerRendererForItem:(AVPlayerItem*)item;
 - (BOOL)tryCicadaFallbackForItem:(AVPlayerItem*)item;
+- (BOOL)tryCicadaVODFallbackForItem:(AVPlayerItem*)item;
 - (void)destroyCicadaPlayer;
 - (void)sendLiveActionScript:(NSString*)script;
 - (void)sendPageAction:(NSString*)action payload:(NSDictionary*)payload;
@@ -584,7 +592,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)layoutPlayer:(NSDictionary*)frame {
   if(!self.nativePlayer||self.nativePlayer.fullScreen)return;
   if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];return;}
-  if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){[self.appScreen.view setNeedsLayout];[self.appScreen.view layoutIfNeeded];self.nativePlayer.view.frame=self.appScreen.playerHost.bounds;[self.appScreen.playerHost addSubview:self.nativePlayer.view];return;}
+  if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){[self.appScreen.view setNeedsLayout];[self.appScreen.view layoutIfNeeded];self.nativePlayer.view.frame=self.appScreen.playerHost.bounds;[self.appScreen.playerHost addSubview:self.nativePlayer.view];if(self.cicadaFallbackActive&&self.cicadaLivePlayer){UIView*cicadaView=self.cicadaLivePlayer.playerView;cicadaView.frame=self.appScreen.playerHost.bounds;cicadaView.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;[self.appScreen.playerHost addSubview:cicadaView];[self.appScreen.playerHost bringSubviewToFront:cicadaView];}return;}
   if(![frame[@"visible"] boolValue]){
     if(!self.nativePlayer.pictureInPicture)[self stopNativePlayback];
     return;
@@ -598,6 +606,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){self.nativePlayer.view.frame=self.liveScreen.playerHost.bounds;[self.liveScreen.playerHost bringSubviewToFront:self.liveScreen.routePicker];}
   else if([self.playContext hasPrefix:@"live:"])self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.view];
   else self.nativePlayer.view.frame=[self.web convertRect:rect toView:self.web.scrollView];
+  if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&![self.playContext hasPrefix:@"live:"]&&self.nativePlayer.view.superview){UIView*cicadaView=self.cicadaLivePlayer.playerView;cicadaView.frame=self.nativePlayer.view.frame;cicadaView.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;[self.nativePlayer.view.superview addSubview:cicadaView];[self.nativePlayer.view.superview bringSubviewToFront:cicadaView];}
 }
 - (void)sendLiveActionScript:(NSString*)script {dispatch_async(SYMainQueue(),^{[self.web evaluateJavaScript:script completionHandler:nil];});}
 - (void)sendPageAction:(NSString*)action payload:(NSDictionary*)payload {if(!action.length)return;NSArray*args=@[action,payload?:@{}];NSData*data=[NSJSONSerialization dataWithJSONObject:args options:0 error:NULL];NSString*json=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];[self sendLiveActionScript:[NSString stringWithFormat:@"window.NativePageAction&&window.NativePageAction.apply(null,%@)",json]];}
@@ -705,16 +714,18 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 #endif
 // VOD stall grace: one AVPlayerItemPlaybackStalledNotification usually means a
 // slow CDN segment behind the local HLS proxy, not a dead line. AVPlayer
-// rebuffers on its own, so only fail the line (letting JS switch sources)
-// after 15s with no playback progress: three 5s checks. A re-stall refreshes
-// the deadline, user pause cancels the watch, and recovery clears it.
+// rebuffers on its own, so only act after 15s with no playback progress:
+// three 5s checks. A re-stall refreshes the deadline, user pause cancels
+// the watch, and recovery clears it. On expiry, first try the same line
+// with CicadaPlayer (same quality, same position, direct fetch) — only if
+// Cicada is unavailable or already tried does the line fail to JS.
 - (void)checkVODStallForItem:(AVPlayerItem*)item context:(NSString*)context {
  __weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;
  dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(5*NSEC_PER_SEC)),dispatch_get_main_queue(),^{SYController*owner=weakSelf;if(!owner||owner.nativeItem!=weakItem||![context isEqualToString:owner.playContext?:@""]||!owner.vodStallWatchdogActive)return;
   AVPlayer*player=owner.nativePlayer.player;if(!player||player.rate<=0){owner.vodStallWatchdogActive=NO;return;}
   double now=CMTimeGetSeconds(player.currentTime);
   if(__builtin_isfinite(now)&&__builtin_isfinite(owner.vodStallTime)&&now>owner.vodStallTime+0.5){owner.vodStallWatchdogActive=NO;return;}
-  if(++owner.vodStallChecks>=3){owner.vodStallWatchdogActive=NO;[owner sendPlayback:@{@"context":context,@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];[owner stopNativePlayback];return;}
+  if(++owner.vodStallChecks>=3){owner.vodStallWatchdogActive=NO;if([owner tryCicadaVODFallbackForItem:weakItem])return;[owner sendPlayback:@{@"context":context,@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];[owner stopNativePlayback];return;}
   [owner checkVODStallForItem:weakItem context:context];});
 }
 - (void)stopNativePlayback {
@@ -777,6 +788,43 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     return YES;
 }
 
+// ---------- Cicada 点播回退（AVPlayer 卡死/断流时，同线同清晰度换 Cicada 解） ----------
+// 与直播回退的区别：点播走原站直连地址（绕过本地 HLS 代理，用 Cicada 自己的
+// 网络栈 + 30 秒缓冲），不是代理地址；起播位置为卡死时的进度；倍速/静音沿用
+// 当前设置。Cicada 也失败时走原有 failed 通道切线。
+- (BOOL)tryCicadaVODFallbackForItem:(AVPlayerItem*)item {
+    if(!item||item!=self.nativeItem||[self.playContext hasPrefix:@"live:"])return NO;
+    if(self.cicadaVODFallbackAttempted)return NO;
+    if(![SYCicadaLivePlayer isAvailable])return NO;
+    NSURL*url=self.vodCicadaURL?:self.vodDirectURL;
+    if(!url&&[item.asset isKindOfClass:AVURLAsset.class])url=((AVURLAsset*)item.asset).URL;
+    if(!url)return NO;
+    double startAt=CMTimeGetSeconds(self.nativePlayer.player.currentTime);
+    if(!__builtin_isfinite(startAt)||startAt<0)startAt=MAX(0,self.vodStallTime);
+    self.cicadaVODFallbackAttempted=YES;
+    // 先停 AVPlayer，避免与 Cicada 的声音重叠；画面由 Cicada 接管。
+    [self.nativePlayer.player pause];
+    SYCicadaLivePlayer*cicada=[[SYCicadaLivePlayer alloc]initWithURL:url headers:self.vodCicadaHeaders networkTimeout:20];
+    cicada.delegate=self;cicada.vodMode=YES;cicada.startPosition=startAt;
+    self.cicadaLivePlayer=cicada;
+    self.cicadaFallbackActive=YES;
+    UIView*host=self.nativePlayer.view.superview?:self.appScreen.playerHost;
+    UIView*view=cicada.playerView;
+    view.frame=host.bounds;
+    view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    [host addSubview:view];
+    [host bringSubviewToFront:view];
+    // 盖住 AVPlayer 的黑画面层，避免布局回调把它重新顶到前面。
+    self.nativePlayer.view.hidden=YES;
+    [cicada applyVideoGravity:self.preferredVideoGravity.length?self.preferredVideoGravity:AVLayerVideoGravityResizeAspect];
+    float rate=self.nativePlayer.player.rate;if(rate>=0.5&&rate<=2.0)[cicada setRate:rate];
+    if(self.nativePlayer.player.muted)[cicada setMuted:YES];
+    [cicada prepare];
+    [cicada start];
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"cicadaFallback"}];
+    return YES;
+}
+
 - (void)destroyCicadaPlayer {
     SYCicadaLivePlayer*cicada=self.cicadaLivePlayer;
     self.cicadaLivePlayer=nil;
@@ -790,19 +838,42 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 
 // SYCicadaLivePlayerDelegate
 - (void)cicadaLivePlayerDidShowFirstFrame:(id)player size:(CGSize)size {
-    if(player!=self.cicadaLivePlayer||![self.playContext hasPrefix:@"live:"])return;
+    if(player!=self.cicadaLivePlayer)return;
+    if([self.playContext hasPrefix:@"live:"]){
+        self.nativeVideoReady=YES;
+        NSMutableDictionary*event=[@{@"context":self.playContext?:@"",@"status":@"cicadaVideoReady"} mutableCopy];
+        if(size.width>0&&size.height>0){event[@"width"]=@(size.width);event[@"height"]=@(size.height);}
+        [self sendPlayback:event];
+        return;
+    }
+    // 点播：首帧已出，通知 JS 清掉报错、恢复播放状态（不断线、不降质）。
     self.nativeVideoReady=YES;
-    NSMutableDictionary*event=[@{@"context":self.playContext?:@"",@"status":@"cicadaVideoReady"} mutableCopy];
-    if(size.width>0&&size.height>0){event[@"width"]=@(size.width);event[@"height"]=@(size.height);}
-    [self sendPlayback:event];
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"ready"}];
 }
 
 - (void)cicadaLivePlayer:(id)player didFailWithError:(NSError *)error {
     if(player!=self.cicadaLivePlayer)return;
+    if(![self.playContext hasPrefix:@"live:"]){
+        // 点播：Cicada 也失败，走原有 failed 通道切线，不恢复 AVPlayer（它已卡死）。
+        [self destroyCicadaPlayer];
+        [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"软解播放失败，请切换线路"}];
+        [self stopNativePlayback];
+        return;
+    }
     // Cicada 也失败：拆掉它，恢复 AVPlayer 的声音，回落到原 audioOnly 文案，不换线路。
     [self destroyCicadaPlayer];
     if(self.nativePlayer&&self.nativePlayer.player)[self.nativePlayer.player play];
     [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"audioOnly",@"error":error.localizedDescription?:@"这条直播流没有可识别的视频轨道"}];
+}
+
+- (void)cicadaLivePlayer:(id)player didUpdatePosition:(NSTimeInterval)position duration:(NSTimeInterval)duration {
+    if(player!=self.cicadaLivePlayer||[self.playContext hasPrefix:@"live:"])return;
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"progress",@"time":@(position),@"duration":@(duration),@"removedAdSegments":@0,@"removedAdSeconds":@0}];
+}
+
+- (void)cicadaLivePlayerDidComplete:(id)player {
+    if(player!=self.cicadaLivePlayer||[self.playContext hasPrefix:@"live:"])return;
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"ended"}];
 }
 
 - (void)attachLiveLayerRendererForItem:(AVPlayerItem*)item {
@@ -836,14 +907,18 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   if([type isEqualToString:@"statusStyle"]){self.detailStatusStyle=[body[@"dark"] boolValue];[self setNeedsStatusBarAppearanceUpdate];return;}
   if([type isEqualToString:@"playerControl"]){
     NSString*action=[body[@"action"] isKindOfClass:NSString.class]?body[@"action"]:@"";
-    if([action isEqualToString:@"rate"]&&self.nativePlayer.player){
-      double r=[body[@"rate"] doubleValue];if(r>=0.5&&r<=2.0)self.nativePlayer.player.rate=(float)r;
-    }else if([action isEqualToString:@"seekDelta"]&&self.nativePlayer.player){
-      double delta=[body[@"delta"] doubleValue],current=CMTimeGetSeconds(self.nativePlayer.player.currentTime);
-      if(__builtin_isfinite(current)&&__builtin_isfinite(delta))[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(MAX(0,current+delta),600)];
-    }else if([action isEqualToString:@"seekTo"]&&self.nativePlayer.player){
+    if([action isEqualToString:@"rate"]){
+      double r=[body[@"rate"] doubleValue];
+      if(r>=0.5&&r<=2.0){if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer setRate:(float)r];else if(self.nativePlayer.player)self.nativePlayer.player.rate=(float)r;}
+    }else if([action isEqualToString:@"seekDelta"]){
+      double delta=[body[@"delta"] doubleValue];
+      if(__builtin_isfinite(delta)){
+        if(self.cicadaFallbackActive&&self.cicadaLivePlayer){double current=[self.cicadaLivePlayer currentPosition];if(__builtin_isfinite(current))[self.cicadaLivePlayer seekToTime:MAX(0,current+delta)];}
+        else if(self.nativePlayer.player){double current=CMTimeGetSeconds(self.nativePlayer.player.currentTime);if(__builtin_isfinite(current))[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(MAX(0,current+delta),600)];}
+      }
+    }else if([action isEqualToString:@"seekTo"]){
       double target=[body[@"time"] doubleValue];
-      if(__builtin_isfinite(target)&&target>=0)[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(target,600)];
+      if(__builtin_isfinite(target)&&target>=0){if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer seekToTime:target];else if(self.nativePlayer.player)[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(target,600)];}
     }else if([action isEqualToString:@"gravity"]){
       NSString*mode=[body[@"mode"] isKindOfClass:NSString.class]?body[@"mode"]:@"fit";
       NSString*gravity=[mode isEqualToString:@"fill"]?AVLayerVideoGravityResizeAspectFill:([mode isEqualToString:@"stretch"]?AVLayerVideoGravityResize:AVLayerVideoGravityResizeAspect);
@@ -856,8 +931,9 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
       if(self.nativePlayer.player)self.nativePlayer.player.muted=nextMuted;
       if(self.cicadaLivePlayer)[self.cicadaLivePlayer setMuted:nextMuted];
     }else if([action isEqualToString:@"pause"]){
-      if(self.nativePlayer.player)[self.nativePlayer.player pause];
-      if(self.cicadaLivePlayer)[self.cicadaLivePlayer stop];
+      // 点播 Cicada：pause 只暂停不断流（睡眠定时用）；直播 Cicada 沿用 stop。
+      if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&![self.playContext hasPrefix:@"live:"])[self.cicadaLivePlayer pause];
+      else{if(self.nativePlayer.player)[self.nativePlayer.player pause];if(self.cicadaLivePlayer)[self.cicadaLivePlayer stop];}
     }
     return;
   }
@@ -937,7 +1013,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
     if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}
 #endif
-    [self destroyCicadaPlayer];self.cicadaFallbackAttempted=NO;if(livePlayback)self.livePlaybackHeaders=headers;
+    [self destroyCicadaPlayer];self.cicadaFallbackAttempted=NO;self.cicadaVODFallbackAttempted=NO;if(livePlayback)self.livePlaybackHeaders=headers;
+    if(!livePlayback){self.vodDirectURL=url;self.vodCicadaHeaders=headers;NSString*cicadaURLText=[body[@"cicadaURL"] isKindOfClass:NSString.class]?body[@"cicadaURL"]:@"";NSURL*cicadaURL=[NSURL URLWithString:cicadaURLText];self.vodCicadaURL=([cicadaURL.scheme.lowercaseString isEqualToString:@"https"]||[cicadaURL.scheme.lowercaseString isEqualToString:@"http"])&&cicadaURL.host.length?cicadaURL:nil;}
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];
     // Live playlists must keep enough media queued to survive segment jitter.
@@ -975,7 +1052,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     self.nativeItem=item;self.nativeVideoReady=NO;
     __weak SYController*weakOwner=self;__weak AVPlayerItem*weakItem=item;
     self.stalledObserver=[NSNotificationCenter.defaultCenter addObserverForName:AVPlayerItemPlaybackStalledNotification object:item queue:nil usingBlock:^(NSNotification*note){dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(live){[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];return;}AVPlayer*player=owner.nativePlayer.player;owner.vodStallTime=player?CMTimeGetSeconds(player.currentTime):0;owner.vodStallChecks=0;if(owner.vodStallWatchdogActive)return;owner.vodStallWatchdogActive=YES;[owner checkVODStallForItem:weakItem context:owner.playContext?:@""];});}];
-    self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
+    self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(!live&&[owner tryCicadaVODFallbackForItem:weakItem])return;[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
     player.player=[AVPlayer playerWithPlayerItem:item];player.player.automaticallyWaitsToMinimizeStalling=YES;if(livePlayback){[item addObserver:self forKeyPath:@"presentationSize" options:1 context:&SYVideoPresentationSize];}[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];

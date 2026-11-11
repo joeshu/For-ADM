@@ -7,8 +7,9 @@
 // CicadaPlayerSDK，且无 -Wl,-undefined,dynamic_lookup）。所有 SDK 交互都走
 // NSClassFromString + respondsToSelector + objc_msgSend 运行时调用；
 // SDK 不存在时 +isAvailable 返回 NO，绝不崩溃。
-// 复用 cctvhost MediaPlaybackCicadaAdapter 的反射手法与关键映射，但只做直播：
-// 起播、出首帧、持续播放、停止/释放。不做点播逻辑（seek/倍速/时长/进度/完成）。
+// 复用 cctvhost MediaPlaybackCicadaAdapter 的反射手法与关键映射，直播裁剪；
+// 点播模式（vodMode）另做 seek/倍速/时长/进度/完成/卡顿超时：AVPlayer 点播
+// 卡顿时同线同清晰度换 Cicada 解，不切线、不降质。
 //
 // 直播注意：
 //   - networkTimeout 公开 API 按秒收，prepare 里 ×1000 再传 SDK（毫秒单位）。
@@ -35,6 +36,9 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 // 首帧已出（size 为视频尺寸，未知时为 CGSizeZero）。
 - (void)cicadaLivePlayerDidShowFirstFrame:(id)player size:(CGSize)size;
 - (void)cicadaLivePlayer:(id)player didFailWithError:(NSError *)error;
+// 点播用（vodMode 开启时）：位置/时长进度（约 1 秒一次）、播完。
+- (void)cicadaLivePlayer:(id)player didUpdatePosition:(NSTimeInterval)position duration:(NSTimeInterval)duration;
+- (void)cicadaLivePlayerDidComplete:(id)player;
 @end
 
 @interface SYCicadaLivePlayer : NSObject
@@ -52,13 +56,27 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 @property (nonatomic, readonly) UIView *playerView;
 @property (nonatomic, readonly) SYCicadaLivePlayerState state;
 @property (nonatomic, readonly) BOOL hasVideoTrack;
+// 点播模式：开启后位置轮询持续上报进度、检测播完与卡顿超时，首帧后不停止轮询。
+@property (nonatomic) BOOL vodMode;
+// 起播位置（秒）：prepare 后首次 start 时先 seek 到这里再播放；直播保持 0。
+@property (nonatomic) NSTimeInterval startPosition;
+// 首帧看门狗（秒），默认 20。
+@property (nonatomic) NSTimeInterval firstFrameTimeout;
 
 - (void)prepare;
 // 硬解开关：默认 YES（硬件优先）。硬解失败时内部自动重试一次软解。
 - (void)prepareWithHardwareDecoder:(BOOL)enableHardwareDecoder;
 - (void)start;
+- (void)pause;
+- (void)resume;
 - (void)stop;
 - (void)destroy;
+// 点播控制：seek 用 CICADA_SEEKMODE_ACCURATE（0x01，cctvhost 适配器已确认）；
+// rate 钳制在 0.5–3.0，内部在 start 时应用。
+- (void)seekToTime:(NSTimeInterval)seconds;
+- (void)setRate:(float)rate;
+- (NSTimeInterval)currentPosition;
+- (NSTimeInterval)duration;
 // gravity 取 AVLayerVideoGravityResizeAspect / ResizeAspectFill / Resize；
 // 映射到 CicadaPlayer scalingMode（0=SCALETOFILL、1=SCALEASPECTFIT、
 // 2=SCALEASPECTFILL）。SDK 不支持时静默保留默认。
