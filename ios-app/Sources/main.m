@@ -139,6 +139,9 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic,strong) id endObserver;
 @property(nonatomic,strong) id stalledObserver;
 @property(nonatomic,strong) id failedObserver;
+@property(nonatomic) BOOL vodStallWatchdogActive;
+@property(nonatomic) double vodStallTime;
+@property(nonatomic) NSInteger vodStallChecks;
 @property(nonatomic,copy) NSString*playContext;
 @property(nonatomic,copy) NSString*preferredVideoGravity;
 @property(nonatomic) BOOL detailStatusStyle;
@@ -700,7 +703,22 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   [self.web evaluateJavaScript:@"(()=>{const forward=window.NativeTransport.onPlaybackEvent;window.NativeTransport.onPlaybackEvent=event=>{if(event.context?.startsWith('live:')&&event.context!=='live:smoke-cctv2')return;forward?.(event);};return window.NativeTransport.play('http://118.190.200.12:8767/cctv2.m3u8',{}, {context:'live:smoke-cctv2',frame:{visible:true,x:0,y:0,width:390,height:220,viewportWidth:390},title:'CCTV2财经模拟实播验证'});})()" completionHandler:^(id result,NSError*error){if(error){NSDictionary*failure=@{@"context":@"live:smoke-cctv2",@"status":@"failed",@"error":error.localizedDescription?:@"播放器桥接失败"};NSData*failureData=[NSJSONSerialization dataWithJSONObject:failure options:NSJSONWritingPrettyPrinted error:NULL];[failureData writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"] atomically:YES];}}];
 }
 #endif
+// VOD stall grace: one AVPlayerItemPlaybackStalledNotification usually means a
+// slow CDN segment behind the local HLS proxy, not a dead line. AVPlayer
+// rebuffers on its own, so only fail the line (letting JS switch sources)
+// after 15s with no playback progress: three 5s checks. A re-stall refreshes
+// the deadline, user pause cancels the watch, and recovery clears it.
+- (void)checkVODStallForItem:(AVPlayerItem*)item context:(NSString*)context {
+ __weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;
+ dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(5*NSEC_PER_SEC)),dispatch_get_main_queue(),^{SYController*owner=weakSelf;if(!owner||owner.nativeItem!=weakItem||![context isEqualToString:owner.playContext?:@""]||!owner.vodStallWatchdogActive)return;
+  AVPlayer*player=owner.nativePlayer.player;if(!player||player.rate<=0){owner.vodStallWatchdogActive=NO;return;}
+  double now=CMTimeGetSeconds(player.currentTime);
+  if(__builtin_isfinite(now)&&__builtin_isfinite(owner.vodStallTime)&&now>owner.vodStallTime+0.5){owner.vodStallWatchdogActive=NO;return;}
+  if(++owner.vodStallChecks>=3){owner.vodStallWatchdogActive=NO;[owner sendPlayback:@{@"context":context,@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];[owner stopNativePlayback];return;}
+  [owner checkVODStallForItem:weakItem context:context];});
+}
 - (void)stopNativePlayback {
+ self.vodStallWatchdogActive=NO;self.vodStallTime=0;self.vodStallChecks=0;
   [self destroyCicadaPlayer];
   if(self.nativeItem){@try{[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}@try{[self.nativeItem removeObserver:self forKeyPath:@"presentationSize" context:&SYVideoPresentationSize];}@catch(NSException*exception){}self.nativeItem=nil;}
   if(self.liveScreen.liveRendererLayer){@try{[self.liveScreen.liveRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYLiveRendererDisplayReady];}@catch(NSException*exception){}self.liveScreen.liveRendererLayer=nil;}
@@ -953,7 +971,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     player.entersFullScreenWhenPlaybackBegins=NO;player.exitsFullScreenWhenPlaybackEnds=NO;player.delegate=player;player.updatesNowPlayingInfoCenter=YES;player.allowsPictureInPicturePlayback=YES;player.canStartPictureInPictureAutomaticallyFromInline=YES;player.videoGravity=self.preferredVideoGravity.length?self.preferredVideoGravity:AVLayerVideoGravityResizeAspect;
     self.nativeItem=item;self.nativeVideoReady=NO;
     __weak SYController*weakOwner=self;__weak AVPlayerItem*weakItem=item;
-    self.stalledObserver=[NSNotificationCenter.defaultCenter addObserverForName:AVPlayerItemPlaybackStalledNotification object:item queue:nil usingBlock:^(NSNotification*note){dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
+    self.stalledObserver=[NSNotificationCenter.defaultCenter addObserverForName:AVPlayerItemPlaybackStalledNotification object:item queue:nil usingBlock:^(NSNotification*note){dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(live){[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];return;}AVPlayer*player=owner.nativePlayer.player;owner.vodStallTime=player?CMTimeGetSeconds(player.currentTime):0;owner.vodStallChecks=0;if(owner.vodStallWatchdogActive)return;owner.vodStallWatchdogActive=YES;[owner checkVODStallForItem:weakItem context:owner.playContext?:@""];});}];
     self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
