@@ -22,12 +22,13 @@ if args.binary:
 else:
     subprocess.run([args.clang,'-target','arm64-apple-ios15.0','-fobjc-arc','-fblocks','-Oz','-fno-ident','-c',str(root/'Sources/main.m'),'-o',str(work/'app.o')],check=True)
     subprocess.run([args.clang,'-target','arm64-apple-ios15.0','-fobjc-arc','-fblocks','-Oz','-fno-ident','-c',str(root/'Sources/SYCicadaLivePlayer.m'),'-o',str(work/'cicada.o')],check=True)
+    # UIKit's class-prefix rule below also admits _UIApplication and _UIGraphics imports.
     imports=sorted(set(inspect((work/'app.o').read_bytes())['undefined'])|set(inspect((work/'cicada.o').read_bytes())['undefined']));groups={}
     for symbol in imports:
         if symbol.startswith(('_CMTime','_CMFormatDescription')):provider='CoreMedia'
         elif symbol.startswith(('_SecItem','_kSec')):provider='Security'
         elif symbol.startswith('_objc_') or symbol.startswith(('__objc_','___objc_')) or symbol in ('_OBJC_CLASS_$_NSObject','_OBJC_METACLASS_$_NSObject'):provider='objc'
-        elif symbol.startswith(('_OBJC_CLASS_$_UI','_OBJC_METACLASS_$_UI')) or symbol=='_UIApplicationMain':provider='UIKit'
+        elif symbol.startswith(('_OBJC_CLASS_$_UI','_OBJC_METACLASS_$_UI')) or symbol in ('_UIApplicationMain','_UIApplication','_UIGraphics'):provider='UIKit'
         elif symbol.startswith('_OBJC_CLASS_$_WK'):provider='WebKit'
         elif symbol in ('_OBJC_CLASS_$_AVPlayerViewController','_OBJC_METACLASS_$_AVPlayerViewController'):provider='AVKit'
         elif symbol.startswith(('_OBJC_CLASS_$_AV','_AVAudioSession','_AVAudioTimePitch','_AVLayerVideoGravity','_AVMetadata')):provider='AVFoundation'

@@ -10,7 +10,7 @@ export function decodePlaylist(base64){
  if(bytes.length>=2&&bytes[0]===0xff&&bytes[1]===0xfe)return new TextDecoder('utf-16le').decode(bytes.subarray(2)).replace(/^\uFEFF/,'');
  if(bytes.length>=2&&bytes[0]===0xfe&&bytes[1]===0xff)return new TextDecoder('utf-16be').decode(bytes.subarray(2)).replace(/^\uFEFF/,'');
  try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes).replace(/^\uFEFF/,'');}
- catch{try{return new TextDecoder('gb18030').decode(bytes).replace(/^\uFEFF/,'');}catch{return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/,'');}}
+ catch{try{return new TextDecoder('gb18030',{fatal:true}).decode(bytes).replace(/^\uFEFF/,'');}catch{return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/,'');}}
 }
 export function normalizePlaylistURL(value){
  let input=String(value||'').trim();if(input&&!/^[a-z][a-z\d+.-]*:\/\//i.test(input))input='http://'+input;
@@ -65,20 +65,29 @@ function xmlTime(value){
  const offset=(Number(offsetHour||0)*60+Number(offsetMinute||0))*(sign==='-'?-1:1);
  return Date.UTC(Number(year),Number(month)-1,Number(day),Number(hour),Number(minute),Number(second))-offset*60000;
 }
+const EPG_INDEX_CACHE_MAX=6;
+const epgIndexCache=new Map();
+function getEPGIndex(xml){
+ if(epgIndexCache.has(xml)){const cached=epgIndexCache.get(xml);epgIndexCache.delete(xml);epgIndexCache.set(xml,cached);return cached;}
+ const norm=s=>String(s||'').trim().toLocaleLowerCase().replace(/[\s_-]+/g,'');
+ const names=new Map(),programmes=new Map();
+ const chanRe=/<channel\b([^>]*)>([\s\S]*?)<\/channel\s*>/gi;let cm;
+ while((cm=chanRe.exec(xml))){const cid=xmlAttribute(cm[1],'id').trim();if(!cid)continue;const keys=[cid, ...[...cm[2].matchAll(/<display-name\b[^>]*>([\s\S]*?)<\/display-name\s*>/gi)].map(dm=>xmlText(dm[1]).trim())];for(const value of keys){if(!value)continue;for(const key of new Set([value.toLocaleLowerCase(),norm(value)])){const ids=names.get(key)||new Set();ids.add(cid.toLocaleLowerCase());names.set(key,ids);}}}
+ const programmeRe=/<programme\b([^>]*)>([\s\S]*?)<\/programme\s*>/gi;let match;
+ while((match=programmeRe.exec(xml))){const attrs=match[1],chAttr=xmlAttribute(attrs,'channel').trim().toLocaleLowerCase();if(!chAttr)continue;const start=xmlTime(xmlAttribute(attrs,'start')),stop=xmlTime(xmlAttribute(attrs,'stop')),
+  tag=name=>{const found=match[2].match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}\\s*>`,'i'));return found?xmlText(found[1]).trim():'';},
+  title=tag('title'),subtitle=tag('sub-title'),description=tag('desc'),categories=[...match[2].matchAll(/<category\b[^>]*>([\s\S]*?)<\/category\s*>/gi)].map(row=>xmlText(row[1]).trim()).filter(Boolean);
+  if(start&&stop>start&&title){const rows=programmes.get(chAttr)||[];rows.push({start,stop,title,subtitle,description,categories});programmes.set(chAttr,rows);}
+ }
+ for(const rows of programmes.values())rows.sort((a,b)=>a.start-b.start);
+ const index={names,programmes};epgIndexCache.set(xml,index);while(epgIndexCache.size>EPG_INDEX_CACHE_MAX)epgIndexCache.delete(epgIndexCache.keys().next().value);return index;
+}
 export function parseXMLTV(xml,channelId){
  if(typeof xml!=='string'||!channelId)return [];
  const norm=s=>String(s||'').trim().toLocaleLowerCase().replace(/[\s_-]+/g,'');
- const wanted=channelId.trim(),wantedLower=wanted.toLocaleLowerCase(),wantedNorm=norm(wanted),matchedIds=new Set([wantedLower]);
- const chanRe=/<channel\b([^>]*)>([\s\S]*?)<\/channel\s*>/gi;let cm;
- while((cm=chanRe.exec(xml))){const cid=xmlAttribute(cm[1],'id').trim();if(!cid)continue;if(cid.toLocaleLowerCase()===wantedLower||norm(cid)===wantedNorm){matchedIds.add(cid.toLocaleLowerCase());continue;}for(const dm of cm[2].matchAll(/<display-name\b[^>]*>([\s\S]*?)<\/display-name\s*>/gi)){const dname=xmlText(dm[1]).trim();if(dname&&(dname.toLocaleLowerCase()===wantedLower||norm(dname)===wantedNorm)){matchedIds.add(cid.toLocaleLowerCase());break;}}}
- const rows=[],programmes=/<programme\b([^>]*)>([\s\S]*?)<\/programme\s*>/gi;let match;
- while((match=programmes.exec(xml))){const attrs=match[1],chAttr=xmlAttribute(attrs,'channel').trim().toLocaleLowerCase();if(!matchedIds.has(chAttr))continue;
-  const start=xmlTime(xmlAttribute(attrs,'start')),stop=xmlTime(xmlAttribute(attrs,'stop')),
-   tag=name=>{const found=match[2].match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}\\s*>`,'i'));return found?xmlText(found[1]).trim():'';},
-   title=tag('title'),subtitle=tag('sub-title'),description=tag('desc'),categories=[...match[2].matchAll(/<category\b[^>]*>([\s\S]*?)<\/category\s*>/gi)].map(row=>xmlText(row[1]).trim()).filter(Boolean);
-  if(start&&stop>start&&title)rows.push({start,stop,title,subtitle,description,categories});
- }
- return rows.sort((a,b)=>a.start-b.start);
+ const wanted=channelId.trim(),index=getEPGIndex(xml),matchedIds=new Set([wanted.toLocaleLowerCase(),norm(wanted)]);
+ for(const key of matchedIds)for(const id of index.names.get(key)||[])matchedIds.add(id);
+ const rows=[];for(const id of matchedIds)rows.push(...(index.programmes.get(id)||[]));return rows.sort((a,b)=>a.start-b.start);
 }
 
 export function indexChannelAlternates(channels){

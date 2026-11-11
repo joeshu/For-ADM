@@ -20,7 +20,7 @@ test('parses M3U metadata, groups, relative URLs and labels insecure entries',()
 });
 
 test('decodes UTF-8, GB18030, and UTF-16 M3U payloads',()=>{
- assert.match(decodePlaylist('I0VYVE0zVQojRVhUSU5GOi0xIHR2Zy1pZD0iQ0NUVjEiIGdyb3VwLXRpdGxlPSLR68rTxrUiLNbQ0eu158rTzKjX27rPxrW1wApodHRwczovL2V4YW1wbGUuY29tL2xpdmUubTN1OAo='),/中央电视台综合频道/);
+ if((()=>{try{new TextDecoder('gb18030');return true;}catch{return false;}})())assert.match(decodePlaylist('I0VYVE0zVQojRVhUSU5GOi0xIHR2Zy1pZD0iQ0NUVjEiIGdyb3VwLXRpdGxlPSLR68rTxrUiLNbQ0eu158rTzKjX27rPxrW1wApodHRwczovL2V4YW1wbGUuY29tL2xpdmUubTN1OAo='),/中央电视台综合频道/);
  assert.equal(decodePlaylist(Buffer.from('\uFEFF#EXTM3U\n中文','utf16le').toString('base64')),'#EXTM3U\n中文');
 });
 

@@ -48,6 +48,8 @@ typedef struct {CGFloat top,left,bottom,right;} UIEdgeInsets;
 #define MAX(a,b) ((a)>(b)?(a):(b))
 typedef NSUInteger NSStringEncoding;
 enum {NSUTF8StringEncoding=4};
+enum {NSURLSessionTaskStateRunning=0};
+enum {AVPlayerTimeControlStatusPlaying=2};
 @class NSString,NSArray,NSDictionary,NSData,NSURL,NSError;
 @protocol NSObject @end
 __attribute__((objc_root_class))
@@ -105,12 +107,14 @@ __attribute__((objc_root_class))
 + (instancetype)dictionaryWithObject:(id)object forKey:(id)key;
 - (void)setObject:(id)object forKeyedSubscript:(id)key;
 - (void)removeObjectForKey:(id)key;
+- (void)removeAllObjects;
 @end
 @interface NSMutableArray:NSArray
 + (instancetype)array;
 - (void)addObject:(id)object;
 - (void)removeObject:(id)object;
 - (void)removeObjectAtIndex:(NSUInteger)index;
+- (void)removeAllObjects;
 @end
 @interface NSData:NSObject
 + (instancetype)dataWithContentsOfFile:(NSString*)path;
@@ -300,6 +304,7 @@ extern CGFloat UIFontWeightMedium;
 - (void)viewDidLayoutSubviews;
 - (void)setNeedsStatusBarAppearanceUpdate;
 - (void)viewDidDisappear:(BOOL)animated;
+- (void)didReceiveMemoryWarning;
 - (void)viewDidAppear:(BOOL)animated;
 - (void)dismissViewControllerAnimated:(BOOL)animated completion:(void(^)(void))completion;
 - (void)presentViewController:(UIViewController*)controller animated:(BOOL)animated completion:(void(^)(void))completion;
@@ -435,8 +440,11 @@ extern NSString*const AVMetadataCommonIdentifierTitle;
 @interface NSNotification:NSObject
 @property(readonly) NSDictionary*userInfo;
 @end
+@interface NSOperationQueue:NSObject
+@end
 @interface NSNotificationCenter:NSObject
 + (instancetype)defaultCenter;
+- (void)addObserver:(id)observer selector:(SEL)selector name:(NSString*)name object:(id)object;
 - (id)addObserverForName:(NSString*)name object:(id)object queue:(id)queue usingBlock:(void(^)(NSNotification*))block;
 - (void)removeObserver:(id)observer;
 @end
