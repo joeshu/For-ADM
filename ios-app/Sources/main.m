@@ -943,7 +943,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     // Live playlists must keep enough media queued to survive segment jitter.
     // Starting with a one-second buffer and disabling automatic waiting made
     // AVPlayer freeze on the first decoded frame on slower relay servers.
-    item.preferredForwardBufferDuration=livePlayback?0:4;if(!livePlayback)item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
+    // VOD keeps 30s ahead: a 4s buffer drained in seconds on slow CDNs
+    // (Keke through the local HLS proxy), so playback stalled a few seconds
+    // after starting and the 15s stall-grace expiry reloaded the player.
+    item.preferredForwardBufferDuration=livePlayback?0:30;if(!livePlayback)item.audioTimePitchAlgorithm=AVAudioTimePitchAlgorithmTimeDomain;
     // Keep one live AVPlayer across channel and mirror changes.
     // Direct AVPlayerLayer rendering avoids controller-owned video output paths.
     if([requestedContext hasPrefix:@"live:"]&&[self.playContext hasPrefix:@"live:"]&&self.nativePlayer&&self.nativePlayer.player){
@@ -975,7 +978,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
     self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
-    player.player=[AVPlayer playerWithPlayerItem:item];if(livePlayback){player.player.automaticallyWaitsToMinimizeStalling=YES;[item addObserver:self forKeyPath:@"presentationSize" options:1 context:&SYVideoPresentationSize];}[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
+    player.player=[AVPlayer playerWithPlayerItem:item];player.player.automaticallyWaitsToMinimizeStalling=YES;if(livePlayback){[item addObserver:self forKeyPath:@"presentationSize" options:1 context:&SYVideoPresentationSize];}[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
     __weak SYController*owner=self;__weak SYPlayerViewController*weakPlayer=player;
     player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};
     player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}handler(weakPlayer.parentViewController==strongOwner||weakPlayer.parentViewController==strongOwner.appScreen||weakPlayer.parentViewController==strongOwner.liveScreen);};
