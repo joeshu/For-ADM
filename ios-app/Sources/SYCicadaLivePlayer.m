@@ -146,7 +146,8 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 @property (nonatomic) float pendingRate;
 @property (nonatomic) BOOL hasPendingRate;
 @property (nonatomic) BOOL startPositionApplied;
-@property (nonatomic) BOOL paused;
+// paused 对外只读，内部可写（公开头文件里是 readonly）。
+@property (nonatomic, readwrite) BOOL paused;
 @property (nonatomic) BOOL completedReported;
 @property (nonatomic) NSTimeInterval lastProgressPosition;
 @property (nonatomic) NSInteger stallSeconds;
@@ -238,14 +239,16 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     SYCicadaCallVoidObject(player, NSSelectorFromString(@"setDelegate:"), self);
     SYCicadaCallVoid(player, NSSelectorFromString(@"prepare"));
 
-    // 首帧看门狗：firstFrameTimeout 秒内无首帧即报错（硬解时走软解重试，软解时上报失败）。
+    // 首帧看门狗：firstFrameTimeout 秒内无首帧即报错。超时属于取流失败，
+    // 换软解也救不了，只会再等一轮才上报，所以直接失败不重试；只有
+    // 解码类错误才走软解重试（见 reportErrorWithCode: 的默认分支）。
     __weak typeof(self) weakSelf = self;
     NSUInteger generation = self.generation;
     self.firstFrameWatchdog = [NSTimer scheduledTimerWithTimeInterval:self.firstFrameTimeout repeats:NO block:^(NSTimer *timer) {
         SYCicadaLivePlayer *owner = weakSelf;
         if (!owner || generation != owner.generation || owner.destroyed) return;
         if (owner.firstFrameReported || owner.state == SYCicadaLivePlayerStateFailed) return;
-        [owner reportErrorWithCode:-1001 message:[NSString stringWithFormat:@"CicadaPlayer %.0f 秒内未显示首帧", owner.firstFrameTimeout]];
+        [owner reportErrorWithCode:-1001 message:[NSString stringWithFormat:@"CicadaPlayer %.0f 秒内未显示首帧", owner.firstFrameTimeout] allowSoftwareRetry:NO];
     }];
     // onPrepared 回调的 selector 拼写未在二进制中直接确认：0.5 秒后无论是否收到
     // 回调都按已准备处理，保证起播不会因回调缺失而卡住。
@@ -416,8 +419,12 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     }
     // 卡顿超时：首帧后 15 秒位置无推进即报错，交给调用方切线；暂停时不计。
     // 网络卡顿不是解码问题，不走软解重试，直接上报失败。
+    // 阈值按当前倍速折算：1 秒轮询一次，0.5× 时每 tick 只前进 0.5 秒，
+    // 固定 0.5 的阈值会把正常慢放误判成卡顿、15 秒后冤杀好线路。
     if (self.firstFrameReported && !self.paused && self.state == SYCicadaLivePlayerStatePlaying) {
-        if (position > self.lastProgressPosition + 0.5) {
+        float rate = self.hasPendingRate ? self.pendingRate : 1.0f;
+        NSTimeInterval progressThreshold = MAX(0.2, 0.5 * (NSTimeInterval)rate);
+        if (position >= self.lastProgressPosition + progressThreshold) {
             self.lastProgressPosition = position;
             self.stallSeconds = 0;
         } else if (++self.stallSeconds >= 15) {

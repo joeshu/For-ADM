@@ -11,6 +11,12 @@ globalThis.CryptoJS = createRequire(import.meta.url)('../Web/vendor/crypto-js.js
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 
+test('HLSProxy.h allows 4K segments up to 128MB instead of failing them at 32MB', () => {
+  const hls = read('Sources/HLSProxy.h');
+  assert.ok(hls.includes('body.length>128*1024*1024'), 'the proxy must allow segments up to 128MB');
+  assert.ok(!hls.includes('body.length>32*1024*1024'), 'the old 32MB cap must be gone: a 10s 4K segment at 25Mbps is already ~31MB');
+});
+
 test('HLSProxy.h guards against nil NSString rangeOfString {0,0} false positive and bounds resource map', () => {
   const hls = read('Sources/HLSProxy.h');
   assert.ok(hls.includes('NSISOLatin1StringEncoding'), 'HLSProxy must fall back to Latin1 decoding for HTTP headers');

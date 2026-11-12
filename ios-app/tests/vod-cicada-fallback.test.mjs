@@ -96,6 +96,24 @@ test('player controls route to Cicada while the fallback is active',()=>{
  assert.ok(controls.includes('[self.cicadaLivePlayer pause]'),'pause must reach Cicada without stopping it');
 });
 
+test('the VOD stall check scales its progress threshold by the playback rate',()=>{
+ const stall=fn(cicadaM,'- (void)reportVODProgressWithPosition:','- (void)handleCompletion');
+ assert.ok(stall.includes('self.hasPendingRate ? self.pendingRate : 1.0f'),'the stall check must read the current playback rate');
+ assert.ok(stall.includes('MAX(0.2, 0.5 * (NSTimeInterval)rate)'),'the progress threshold must scale with the rate (0.5x rate, 0.2 floor)');
+ assert.ok(stall.includes('position >= self.lastProgressPosition + progressThreshold'),'the stall check must compare against the scaled threshold');
+ assert.ok(!stall.includes('lastProgressPosition + 0.5'),'the stall check must not use a fixed 0.5 threshold');
+});
+
+test('0.5x playback is not mistaken for a stall',()=>{
+ // At 0.5x the position advances 0.5s per 1s poll tick. The scaled
+ // threshold is 0.5 * 0.5 = 0.25s, so a normal 0.5s advance counts as
+ // progress and the 15s stall counter never starts.
+ const stall=fn(cicadaM,'- (void)reportVODProgressWithPosition:','- (void)handleCompletion');
+ const threshold=stall.indexOf('progressThreshold');
+ assert.ok(threshold>=0,'the stall check must compute a progress threshold');
+ assert.ok(stall.indexOf('++self.stallSeconds >= 15')>threshold,'a real stall (no progress for 15s) must still fail');
+});
+
 test('a failed Cicada VOD fallback reports failed so JS can switch lines',()=>{
  const fail=fn(main,'- (void)cicadaLivePlayer:(id)player didFailWithError:','- (void)cicadaLivePlayer:(id)player didUpdatePosition:');
  assert.ok(fail.includes('@"failed"'),'a failed VOD Cicada fallback must send failed');

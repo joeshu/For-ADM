@@ -60,7 +60,7 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 @property (nonatomic) BOOL vodMode;
 // 起播位置（秒）：prepare 后首次 start 时先 seek 到这里再播放；直播保持 0。
 @property (nonatomic) NSTimeInterval startPosition;
-// 首帧看门狗（秒），默认 20。
+// 首帧看门狗（秒），默认 20；点播回退时 main.m 改为 10（A3），超时不走软解重试。
 @property (nonatomic) NSTimeInterval firstFrameTimeout;
 
 - (void)prepare;
@@ -69,6 +69,8 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 - (void)start;
 - (void)pause;
 - (void)resume;
+// 是否已暂停（I1/I2 用它判断 Cicada 是不是在播，避免对已暂停的播放器重复暂停/恢复）。
+@property (nonatomic, readonly) BOOL paused;
 - (void)stop;
 - (void)destroy;
 // 点播控制：seek 用 CICADA_SEEKMODE_ACCURATE（0x01，cctvhost 适配器已确认）；

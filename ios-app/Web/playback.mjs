@@ -19,6 +19,28 @@ export async function resolvePlayback(client,vodId,line,episode,signal,{refresh=
  if(!urls.length)throw new MediaError('这条线路暂未返回播放地址');
  return urls;
 }
+// A1 先播后验的快路径：只取地址，不做清单验证。按与
+// resolvePlayableEpisode 相同的线路顺序取第一条有地址的线路；
+// 调用方先用这条地址起播，验证在后台并行跑。
+export async function resolveFirstCandidate(client,detail,lineIndex,episodeIndex,signal,{excludedLines=[]}={}){
+ const lines=detail.playSources||[],original=lines[lineIndex],requested=original?.list?.[episodeIndex];
+ if(!original||!requested)throw new MediaError('未找到选集');
+ const preferred=lines.findIndex(x=>x.siteId===client.preferredPlaybackSiteId),order=[...new Set([lineIndex,preferred,...lines.map((_,i)=>i)].filter(i=>i>=0))].filter(i=>(i===lineIndex||lines[i]?.preview!==true)&&!excludedLines.includes(i)).slice(0,5);
+ let last;
+ for(const index of order){
+  if(signal?.aborted)throw new DOMException('请求取消','AbortError');
+  const line=lines[index];
+  try{
+   if(!Array.isArray(line.list)||!line.list.length)line.list=await client.episodes(detail.id,line,signal);
+   const at=index===lineIndex?episodeIndex:matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&original.list.length===1,singleEpisodeSource:original.list.length===1});
+   if(at<0)continue;
+   const urls=await resolvePlayback(client,detail.id,line,line.list[at],signal);
+   if(!urls.length)continue;
+   return {lineIndex:index,episodeIndex:at,episode:line.list[at],urls,switched:index!==lineIndex};
+  }catch(error){if(error.name==='AbortError'||error instanceof ServiceError)throw error;last=error;}
+ }
+ throw new MediaError('暂未找到可用的同集线路。'+(last?.message||'请稍后重试或手动切换线路。'));
+}
 export function matchingEpisode(requested,list,{singleMovie=false,singleEpisodeSource=false}={}){
  const key=e=>{const title=String(e.title||'').trim().toLowerCase().replace(/\s+/g,'');const n=title.match(/^(?:第|ep(?:isode)?[._-]?)?0*(\d+)(?:集|话|期)?$/);return n?'number:'+Number(n[1]):title;};
  const target=key(requested);const index=list.findIndex(e=>target?key(e)===target||(!key(e)&&e.id===requested.id):e.id===requested.id);
@@ -91,7 +113,21 @@ export async function resolvePlayableEpisode(client,detail,lineIndex,episodeInde
    if(!Array.isArray(line.list)||!line.list.length)line.list=await client.episodes(detail.id,line,signal);
    const at=index===lineIndex?episodeIndex:matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&original.list.length===1,singleEpisodeSource:original.list.length===1});if(at<0)continue;const episode=line.list[at];
    let urls=await resolvePlayback(client,detail.id,line,episode,signal),checked=[],expired=false,latencyMs=0,qualityLabel='',bandwidth=0;
-   const inspect=async candidates=>{for(const entry of candidates.slice(0,3)){const host=new URL(entry.url).host;if(badHosts.has(host))continue;const t0=Date.now();try{const meta=await verifyMedia(client,entry.url,signal,entry.headers,entry.referrerPolicy);latencyMs=Math.max(1,Date.now()-t0);qualityLabel=meta?.qualityLabel||'';bandwidth=meta?.bandwidth||0;entry.cicadaURL=meta?.variants?.[0]?.href||'';checked.push(entry);return;}catch(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate)badHosts.add(host);if([403,404,410].includes(error.status))expired=true;}}};
+   const inspect=async candidates=>{
+    // 候选地址并行验证：三条一起验，取第一条通过的；其余通过的也
+    // 留在 checked 里备用。每条通过的地址都打上 verifiedMeta，供
+    // 后台验证合并与恢复流程直接复用，不必重复验。
+    const targets=candidates.slice(0,3).filter(entry=>{try{return !badHosts.has(new URL(entry.url).host);}catch{return false;}});
+    const t0=Date.now();
+    const outcomes=await Promise.all(targets.map(entry=>verifyMedia(client,entry.url,signal,entry.headers,entry.referrerPolicy).then(meta=>({entry,meta,error:null}),error=>({entry,meta:null,error}))));
+    for(const {entry,meta,error} of outcomes){
+     if(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate){try{badHosts.add(new URL(entry.url).host);}catch{}}if([403,404,410].includes(error.status))expired=true;continue;}
+     if(!checked.length){latencyMs=Math.max(1,Date.now()-t0);qualityLabel=meta?.qualityLabel||'';bandwidth=meta?.bandwidth||0;}
+     entry.cicadaURL=meta?.variants?.[0]?.href||'';
+     entry.verifiedMeta={qualityLabel:meta?.qualityLabel||'',bandwidth:meta?.bandwidth||0,warmPlaylists:meta?.warmPlaylists||[],cicadaURL:entry.cicadaURL};
+     checked.push(entry);
+    }
+   };
    await inspect(urls);
    if(!checked.length&&expired&&episode.open){urls=await resolvePlayback(client,detail.id,line,episode,signal,{refresh:true});await inspect(urls);}
    if(checked.length){if(!line.preview)client.preferredPlaybackSiteId=line.siteId;return {lineIndex:index,episodeIndex:at,episode,urls:[...checked,...urls.filter(x=>!checked.some(y=>y.url===x.url))],switched:index!==lineIndex,latencyMs,qualityLabel,bandwidth};}

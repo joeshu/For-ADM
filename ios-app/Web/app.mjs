@@ -1,4 +1,4 @@
-import {resolvePlayableEpisode,verifyMedia,matchingEpisode,mediaHeaders} from './playback.mjs';
+import {resolvePlayableEpisode,resolveFirstCandidate,verifyMedia,matchingEpisode,mediaHeaders} from './playback.mjs';
 import {loadVisibleImages} from './image-loader.mjs';
 import {decodePlaylist,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,normalizePlaylistURL} from './live.mjs';
 import sites from './sites-data.mjs';
@@ -15,7 +15,7 @@ const formatDuration=sec=>{const s=Math.max(0,Math.floor(Number(sec)||0)),m=Math
 const savedColumns=localStorage.getItem('sanyuan:columns')||'3';
 const savedTheme=localStorage.getItem('sanyuan:theme')==='black'?'black':'white';
 const storedSite=localStorage.getItem('sanyuan:site'),initialSite=sites.find(item=>item.id===storedSite)?.id||'kkapp';
-const state={theme:savedTheme,cleanHLS:read('cleanHLS',true)!==false,autoNext:read('autoNext',true)!==false,skipIntroSeconds:[60,90,120].includes(Number(read('skipIntroSeconds',90)))?Number(read('skipIntroSeconds',90)):90,skipOutroSeconds:[0,60,90,120].includes(Number(read('skipOutroSeconds',0)))?Number(read('skipOutroSeconds',0)):0,playerMirrored:false,playerMuted:false,sleepTimerMode:'off',sleepTimerEndAt:0,nextEpisodeReady:false,playQualityLabel:'',playBandwidth:0,savedSourceFilter:'all',savedSort:'recent',settingsSection:'all',siteHealth:(h=>h&&typeof h==='object'&&!Array.isArray(h)?h:{})(read('siteHealth',{})),siteProbing:false,aspectMode:['fit','fill','stretch'].includes(localStorage.getItem('sanyuan:aspectMode'))?localStorage.getItem('sanyuan:aspectMode'):'fit',episodeDesc:false,locatedEpisodeIndex:-1,removedAdSegments:0,removedAdSeconds:0,playLatencyMs:0,searchHistory:Array.isArray(read('searchHistory',[]))?read('searchHistory',[]).slice(0,8):[],heroIndex:0,homeScroll:0,collection:null,collectionStack:[],collectionGroups:[],detailReturn:null,site:initialSite,page:'home',query:'',channel:1,filters:{},next:'page=1',items:[],sections:[],loading:false,error:'',savedTab:'favorites',detail:null,line:0,episode:null,episodePage:0,playURLs:[],playIndex:0,playError:'',playStatus:'',playRecovery:null,pendingEpisodeIndex:0,epoch:0,authError:'',adultEnabled:localStorage.getItem('sanyuan:adult')==='true',showAgeGate:false,columns:['3','4','5','6'].includes(savedColumns)?savedColumns:'3',playbackRate:[0.5,0.75,1,1.25,1.5,2].includes(Number(read('playbackRate',1)))?Number(read('playbackRate',1)):1,imageMap:new Map()};
+const state={theme:savedTheme,cleanHLS:read('cleanHLS',true)!==false,autoNext:read('autoNext',true)!==false,skipIntroSeconds:[60,90,120].includes(Number(read('skipIntroSeconds',90)))?Number(read('skipIntroSeconds',90)):90,skipOutroSeconds:[0,60,90,120].includes(Number(read('skipOutroSeconds',0)))?Number(read('skipOutroSeconds',0)):0,playerMirrored:false,playerMuted:false,sleepTimerMode:'off',sleepTimerEndAt:0,nextEpisodeReady:false,playQualityLabel:'',playBandwidth:0,savedSourceFilter:'all',savedSort:'recent',settingsSection:'all',siteHealth:(h=>h&&typeof h==='object'&&!Array.isArray(h)?h:{})(read('siteHealth',{})),siteProbing:false,aspectMode:['fit','fill','stretch'].includes(localStorage.getItem('sanyuan:aspectMode'))?localStorage.getItem('sanyuan:aspectMode'):'fit',episodeDesc:false,locatedEpisodeIndex:-1,removedAdSegments:0,removedAdSeconds:0,playLatencyMs:0,searchHistory:Array.isArray(read('searchHistory',[]))?read('searchHistory',[]).slice(0,8):[],heroIndex:0,homeScroll:0,collection:null,collectionStack:[],collectionGroups:[],detailReturn:null,site:initialSite,page:'home',query:'',channel:1,filters:{},next:'page=1',items:[],sections:[],loading:false,error:'',savedTab:'favorites',detail:null,line:0,episode:null,episodePage:0,playURLs:[],playIndex:0,playError:'',playStatus:'',playLoading:false,playLoadingText:'',playTime:0,playDuration:0,summaryExpanded:false,playRecovery:null,pendingEpisodeIndex:0,epoch:0,authError:'',adultEnabled:localStorage.getItem('sanyuan:adult')==='true',showAgeGate:false,columns:['3','4','5','6'].includes(savedColumns)?savedColumns:'3',playbackRate:[0.5,0.75,1,1.25,1.5,2].includes(Number(read('playbackRate',1)))?Number(read('playbackRate',1)):1,diagnostics:read('diagnostics',[]),diagEngine:'AVPlayer',imageMap:new Map()};
 Object.assign(state,{discoverTab:0,discoverYear:new Date().getFullYear(),discoverMonth:new Date().getMonth()+1,discoverGroups:[],discoverSections:[],discoverItems:[],discoverNext:'',meTab:'favorites'});
 Object.assign(state,{liveLastPlaybackTime:null,livePlaybackProgressAt:0,liveVideoReady:false,liveVideoFormat:null});
 Object.assign(state,{liveURL:localStorage.getItem('sanyuan:livePlaylistURL')||'https://fnipv.69574517.xyz/shiju19880215/interface.m3u',liveChannels:[],liveGroups:[],liveAlternateIndex:new Map(),liveEPGUrl:'',liveLoadedURL:'',livePanel:'channels',liveCategory:'',liveSearch:'',liveVisibleCount:80,liveNativeVisibleCount:40,liveCurrentIndex:-1,liveVariantIndex:0,liveRendererRetry:0,liveImportOpen:true,liveLoading:false,liveError:'',liveStatus:'',liveActive:false,liveResume:false,liveEPGLoading:false,liveEPGText:'',livePrograms:[],liveProgramDate:'',liveSelectedProgram:null,liveSelectedRoute:null,liveSheet:'',liveReturn:null,liveFavorites:read('liveFavorites',[]),liveImportController:null,liveGuideController:null,liveEPGCache:new Map(),liveTriedURLs:new Set(),liveCacheFound:false,liveInitialAttempted:false});
@@ -425,6 +425,10 @@ function settings(){
     <div class="settings-label"><strong>睡眠定时停播</strong><small>倒计时结束或本集播完后自动暂停点播与直播</small></div>
     <div class="settings-segmented">${[['off','关闭'],['episode','本集完'],['15','15分'],['30','30分'],['60','60分']].map(([m,lbl])=>`<button type="button" class="${state.sleepTimerMode===m?'active':''}" data-act="sleep-timer-setting" data-id="${m}" aria-pressed="${state.sleepTimerMode===m}">${lbl}</button>`).join('')}</div>
    </div>
+   <div class="settings-option">
+    <div class="settings-label"><strong>播放诊断</strong><small>最近 20 条播放事件（开始播放、卡顿、改用软解、失败），仅保存在本机</small></div>
+    <button type="button" class="settings-action" data-act="page" data-id="diagnostics">查看诊断日志</button>
+   </div>
   </section>
 
   <section class="settings-card" aria-labelledby="settings-appearance-title" ${showSec('appearance')}>
@@ -635,7 +639,7 @@ function render(options={}){
  else if(state.page==='detail')pageRoot.innerHTML=`<div class="shell detail-shell ${state.playURLs.length?'is-playing':''}"><div class="detailtop"><button class="iconbutton" data-act="back" aria-label="返回上一页">${icon('back')}</button><span class="detailtop-title">${e(state.playURLs.length?(state.detail?.title||'正在播放')+' · '+(state.episode?.title||'播放中'):'影片详情')}</span><button class="iconbutton" data-act="page" data-id="saved" aria-label="片单">${icon('saved')}</button></div>${detail()}<div class="footer">SANYUAN · 让好故事继续</div></div>`;
  else if(state.page==='discover')pageRoot.innerHTML=`<div class="shell discover-shell">${discover()}</div>`;
  else if(state.page==='live')pageRoot.innerHTML=native.native()?'<div id="native-player-slot" class="native-live-anchor"></div>':`<div class="shell live-shell-root">${livePage()}</div>`;
- else pageRoot.innerHTML=`<div class="shell">${header()}<main class="content">${state.page==='home'?home():state.page==='me'?me():state.page==='games'?notice('游戏频道暂未接入','当前版本连接的是影视点播片库，暂时没有游戏数据源。','',''):state.page==='saved'?saved():state.page==='settings'?settings():browse()}<div class="footer">SANYUAN · 让好故事继续</div></main></div>`;
+ else pageRoot.innerHTML=`<div class="shell">${header()}<main class="content">${state.page==='home'?home():state.page==='me'?me():state.page==='games'?notice('游戏频道暂未接入','当前版本连接的是影视点播片库，暂时没有游戏数据源。','',''):state.page==='saved'?saved():state.page==='settings'?settings():state.page==='diagnostics'?diagnosticsView():browse()}<div class="footer">SANYUAN · 让好故事继续</div></main></div>`;
  syncNav();if(native.native()){native.syncPage(nativePageSnapshot());if(state.page==='live')native.syncLive(nativeLiveSnapshot(),{fast:options.liveFast===true});}for(const row of pageRoot.querySelectorAll('[data-shelf]'))row.scrollLeft=shelfOffsets.get(row.dataset.shelf)||0;for(const row of pageRoot.querySelectorAll('[data-live-scroll]'))row.scrollLeft=liveScrollOffsets.get(row.dataset.liveScroll)||0;wireVideo();
  requestAnimationFrame(()=>{syncNativePlayer();for(const row of pageRoot.querySelectorAll('.filter-options,.route-grid,.timeline-months,.timeline-years,.discover-sources,.saved-source-filters')){const active=row.querySelector('.active');if(active)row.scrollLeft+=active.getBoundingClientRect().left-row.getBoundingClientRect().left-(row.clientWidth-active.clientWidth)/2;}});
  stopImages=native.native()?()=>{}:loadVisibleImages(pageRoot,new Map(state.imageMap),options=>native.request(options),site().origin+'/');
@@ -690,8 +694,34 @@ function nativeMovieCard(movie,source=state.site,subtitle){
  const sourceSite=sites.find(item=>item.id===source);
  return {...movie,id:String(movie.id||''),source,subtitle:subtitle||movie.subtitle||'',imageURLs:posterURLsFor(movie,source),imageReferer:sourceSite?.origin?new URL(sourceSite.origin).origin+'/':'',route:movie.route||null};
 }
+// 播放诊断（K1/K2）：最近 20 条播放事件，记在本机，供详情页诊断行与
+// 设置里的“播放诊断”页使用。只记事件不记进度，避免高频写入。
+const diagKindLabels={play:'开始播放',ready:'可以播放',failed:'播放失败',cicada:'改用软解',cicadaReady:'软解出画面',audioOnly:'无视频轨道',ended:'播完',switch:'切换线路',stall:'卡顿'};
+function recordDiag(kind,detail='',overrides={}){
+ const now=new Date(),pad=n=>String(n).padStart(2,'0');
+ const entry={t:pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds()),kind,kindLabel:diagKindLabels[kind]||kind,title:overrides.title??(state.detail?.title||''),episode:overrides.episode??(state.episode?.title||''),line:overrides.line??(state.detail?.playSources?.[state.line]?.name||''),quality:overrides.quality??(state.playQualityLabel||''),engine:overrides.engine??(state.diagEngine||'AVPlayer'),detail:String(detail||'').slice(0,120)};
+ state.diagnostics=[entry,...(Array.isArray(state.diagnostics)?state.diagnostics:[])].slice(0,20);
+ write('diagnostics',state.diagnostics);
+ if(native.native())native.syncPage(nativePageSnapshot());
+}
+function diagLine(){
+ const last=Array.isArray(state.diagnostics)?state.diagnostics[0]:null;
+ const line=state.detail?.playSources?.[state.line]?.name||'';
+ const base=(state.playQualityLabel?state.playQualityLabel+' · ':'')+(state.diagEngine||'AVPlayer')+(line?' · '+line:'');
+ if(!last)return state.playURLs.length?base+' · 未播放':'';
+ return base+' · 最近：'+(last.kindLabel||last.kind)+(last.detail?' · '+last.detail.slice(0,24):'');
+}
+function diagnosticsText(){
+ const head='三源影视 播放诊断 · '+new Date().toLocaleString('zh-CN');
+ const rows=(state.diagnostics||[]).map(entry=>[entry.t,entry.kindLabel||entry.kind,entry.title,entry.episode,entry.line,entry.quality,entry.engine,entry.detail].filter(Boolean).join(' | '));
+ return [head,...rows].join('\n');
+}
+function diagnosticsView(){
+ const rows=(state.diagnostics||[]).map(entry=>`<li><strong>${e(entry.t)} · ${e(entry.kindLabel||entry.kind)}</strong><span>${e([entry.title,entry.episode].filter(Boolean).join(' · '))}${e(entry.line?' · '+entry.line:'')}${e(entry.quality?' · '+entry.quality:'')}${e(' · '+(entry.engine||'AVPlayer'))}</span>${entry.detail?`<small>${e(entry.detail)}</small>`:''}</li>`).join('');
+ return `<div class="content diagnostics-content"><div class="detailtop"><button class="iconbutton" data-act="page" data-id="me" aria-label="返回我的">‹</button><span class="detailtop-title">播放诊断</span></div><p class="caption">最近 20 条播放事件，仅保存在本机；复制后可发给开发者定位问题。</p><div class="diagnostics-actions"><button type="button" class="secondary" data-act="diagnostics-copy">📋 复制诊断日志</button><button type="button" class="secondary" data-act="diagnostics-clear">清空记录</button></div>${rows?`<ul class="diagnostics-list">${rows}</ul>`:'<p class="caption">暂无播放记录，播放一次视频后这里会显示事件时间线。</p>'}</div>`;
+}
 function nativePageSnapshot(){
- const source=state.site,detailData=state.detail,origin=site()?.origin||'',posterReferer=/^https:\/\//i.test(origin)?new URL(origin).origin+'/':'',posterKeysBySite=Object.fromEntries(sites.filter(item=>Array.isArray(item.assetKeys)&&item.assetKeys.length).map(item=>[item.id,item.assetKeys])),base={page:state.page,theme:state.theme,site:source,siteName:site().name,posterReferer,posterKeysBySite,sites:sites.map(item=>({id:item.id,name:item.name})),loading:state.loading,error:state.error||'',columns:state.columns,adultEnabled:state.adultEnabled,query:state.query,clearConfirm:nativeClearConfirm,playbackRate:state.playbackRate,playerMuted:state.playerMuted,sleepTimerMode:state.sleepTimerMode,siteHealth:state.siteHealth};
+ const source=state.site,detailData=state.detail,origin=site()?.origin||'',posterReferer=/^https:\/\//i.test(origin)?new URL(origin).origin+'/':'',posterKeysBySite=Object.fromEntries(sites.filter(item=>Array.isArray(item.assetKeys)&&item.assetKeys.length).map(item=>[item.id,item.assetKeys])),base={page:state.page,theme:state.theme,site:source,siteName:site().name,posterReferer,posterKeysBySite,sites:sites.map(item=>({id:item.id,name:item.name})),loading:state.loading,error:state.error||'',columns:state.columns,adultEnabled:state.adultEnabled,query:state.query,clearConfirm:nativeClearConfirm,playbackRate:state.playbackRate,playerMuted:state.playerMuted,sleepTimerMode:state.sleepTimerMode,sleepTimerEndAt:state.sleepTimerEndAt||0,siteHealth:state.siteHealth};
  if(state.page==='home'){
   const picks=homePicks(),hero=picks[state.heroIndex%Math.max(1,picks.length)];
   const recent=validSavedRows('history').filter(row=>row.siteId===source&&(state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5))).sort((a,b)=>b.updated-a.updated).slice(0,8).map(row=>nativeMovieCard(row.movie,row.siteId,row.episodeTitle));
@@ -714,7 +744,7 @@ function nativePageSnapshot(){
  if(state.page==='detail'&&detailData){
   const movie={...detailMovie(),...detailData,id:String(detailData.id),labels:(detailData.labels||[]).map(item=>item.name||item),imageURLs:imageURLsForSource(detailData,source,client().config),actors:(detailData.actors||[]).map(item=>item.name||item).filter(Boolean),metadata:[typeof detailData.year==='object'?(detailData.year.name||detailData.year.text||detailData.year.id||''):detailData.year,...(detailData.area||[]).map(item=>item.name||item),...(detailData.language||[]).map(item=>item.name||item),detailData.channelName].filter(Boolean).join(' · ')};
   const saved=validSavedRows('favorites').some(item=>item.siteId===source&&String(item.movie.id)===String(detailData.id));
-  return {...base,movie,detailReady:true,previewPlayback:isPreviewPlayback(),saved,line:state.line,episodePage:state.episodePage,episodeDesc:state.episodeDesc,seasons:(Array.isArray(detailData.seasons)?detailData.seasons:[]).filter(season=>season&&season.id!=null&&String(season.id)).map(season=>({id:String(season.id),title:String(season.title||season.name||'季度'),name:String(season.title||season.name||'季度'),selected:season.selected===true||String(season.id)===String(detailData.id)})),playSources:(detailData.playSources||[]).map((line,index)=>{const mapped=(line.list||[]).map((episode,epIdx)=>({index:epIdx,title:episode.title||'第'+(epIdx+1)+'集',selected:state.episode?.id===episode.id}));return {index,name:line.name||'线路 '+(index+1),siteId:line.siteId,preview:line.preview===true,total:Number(line.total)||line.list?.length||0,selected:index===state.line,episodes:state.episodeDesc?mapped.slice().reverse():mapped};}),episode:state.episode?{title:state.episode.title||'',index:(detailData.playSources?.[state.line]?.list||[]).findIndex(item=>item.id===state.episode.id)}:null,playError:state.playError||'',playStatus:state.playStatus||'',playURLs:state.playURLs.map((item,index)=>({name:item.name||'',url:item.url,selected:index===state.playIndex})),playIndex:state.playIndex};
+  return {...base,movie,detailReady:true,previewPlayback:isPreviewPlayback(),saved,line:state.line,episodePage:state.episodePage,episodeDesc:state.episodeDesc,seasons:(Array.isArray(detailData.seasons)?detailData.seasons:[]).filter(season=>season&&season.id!=null&&String(season.id)).map(season=>({id:String(season.id),title:String(season.title||season.name||'季度'),name:String(season.title||season.name||'季度'),selected:season.selected===true||String(season.id)===String(detailData.id)})),playSources:(detailData.playSources||[]).map((line,index)=>{const mapped=(line.list||[]).map((episode,epIdx)=>({index:epIdx,title:episode.title||'第'+(epIdx+1)+'集',selected:state.episode?.id===episode.id}));return {index,name:line.name||'线路 '+(index+1),siteId:line.siteId,preview:line.preview===true,total:Number(line.total)||line.list?.length||0,selected:index===state.line,episodes:state.episodeDesc?mapped.slice().reverse():mapped};}),episode:state.episode?{title:state.episode.title||'',index:(detailData.playSources?.[state.line]?.list||[]).findIndex(item=>item.id===state.episode.id)}:null,playError:state.playError||'',playStatus:state.playStatus||'',playURLs:state.playURLs.map((item,index)=>({name:item.name||'',url:item.url,selected:index===state.playIndex})),playIndex:state.playIndex,diagLine:diagLine(),playLoading:!!state.playLoading,playLoadingText:state.playLoadingText||'',playTime:state.playTime||0,playDuration:state.playDuration||0,summaryExpanded:!!state.summaryExpanded};
  }
  if(state.page==='me'||state.page==='saved'){
   const tab=state.page==='saved'?state.savedTab:state.meTab,allRows=validSavedRows(tab==='history'?'history':'favorites').filter(row=>state.adultEnabled||!(row.movie.isAdult||Number(row.movie.channelId)===5)).sort((a,b)=>b.updated-a.updated),sourceIds=[...new Set(allRows.map(r=>r.siteId).filter(Boolean))];
@@ -723,6 +753,9 @@ function nativePageSnapshot(){
   const sourceFilters=sourceIds.length>1?[{id:'all',name:`全部 (${allRows.length})`},...sourceIds.map(sid=>({id:sid,name:`${sites.find(s=>s.id===sid)?.name||sid} (${allRows.filter(r=>r.siteId===sid).length})`}))]:[];
   const list=filteredRows.map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
   return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,savedSourceFilter:state.savedSourceFilter,sourceFilters,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},health:c.health||[],preferred:c.preferred||{},cleanHLS:state.cleanHLS,autoNext:state.autoNext,skipIntroSeconds:state.skipIntroSeconds,skipOutroSeconds:state.skipOutroSeconds,aspectMode:state.aspectMode,playbackRate:state.playbackRate,version:__SANYUAN_VERSION__};
+ }
+ if(state.page==='diagnostics'){
+  return {...base,title:'播放诊断',diagnostics:state.diagnostics||[]};
  }
  return {...base};
 }
@@ -753,7 +786,7 @@ function cycleAspectMode(){
  render({liveFast:state.page==='live'});
 }
 window.NativePageAction=(action,payload={})=>{
- if(action==='page'&&!['home','discover','browse','live','me','saved','settings'].includes(String(payload.id||'')))return;
+ if(action==='page'&&!['home','discover','browse','live','me','saved','settings','diagnostics'].includes(String(payload.id||'')))return;
  if(action==='search-submit'||action==='actor-search'){const query=String(payload.query||payload.id||'').trim();if(!query)return;rememberSearch(query);state.query=query;state.page='search';state.items=[];load();return;}
  if(action==='login-submit'){const account=String(payload.account||'').trim(),password=String(payload.password||'');if(!account||!password)return;state.authError='';void client().login(account,password).then(()=>toast('登录成功')).catch(error=>{state.authError=error.message;}).finally(()=>render());return;}
  if(action==='toggle-clean-hls'){state.cleanHLS=!state.cleanHLS;write('cleanHLS',state.cleanHLS);toast('已更新，下次播放生效');render();return;}
@@ -767,8 +800,24 @@ window.NativePageAction=(action,payload={})=>{
  if(action==='player-aspect'){cycleAspectMode();return;}
  if(action==='player-mute'){state.playerMuted=!state.playerMuted;const v=$('#video');if(v)v.muted=state.playerMuted;if(native.native())native.controlPlayer('mute',{muted:state.playerMuted});showPlayerHUD(state.playerMuted?'🔇 已静音':'🔊 已开启声音');render();return;}
  if(action==='player-sleep-timer'){cycleSleepTimer();return;}
+ if(action==='player-switch-line'){
+  // B3：座舱换线。不等 15 秒宽限耗尽，让恢复流程跳过当前地址与线路。
+  if(state.page!=='detail'||!state.episode||!state.playURLs.length)return;
+  const session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};
+  if(!state.playRecovery||state.playRecovery.key!==sessionKey(session))state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};
+  state.playRecovery.failedURLs.add(state.playURLs[state.playIndex]?.url);
+  state.playRecovery.failedLines.add(state.line);
+  state.playRecovery.triedLines.add(state.line);
+  toast('正在换线…');
+  void recoverPlayback(session,'用户手动换线');
+  return;
+ }
  if(action==='sleep-timer-setting'){const mode=String(payload.id||'');if(['off','episode','15','30','60'].includes(mode))applySleepTimer(mode);return;}
+ // I3：原生睡眠定时到点后通知 JS 清状态。暂停本身已在原生侧完成，
+ // 这里只同步状态；若 JS 的 5 秒定时器先到了，mode 已是 off，直接返回。
+ if(action==='sleep-timer-fired'){if(state.sleepTimerMode==='off')return;state.sleepTimerMode='off';state.sleepTimerEndAt=0;toast('🌙 睡眠定时已到，已为你自动暂停播放');render();return;}
  if(action==='episode-order'){state.episodeDesc=!state.episodeDesc;state.episodePage=0;render();return;}
+ if(action==='summary-toggle'){state.summaryExpanded=!state.summaryExpanded;render();return;}
  if(action==='play-line'){const index=Number(payload.id);if(!Number.isInteger(index)||!state.playURLs[index])return;saveProgress(undefined);state.playIndex=index;const entry=state.playURLs[index],session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};void verifyMedia(client(),entry.url,controller?.signal,entry.headers,entry.referrerPolicy).then(meta=>{if(meta?.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;entry.cicadaURL=meta?.variants?.[0]?.href||'';state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;render();if(native.native())return launchNativePlayer();return $('#video')?.play().catch(()=>{});}).catch(error=>recoverPlayback(session,error.message));return;}
  if(action==='more'){
   if(!state.loading&&state.next&&['browse','search','collection'].includes(state.page))load({more:true});
@@ -785,6 +834,8 @@ window.NativePageAction=(action,payload={})=>{
  if(action==='clear-saved'){const confirmed=nativeClearConfirm;nativeClearConfirm=!nativeClearConfirm;const button=document.createElement('button');button.dataset.act='clear-saved';if(confirmed)button.dataset.confirm='yes';button.hidden=true;root.append(button);button.click();button.remove();native.syncPage(nativePageSnapshot());return;}
  if(action==='probe-all-sites'){void probeAllSites();return;}
  if(action==='clear-site-health'){state.siteHealth={};write('siteHealth',{});render();native.syncPage(nativePageSnapshot());toast('已清空全网片源连通性记录');return;}
+ if(action==='diagnostics-copy'){if(!(state.diagnostics||[]).length){toast('暂无诊断记录');return;}native.copyText(diagnosticsText()).then(()=>toast('已复制诊断日志')).catch(error=>toast(error?.message||'复制失败'));return;}
+ if(action==='diagnostics-clear'){state.diagnostics=[];write('diagnostics',[]);render();native.syncPage(nativePageSnapshot());toast('已清空诊断记录');return;}
  if(action==='probe-site'){const target=sites.find(s=>s.id===String(payload.id||''));if(target){void probeSite(target).then(()=>{render();native.syncPage(nativePageSnapshot());});}return;}
  if(action==='me-settings'){const button=document.createElement('button');button.dataset.act='me-tab';button.dataset.id='settings';root.append(button);button.click();button.remove();return;}
  const button=document.createElement('button');button.dataset.act=action;for(const [key,value] of Object.entries(payload||{}))if(value!==undefined&&value!==null)button.dataset[key]=String(value);button.hidden=true;root.append(button);button.click();button.remove();
@@ -811,6 +862,7 @@ async function launchNativePlayer(){
  $('#video')?.pause();
  const preview=state.playURLs[state.playIndex]?.preview===true,session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title,preview};
  const context=state.epoch+':'+Date.now();nativeSession={context,session};
+ state.diagEngine='AVPlayer';state.playLoading=true;state.playLoadingText='正在加载播放器…';recordDiag('play','开始播放');
  const row=validSavedRows('history').find(x=>x.siteId===session.siteId&&String(x.movie.id)===String(session.movie.id)&&String(x.episodeId)===String(session.episodeId));
  saveProgress(undefined,session);
  await native.play(url,mediaHeaders(client(),state.playURLs[state.playIndex]),{cleanHLS:state.cleanHLS,warmPlaylists:state.playURLs[state.playIndex]?.warmPlaylists||[],cicadaURL:entry?.cicadaURL||'',context,frame:playerFrame(),startAt:preview?0:row?.time||0,rate:state.playbackRate,muted:state.playerMuted,title:session.movie.title+' · '+(session.episodeTitle||'')});
@@ -824,50 +876,103 @@ async function recoverPlayback(session,message=''){
  recovery.running=true;recovery.failedURLs.add(state.playURLs[state.playIndex]?.url);recovery.failedLines.add(state.line);recovery.triedLines.add(state.line);
  let lastError=message;
  const stillCurrent=()=>state.playRecovery===recovery&&state.page==='detail'&&state.site===session.siteId&&String(state.detail?.id)===session.movie.id&&state.episode?.id===session.episodeId;
+ // C1：同集备用地址两两并行验证（已知死掉的地址已在 failedURLs 里跳过，
+ // 已验证过的用 verifiedMeta 不再重复验），先通过的先播。
+ const candidates=[];
  for(let index=0;index<Math.min(state.playURLs.length,4);index++){
   const candidate=state.playURLs[index];if(!candidate?.url||recovery.failedURLs.has(candidate.url))continue;
-  recovery.failedURLs.add(candidate.url);state.playIndex=index;state.playError='当前地址连接不稳定，正在尝试备用地址…';render();
-  try{const meta=await verifyMedia(client(),candidate.url,controller?.signal,candidate.headers,candidate.referrerPolicy);if(!stillCurrent())return;if(meta?.warmPlaylists?.length)candidate.warmPlaylists=meta.warmPlaylists;candidate.cicadaURL=meta?.variants?.[0]?.href||'';state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;state.playError='';recovery.running=false;render();if(native.native())await launchNativePlayer();else await $('#video')?.play().catch(()=>{});return;}
-  catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}
+  recovery.failedURLs.add(candidate.url);candidates.push({index,candidate});
  }
- if(authorizationFailure(lastError)){if(stillCurrent()){recovery.running=false;state.playError='原站返回了权限或账号限制，请按原站提示处理。';render();}return;}
+ for(let base=0;base<candidates.length;base+=2){
+  const batch=candidates.slice(base,base+2);
+  if(!stillCurrent())return;
+  state.playError='当前地址连接不稳定，正在尝试备用地址…';state.playStatus='正在尝试备用地址…';state.playLoading=true;state.playLoadingText=state.playStatus;render();
+  const outcomes=await Promise.all(batch.map(({index,candidate})=>candidate.verifiedMeta?Promise.resolve({index,candidate,meta:candidate.verifiedMeta,error:null}):verifyMedia(client(),candidate.url,controller?.signal,candidate.headers,candidate.referrerPolicy).then(meta=>({index,candidate,meta,error:null}),error=>({index,candidate,meta:null,error}))));
+  for(const {index,candidate,meta,error} of outcomes){
+   if(!stillCurrent())return;
+   if(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;continue;}
+   state.playIndex=index;if(meta?.warmPlaylists?.length)candidate.warmPlaylists=meta.warmPlaylists;candidate.cicadaURL=meta?.cicadaURL||meta?.variants?.[0]?.href||'';state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;state.playError='';state.playStatus='';recovery.running=false;render();if(native.native())await launchNativePlayer();else await $('#video')?.play().catch(()=>{});return;
+  }
+  if(authorizationFailure(lastError))break;
+ }
+ if(authorizationFailure(lastError)){if(stillCurrent()){recovery.running=false;state.playLoading=false;state.playError='原站返回了权限或账号限制，请按原站提示处理。';render();}return;}
  const detail=state.detail,requested=state.episode,lines=detail?.playSources||[],preferred=lines.findIndex(line=>line.siteId===client().preferredPlaybackSiteId),order=[...new Set([preferred,...lines.map((_,i)=>i)].filter(i=>i>=0))];
- for(const target of order){if(recovery.triedLines.has(target)||recovery.failedLines.has(target)||lines[target]?.preview===true)continue;recovery.triedLines.add(target);const line=lines[target];try{if(!Array.isArray(line.list)||!line.list.length)line.list=await client().episodes(detail.id,line,controller?.signal);if(!stillCurrent())return;const at=matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&lines[state.line]?.list?.length===1,singleEpisodeSource:lines[state.line]?.list?.length===1});if(at<0)continue;state.line=target;state.episodePage=Math.floor(at/20);state.playError='正在切换到另一条同集线路…';render();toast('原线路连接中断，正在尝试同一集的备用线路');recovery.running=false;await playEpisode(at,{automatic:true});return;}catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}}
- if(!stillCurrent())return;recovery.running=false;state.playError='当前播放线路中断，已尝试可用备用地址和同集线路。可稍后重试或手动换线。'+(lastError&&!authorizationFailure(lastError)?' '+lastError:'');render();
+ let lineTries=0;
+ for(const target of order){if(recovery.triedLines.has(target)||recovery.failedLines.has(target)||lines[target]?.preview===true)continue;recovery.triedLines.add(target);const line=lines[target];try{if(!Array.isArray(line.list)||!line.list.length)line.list=await client().episodes(detail.id,line,controller?.signal);if(!stillCurrent())return;const at=matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&lines[state.line]?.list?.length===1,singleEpisodeSource:lines[state.line]?.list?.length===1});if(at<0)continue;lineTries++;state.line=target;state.episodePage=Math.floor(at/20);state.playError='正在切换到另一条同集线路…';state.playStatus='正在试第 '+lineTries+' 条线路…';state.playLoading=true;state.playLoadingText=state.playStatus;render();recordDiag('switch','切换到'+(line.name||('线路 '+(target+1))));toast('原线路连接中断，正在尝试同一集的备用线路');recovery.running=false;await playEpisode(at,{automatic:true});return;}catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}}
+ if(!stillCurrent())return;recovery.running=false;state.playLoading=false;state.playError='当前播放线路中断，已尝试可用备用地址和同集线路。可稍后重试或手动换线。'+(lastError&&!authorizationFailure(lastError)?' '+lastError:'');render();recordDiag('failed',lastError||'已尝试全部备用地址和线路');
 }
 native.onPlaybackEvent=event=>{
  if(event.context!==nativeSession?.context)return;const {session}=nativeSession;
  if(nativeSession.kind==='live'){
   const formatLabel=liveFormatLabel();
-  if(event.status==='ready'){state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus='播放已连接，画面加载中';state.liveError='';render({liveFast:true});}
+  if(event.status==='ready'){state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus='播放已连接，画面加载中';state.liveError='';state.diagEngine='AVPlayer';recordDiag('ready','直播已连接',{title:liveChannel()?.name||'直播'});render({liveFast:true});}
   else if(event.status==='videoTrack'){state.liveVideoFormat={width:Number(event.width)||0,height:Number(event.height)||0,codec:String(event.codec||'')};state.liveStatus=state.liveVideoReady?`正在直播 · ${liveFormatLabel()}`:`检测到视频轨道 · ${liveFormatLabel()||'分辨率未知'}`;render({liveFast:true});}
   else if(event.status==='videoReady'){state.liveVideoReady=true;state.liveRendererRetry=0;state.liveStatus=`正在直播${formatLabel?' · '+formatLabel:''}`;state.liveError='';render({liveFast:true});}
-  else if(event.status==='audioOnly'){state.liveVideoReady=false;state.livePlaybackProgressAt=Date.now();state.liveLastPlaybackTime=null;state.liveStatus='该线路没有可识别的视频轨道';state.liveError='已保留当前线路，没有自动切换。可手动选择其他线路，或检查源站是否提供视频流。';render({liveFast:true});}
+  else if(event.status==='audioOnly'){state.liveVideoReady=false;state.livePlaybackProgressAt=Date.now();state.liveLastPlaybackTime=null;state.liveStatus='该线路没有可识别的视频轨道';state.liveError='已保留当前线路，没有自动切换。可手动选择其他线路，或检查源站是否提供视频流。';recordDiag('audioOnly','无视频轨道',{title:liveChannel()?.name||'直播'});render({liveFast:true});}
   else if(event.status==='videoTrackUnknown'){state.liveVideoReady=false;state.liveStatus='暂时无法确认该线路的视频轨道';state.liveError='当前线路保持播放，未自动切换。请检查网络后重试或手动查看其他线路。';render({liveFast:true});}
   else if(event.status==='rendererAttached'){state.liveStatus='已启用 AVPlayerLayer 直接渲染，等待首帧…';state.liveError='';render({liveFast:true});}
   else if(event.status==='rendererRecovery'){state.liveStatus=`正在重建画面渲染${formatLabel?' · '+formatLabel:''}，当前线路保持不变…`;state.liveError='';render({liveFast:true});}
-  else if(event.status==='cicadaFallback'){state.liveVideoReady=false;state.liveStatus='正在尝试软解播放，当前线路保持不变…';state.liveError='';state.livePlaybackProgressAt=Date.now();state.liveLastPlaybackTime=null;render({liveFast:true});}
-  else if(event.status==='cicadaVideoReady'){state.liveVideoReady=true;state.liveRendererRetry=0;state.livePlaybackProgressAt=Date.now();state.liveLastPlaybackTime=null;if(event.width&&event.height)state.liveVideoFormat={width:Number(event.width)||0,height:Number(event.height)||0,codec:'hevc'};state.liveStatus=`正在用软解播放${liveFormatLabel()?' · '+liveFormatLabel():''}`;state.liveError='';render({liveFast:true});}
-  else if(event.status==='rendererFailed'){const retries=(state.liveRendererRetry||0);if(retries<2){state.liveRendererRetry=retries+1;void playLiveVariant(state.liveVariantIndex,{automatic:true,retrySame:true});}else{state.liveVideoReady=false;state.liveStatus=`检测到视频轨道，但 AVPlayer 未输出画面${formatLabel?' · '+formatLabel:''}`;state.liveError='当前线路未自动切换。可手动选择其他线路，或在 VLC 播放以对比设备解码支持。';render({liveFast:true});}}
+  else if(event.status==='cicadaFallback'){state.liveVideoReady=false;state.liveStatus='正在尝试软解播放，当前线路保持不变…';state.liveError='';state.livePlaybackProgressAt=Date.now();state.liveLastPlaybackTime=null;state.diagEngine='Cicada';recordDiag('cicada','改用软解',{title:liveChannel()?.name||'直播'});render({liveFast:true});}
+  else if(event.status==='cicadaVideoReady'){state.liveVideoReady=true;state.liveRendererRetry=0;state.livePlaybackProgressAt=Date.now();state.liveLastPlaybackTime=null;if(event.width&&event.height)state.liveVideoFormat={width:Number(event.width)||0,height:Number(event.height)||0,codec:'hevc'};state.liveStatus=`正在用软解播放${liveFormatLabel()?' · '+liveFormatLabel():''}`;state.liveError='';recordDiag('cicadaReady','软解出画面',{title:liveChannel()?.name||'直播'});render({liveFast:true});}
+  else if(event.status==='rendererFailed'){const retries=(state.liveRendererRetry||0);if(retries<2){state.liveRendererRetry=retries+1;void playLiveVariant(state.liveVariantIndex,{automatic:true,retrySame:true});}else{state.liveVideoReady=false;state.liveStatus=`检测到视频轨道，但 AVPlayer 未输出画面${formatLabel?' · '+formatLabel:''}`;state.liveError='当前线路未自动切换。可手动选择其他线路，或在 VLC 播放以对比设备解码支持。';recordDiag('failed','AVPlayer 未输出画面',{title:liveChannel()?.name||'直播'});render({liveFast:true});}}
   else if(event.status==='progress'){
    if(!state.liveActive||state.page!=='live'||document.visibilityState==='hidden')return;
    const time=Number(event.time),now=Date.now();if(!Number.isFinite(time))return;
    if(state.liveLastPlaybackTime===null||time>state.liveLastPlaybackTime+.2){state.liveLastPlaybackTime=time;state.livePlaybackProgressAt=now;}
    else if(state.livePlaybackProgressAt&&now-state.livePlaybackProgressAt>18000){state.livePlaybackProgressAt=now;void handleLivePlaybackFailure('直播画面停止推进，正在尝试备用线路');}
   }
-  else if(event.status==='failed')void handleLivePlaybackFailure(event.error||'直播源无法播放');
-  else if(event.status==='ended')void handleLivePlaybackFailure('直播流意外结束，正在尝试备用线路');
+  else if(event.status==='failed'){recordDiag('failed',event.error||'直播源无法播放',{title:liveChannel()?.name||'直播'});void handleLivePlaybackFailure(event.error||'直播源无法播放');}
+  else if(event.status==='ended'){recordDiag('ended','直播流意外结束，正在尝试备用线路',{title:liveChannel()?.name||'直播'});void handleLivePlaybackFailure('直播流意外结束，正在尝试备用线路');}
   return;
  }
  if(event.status==='progress'&&state.playURLs[state.playIndex]?.preview!==true){
   if(Number(event.removedAdSegments)>0){state.removedAdSegments=Number(event.removedAdSegments);state.removedAdSeconds=Number(event.removedAdSeconds)||0;}
+  state.playTime=Number(event.time)||0;state.playDuration=Number(event.duration)||state.playDuration||0;
+  if(native.native())native.syncProgress(state.playTime,state.playDuration);
   saveProgress(Number(event.time),session,Number(event.duration)||undefined);
  }
  if(event.status==='ready'&&state.playRecovery?.key===sessionKey(session)){state.playRecovery.running=false;if(state.playError){state.playError='';render();}}
- if(event.status==='cicadaFallback'){state.playError='';if(state.playRecovery)state.playRecovery.running=false;toast('当前线路改用软解播放，清晰度不变');render();}
- if(event.status==='failed')void recoverPlayback(session,event.error||'播放器无法读取当前线路');
- if(event.status==='ended'){if(state.sleepTimerMode==='episode'){state.sleepTimerMode='off';native.controlPlayer('pause');toast('🌙 本集已播完，睡眠定时已自动暂停播放');render();return;}if(state.autoNext&&state.site===session.siteId&&String(state.detail?.id)===session.movie.id){const list=state.detail?.playSources?.[state.line]?.list||[],index=list.findIndex(x=>x.id===session.episodeId);if(index>=0&&index<list.length-1)playEpisode(index+1);}}
+ if(event.status==='ready') {state.playLoading=false;recordDiag('ready','首帧已出');}
+ if(event.status==='cicadaFallback'){state.diagEngine='Cicada';state.playLoading=true;state.playLoadingText='正在尝试软解播放…';state.playError='';if(state.playRecovery)state.playRecovery.running=false;recordDiag('cicada','卡顿后改用软解，清晰度不变');toast('当前线路改用软解播放，清晰度不变');render();}
+ // J1：点播流没有视频轨道（Cicada 也起不来时才到这里）。只留声音，
+ // 不自动换线——换不换由用户决定，和直播的 audioOnly 一致。
+ if(event.status==='audioOnly'){recordDiag('audioOnly','无视频轨道，当前仅播放声音');toast('该视频没有可识别的视频轨道，仅播放声音');render();}
+ if(event.status==='failed'){state.playLoading=false;recordDiag('failed',event.error||'播放器无法读取当前线路');void recoverPlayback(session,event.error||'播放器无法读取当前线路');}
+ if(event.status==='ended'){state.playLoading=false;recordDiag('ended','本集播完');if(state.sleepTimerMode==='episode'){state.sleepTimerMode='off';native.controlPlayer('pause');toast('🌙 本集已播完，睡眠定时已自动暂停播放');render();return;}if(state.autoNext&&state.site===session.siteId&&String(state.detail?.id)===session.movie.id){const list=state.detail?.playSources?.[state.line]?.list||[],index=list.findIndex(x=>x.id===session.episodeId);if(index>=0&&index<list.length-1)playEpisode(index+1);}}
 };
+function applyResolvedEpisode(d,result,{prefetch=false}={}){
+ state.line=result.lineIndex;state.episode=result.episode;state.pendingEpisodeIndex=result.episodeIndex;
+ const totalEps=d.playSources?.[result.lineIndex]?.list?.length||0;
+ state.episodePage=Math.floor((state.episodeDesc&&totalEps>0?totalEps-1-result.episodeIndex:result.episodeIndex)/20);
+ state.playURLs=result.urls.slice(0,4);state.playIndex=0;state.playLatencyMs=prefetch?1:(result.latencyMs||0);state.playQualityLabel=result.qualityLabel||'';state.playBandwidth=result.bandwidth||0;state.playRecovery.triedLines.add(result.lineIndex);if(result.urls[0]?.url)state.playRecovery.failedURLs.add(result.urls[0].url);
+ state.loading=false;state.playStatus='';render();
+ if(result.switched)toast('已切换至可用线路：'+d.playSources[result.lineIndex].name);
+ else if(prefetch)showPlayerHUD('⚡ 已命中下一集预热缓存，秒速起播');
+}
+async function verifyInBackground(client,detail,lineIndex,episodeIndex,signal,epoch){
+ // A1 的后半段：起播后在后台验证候选地址，把画质/软解地址/预热
+ // 清单合并到正在播的地址上。正在播的地址验死且首帧未出时，不等
+ // 播放器自己超时（15 秒宽限 + 软解重建），直接走恢复流程换线；
+ // 已经出画面的不打断——验证失败很可能只是瞬时抖动。
+ try{
+  const result=await resolvePlayableEpisode(client,detail,lineIndex,episodeIndex,signal,()=>{},{excludedLines:[...state.playRecovery.failedLines]});
+  if(epoch!==state.epoch)return;
+  if(state.page!=='detail'||!state.episode||String(state.detail?.id)!==String(detail.id))return;
+  const verifiedByUrl=new Map(result.urls.filter(u=>u.verifiedMeta).map(u=>[u.url,u.verifiedMeta]));
+  for(const entry of state.playURLs){const meta=verifiedByUrl.get(entry.url);if(meta){entry.verifiedMeta=meta;entry.cicadaURL=meta.cicadaURL||entry.cicadaURL||'';if(meta.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;}}
+  if(result.qualityLabel){state.playQualityLabel=result.qualityLabel;state.playBandwidth=result.bandwidth||0;}
+  const playing=state.playURLs[state.playIndex];
+  if(playing&&verifiedByUrl.has(playing.url)){render();return;}
+  if(playing&&state.playLoading){
+   if(result.switched){state.line=result.lineIndex;recordDiag('switch','后台验证发现当前线路不可用，已切换到'+(detail.playSources?.[result.lineIndex]?.name||'可用线路'));toast('当前线路验证失败，已切换到可用线路');await playEpisode(result.episodeIndex,{automatic:true});return;}
+   const session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};
+   recordDiag('failed','当前地址验证失败，正在尝试备用地址');
+   void recoverPlayback(session,'当前地址验证失败，正在尝试备用地址');
+   return;
+  }
+  render();
+ }catch(error){/* 后台验证失败不打断正在播的画面；播放器自己会报失败 */}
+}
 async function playEpisode(index,{automatic=false}={}){
  const d=state.detail,selected=state.line,line=d?.playSources?.[selected];if(!line?.list?.[index])return;
  cancelEpisodePrefetch();state.nextEpisodeReady=false;
@@ -879,17 +984,23 @@ async function playEpisode(index,{automatic=false}={}){
  if(usePrefetch)episodePrefetchCache.delete(prefetchKey);
  else{state.loading=true;state.playStatus='正在准备播放…';render();}
  try{
-  const result=usePrefetch?cachedPrefetch.result:await resolvePlayableEpisode(c,d,selected,index,signal,name=>{if(epoch===state.epoch){state.playStatus='正在检查 '+name+'…';const status=$('#playback-status');if(status)status.textContent=state.playStatus;}},{excludedLines:automatic?[...state.playRecovery.failedLines]:[]});
-  if(epoch!==state.epoch)return;state.line=result.lineIndex;state.episode=result.episode;state.pendingEpisodeIndex=result.episodeIndex;
-  const totalEps=d.playSources?.[result.lineIndex]?.list?.length||0;
-  state.episodePage=Math.floor((state.episodeDesc&&totalEps>0?totalEps-1-result.episodeIndex:result.episodeIndex)/20);
-  state.playURLs=result.urls.slice(0,4);state.playIndex=0;state.playLatencyMs=usePrefetch?1:(result.latencyMs||0);state.playQualityLabel=result.qualityLabel||'';state.playBandwidth=result.bandwidth||0;state.playRecovery.triedLines.add(result.lineIndex);if(result.urls[0]?.url)state.playRecovery.failedURLs.add(result.urls[0].url);
-  state.loading=false;state.playStatus='';render();
-  if(result.switched)toast('已切换至可用线路：'+d.playSources[result.lineIndex].name);
-  else if(usePrefetch)showPlayerHUD('⚡ 已命中下一集预热缓存，秒速起播');
+  if(usePrefetch){
+   const result=cachedPrefetch.result;
+   if(epoch!==state.epoch)return;
+   applyResolvedEpisode(d,result,{prefetch:true});
+   if(native.native())await launchNativePlayer();else $('#video')?.play().catch(()=>{});
+   scheduleNextEpisodePrefetch(d,result.lineIndex,result.episodeIndex+1);
+   window.scrollTo({top:0,behavior:'smooth'});
+   return;
+  }
+  // A1 先播后验：先拿第一条基本有效的地址起播，验证在后台并行跑。
+  const fast=await resolveFirstCandidate(c,d,selected,index,signal,{excludedLines:automatic?[...state.playRecovery.failedLines]:[]});
+  if(epoch!==state.epoch)return;
+  applyResolvedEpisode(d,{...fast,latencyMs:0,qualityLabel:'',bandwidth:0});
   if(native.native())await launchNativePlayer();else $('#video')?.play().catch(()=>{});
-  scheduleNextEpisodePrefetch(d,result.lineIndex,result.episodeIndex+1);
+  scheduleNextEpisodePrefetch(d,fast.lineIndex,fast.episodeIndex+1);
   window.scrollTo({top:0,behavior:'smooth'});
+  void verifyInBackground(c,d,selected,index,signal,epoch);
  }catch(error){if(epoch===state.epoch&&error.name!=='AbortError'){if(state.playRecovery)state.playRecovery.running=false;state.playError=error.message;state.loading=false;state.playStatus='';render();}}
  finally{if(epoch===state.epoch&&state.loading){state.loading=false;state.playStatus='';render();}}
 }
@@ -950,7 +1061,7 @@ window.addEventListener('keydown',e=>{
  else if((e.key==='n'||e.key==='N')){const list=state.detail?.playSources?.[state.line]?.list||[],idx=list.findIndex(x=>x.id===state.episode?.id);if(idx>=0&&idx<list.length-1){e.preventDefault();playEpisode(idx+1);}}
 });
 root.addEventListener('click',async event=>{const button=event.target.closest('[data-act]');if(!button)return;const {act,id}=button.dataset;try{if(act==='source'){if(!sites.some(item=>item.id===id))return;cacheView();saveProgress($('#video')?.currentTime);cancel();localStorage.setItem('sanyuan:channel:'+state.site,String(state.channel));state.site=id;state.channel=Number(localStorage.getItem('sanyuan:channel:'+id)||1);state.discoverTab=0;state.heroIndex=0;state.collectionStack=[];restoreFilters();localStorage.setItem('sanyuan:site',id);state.detail=null;state.playURLs=[];state.episode=null;state.authError='';if(state.page==='detail')state.page='home';state.sections=[];state.items=[];state.loading=false;if(state.page==='discover')loadDiscovery();else if(!client().config||!restoreView())load();else render();}
-else if(act==='page'||act==='account'){if(act==='page'&&!['home','discover','browse','live','me','saved','settings'].includes(id))return;if(activeRenderKey)pageScrollCache.set(activeRenderKey,window.scrollY);cacheView();if(id==='live'&&state.page!=='live')state.liveReturn={page:state.page,scrollY:window.scrollY};if(state.page==='live'&&id!=='live'){native.closeLive();state.liveGuideController?.abort();state.liveGuideController=null;state.liveEPGLoading=false;if(state.liveActive){state.liveResume=true;state.liveActive=false;}}cancel();state.page=act==='account'?'me':id;if(act==='account')state.meTab='settings';state.error='';state.loading=false;window.scrollTo(0,0);if(state.page==='discover')loadDiscovery();else if(['home','browse'].includes(state.page)){if(!client().config||!restoreView())load();else render();}else{render();if(state.page==='live'){native.openLive();liveCacheReady.then(()=>{if(state.page!=='live')return;if(state.liveChannels.length)render();else if(!state.liveCacheFound&&!state.liveInitialAttempted)loadLivePlaylist();});if(state.liveResume&&liveChannel()){state.liveResume=false;state.liveTriedURLs.clear();playLiveVariant(state.liveVariantIndex);}}}}
+else if(act==='page'||act==='account'){if(act==='page'&&!['home','discover','browse','live','me','saved','settings','diagnostics'].includes(id))return;if(activeRenderKey)pageScrollCache.set(activeRenderKey,window.scrollY);cacheView();if(id==='live'&&state.page!=='live')state.liveReturn={page:state.page,scrollY:window.scrollY};if(state.page==='live'&&id!=='live'){native.closeLive();state.liveGuideController?.abort();state.liveGuideController=null;state.liveEPGLoading=false;if(state.liveActive){state.liveResume=true;state.liveActive=false;}}cancel();state.page=act==='account'?'me':id;if(act==='account')state.meTab='settings';state.error='';state.loading=false;window.scrollTo(0,0);if(state.page==='discover')loadDiscovery();else if(['home','browse'].includes(state.page)){if(!client().config||!restoreView())load();else render();}else{render();if(state.page==='live'){native.openLive();liveCacheReady.then(()=>{if(state.page!=='live')return;if(state.liveChannels.length)render();else if(!state.liveCacheFound&&!state.liveInitialAttempted)loadLivePlaylist();});if(state.liveResume&&liveChannel()){state.liveResume=false;state.liveTriedURLs.clear();playLiveVariant(state.liveVariantIndex);}}}}
 else if(act==='live-back'){if(state.liveActive){state.liveResume=true;state.liveActive=false;}native.closeLive();state.liveSheet='';state.liveGuideController?.abort();state.liveGuideController=null;state.liveEPGLoading=false;const previous=state.liveReturn||{page:'home',scrollY:0};state.liveReturn=null;state.page=previous.page;render();requestAnimationFrame(()=>window.scrollTo({top:previous.scrollY||0,behavior:'instant'}));}
 else if(act==='live-import-open'){state.liveImportOpen=!state.liveImportOpen;render();}
 else if(act==='live-refresh')loadLivePlaylist();

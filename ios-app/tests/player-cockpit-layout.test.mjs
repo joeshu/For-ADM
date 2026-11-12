@@ -65,7 +65,7 @@ const detailCockpit=(()=>{
 test('native cockpit splits into two rows instead of five squeezed buttons',()=>{
  assert.ok(detailCockpit.includes('CGFloat fourth=(w-50)/4.0;'),'first row must be four buttons at (w-50)/4');
  assert.ok(!detailCockpit.includes('CGFloat fifth=(w-56)/5.0;\n   SYLiveActionButton*rw='),'the five-button single row must be gone');
- assert.ok(detailCockpit.includes('CGFloat half=(w-40)/2.0;'),'second row must be two half-width buttons');
+ assert.ok(detailCockpit.includes('CGFloat third=(w-56)/3.0;'),'second row must be three equal buttons at (w-56)/3');
 });
 
 test('native cockpit buttons shrink instead of truncating',()=>{
@@ -85,4 +85,10 @@ test('native cockpit second row adds the sleep timer next to mute',()=>{
  assert.ok(detailCockpit.includes('self.state[@"sleepTimerMode"]'),'sleep label must read the synced sleepTimerMode');
  assert.ok(detailCockpit.includes('@"🌙 播完本集"'),'episode sleep mode must show 播完本集');
  assert.ok(detailCockpit.includes('@"🔇 已静音":@"🔊 声音"'),'mute label must still reflect playerMuted');
+});
+
+test('native cockpit second row adds a manual line-switch button',()=>{
+ assert.ok(detailCockpit.includes('action:@"player-switch-line"'),'a line-switch button must exist in the native cockpit');
+ assert.ok(detailCockpit.includes('@"⇄ 换线"'),'the switch button must read 换线');
+ assert.ok(detailCockpit.includes('switchBtn.frame=CGRectMake(28+third*2,y,third,38)'),'the switch button must be the third button of the second row');
 });
