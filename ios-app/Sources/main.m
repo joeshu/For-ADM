@@ -276,51 +276,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (SYLiveActionButton*)addAction:(NSString*)title action:(NSString*)action value:(NSString*)value y:(CGFloat)y width:(CGFloat)width {
  CGFloat available=[action isEqualToString:@"live-channel"]?width-58:width;SYLiveActionButton*button=[self button:title action:action value:value frame:CGRectMake(12,y,available,42)];[self.content addSubview:button];return button;
 }
-- (BOOL)applyDetailFastState:(NSDictionary*)next {
- if(![self.state[@"page"] isEqualToString:@"detail"]||![next[@"page"] isEqualToString:@"detail"])return NO;
- NSDictionary*oldMovie=[self.state[@"movie"] isKindOfClass:NSDictionary.class]?self.state[@"movie"]:nil;
- NSDictionary*newMovie=[next[@"movie"] isKindOfClass:NSDictionary.class]?next[@"movie"]:nil;
- if(!oldMovie||!newMovie||![[oldMovie[@"id"] description] isEqualToString:[newMovie[@"id"] description]])return NO;
- if(([self.state[@"playURLs"] count]>0)!=([next[@"playURLs"] count]>0))return NO;
- if(([self.state[@"playError"] length]>0)!=([next[@"playError"] length]>0))return NO;
- if([self.state[@"loading"] boolValue]!=[next[@"loading"] boolValue])return NO;
- if(![self.state[@"line"] isEqual:next[@"line"]]||![self.state[@"episodePage"] isEqual:next[@"episodePage"]]||![self.state[@"episodeDesc"] isEqual:next[@"episodeDesc"]])return NO;
- if([self.state[@"summaryExpanded"] boolValue]!=[next[@"summaryExpanded"] boolValue]||[self.state[@"saved"] boolValue]!=[next[@"saved"] boolValue])return NO;
- if([self.state[@"playSources"] count]!=[next[@"playSources"] count]||[self.state[@"playURLs"] count]!=[next[@"playURLs"] count])return NO;
- self.state=next;
- [self.view setNeedsLayout];
- [self layoutPlayerLoadingIndicator];
- if(self.detailDiagLabel){
-  NSString*diagLineText=[next[@"diagLine"] isKindOfClass:NSString.class]?next[@"diagLine"]:@"";
-  self.detailDiagLabel.text=diagLineText;
- }
- double dur=[next[@"playDuration"] respondsToSelector:@selector(doubleValue)]?[next[@"playDuration"] doubleValue]:0;
- double cur=[next[@"playTime"] respondsToSelector:@selector(doubleValue)]?[next[@"playTime"] doubleValue]:0;
- [self applyProgressTime:cur duration:dur];
- if(self.detailMuteButton)[self.detailMuteButton setTitle:[next[@"playerMuted"] boolValue]?@"🔇 已静音":@"🔊 声音" forState:UIControlStateNormal];
- if(self.detailSleepButton){
-  NSString*sleepMode=[next[@"sleepTimerMode"] isKindOfClass:NSString.class]?next[@"sleepTimerMode"]:@"off";
-  NSString*sleepTitle=[sleepMode isEqualToString:@"episode"]?@"🌙 播完本集":[sleepMode isEqualToString:@"15"]?@"🌙 15分钟":[sleepMode isEqualToString:@"30"]?@"🌙 30分钟":[sleepMode isEqualToString:@"60"]?@"🌙 60分钟":@"🌙 定时";
-  [self.detailSleepButton setTitle:sleepTitle forState:UIControlStateNormal];
-  BOOL active=![sleepMode isEqualToString:@"off"];
-  self.detailSleepButton.backgroundColor=active?[[self accent] colorWithAlphaComponent:.15]:[self surface];
-  [self.detailSleepButton setTitleColor:active?[self accent]:[self ink] forState:UIControlStateNormal];
- }
- NSString*selectedRate=[next[@"playbackRate"] stringValue]?:@"1";
- for(SYLiveActionButton*rateBtn in self.detailRateButtons){
-  BOOL active=[[rateBtn.payload[@"id"] description] isEqualToString:selectedRate];
-  rateBtn.backgroundColor=active?[[self accent] colorWithAlphaComponent:.15]:[self surface];
-  [rateBtn setTitleColor:active?[self accent]:[self ink] forState:UIControlStateNormal];
- }
- NSDictionary*selectedEp=[next[@"episode"] isKindOfClass:NSDictionary.class]?next[@"episode"]:nil;
- NSString*selIdx=[selectedEp[@"index"] description];
- for(SYLiveActionButton*epBtn in self.detailEpisodeButtons){
-  BOOL active=selIdx.length&&[[epBtn.payload[@"id"] description] isEqualToString:selIdx];
-  epBtn.backgroundColor=active?[[self accent] colorWithAlphaComponent:.16]:[self surface];
-  [epBtn setTitleColor:active?[self accent]:[self ink] forState:UIControlStateNormal];
- }
- return YES;
-}
+
 - (void)applyState:(NSDictionary*)state {
  CGPoint previousOffset=self.content.contentOffset;self.state=[state isKindOfClass:NSDictionary.class]?state:@{};NSString*panel=self.state[@"panel"]?:@"channels";NSString*channelKey=@"";if([panel isEqualToString:@"programs"]||[panel isEqualToString:@"routes"])channelKey=[self.state[@"channelIndex"] description]?:@"";NSString*contentKey=[NSString stringWithFormat:@"%@|%@|%@|%@|%@",panel,self.state[@"category"]?:@"",self.state[@"search"]?:@"",self.state[@"selectedDate"]?:@"",channelKey];BOOL resetOffset=self.renderedContentKey&&! [self.renderedContentKey isEqualToString:contentKey];self.renderedContentKey=contentKey;UIColor*background=[self isDarkTheme]?[UIColor colorWithRed:.035 green:.065 blue:.06 alpha:1]:[UIColor colorWithRed:.953 green:.957 blue:.973 alpha:1];self.view.backgroundColor=background;self.content.backgroundColor=background;self.liveTitleLabel.textColor=[self liveInk];self.routePicker.tintColor=[self liveInk];[self setNeedsStatusBarAppearanceUpdate];for(UIView*headerItem in self.view.subviews)if([headerItem isKindOfClass:UIButton.class]){UIButton*back=(UIButton*)headerItem;[back setTitleColor:[self liveInk] forState:UIControlStateNormal];back.backgroundColor=[self liveSurface];}
  for(UIView*view in self.content.subviews)[view removeFromSuperview];CGFloat width=self.view.bounds.size.width,inner=width-24,y=12;self.content.contentSize=CGSizeMake(width,0);
@@ -396,6 +352,51 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 }
 @end
 @implementation SYAppScreenController
+- (BOOL)applyDetailFastState:(NSDictionary*)next {
+ if(![self.state[@"page"] isEqualToString:@"detail"]||![next[@"page"] isEqualToString:@"detail"])return NO;
+ NSDictionary*oldMovie=[self.state[@"movie"] isKindOfClass:NSDictionary.class]?self.state[@"movie"]:nil;
+ NSDictionary*newMovie=[next[@"movie"] isKindOfClass:NSDictionary.class]?next[@"movie"]:nil;
+ if(!oldMovie||!newMovie||![[oldMovie[@"id"] description] isEqualToString:[newMovie[@"id"] description]])return NO;
+ if(([self.state[@"playURLs"] count]>0)!=([next[@"playURLs"] count]>0))return NO;
+ if(([self.state[@"playError"] length]>0)!=([next[@"playError"] length]>0))return NO;
+ if([self.state[@"loading"] boolValue]!=[next[@"loading"] boolValue])return NO;
+ if(![self.state[@"line"] isEqual:next[@"line"]]||![self.state[@"episodePage"] isEqual:next[@"episodePage"]]||![self.state[@"episodeDesc"] isEqual:next[@"episodeDesc"]])return NO;
+ if([self.state[@"summaryExpanded"] boolValue]!=[next[@"summaryExpanded"] boolValue]||[self.state[@"saved"] boolValue]!=[next[@"saved"] boolValue])return NO;
+ if([self.state[@"playSources"] count]!=[next[@"playSources"] count]||[self.state[@"playURLs"] count]!=[next[@"playURLs"] count])return NO;
+ self.state=next;
+ [self.view setNeedsLayout];
+ [self layoutPlayerLoadingIndicator];
+ if(self.detailDiagLabel){
+  NSString*diagLineText=[next[@"diagLine"] isKindOfClass:NSString.class]?next[@"diagLine"]:@"";
+  self.detailDiagLabel.text=diagLineText;
+ }
+ double dur=[next[@"playDuration"] respondsToSelector:@selector(doubleValue)]?[next[@"playDuration"] doubleValue]:0;
+ double cur=[next[@"playTime"] respondsToSelector:@selector(doubleValue)]?[next[@"playTime"] doubleValue]:0;
+ [self applyProgressTime:cur duration:dur];
+ if(self.detailMuteButton)[self.detailMuteButton setTitle:[next[@"playerMuted"] boolValue]?@"🔇 已静音":@"🔊 声音" forState:UIControlStateNormal];
+ if(self.detailSleepButton){
+  NSString*sleepMode=[next[@"sleepTimerMode"] isKindOfClass:NSString.class]?next[@"sleepTimerMode"]:@"off";
+  NSString*sleepTitle=[sleepMode isEqualToString:@"episode"]?@"🌙 播完本集":[sleepMode isEqualToString:@"15"]?@"🌙 15分钟":[sleepMode isEqualToString:@"30"]?@"🌙 30分钟":[sleepMode isEqualToString:@"60"]?@"🌙 60分钟":@"🌙 定时";
+  [self.detailSleepButton setTitle:sleepTitle forState:UIControlStateNormal];
+  BOOL active=![sleepMode isEqualToString:@"off"];
+  self.detailSleepButton.backgroundColor=active?[[self accent] colorWithAlphaComponent:.15]:[self surface];
+  [self.detailSleepButton setTitleColor:active?[self accent]:[self ink] forState:UIControlStateNormal];
+ }
+ NSString*selectedRate=[next[@"playbackRate"] stringValue]?:@"1";
+ for(SYLiveActionButton*rateBtn in self.detailRateButtons){
+  BOOL active=[[rateBtn.payload[@"id"] description] isEqualToString:selectedRate];
+  rateBtn.backgroundColor=active?[[self accent] colorWithAlphaComponent:.15]:[self surface];
+  [rateBtn setTitleColor:active?[self accent]:[self ink] forState:UIControlStateNormal];
+ }
+ NSDictionary*selectedEp=[next[@"episode"] isKindOfClass:NSDictionary.class]?next[@"episode"]:nil;
+ NSString*selIdx=[selectedEp[@"index"] description];
+ for(SYLiveActionButton*epBtn in self.detailEpisodeButtons){
+  BOOL active=selIdx.length&&[[epBtn.payload[@"id"] description] isEqualToString:selIdx];
+  epBtn.backgroundColor=active?[[self accent] colorWithAlphaComponent:.16]:[self surface];
+  [epBtn setTitleColor:active?[self accent]:[self ink] forState:UIControlStateNormal];
+ }
+ return YES;
+}
 - (NSString*)renderKeyForState:(NSDictionary*)state {
  NSString*page=state[@"page"]?:@"home",*key=[NSString stringWithFormat:@"%@:%@",page,state[@"site"]?:@""];
  if([page isEqualToString:@"me"])key=[key stringByAppendingFormat:@":%@",state[@"meTab"]?:@"favorites"];
