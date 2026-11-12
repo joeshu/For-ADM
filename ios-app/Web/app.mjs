@@ -873,6 +873,12 @@ async function recoverPlayback(session,message=''){
  const key=sessionKey(session),recovery=state.playRecovery;
  if(state.page!=='detail'||state.site!==session.siteId||String(state.detail?.id)!==session.movie.id||state.episode?.id!==session.episodeId||!recovery||recovery.key!==key||recovery.running)return;
  if(authorizationFailure(message)){state.playError='原站返回了权限或账号限制，请按原站提示处理。';render();return;}
+ // 恢复总时限：同一集从第一次失败起 90 秒内没播起来就停手报错。
+ // 15 条线路每条都验一遍 + 原生 15 秒宽限 + 软解 10 秒，跑满要
+ // 好几分钟，用户看到的只是无尽转圈；时限一到直接给明确结论。
+ // 首帧一出就清零（ready 事件里），中途播起来又卡住重新计时。
+ if(!recovery.startedAt)recovery.startedAt=Date.now();
+ if(Date.now()-recovery.startedAt>90000){state.playLoading=false;state.playError='当前播放线路中断，已尝试可用备用地址和同集线路。可稍后重试或手动换线。'+(message&&!authorizationFailure(message)?' '+message:'');render();recordDiag('failed',message||'恢复超时，已尝试全部备用地址和线路');return;}
  recovery.running=true;recovery.failedURLs.add(state.playURLs[state.playIndex]?.url);recovery.failedLines.add(state.line);recovery.triedLines.add(state.line);
  let lastError=message;
  const stillCurrent=()=>state.playRecovery===recovery&&state.page==='detail'&&state.site===session.siteId&&String(state.detail?.id)===session.movie.id&&state.episode?.id===session.episodeId;
@@ -931,7 +937,7 @@ native.onPlaybackEvent=event=>{
   if(native.native())native.syncProgress(state.playTime,state.playDuration);
   saveProgress(Number(event.time),session,Number(event.duration)||undefined);
  }
- if(event.status==='ready'&&state.playRecovery?.key===sessionKey(session)){state.playRecovery.running=false;if(state.playError){state.playError='';render();}}
+ if(event.status==='ready'&&state.playRecovery?.key===sessionKey(session)){state.playRecovery.running=false;state.playRecovery.startedAt=0;if(state.playError){state.playError='';render();}}
  if(event.status==='ready') {state.playLoading=false;recordDiag('ready','首帧已出');}
  if(event.status==='cicadaFallback'){state.diagEngine='Cicada';state.playLoading=true;state.playLoadingText='正在尝试软解播放…';state.playError='';if(state.playRecovery)state.playRecovery.running=false;recordDiag('cicada','卡顿后改用软解，清晰度不变');toast('当前线路改用软解播放，清晰度不变');render();}
  // J1：点播流没有视频轨道（Cicada 也起不来时才到这里）。只留声音，
@@ -963,8 +969,22 @@ async function verifyInBackground(client,detail,lineIndex,episodeIndex,signal,ep
   if(result.qualityLabel){state.playQualityLabel=result.qualityLabel;state.playBandwidth=result.bandwidth||0;}
   const playing=state.playURLs[state.playIndex];
   if(playing&&verifiedByUrl.has(playing.url)){render();return;}
-  if(playing&&state.playLoading){
-   if(result.switched){state.line=result.lineIndex;recordDiag('switch','后台验证发现当前线路不可用，已切换到'+(detail.playSources?.[result.lineIndex]?.name||'可用线路'));toast('当前线路验证失败，已切换到可用线路');await playEpisode(result.episodeIndex,{automatic:true});return;}
+  // 后台验证只在“还在等首帧、没进软解回退、恢复流程没在跑”时才
+  // 能打断播放：软解回退有自己的 10 秒首帧看门狗，验证中途换线
+  // 会直接杀掉它；恢复流程正在跑时也不抢，它自己会按失败集合推进。
+  const recovery=state.playRecovery;
+  if(playing&&state.playLoading&&state.diagEngine!=='Cicada'&&recovery&&!recovery.running){
+   if(result.switched){
+    // 换线前把被放弃的线路记死：不记的话，下一次后台验证可能
+    // 又切回来，两条时好时坏的线路会在验证里无限对跳（走马上任
+    // 就是这么空转的）。每集最多后台换线 2 次，超过就把决定权
+    // 还给播放器和恢复流程，不再主动切。
+    const abandoned=state.line;
+    if((recovery.backgroundSwitches||0)>=2){render();return;}
+    recovery.failedLines.add(abandoned);recovery.triedLines.add(abandoned);
+    if(playing.url)recovery.failedURLs.add(playing.url);
+    recovery.backgroundSwitches=(recovery.backgroundSwitches||0)+1;
+    state.line=result.lineIndex;recordDiag('switch','后台验证发现当前线路不可用，已切换到'+(detail.playSources?.[result.lineIndex]?.name||'可用线路'));toast('当前线路验证失败，已切换到可用线路');await playEpisode(result.episodeIndex,{automatic:true});return;}
    const session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};
    recordDiag('failed','当前地址验证失败，正在尝试备用地址');
    void recoverPlayback(session,'当前地址验证失败，正在尝试备用地址');

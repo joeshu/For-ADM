@@ -61,7 +61,7 @@ test('playEpisode plays the fast candidate first and verifies in the background'
 test('background verification merges results and recovers early when the playing address is dead',()=>{
  assert.ok(app.includes("const verifiedByUrl=new Map(result.urls.filter(u=>u.verifiedMeta).map(u=>[u.url,u.verifiedMeta]))"),'verified results must be merged into the playing entries by URL');
  assert.ok(app.includes("if(playing&&verifiedByUrl.has(playing.url)){render();return;}"),'a playing address that verifies must just refresh the display');
- assert.ok(app.includes("if(playing&&state.playLoading){"),'a dead playing address must only trigger early recovery while the first frame is still missing');
+ assert.ok(app.includes("if(playing&&state.playLoading&&state.diagEngine!=='Cicada'&&recovery&&!recovery.running){"),'a dead playing address must only trigger early recovery while the first frame is still missing, no Cicada fallback is active and no recovery is already running');
  assert.ok(app.includes("await playEpisode(result.episodeIndex,{automatic:true})"),'a verified switch to another line must replay from there');
  assert.ok(app.includes("void recoverPlayback(session,'当前地址验证失败，正在尝试备用地址')"),'a dead playing address with no verified switch must enter recovery at once');
 });

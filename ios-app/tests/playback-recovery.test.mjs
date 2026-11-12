@@ -41,3 +41,39 @@ test('giving up clears the loading indicator',()=>{
  assert.ok(recovery.includes("recovery.running=false;state.playLoading=false;state.playError='当前播放线路中断"),'giving up must stop the loading indicator');
  assert.ok(recovery.includes("state.playLoading=false;state.playError='原站返回了权限或账号限制"),'an authorization failure must also stop the loading indicator');
 });
+
+// 走马上任（可可影视，15 条线路）空转：后台验证在两条时好时坏的
+// 线路之间对跳换线、且从不把被放弃的线路记死，恢复流程因此永远
+// 到不了“已尝试全部线路”的终态；验证还会在软解回退进行中途
+// 把播放器抢走，软解连 10 秒首帧看门狗都等不满。同一集恢复还
+// 没有总时限，15 条线路跑满要好几分钟。
+const verify=app.slice(app.indexOf('async function verifyInBackground'),app.indexOf('async function playEpisode'));
+
+test('background verification never interrupts an active Cicada fallback',()=>{
+ assert.ok(verify.includes("state.diagEngine!=='Cicada'"),'a background switch must not kill a Cicada fallback mid-flight');
+});
+
+test('background verification never races a running recovery',()=>{
+ assert.ok(verify.includes('!recovery.running'),'a background switch must not start while recovery is already running');
+});
+
+test('a background line switch records the abandoned line as failed',()=>{
+ assert.ok(verify.includes('recovery.failedLines.add(abandoned);'),'the abandoned line must be marked failed so verification cannot switch back to it');
+ assert.ok(verify.includes('recovery.triedLines.add(abandoned);'),'the abandoned line must also count as tried');
+ assert.ok(verify.includes('if(playing.url)recovery.failedURLs.add(playing.url);'),'the abandoned address must be marked failed too');
+});
+
+test('background line switches are capped per episode',()=>{
+ assert.ok(verify.includes('(recovery.backgroundSwitches||0)>=2'),'background switching must stop after two switches for one episode');
+ assert.ok(verify.includes('recovery.backgroundSwitches=(recovery.backgroundSwitches||0)+1;'),'each background switch must be counted');
+});
+
+test('recovery gives up after 90 seconds without a first frame',()=>{
+ assert.ok(recovery.includes('if(!recovery.startedAt)recovery.startedAt=Date.now();'),'the recovery clock must start at the first failure of the episode');
+ assert.ok(recovery.includes('Date.now()-recovery.startedAt>90000'),'recovery must stop after 90 seconds of continuous failure');
+ assert.ok(recovery.includes("recordDiag('failed',message||'恢复超时"),'a timed-out recovery must be logged as such');
+});
+
+test('a first frame resets the recovery clock',()=>{
+ assert.ok(app.includes('state.playRecovery.running=false;state.playRecovery.startedAt=0;'),'showing a first frame must clear the recovery deadline so a later stall gets a fresh window');
+});
