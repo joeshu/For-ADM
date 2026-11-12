@@ -116,6 +116,25 @@ __attribute__((objc_root_class))
 - (void)removeObjectAtIndex:(NSUInteger)index;
 - (void)removeAllObjects;
 @end
+@interface NSCharacterSet:NSObject
++ (instancetype)characterSetWithCharactersInString:(NSString*)aString;
+- (BOOL)characterIsMember:(unsigned short)aCharacter;
+@end
+@interface NSFileManager:NSObject
++ (instancetype)defaultManager;
+- (BOOL)createDirectoryAtPath:(NSString*)path withIntermediateDirectories:(BOOL)createIntermediates attributes:(NSDictionary*)attributes error:(NSError**)error;
+- (NSArray*)contentsOfDirectoryAtPath:(NSString*)path error:(NSError**)error;
+- (BOOL)fileExistsAtPath:(NSString*)path;
+- (BOOL)removeItemAtPath:(NSString*)path error:(NSError**)error;
+@end
+@interface NSDate:NSObject
++ (instancetype)date;
+- (double)timeIntervalSince1970;
+@end
+@interface NSMutableString:NSString
++ (instancetype)stringWithCapacity:(NSUInteger)capacity;
+- (void)appendString:(NSString*)aString;
+@end
 @interface NSData:NSObject
 + (instancetype)dataWithContentsOfFile:(NSString*)path;
 @property(readonly) NSUInteger length;
@@ -455,7 +474,12 @@ extern int SecItemCopyMatching(CFDictionaryRef,CFTypeRef*);
 extern int SecItemAdd(CFDictionaryRef,CFTypeRef*);
 extern int SecItemDelete(CFDictionaryRef);
 struct dispatch_queue_s;
+typedef struct dispatch_queue_s* dispatch_queue_t;
+typedef const struct dispatch_queue_attr_s* dispatch_queue_attr_t;
+#define DISPATCH_QUEUE_SERIAL ((dispatch_queue_attr_t)0)
 extern struct dispatch_queue_s _dispatch_main_q;
 #define SYMainQueue() (&_dispatch_main_q)
-extern void dispatch_async(struct dispatch_queue_s*,void(^)(void));
+extern dispatch_queue_t dispatch_queue_create(const char*label,dispatch_queue_attr_t attr);
+extern void dispatch_async(dispatch_queue_t,void(^)(void));
+extern void dispatch_sync(dispatch_queue_t,void(^)(void));
 #endif

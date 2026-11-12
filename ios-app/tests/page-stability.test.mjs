@@ -262,3 +262,76 @@ test('Round 7 Comprehensive Review: RuntimeSDK ABI parity, redirected warmPlayli
   assert.ok(app.includes('async function probeAllSites(){\n if(state.siteProbing)return;'), 'probeAllSites() must guard against concurrent re-entrancy');
   assert.ok(main.includes('action:@"sleep-timer-setting"'), 'Native UIKit settings must expose sleep-timer-setting chips');
 });
+
+test('Round 8 Detail Playback, Seeking, HLS Proxy & Cicada ABI Fixes: no duplicate play() in verifyInBackground, full episode loading on backup lines, seek stall reset & fast post-seek buffer, HLS 64K map & task cancel, and Cicada int64/float ABI', async () => {
+  const {resolveFirstCandidate, resolvePlayableEpisode, verifyMedia} = await import('../Web/playback.mjs');
+  const app = read('Web/app.mjs');
+  const playback = read('Web/playback.mjs');
+  const hls = read('Sources/HLSProxy.h');
+  const main = read('Sources/main.m');
+  const cicada = read('Sources/SYCicadaLivePlayer.m');
+
+  // 1. resolvePlayableEpisode reuses initialUrls on initialLineIndex without calling client.play() a second time
+  let playCalls = 0;
+  const hlsBody = Buffer.from('#EXTM3U\n#EXTINF:6.0,\nseg0.ts\n#EXT-X-ENDLIST\n', 'utf8').toString('base64');
+  const detail = {
+    id: 'vod-1',
+    channelId: 2,
+    playSources: [
+      {siteId: 'l1', name: '线路1', total: 30, list: Array.from({length: 30}, (_, i) => ({id: 'ep-' + (i + 1), title: '第' + (i + 1) + '集', open: false}))},
+      {siteId: 'l2', name: '线路2', total: 30, list: Array.from({length: 20}, (_, i) => ({id: 'b-ep-' + (i + 1), title: '第' + (i + 1) + '集', open: false}))}
+    ]
+  };
+  const client = {
+    site: {origin: 'https://vod.example'},
+    episodes: async () => Array.from({length: 30}, (_, i) => ({id: 'b-ep-' + (i + 1), title: '第' + (i + 1) + '集', open: false})),
+    play: async () => {
+      playCalls++;
+      return [{url: `https://cdn.example/signed-${playCalls}.m3u8`}];
+    },
+    transport: async req => ({status: 200, url: req.url, headers: {'Content-Type': 'application/vnd.apple.mpegurl'}, bodyBase64: hlsBody})
+  };
+  const fast = await resolveFirstCandidate(client, detail, 0, 24);
+  assert.equal(playCalls, 1, 'resolveFirstCandidate must call client.play once');
+  const verified = await resolvePlayableEpisode(client, detail, fast.lineIndex, fast.episodeIndex, undefined, () => {}, {
+    initialLineIndex: fast.lineIndex,
+    initialUrls: fast.urls
+  });
+  assert.equal(playCalls, 1, 'resolvePlayableEpisode with initialUrls must not call client.play a second time');
+  assert.equal(verified.urls[0].url, fast.urls[0].url, 'verified URL must match the fast-start playing URL');
+  assert.ok(verified.urls[0].verifiedMeta, 'initial URL must be stamped with verifiedMeta');
+
+  // 2. Backup line with partial preview list (20 of 30) loads full episode list when matching episode 25
+  const fallbackClient = {
+    ...client,
+    play: async ({siteId}) => siteId === 'l1' ? [] : [{url: 'https://cdn.example/backup-ep25.m3u8'}]
+  };
+  const switchedFast = await resolveFirstCandidate(fallbackClient, detail, 0, 24);
+  assert.equal(switchedFast.lineIndex, 1, 'must switch to backup line 2 for episode 25');
+  assert.equal(switchedFast.episodeIndex, 24, 'must match episode 25 after loading full episode list');
+
+  // 3. Redirected warmPlaylists preserve post-redirect baseURL for relative segment resolution
+  const redirectedMeta = await verifyMedia({
+    site: {origin: 'https://vod.example'},
+    transport: async req => ({
+      status: 200,
+      url: 'https://edge.example/real/dir/index.m3u8',
+      headers: {'Content-Type': 'application/vnd.apple.mpegurl'},
+      bodyBase64: hlsBody
+    })
+  }, 'https://entry.example/redirect.m3u8');
+  const entryWarm = redirectedMeta.warmPlaylists.find(x => x.url === 'https://entry.example/redirect.m3u8');
+  assert.equal(entryWarm?.baseURL, 'https://edge.example/real/dir/index.m3u8', 'pre-redirect warmPlaylist entry must carry post-redirect baseURL');
+
+  // 4. Verify HLSProxy.h, main.m, SYCicadaLivePlayer.m, and app.mjs playback & seek fixes
+  assert.ok(hls.includes('self.paths.count>=4096&&self.paths.count>=65536'), 'HLSProxy must not wipe segment paths at 4096 mid-movie');
+  assert.ok(hls.includes('nw_connection_set_state_changed_handler(connection'), 'HLSProxy must cancel upstream task when local connection closes on seek');
+  assert.ok(hls.includes('entry[@"baseURL"]'), 'HLSProxy seedPlaylists must resolve relative URLs against baseURL');
+  assert.ok(main.includes('now>owner.vodStallTime+0.5||now<owner.vodStallTime-0.5'), 'VOD stall watchdog must clear on backward seeks as well as forward progress');
+  assert.ok(main.includes('self.nativeItem.preferredForwardBufferDuration=2;'), 'seekNativePlayerToTime must lower forward buffer duration for fast post-seek resume');
+  assert.ok(main.includes('[action isEqualToString:@"updateMeta"]'), 'main.m playerControl must handle updateMeta from verifyInBackground');
+  assert.ok(cicada.includes('SYCicadaCallInt64(self.player, NSSelectorFromString(@"currentPosition"))'), 'Cicada currentPosition must read int64_t milliseconds');
+  assert.ok(cicada.includes('SYCicadaCallVoidInt64UInt(self.player, NSSelectorFromString(@"seekToTime:seekMode:"), timeMs, 0x01)'), 'Cicada seekToTime:seekMode: must pass int64_t milliseconds');
+  assert.ok(cicada.includes('SYCicadaCallVoidFloat(self.player, NSSelectorFromString(@"setRate:"), self.pendingRate)'), 'Cicada setRate: must pass float ABI');
+  assert.ok(app.includes("native.controlPlayer('updateMeta'"), 'verifyInBackground must sync verified cicadaURL and warmPlaylists to Native');
+});

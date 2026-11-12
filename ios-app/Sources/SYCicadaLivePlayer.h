@@ -21,6 +21,7 @@
 //     与 cctvhost 的软件解码重试一致。
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "SYMediaEngine.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -41,7 +42,7 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 - (void)cicadaLivePlayerDidComplete:(id)player;
 @end
 
-@interface SYCicadaLivePlayer : NSObject
+@interface SYCicadaLivePlayer : NSObject <SYMediaEngine>
 
 // SDK 类是否存在（NSClassFromString(@"CicadaPlayer")）。模拟器构建里为 NO。
 + (BOOL)isAvailable;

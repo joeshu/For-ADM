@@ -25,9 +25,10 @@
 //      回调缺失时绝不静默黑屏——20 秒首帧看门狗会报错。
 //      onPlayerEvent 的 CicadaEventFirstRenderedStart = 2（见 CicadaSDK.h
 //      的 CicadaEventType），是头文件里明确的首帧信号。
-//   4) 时长/位置单位：CicadaPlayer 的 currentPosition 按秒计；为防个别构建
-//      返回毫秒，>360000 的值按毫秒折算（见归一化函数）。直播没有时长，
-//      不读 duration、不做完成判断。
+//   4) 时长/位置单位：CicadaPlayer 二进制中 currentPosition / getDuration /
+//      duration 的 ObjC 方法签名均为 q16@0:8（返回 int64_t 毫秒），
+//      seekToTime:seekMode: 签名为 v32@0:8q16Q24（首参 int64_t 毫秒），
+//      setRate: 签名为 v20@0:8f16（首参 float）。
 //      网络超时单位：CicadaConfig.networkTimeout 按毫秒计（仓库内证据：
 //      直连路径传 15000）。公开 API 的 networkTimeout 参数仍按秒收，
 //      prepare 里 ×1000 再传给 SDK。
@@ -76,28 +77,14 @@ static void SYCicadaCallVoidFloat(id target, SEL sel, float arg) {
     @try { ((void (*)(id, SEL, float))objc_msgSend)(target, sel, arg); } @catch (NSException *e) {}
 }
 
-static void SYCicadaCallVoidDouble(id target, SEL sel, double arg) {
+static void SYCicadaCallVoidInt64UInt(id target, SEL sel, int64_t arg, NSUInteger arg2) {
     if (!target || !sel || ![target respondsToSelector:sel]) return;
-    @try { ((void (*)(id, SEL, double))objc_msgSend)(target, sel, arg); } @catch (NSException *e) {}
+    @try { ((void (*)(id, SEL, int64_t, NSUInteger))objc_msgSend)(target, sel, arg, arg2); } @catch (NSException *e) {}
 }
 
-static void SYCicadaCallVoidDoubleLong(id target, SEL sel, double arg, long arg2) {
-    if (!target || !sel || ![target respondsToSelector:sel]) return;
-    @try { ((void (*)(id, SEL, double, long))objc_msgSend)(target, sel, arg, arg2); } @catch (NSException *e) {}
-}
-
-static double SYCicadaCallDouble(id target, SEL sel) {
+static int64_t SYCicadaCallInt64(id target, SEL sel) {
     if (!target || !sel || ![target respondsToSelector:sel]) return 0;
-    @try { return ((double (*)(id, SEL))objc_msgSend)(target, sel); } @catch (NSException *e) { return 0; }
-}
-
-static NSTimeInterval SYCicadaLiveNormalizeTimeValue(id value) {
-    double seconds = 0;
-    if ([value respondsToSelector:@selector(doubleValue)]) seconds = [value doubleValue];
-    if (!isfinite(seconds) || seconds < 0) return 0;
-    // 个别构建返回毫秒：超过 100 小时的一律按毫秒折算。
-    if (seconds > 360000) seconds /= 1000.0;
-    return seconds;
+    @try { return ((int64_t (*)(id, SEL))objc_msgSend)(target, sel); } @catch (NSException *e) { return 0; }
 }
 
 static NSString *SYCicadaLiveStringFromModel(id model, NSArray<NSString *> *keys) {
@@ -214,7 +201,14 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         SYCicadaCallVoidInt(config, NSSelectorFromString(@"setNetworkTimeout:"), (int)llround(self.networkTimeout * 1000.0));
         SYCicadaCallVoidInt(config, NSSelectorFromString(@"setNetworkRetryCount:"), 2);
         if (self.headers.count) {
-            SYCicadaCallVoidObject(config, NSSelectorFromString(@"setHttpHeaders:"), self.headers);
+            NSMutableArray<NSString *> *headerLines = [NSMutableArray arrayWithCapacity:self.headers.count];
+            for (NSString *key in self.headers) {
+                NSString *val = self.headers[key];
+                if ([key isKindOfClass:NSString.class] && [val isKindOfClass:NSString.class] && key.length && val.length) {
+                    [headerLines addObject:[NSString stringWithFormat:@"%@: %@", key, val]];
+                }
+            }
+            if (headerLines.count) SYCicadaCallVoidObject(config, NSSelectorFromString(@"setHttpHeaders:"), headerLines);
             NSString *userAgent = self.headers[@"User-Agent"] ?: self.headers[@"user-agent"];
             NSString *referer = self.headers[@"Referer"] ?: self.headers[@"referer"];
             if (userAgent.length) SYCicadaCallVoidObject(config, NSSelectorFromString(@"setUserAgent:"), userAgent);
@@ -325,8 +319,11 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 - (void)seekToTime:(NSTimeInterval)seconds {
     if (self.destroyed || !self.player || !isfinite(seconds)) return;
     if (![self.player respondsToSelector:NSSelectorFromString(@"seekToTime:seekMode:")]) return;
-    // CICADA_SEEKMODE_ACCURATE（0x01，见 CicadaSDK.h；cctvhost 适配器同值）。
-    SYCicadaCallVoidDoubleLong(self.player, NSSelectorFromString(@"seekToTime:seekMode:"), MAX(0, seconds), 0x01);
+    // CICADA_SEEKMODE_ACCURATE（0x01，见 CicadaSDK.h；seekToTime:seekMode: 首参为 int64_t 毫秒）。
+    int64_t timeMs = (int64_t)llround(MAX(0, seconds) * 1000.0);
+    self.stallSeconds = 0;
+    self.lastProgressPosition = MAX(0, seconds);
+    SYCicadaCallVoidInt64UInt(self.player, NSSelectorFromString(@"seekToTime:seekMode:"), timeMs, 0x01);
 }
 
 - (void)setRate:(float)rate {
@@ -338,7 +335,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 
 - (void)applyPendingRate {
     if (!self.player || !self.hasPendingRate) return;
-    SYCicadaCallVoidDouble(self.player, NSSelectorFromString(@"setRate:"), (double)self.pendingRate);
+    SYCicadaCallVoidFloat(self.player, NSSelectorFromString(@"setRate:"), self.pendingRate);
 }
 
 - (void)stop {
@@ -396,15 +393,17 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 
 - (NSTimeInterval)currentPosition {
     if (!self.player) return 0;
-    NSTimeInterval position = SYCicadaCallDouble(self.player, NSSelectorFromString(@"currentPosition"));
-    return SYCicadaLiveNormalizeTimeValue(@(position));
+    int64_t positionMs = SYCicadaCallInt64(self.player, NSSelectorFromString(@"currentPosition"));
+    if (positionMs <= 0) return 0;
+    return (NSTimeInterval)positionMs / 1000.0;
 }
 
 - (NSTimeInterval)duration {
     if (!self.player) return 0;
-    NSTimeInterval duration = SYCicadaCallDouble(self.player, NSSelectorFromString(@"duration"));
-    if (duration <= 0) duration = SYCicadaCallDouble(self.player, NSSelectorFromString(@"getDuration"));
-    return SYCicadaLiveNormalizeTimeValue(@(duration));
+    int64_t durationMs = SYCicadaCallInt64(self.player, NSSelectorFromString(@"getDuration"));
+    if (durationMs <= 0) durationMs = SYCicadaCallInt64(self.player, NSSelectorFromString(@"duration"));
+    if (durationMs <= 0) return 0;
+    return (NSTimeInterval)durationMs / 1000.0;
 }
 
 - (void)reportVODProgressWithPosition:(NSTimeInterval)position duration:(NSTimeInterval)duration {
@@ -420,11 +419,14 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     // 卡顿超时：首帧后 15 秒位置无推进即报错，交给调用方切线；暂停时不计。
     // 网络卡顿不是解码问题，不走软解重试，直接上报失败。
     // 阈值按当前倍速折算：1 秒轮询一次，0.5× 时每 tick 只前进 0.5 秒，
-    // 固定 0.5 的阈值会把正常慢放误判成卡顿、15 秒后冤杀好线路。
+    // 固定 threshold 会把正常慢放误判成卡顿、15 秒后冤杀好线路。
     if (self.firstFrameReported && !self.paused && self.state == SYCicadaLivePlayerStatePlaying) {
         float rate = self.hasPendingRate ? self.pendingRate : 1.0f;
         NSTimeInterval progressThreshold = MAX(0.2, 0.5 * (NSTimeInterval)rate);
-        if (position >= self.lastProgressPosition + progressThreshold) {
+        if (position + 1.0 < self.lastProgressPosition) {
+            self.lastProgressPosition = position;
+            self.stallSeconds = 0;
+        } else if (position >= self.lastProgressPosition + progressThreshold) {
             self.lastProgressPosition = position;
             self.stallSeconds = 0;
         } else if (++self.stallSeconds >= 15) {
@@ -538,7 +540,13 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     // 5=LoadingEnd、6=SeekEnd、7=LoopingStart。
     if (eventType == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!self.destroyed && (!player || !self.player || player == self.player)) [self handlePrepared];
+            if (self.destroyed || (player && self.player && player != self.player)) return;
+            if (self.preparedReported) {
+                self.startPositionApplied = NO;
+                if (!self.paused) [self start];
+            } else {
+                [self handlePrepared];
+            }
         });
     } else if (eventType == 2) {
         dispatch_async(dispatch_get_main_queue(), ^{

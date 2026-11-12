@@ -29,6 +29,9 @@ export const NativeTransport={
   layoutPlayer(context,frame){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:"layout",type:"playerLayout",context,frame});},
   statusStyle(dark){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:"theme",type:"statusStyle",dark:!!dark});},
   native,
+  async saveOfflineEpisode(key,title,url,headers={}){if(native())return post('offlineCacheSave',{key,title,url,headers});return {ok:false};},
+  async listOfflineEpisodes(){if(native())return (await post('offlineCacheList')).items||[];return [];},
+  async deleteOfflineEpisode(key){if(native())return post('offlineCacheDelete',{key});return {ok:true};},
   vault:{async get(key){if(!native())return memory.get(key)||null;const result=await post('vaultGet',{key});try{return JSON.parse(result.value)||null;}catch{return null;}},async put(key,user){if(!native()){memory.set(key,user);return;}await post('vaultPut',{key,value:JSON.stringify(user)});},async remove(key){if(!native()){memory.delete(key);return;}await post('vaultDelete',{key});}},
 };
 globalThis.NativeTransport=NativeTransport;
