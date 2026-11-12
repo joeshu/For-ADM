@@ -15,7 +15,7 @@ const lifecycle=main.slice(main.indexOf('- (void)handleAudioInterruption:'),main
 
 test('backgrounding pauses Cicada when picture-in-picture is not active',()=>{
  assert.ok(lifecycle.includes('if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused){'),'backgrounding must only touch a playing Cicada player');
- assert.ok(lifecycle.includes('BOOL pipActive=self.nativePlayer.pictureInPictureController.pictureInPictureActive;'),'backgrounding must check whether PiP took over first');
+ assert.ok(lifecycle.includes('BOOL pipActive=self.nativePlayer.pictureInPicture;'),'backgrounding must check whether PiP took over first');
  assert.ok(lifecycle.includes("if(!pipActive){[self.cicadaLivePlayer pause];self.cicadaPausedForBackground=YES;}"),'without PiP the Cicada player must be paused on backgrounding');
  assert.ok(lifecycle.includes('if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){self.cicadaPausedForBackground=NO;[self.cicadaLivePlayer resume];}'),'returning to the foreground must resume only a background-paused Cicada player');
  assert.ok(main.includes('self.cicadaPausedForBackground=NO;self.cicadaPausedForInterruption=NO;'),'starting a new playback must clear the pause flags');

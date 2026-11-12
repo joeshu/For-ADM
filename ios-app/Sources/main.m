@@ -689,7 +689,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     // I1：Cicada 回退时没有画中画、锁屏也停不掉，后台会一直出声。
     // 画中画未激活时先暂停 Cicada，回前台再恢复（用户自己暂停过的不动）。
     if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused){
-      BOOL pipActive=self.nativePlayer.pictureInPictureController.pictureInPictureActive;
+      BOOL pipActive=self.nativePlayer.pictureInPicture;
       if(!pipActive){[self.cicadaLivePlayer pause];self.cicadaPausedForBackground=YES;}
     }
   }else if([note.name isEqualToString:@"UIApplicationWillEnterForegroundNotification"]){
@@ -1100,7 +1100,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     }
     return;
   }
-  if([type isEqualToString:@"pageProgress"]){double progressTime=[body[@"time"] doubleValue],progressDuration=[body[@"duration"] doubleValue];dispatch_async(SYMainQueue(),^{[self.appScreen applyProgressTime:progressTime duration:progressDuration]});return;}
+  if([type isEqualToString:@"pageProgress"]){double progressTime=[body[@"time"] doubleValue],progressDuration=[body[@"duration"] doubleValue];dispatch_async(SYMainQueue(),^{[self.appScreen applyProgressTime:progressTime duration:progressDuration];});return;}
   if([type isEqualToString:@"pageState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.pageSnapshot=body[@"state"];
 #if defined(SY_SIMULATOR_SMOKE)
     NSString*page=[self.pageSnapshot[@"page"] isKindOfClass:NSString.class]?self.pageSnapshot[@"page"]:@"unknown";self.smokeNavigationDebug=self.smokeNavigationDebug?:[NSMutableDictionary dictionary];self.smokeNavigationDebug[@"phase"]=[NSString stringWithFormat:@"%@-state-received",page];self.smokeNavigationDebug[@"page"]=page;self.smokeNavigationDebug[@"items"]=@([self.pageSnapshot[@"items"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"items"] count]:0);self.smokeNavigationDebug[@"groups"]=@([self.pageSnapshot[@"groups"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"groups"] count]:0);self.smokeNavigationDebug[@"sections"]=@([self.pageSnapshot[@"sections"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"sections"] count]:0);[self writeSmokeNavigationDebug];
