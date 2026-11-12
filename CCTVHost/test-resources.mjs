@@ -13,6 +13,15 @@ const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
  * 播放与搜索受保护）、青空次元（仅非成人分类，播放未提供）。三者均为纯 SSR
  * 抓取的 JS 适配器，不含 widget/ 对应文件。 */
 const newNames=['hanxiaoquan','hongguo','sorani'];
+/* 2026-11-12 新增：用户明确要求制作的 7 组站（交接文档曾排除，现以实站为准）。
+ * 18+ 成人站 10 个文件：黑桃/鬼片/野果/剧果（野果同后端薄变体）/禁果/笔盒/
+ * 黄果/红果黄剧/黄果剧场/帝果（黄果同应用薄变体）。播放能力按实站分档：
+ * 黑桃、鬼片、笔盒、黄果剧场返回公开 HLS 直链；红果黄剧返回裸 m3u8 但需播放器带
+ * CloudFront Cookie；野果/剧果/禁果/黄果/帝果只做目录与详情，播放需登录或站内
+ * 加密接口，resolveResource 明确报错。剧果/帝果的 origin 经实测：剧果与野果逐项
+ * 相同；帝果入口 thu.ediayikma.cc 的 /api/home 持续 502，origin 取重定向目标
+ * ec2b.rlhjeyuvw.cc。 */
+const adultNames=['heitao','guipian','yeguo','juguo','jinguo','beabox','huangguo','huangju','huangguo-video','diguo'];
 const pythonSources=[
   ['duoduo','多多影视'],['fengshang','风尚影视'],['junnian','君念影院'],
   ['haokankan','好好看'],['chabeihu','茶杯狐'],['dida','嘀嗒影视'],
@@ -22,7 +31,7 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, three new SSR sources, ten verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, three new SSR sources, ten adult sources, ten verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -32,6 +41,13 @@ for(const id of names){
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of newNames){
+  const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
+  assert.ok(entry,id+' is present in the CCTVHost catalog');
+  assert.equal(entry.type,'script',id+' is marked as an importable script');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
+  assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
+}
+for(const id of adultNames){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
@@ -218,7 +234,7 @@ function detectHostProtocol(source){
   return 'cctvhost.media/1';
 }
 
-for(const id of [...names,...newNames]){
+for(const id of [...names,...newNames,...adultNames]){
   const {context,source,plugin}=makeCatVodContext(id);
   assert.equal(detectHostProtocol(source),'catvod-js',id+' is recognized by CCTVHost as a complete CatVod JavaScript source');
   assert.doesNotMatch(source,/\brequire\s*\(\s*['"]/,id+' does not trigger a missing external Node dependency');
@@ -304,4 +320,4 @@ for(const id of [...names,...newNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 22 entries (including ten Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the eleven JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 32 entries (including ten Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the twenty-one JavaScript sources.');

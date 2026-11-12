@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 22 个条目：11 个 CatVod / TVBox JavaScript 源、10 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 32 个条目：21 个 CatVod / TVBox JavaScript 源、10 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -27,6 +27,16 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `hanxiaoquan.js` | 韩小圈 | MacCMS 公开目录/详情/分集（2026-11-12 未能从本机验证，需 iPhone 实测） |
 | `hongguo.js` | 红果短剧 | 官网 SSR 公开目录/详情（仅前几集可公开访问；播放与搜索受保护，不提供） |
 | `sorani.js` | 青空次元 | SSR 公开番剧目录/详情（仅非成人分类；搜索覆盖首页目录；播放未提供） |
+| `heitao.js` | 黑桃短剧 | 18+；MacCMS 公开目录/详情/分集，播放器接口返回公开 HLS 直链（需年龄确认 Cookie，本机 32/32） |
+| `guipian.js` | 鬼片网 | ewave 模板公开目录/详情/分集，播放页明文暴露 m3u8（本机 33/33；CDN 分片需国内网络，搜索接口已下线） |
+| `yeguo.js` | 野果短剧 | 18+；Nuxt `_payload.json` 公开目录/详情/分集（本机 22/22；播放需站内加密接口，不提供） |
+| `juguo.js` | 剧果短剧 | 18+；与野果同一后端、同一份目录的薄变体（本机 12 项复测全过；播放同野果，不提供） |
+| `jinguo.js` | 禁果短剧 | 18+；`/api/v1` 公开 JSON 目录/详情/分集（本机 30/30；播放需登录，不提供；jgdj.app 同一应用） |
+| `beabox.js` | 笔盒短剧 | 18+；`bh*.top` 候选域 `/api` AES 密文接口，详情直接返回公开 HLS 直链（本机 30/30，分片实取 200） |
+| `huangguo.js` | 黄果短剧 | 18+；`/api/*` 公开 JSON 目录/详情/分集（本机 13/13；播放需预览 token/登录，不提供） |
+| `huangju.js` | 红果黄剧 | 18+；Next.js SSR 公开目录/详情/分集，返回裸 m3u8（本机 18/18；分片需 CloudFront Cookie，需 iPhone 实测） |
+| `huangguo-video.js` | 黄果剧场 | 18+；SSR 公开目录/详情/分集，`data-hls` 公开 HLS 直链（本机 14/14，分片实取 200） |
+| `diguo.js` | 帝果短剧 | 18+；与黄果同一应用、同一份目录的薄变体，origin 取重定向目标 ec2b.rlhjeyuvw.cc（本机 12 项复测全过；播放同黄果，不提供） |
 
 ### Hawk Python Spider 源
 
