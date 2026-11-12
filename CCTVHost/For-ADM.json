@@ -122,12 +122,6 @@
       "type": 3
     },
     {
-      "key": "joeshu.hanxiaoquan",
-      "name": "韩小圈",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hanxiaoquan.js?v=1",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hongguo",
       "name": "红果短剧",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hongguo.js?v=1",
@@ -137,66 +131,6 @@
       "key": "joeshu.sorani",
       "name": "青空次元",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/sorani.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.heitao",
-      "name": "黑桃短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/heitao.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.guipian",
-      "name": "鬼片网",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/guipian.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.yeguo",
-      "name": "野果短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/yeguo.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.juguo",
-      "name": "剧果短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/juguo.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.jinguo",
-      "name": "禁果短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/jinguo.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.beabox",
-      "name": "笔盒短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/beabox.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.huangguo",
-      "name": "黄果短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/huangguo.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.huangju",
-      "name": "红果黄剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/huangju.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.huangguo-video",
-      "name": "黄果剧场",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/huangguo-video.js?v=1",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.diguo",
-      "name": "帝果短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/diguo.js?v=1",
       "type": "script"
     }
   ],
