@@ -110,6 +110,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.dsxys8",
+      "name": "大师兄影音（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/dsxys8.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
