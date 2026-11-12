@@ -114,6 +114,24 @@
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
       "type": 3
+    },
+    {
+      "key": "joeshu.hanxiaoquan",
+      "name": "韩小圈",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hanxiaoquan.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hongguo",
+      "name": "红果短剧",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hongguo.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.sorani",
+      "name": "青空次元",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/sorani.js?v=1",
+      "type": "script"
     }
   ],
   "lives": []

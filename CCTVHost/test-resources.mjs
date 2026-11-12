@@ -9,6 +9,10 @@ const here=path.dirname(fileURLToPath(import.meta.url));
 const require=createRequire(import.meta.url);
 const CryptoJS=require('../ios-app/Web/vendor/crypto-js.js');
 const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
+/* 2026-11-12 新增：韩小圈（MacCMS，需实站验证）、红果短剧（公开目录/详情，
+ * 播放与搜索受保护）、青空次元（仅非成人分类，播放未提供）。三者均为纯 SSR
+ * 抓取的 JS 适配器，不含 widget/ 对应文件。 */
+const newNames=['hanxiaoquan','hongguo','sorani'];
 const pythonSources=[
   ['duoduo','多多影视'],['fengshang','风尚影视'],['junnian','君念影院'],
   ['haokankan','好好看'],['chabeihu','茶杯狐'],['dida','嘀嗒影视'],
@@ -18,13 +22,20 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, ten verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, three new SSR sources, ten verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
   assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=3',id+' points to its current standalone CatVod source');
+  assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
+}
+for(const id of newNames){
+  const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
+  assert.ok(entry,id+' is present in the CCTVHost catalog');
+  assert.equal(entry.type,'script',id+' is marked as an importable script');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const [id,title] of pythonSources){
@@ -207,7 +218,7 @@ function detectHostProtocol(source){
   return 'cctvhost.media/1';
 }
 
-for(const id of names){
+for(const id of [...names,...newNames]){
   const {context,source,plugin}=makeCatVodContext(id);
   assert.equal(detectHostProtocol(source),'catvod-js',id+' is recognized by CCTVHost as a complete CatVod JavaScript source');
   assert.doesNotMatch(source,/\brequire\s*\(\s*['"]/,id+' does not trigger a missing external Node dependency');
@@ -293,4 +304,4 @@ for(const id of names){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 19 entries (including ten Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the eight existing JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 22 entries (including ten Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the eleven JavaScript sources.');
