@@ -49,3 +49,40 @@ test('no cockpit button label is long enough to truncate at phone width',()=>{
  assert.ok(labels.length>=7,`expected at least 7 cockpit labels, got ${labels.length}: ${labels.join(' | ')}`);
  for(const label of labels)assert.ok(label.length<=8,`cockpit label too long to fit without truncation: ${label}`);
 });
+
+// The detail page the user actually sees is the NATIVE screen
+// (SYAppScreenController in Sources/main.m), not the Web cockpit above:
+// the 2026-11-12 screenshot showed the same two defects there — five
+// truncated buttons ("↺ -1…", "跳过…", "↻ +…", "画面…", "🔊 …") and a
+// rate row running off-screen. These are source-contract tests on main.m.
+const main=read('Sources/main.m');
+const detailCockpit=(()=>{
+ const start=main.indexOf('if([self.state[@"playURLs"] count]>0){');
+ assert.ok(start>=0,'native detail cockpit must exist');
+ return main.slice(start,main.indexOf('[self addFeaturePoster:m',start));
+})();
+
+test('native cockpit splits into two rows instead of five squeezed buttons',()=>{
+ assert.ok(detailCockpit.includes('CGFloat fourth=(w-50)/4.0;'),'first row must be four buttons at (w-50)/4');
+ assert.ok(!detailCockpit.includes('CGFloat fifth=(w-56)/5.0;\n   SYLiveActionButton*rw='),'the five-button single row must be gone');
+ assert.ok(detailCockpit.includes('CGFloat half=(w-40)/2.0;'),'second row must be two half-width buttons');
+});
+
+test('native cockpit buttons shrink instead of truncating',()=>{
+ const shrink=(detailCockpit.match(/adjustsFontSizeToFitWidth=YES/g)||[]).length;
+ assert.ok(shrink>=5,`expected 4 control buttons plus the rate loop with adjustsFontSizeToFitWidth, got ${shrink}`);
+});
+
+test('native rate row is five equal fixed buttons, not addChips',()=>{
+ assert.ok(!detailCockpit.includes('addChips:@[@{@"name":@"0.75×"'),'the rate row must not use addChips (its width formula overflows the screen)');
+ assert.ok(detailCockpit.includes('CGFloat fifth=(w-56)/5.0;NSString*selectedRate='),'the rate row must be five equal buttons at (w-56)/5');
+ assert.ok(detailCockpit.includes('rateBtn.frame=CGRectMake(16+ri*(fifth+6),y,fifth,38)'),'rate buttons must tile the full width with 6pt gaps');
+ assert.ok(detailCockpit.includes('if([rateItem[@"id"] isEqualToString:selectedRate])'),'the active rate must be highlighted like a selected chip');
+});
+
+test('native cockpit second row adds the sleep timer next to mute',()=>{
+ assert.ok(detailCockpit.includes('action:@"player-sleep-timer"'),'sleep timer button must exist in the native cockpit');
+ assert.ok(detailCockpit.includes('self.state[@"sleepTimerMode"]'),'sleep label must read the synced sleepTimerMode');
+ assert.ok(detailCockpit.includes('@"🌙 播完本集"'),'episode sleep mode must show 播完本集');
+ assert.ok(detailCockpit.includes('@"🔇 已静音":@"🔊 声音"'),'mute label must still reflect playerMuted');
+});

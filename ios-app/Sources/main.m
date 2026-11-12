@@ -452,14 +452,21 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  else if([page isEqualToString:@"collection"]){[self addButton:@"‹ 返回" action:@"collection-back" data:@{} y:y height:42];y+=50;for(NSDictionary*g in self.state[@"groups"]){y+=MAX(240,[self addShelf:g[@"items"] title:g[@"title"]?:@"专题" y:y]);}if([self.state[@"next"] isKindOfClass:NSString.class]&&[(NSString*)self.state[@"next"] length])[self addButton:@"加载更多" action:@"more" data:@{} y:y height:44];}
  else if([page isEqualToString:@"detail"]){
   if([self.state[@"playURLs"] count]>0){
-   CGFloat fifth=(w-56)/5.0;
-   SYLiveActionButton*rw=[self button:@"↺ -15s" action:@"player-seek" payload:@{@"id":@"-15"}];rw.frame=CGRectMake(16,y,fifth,38);[self.content addSubview:rw];
-   SYLiveActionButton*skip=[self button:@"跳过片头" action:@"player-skip-intro" payload:@{}];skip.frame=CGRectMake(22+fifth,y,fifth,38);[self.content addSubview:skip];
-   SYLiveActionButton*ff=[self button:@"↻ +15s" action:@"player-seek" payload:@{@"id":@"15"}];ff.frame=CGRectMake(28+fifth*2,y,fifth,38);[self.content addSubview:ff];
-   SYLiveActionButton*asp=[self button:@"画面比例" action:@"player-aspect" payload:@{}];asp.frame=CGRectMake(34+fifth*3,y,fifth,38);[self.content addSubview:asp];
-   SYLiveActionButton*muteBtn=[self button:[self.state[@"playerMuted"] boolValue]?@"🔇 已静音":@"🔊 声音" action:@"player-mute" payload:@{}];muteBtn.frame=CGRectMake(40+fifth*4,y,fifth,38);[self.content addSubview:muteBtn];
+   CGFloat fourth=(w-50)/4.0;
+   SYLiveActionButton*rw=[self button:@"↺ -15s" action:@"player-seek" payload:@{@"id":@"-15"}];rw.frame=CGRectMake(16,y,fourth,38);rw.titleLabel.adjustsFontSizeToFitWidth=YES;rw.titleLabel.minimumScaleFactor=0.8;[self.content addSubview:rw];
+   SYLiveActionButton*skip=[self button:@"跳过片头" action:@"player-skip-intro" payload:@{}];skip.frame=CGRectMake(22+fourth,y,fourth,38);skip.titleLabel.adjustsFontSizeToFitWidth=YES;skip.titleLabel.minimumScaleFactor=0.8;[self.content addSubview:skip];
+   SYLiveActionButton*ff=[self button:@"↻ +15s" action:@"player-seek" payload:@{@"id":@"15"}];ff.frame=CGRectMake(28+fourth*2,y,fourth,38);ff.titleLabel.adjustsFontSizeToFitWidth=YES;ff.titleLabel.minimumScaleFactor=0.8;[self.content addSubview:ff];
+   SYLiveActionButton*asp=[self button:@"画面比例" action:@"player-aspect" payload:@{}];asp.frame=CGRectMake(34+fourth*3,y,fourth,38);asp.titleLabel.adjustsFontSizeToFitWidth=YES;asp.titleLabel.minimumScaleFactor=0.8;[self.content addSubview:asp];
    y+=44;
-   [self addChips:@[@{@"name":@"0.75×",@"id":@"0.75"},@{@"name":@"1×",@"id":@"1"},@{@"name":@"1.25×",@"id":@"1.25"},@{@"name":@"1.5×",@"id":@"1.5"},@{@"name":@"2×",@"id":@"2"}] action:@"playback-rate" key:@"id" selected:[self.state[@"playbackRate"] stringValue]?:@"1" y:y];
+   CGFloat half=(w-40)/2.0;
+   SYLiveActionButton*muteBtn=[self button:[self.state[@"playerMuted"] boolValue]?@"🔇 已静音":@"🔊 声音" action:@"player-mute" payload:@{}];muteBtn.frame=CGRectMake(16,y,half,38);[self.content addSubview:muteBtn];
+   NSString*sleepMode=[self.state[@"sleepTimerMode"] isKindOfClass:NSString.class]?self.state[@"sleepTimerMode"]:@"off";
+   NSString*sleepTitle=[sleepMode isEqualToString:@"episode"]?@"🌙 播完本集":[sleepMode isEqualToString:@"15"]?@"🌙 15分钟":[sleepMode isEqualToString:@"30"]?@"🌙 30分钟":[sleepMode isEqualToString:@"60"]?@"🌙 60分钟":@"🌙 定时";
+   SYLiveActionButton*sleepBtn=[self button:sleepTitle action:@"player-sleep-timer" payload:@{}];sleepBtn.frame=CGRectMake(24+half,y,half,38);if(![sleepMode isEqualToString:@"off"]){sleepBtn.backgroundColor=[[self accent] colorWithAlphaComponent:.15];[sleepBtn setTitleColor:[self accent] forState:UIControlStateNormal];}[self.content addSubview:sleepBtn];
+   y+=44;
+   CGFloat fifth=(w-56)/5.0;NSString*selectedRate=[self.state[@"playbackRate"] stringValue]?:@"1";
+   NSArray*rateItems=@[@{@"name":@"0.75×",@"id":@"0.75"},@{@"name":@"1×",@"id":@"1"},@{@"name":@"1.25×",@"id":@"1.25"},@{@"name":@"1.5×",@"id":@"1.5"},@{@"name":@"2×",@"id":@"2"}];
+   for(NSUInteger ri=0;ri<rateItems.count;ri++){NSDictionary*rateItem=rateItems[ri];SYLiveActionButton*rateBtn=[self button:rateItem[@"name"] action:@"playback-rate" payload:@{@"id":rateItem[@"id"]}];rateBtn.frame=CGRectMake(16+ri*(fifth+6),y,fifth,38);rateBtn.layer.cornerRadius=19;rateBtn.titleLabel.adjustsFontSizeToFitWidth=YES;rateBtn.titleLabel.minimumScaleFactor=0.8;if([rateItem[@"id"] isEqualToString:selectedRate]){rateBtn.backgroundColor=[[self accent] colorWithAlphaComponent:.15];[rateBtn setTitleColor:[self accent] forState:UIControlStateNormal];}[self.content addSubview:rateBtn];}
    y+=48;
   }
   [self addFeaturePoster:m y:y];y+=266;[self addHeading:m[@"title"]?:@"影片详情" y:y];y+=34;
