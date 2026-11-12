@@ -471,13 +471,17 @@ video[data-aspect="stretch"],.live-player-screen video[data-aspect="stretch"]{ob
 
 .player-cockpit{display:flex;flex-direction:column;gap:8px;padding:10px 13px;background:#0c1917;border-top:1px solid #ffffff12}
 html[data-theme="white"] .detail-content .player-cockpit{background:#f6f8fc;border-top:1px solid #e3e7f0}
-.cockpit-controls{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.cockpit-controls::-webkit-scrollbar{display:none}
+.cockpit-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .cockpit-btn{flex:0 0 auto;min-height:33px;padding:0 11px;border-radius:9px;background:#182c29;border:1px solid #ffffff14;color:#dff3ee;font-size:11px;font-weight:650;white-space:nowrap;transition:transform .12s ease,background-color .14s ease}
+.cockpit-rates{display:flex;gap:6px}
+.cockpit-rate-btn{flex:1;min-width:0;min-height:33px;padding:0 4px;border-radius:9px;background:#182c29;border:1px solid #ffffff14;color:#dff3ee;font-size:11px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cockpit-rate-btn.active{background:#173d35;border-color:#88e1ce55;color:#9ce9d6}
 .cockpit-btn:active{transform:scale(.95);background:#213d39}
 .cockpit-btn.accent{background:#173d35;border-color:#88e1ce55;color:#9ce9d6}
 html[data-theme="white"] .detail-content .cockpit-btn{background:#fff;border-color:#dce2ec;color:#253042;box-shadow:0 1px 4px #18233a0a}
 html[data-theme="white"] .detail-content .cockpit-btn.accent{background:#eaf2ff;border-color:#2878f055;color:#1768df}
+html[data-theme="white"] .detail-content .cockpit-rate-btn{background:#fff;border-color:#dce2ec;color:#253042;box-shadow:0 1px 4px #18233a0a}
+html[data-theme="white"] .detail-content .cockpit-rate-btn.active{background:#eaf2ff;border-color:#2878f055;color:#1768df}
 .cockpit-telemetry{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .cockpit-badge{padding:3px 8px;border-radius:6px;background:#ffffff0d;color:#9eb2ad;font-size:10px;font-variant-numeric:tabular-nums}
 .cockpit-badge.ad-clean{background:#183b32;color:#88e1ce;border:1px solid #88e1ce38}
