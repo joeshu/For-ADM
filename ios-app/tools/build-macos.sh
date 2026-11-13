@@ -37,11 +37,21 @@ if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then
   exit 1
 fi
 echo "Swift runtime source: $swift_libraries"
-printf 'Swift runtime library: %s\n' "$swift_libraries"/libswift*.dylib
-"$toolchain_path/usr/bin/swift-stdlib-tool" --print --scan-executable dist/sdk/Sanyuan \
-  --platform iphoneos --source-libraries "$swift_libraries"
+swift_dependencies=()
+while IFS= read -r swift_dependency; do swift_dependencies+=("$swift_dependency"); done \
+  < <(python3 tools/swift-runtime-dependencies.py dist/sdk/Sanyuan)
+if [[ ${#swift_dependencies[@]} -eq 0 ]]; then
+  echo "The iPhoneOS executable has no Swift runtime dependencies" >&2
+  exit 1
+fi
+resource_args=()
+for swift_dependency in "${swift_dependencies[@]}"; do
+  echo "Embedding Swift runtime dependency: $swift_dependency"
+  resource_args+=(--resource-library "$swift_dependency")
+done
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --verbose --scan-executable dist/sdk/Sanyuan \
-  --unsigned-destination dist/swift-runtime --platform iphoneos --source-libraries "$swift_libraries"
+  --unsigned-destination dist/swift-runtime --resource-destination dist/swift-runtime \
+  --platform iphoneos --source-libraries "$swift_libraries" "${resource_args[@]}"
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
 version="$(node -p "require('./package.json').version")"
 python3 tools/check-ipa.py "dist/Sanyuan-${version}-unsigned.ipa"

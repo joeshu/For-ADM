@@ -50,8 +50,20 @@ if [[ ! -f "$sim_swift_libraries/libswiftCore.dylib" ]]; then
   echo "Could not find the iOS Simulator Swift standard libraries in $toolchain_path/usr/lib" >&2
   exit 1
 fi
+sim_swift_dependencies=()
+while IFS= read -r swift_dependency; do sim_swift_dependencies+=("$swift_dependency"); done \
+  < <(python3 tools/swift-runtime-dependencies.py "$sim_app/Sanyuan")
+if [[ ${#sim_swift_dependencies[@]} -eq 0 ]]; then
+  echo "The iOS Simulator executable has no Swift runtime dependencies" >&2
+  exit 1
+fi
+sim_resource_args=()
+for swift_dependency in "${sim_swift_dependencies[@]}"; do
+  sim_resource_args+=(--resource-library "$swift_dependency")
+done
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --verbose --scan-executable "$sim_app/Sanyuan" \
-  --unsigned-destination "$sim_app/Frameworks" --platform iphonesimulator --source-libraries "$sim_swift_libraries"
+  --unsigned-destination "$sim_app/Frameworks" --resource-destination "$sim_app/Frameworks" \
+  --platform iphonesimulator --source-libraries "$sim_swift_libraries" "${sim_resource_args[@]}"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
