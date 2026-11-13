@@ -3,18 +3,22 @@
 // 支持容量上限（2GB）自动淘汰、列表查询、单集删除与本地播放 URL 解析。
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface SYOfflineCacheManager : NSObject
 + (instancetype)sharedManager;
 - (NSString *)cacheDirectory;
 - (NSArray<NSDictionary *> *)listCachedEpisodes;
-- (nullable NSURL *)localPlaybackURLForKey:(NSString *)key;
-- (void)deleteEpisodeWithKey:(NSString *)key;
-- (void)cacheEpisodeWithKey:(NSString *)key
-                      title:(NSString *)title
-                        url:(NSURL *)url
-                    headers:(NSDictionary *)headers
-                 completion:(void(^)(BOOL ok, NSString * _Nullable errorMessage))completion;
+- (nullable NSURL *)localPlaybackURLForKey:(nullable NSString *)key;
+- (void)deleteEpisodeWithKey:(nullable NSString *)key;
+- (void)cacheEpisodeWithKey:(nullable NSString *)key
+                      title:(nullable NSString *)title
+                        url:(nullable NSURL *)url
+                    headers:(nullable NSDictionary *)headers
+                 completion:(void (^ _Nullable)(BOOL ok, NSString * _Nullable errorMessage))completion;
 @end
+
+NS_ASSUME_NONNULL_END
 
 @implementation SYOfflineCacheManager
 
