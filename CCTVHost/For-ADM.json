@@ -116,6 +116,96 @@
       "type": "script"
     },
     {
+      "key": "joeshu.huayi",
+      "name": "华谊",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/huayi.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.bubu",
+      "name": "布布",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/bubu.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.mahou",
+      "name": "马猴影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/mahou.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.kuaiying",
+      "name": "快映fox",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/kuaiying.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.xifan",
+      "name": "稀饭",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/xifan.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.jili",
+      "name": "吉里动漫",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/jili.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.huazi",
+      "name": "花子动漫",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/huazi.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.sp360",
+      "name": "三六零",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/sp360.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.saohuo",
+      "name": "骚火影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/saohuo.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.fengye",
+      "name": "枫叶影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/fengye.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.ikanbot",
+      "name": "爱看机器人",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/ikanbot.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.shuangxing",
+      "name": "双星",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/shuangxing.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.xingchen",
+      "name": "星辰影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/xingchen.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.fanshe",
+      "name": "番社动漫",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/fanshe.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.juquan",
+      "name": "剧圈影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/juquan.js?v=1",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.duoduo",
       "name": "多多影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo.py",

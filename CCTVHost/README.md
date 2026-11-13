@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 49 个条目：19 个 CatVod / TVBox JavaScript 源、29 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 64 个条目：34 个 CatVod / TVBox JavaScript 源、29 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -33,8 +33,23 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `sikv4k.js` | 4K影视 | 浏览型；播放地址由站内 WASM 签名生成，未复现，适配器不提供播放地址 |
 | `luoxue.js` | 洛雪TV | TMDB 推荐浏览型；播放需原站解析流程，适配器不提供播放地址 |
 | `piandi.js` | 懂片帝 | HMAC-SHA256 签名（与看剧 AI 同族）；首页/分类/搜索/详情/解析全链实测通，官方线路 m3u8 本机 200 |
-| `hetun.js` | 河豚4K | HyProto protobuf + RSA/AES 签名；协议已还原，AES/RSA/请求体与 Python 逐字节对过，模拟链路全通；本机 POST 到裸 IP 后端被挡，zone 未验证，需 iPhone 实测 |
-| `xpg.js` | 小苹果 | HyProto protobuf + RSA/AES 签名；与河豚同族，独立公钥/密钥/列表端点；本机 POST 被挡，zone 未验证，需 iPhone 实测 |
+| `hetun.js` | 河豚4K | HyProto protobuf + RSA/AES 签名；协议已还原，AES/RSA/请求体与 Python 逐字节对过，模拟链路全通；2026-11-13 本机实测配置 + zone 已通（之前裸 IP POST 被挡是暂时的） |
+| `xpg.js` | 小苹果 | HyProto protobuf + RSA/AES 签名；与河豚同族，独立公钥/密钥/列表端点；2026-11-13 本机实测：zone 已能到达服务端，但字符串时间戳被拒（1008），改数字时间戳后 RSA 解密失败（100002）——服务端 RSA 公钥已轮换，需新版客户端里的当前公钥才能恢复 |
+| `huayi.js` | 华谊 | HyProto（与河豚同族：同密钥、同后端 43.240.158.154:18004）；配置 + zone 本机实测通，模拟链路全通 |
+| `bubu.js` | 布布 | SHA-256 签名（web-sign 常量 + 站内 WASM 复现的 protobuf 解码签名）；首页/分类/搜索/详情/解析全链实测通，ZJ4K 线 m3u8 本机 200 |
+| `mahou.js` | 马猴影视 | SHA-256 签名已还原；浏览实测通，但搜索服务端返回空、详情无分集、解码回“线路维护中”——浏览型，需 iPhone 复核 |
+| `kuaiying.js` | 快映fox | MacCMS JSON；配置 200，但 API 域名本机无法直连（空回复/444），分类 id 未确认，需 iPhone 实测 |
+| `xifan.js` | 稀饭 | Supabase RPC；首页/分类/搜索/详情实测通（航海王 1113 集已解析），播放票据接口 20 种请求体均 bad_request，适配器不猜地址，需 iPhone 确认 |
+| `jili.js` | 吉里动漫 | JSON API；全链实测通，播放 m3u8 本机 206（51KB 真清单） |
+| `huazi.js` | 花子动漫 | JSON API；首页/分类/详情/解析实测通（解析出带签名的 mp4 地址，本机 403 系 CDN 地区限制）；搜索需验证码，需 iPhone 确认 |
+| `sp360.js` | 三六零 | 360 影视聚合；目录/搜索/详情实测通；浏览型，播放指向爱奇艺/优酷/腾讯等原站，适配器不提供播放地址 |
+| `saohuo.js` | 骚火影视 | 抓站；列表/搜索本机实测通，详情未验证（源站间歇性 522），需 iPhone 实测 |
+| `fengye.js` | 枫叶影视 | 抓站；本机只剩地址发布页，mock 链通过，需 iPhone 实测 |
+| `ikanbot.js` | 爱看机器人 | 抓站 + /api/getResN（token 推导已破译）；首页/分类/搜索/播放页实测通，两条 m3u8 本机 200；/play/ 后被 Cloudflare 挑战，需 iPhone 实测 |
+| `shuangxing.js` | 双星 | 抓站；本机 TLS 空回复，mock 链通过，分类代码未验证，需 iPhone 实测 |
+| `xingchen.js` | 星辰影视 | 抓站；全链实测通，播放 m3u8 本机 200 |
+| `fanshe.js` | 番社动漫 | 规则抓站（哆啦A梦专站）；全链实测通，播放 m3u8 本机 206（AES-128 分片） |
+| `juquan.js` | 剧圈影视 | 规则抓站；浏览实测通，搜索弹验证码、播放地址为加密票据（本机解不出），适配器明报错，需 iPhone 确认 |
 
 ### Hawk Python Spider 源
 
