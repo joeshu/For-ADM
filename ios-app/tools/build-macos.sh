@@ -30,8 +30,14 @@ xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module
   -Xlinker -no_adhoc_codesign -Xlinker -no_fixup_chains -Xlinker -headerpad -Xlinker 0x1000 \
   -o dist/sdk/Sanyuan
 echo "Linked the iOS app. Collecting the Swift runtime and packaging the IPA."
+swift_libraries="$toolchain_path/usr/lib/swift/iphoneos"
+if [[ ! -d "$swift_libraries" ]]; then swift_libraries="$toolchain_path/usr/lib/swift-5.0/iphoneos"; fi
+if [[ ! -d "$swift_libraries" ]]; then
+  echo "Could not find the iPhoneOS Swift standard libraries in $toolchain_path/usr/lib" >&2
+  exit 1
+fi
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable dist/sdk/Sanyuan \
-  --destination dist/swift-runtime --platform iphoneos
+  --destination dist/swift-runtime --platform iphoneos --source-libraries "$swift_libraries"
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
 version="$(node -p "require('./package.json').version")"
 python3 tools/check-ipa.py "dist/Sanyuan-${version}-unsigned.ipa"

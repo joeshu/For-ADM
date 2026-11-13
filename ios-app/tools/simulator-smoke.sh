@@ -44,8 +44,14 @@ xcrun --sdk iphonesimulator swiftc -sdk "$sdk_path" -target "$sim_target" -modul
   -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation \
   -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore \
   -lz -Xlinker -rpath -Xlinker @executable_path/Frameworks -o "$sim_app/Sanyuan"
+sim_swift_libraries="$toolchain_path/usr/lib/swift/iphonesimulator"
+if [[ ! -d "$sim_swift_libraries" ]]; then sim_swift_libraries="$toolchain_path/usr/lib/swift-5.0/iphonesimulator"; fi
+if [[ ! -d "$sim_swift_libraries" ]]; then
+  echo "Could not find the iOS Simulator Swift standard libraries in $toolchain_path/usr/lib" >&2
+  exit 1
+fi
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable "$sim_app/Sanyuan" \
-  --destination "$sim_app/Frameworks" --platform iphonesimulator
+  --destination "$sim_app/Frameworks" --platform iphonesimulator --source-libraries "$sim_swift_libraries"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
