@@ -48,10 +48,12 @@ test('candidate verification runs in parallel and stamps verifiedMeta',async()=>
 });
 
 test('playEpisode plays the fast candidate first and verifies in the background',()=>{
- const playEpisode=app.slice(app.indexOf('async function playEpisode'));
+ const start=app.indexOf('async function playEpisode('),end=app.indexOf('\nfunction wireVideo()',start);
+ assert.ok(start>=0&&end>start,'playEpisode must exist as a bounded function');
+ const playEpisode=app.slice(start,end);
  assert.ok(playEpisode.includes('resolveFirstCandidate(c,d,selected,index,signal'),'playEpisode must take the fast path first');
  const fastAt=playEpisode.indexOf('resolveFirstCandidate(c,d,selected,index,signal');
- const launchAt=playEpisode.indexOf('await launchNativePlayer()',fastAt);
+ const launchAt=playEpisode.indexOf('await launchNativePlayer({forceNewSession:!automatic})',fastAt);
  const verifyAt=playEpisode.indexOf('void verifyInBackground(c,d,selected,index,signal,epoch)');
  assert.ok(fastAt>0&&launchAt>fastAt,'the native player must start after the fast candidate, not after verification');
  assert.ok(verifyAt>launchAt,'background verification must start only after playback has started');

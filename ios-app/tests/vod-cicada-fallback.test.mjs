@@ -96,7 +96,9 @@ test('player controls route to Cicada while the fallback is active',()=>{
  for(const action of ['@"rate"','@"seekDelta"','@"seekTo"','@"pause"'])assert.ok(controls.includes(action),`playerControl must handle ${action}`);
  assert.ok(controls.includes('self.cicadaFallbackActive&&self.cicadaLivePlayer'),'controls must check for an active Cicada fallback');
  assert.ok(controls.includes('[self.cicadaLivePlayer setRate:'),'rate must reach Cicada');
- assert.ok(controls.includes('[self.cicadaLivePlayer seekToTime:'),'seek must reach Cicada');
+ assert.ok(controls.includes('[self seekNativePlayerToTime:'),'seek controls must enter the identity-checked native seek path');
+ const seek=fn(main,'- (void)performNativeSeekToTime:','- (void)stopNativePlayback');
+ assert.ok(seek.includes('[self.cicadaLivePlayer seekToTime:seconds seekID:seekID]'),'the native seek path must send the accepted seek identity to Cicada');
  assert.ok(controls.includes('[self.cicadaLivePlayer pause]'),'pause must reach Cicada without stopping it');
 });
 
