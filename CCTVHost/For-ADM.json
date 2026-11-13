@@ -98,6 +98,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.piandi",
+      "name": "懂片帝",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/piandi.js?v=1",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.duoduo",
       "name": "多多影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo.py",

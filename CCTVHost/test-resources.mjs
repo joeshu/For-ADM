@@ -13,8 +13,9 @@ const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
  * 红果短剧已于 2026-11-13 按用户要求从订阅移除；青空次元亦于同日移除。
  * 13 个已删适配器文件已从仓库删除，只能从 git 历史找回。 */
 /* 2026-11-13 新增 8 站（初忆 TVBox 配置实测）：特狗、饭搭子、热剧 TV、
- * 农民影视、映像星球、荐片、4K 影视、洛雪 TV。 */
-const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue'];
+ * 农民影视、映像星球、荐片、4K 影视、洛雪 TV；同日又加片帝（懂片帝，
+ * HMAC-SHA256 签名已从 JAR 还原并实测走通整条链）。 */
+const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','piandi'];
 /* 2026-11-12 曾新增 7 组站的 10 个 18+ 成人适配器（黑桃/鬼片/野果/剧果/
  * 禁果/笔盒/黄果/红果黄剧/黄果剧场/帝果），2026-11-13 按用户要求全部从订阅
  * 移除；适配器文件已于同日从仓库删除，只能从 git 历史找回。 */
@@ -34,7 +35,7 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, eight new SSR sources, no adult sources, twenty-eight verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, nine new SSR sources, no adult sources, twenty-eight verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -293,7 +294,7 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(home.list[0].vod_name,'测试影片',id+' maps site cards to CatVod fields');
   assert.ok(Array.isArray(home.class),id+' home call returns site categories');
 
-  const typeId=id==='yqk'||id==='qntv'?'2:9':(id==='souju'||id==='kanju'?'movie':'1');
+  const typeId=id==='yqk'||id==='qntv'?'2:9':(id==='souju'||id==='kanju'||id==='piandi'?'movie':'1');
   const category=await plugin.category(typeId,'2',true,{});
   assert.equal(category.list.length,1,id+' category call returns playable cards');
   assert.equal(category.page,'2',id+' category call preserves requested page');
@@ -301,7 +302,7 @@ for(const id of [...names,...newNames,...adultNames]){
   if(id==='yqk'||id==='qntv'){
     assert.equal(String(categoryArgs.parentChannelId),'2',id+' maps parent channel');
     assert.equal(String(categoryArgs.childChannelId),'9',id+' maps child category');
-  }else if(id==='souju'||id==='kanju')assert.equal(categoryArgs.kind,'movie',id+' maps content kind');
+  }else if(id==='souju'||id==='kanju'||id==='piandi')assert.equal(categoryArgs.kind,'movie',id+' maps content kind');
   else assert.equal(String(categoryArgs.channelId),'1',id+' maps source channel');
 
   const search=await plugin.search('关键词',false,'3');
@@ -323,4 +324,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 45 entries (including twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the sixteen JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 46 entries (including twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the seventeen JavaScript sources.');
