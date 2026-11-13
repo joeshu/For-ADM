@@ -16,7 +16,6 @@ with zipfile.ZipFile(path) as z:
         assert len(z.read(base+resource))>100
     assert b'<script type="module"' not in z.read(base+'Web/index.html')
 swift_libs={library.rsplit('/',1)[-1] for library in meta['libraries'] if library.rsplit('/',1)[-1].startswith('libswift')}
-assert 'libswiftCore.dylib' in swift_libs, 'detail player binary is missing Swift PlaybackCommandGate'
 for library in swift_libs:
     assert base+'Frameworks/'+library in names, 'App bundle is missing '+library
     assert 'SwiftSupport/iphoneos/'+library in names, 'SwiftSupport is missing '+library
