@@ -200,12 +200,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.haokan",
-      "name": "好看短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/haokan.js?v=1",
-      "type": "script"
-    },
-    {
       "key": "joeshu.bashi",
       "name": "巴士动漫",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/bashi.js?v=1",
