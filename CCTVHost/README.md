@@ -1,6 +1,6 @@
 # CCTVHost 独立影视源合集
 
-主合集现在包含 8 个 CatVod / TVBox JavaScript 影视源、28 个 Python Spider（其中 9 个 Hawk 源已做运行与取流验证，影视追剧于 2026-11-06 加入并通过本地接口验证，2026-11-13 又加入 17 个经五道者聚合实测可用的 PY 源），以及 1 个由 iOS 原生实现的豆瓣片名索引。每个独立影视源都使用单独的适配文件；电视盒子 Python/Java 插件包中的 Android JAR 不会被当成 iOS 脚本执行。
+主合集现在包含 16 个 CatVod / TVBox JavaScript 影视源、28 个 Python Spider（其中 9 个 Hawk 源已做运行与取流验证，影视追剧于 2026-11-06 加入并通过本地接口验证，2026-11-13 又加入 17 个经五道者聚合实测可用的 PY 源，同日又加入 8 个经初忆 TVBox 配置实测可用的 JS 源），以及 1 个由 iOS 原生实现的豆瓣片名索引。每个独立影视源都使用单独的适配文件；电视盒子 Python/Java 插件包中的 Android JAR 不会被当成 iOS 脚本执行。
 
 ## CCTVHost 统一合集导入
 
@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 37 个条目：8 个 CatVod / TVBox JavaScript 源、28 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 45 个条目：16 个 CatVod / TVBox JavaScript 源、28 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -24,6 +24,14 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `dyls.js` | 电影猎手 | 原站 RSA/HMAC 请求协议、公开解析接口和原站媒体请求头 |
 | `souju.js` | 搜剧 AI | 独立访客会话、签名接口和分集播放线路 |
 | `kanju.js` | 看剧 AI | 独立公开目录接口和授权线路解析 |
+| `tegou.js` | 特狗影视 | MacCMS；首页/分类/搜索/详情实测通，播放 m3u8 本机 451，需 iPhone 实测 |
+| `fdzy.js` | 饭搭子影视 | MacCMS；首页/分类/搜索/详情实测通，播放地址本机 403，需 iPhone 实测 |
+| `rejutv.js` | 热剧TV | MacCMS；首页/分类/搜索/详情实测通，播放 m3u8 本机 404，需 iPhone 实测 |
+| `nongmin.js` | 农民影视 | MacCMS；首页/分类/详情实测通，搜索模板缺失；西瓜线路 m3u8 本机 200 |
+| `yingxiang.js` | 映像星球 | MacCMS；首页/分类/搜索/详情实测通，播放地址本机 403/404，需 iPhone 实测 |
+| `jianpian.js` | 荐片 | JSON API；首页/分类/搜索/详情实测通，播放 m3u8 本机连不上，需 iPhone 实测 |
+| `sikv4k.js` | 4K影视 | 浏览型；播放地址由站内 WASM 签名生成，未复现，适配器不提供播放地址 |
+| `luoxue.js` | 洛雪TV | TMDB 推荐浏览型；播放需原站解析流程，适配器不提供播放地址 |
 
 ### Hawk Python Spider 源
 

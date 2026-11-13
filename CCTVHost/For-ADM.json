@@ -50,6 +50,54 @@
       "type": "script"
     },
     {
+      "key": "joeshu.tegou",
+      "name": "特狗影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/tegou.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.fdzy",
+      "name": "饭搭子影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/fdzy.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.rejutv",
+      "name": "热剧TV",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/rejutv.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.nongmin",
+      "name": "农民影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/nongmin.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.yingxiang",
+      "name": "映像星球",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/yingxiang.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.jianpian",
+      "name": "荐片",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/jianpian.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.sikv4k",
+      "name": "4K影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/sikv4k.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.luoxue",
+      "name": "洛雪TV",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/luoxue.js?v=1",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.duoduo",
       "name": "多多影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo.py",

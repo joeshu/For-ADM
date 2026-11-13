@@ -11,11 +11,13 @@ const CryptoJS=require('../ios-app/Web/vendor/crypto-js.js');
 const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
 /* 2026-11-12 曾新增青空次元（仅非成人分类，播放未提供），同批的韩小圈、
  * 红果短剧已于 2026-11-13 按用户要求从订阅移除；青空次元亦于同日移除。
- * 适配器文件仍保留在仓库中，未删除。 */
-const newNames=[];
+ * 13 个已删适配器文件已从仓库删除，只能从 git 历史找回。 */
+/* 2026-11-13 新增 8 站（初忆 TVBox 配置实测）：特狗、饭搭子、热剧 TV、
+ * 农民影视、映像星球、荐片、4K 影视、洛雪 TV。 */
+const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue'];
 /* 2026-11-12 曾新增 7 组站的 10 个 18+ 成人适配器（黑桃/鬼片/野果/剧果/
  * 禁果/笔盒/黄果/红果黄剧/黄果剧场/帝果），2026-11-13 按用户要求全部从订阅
- * 移除；适配器文件仍保留在仓库中，未删除。 */
+ * 移除；适配器文件已于同日从仓库删除，只能从 git 历史找回。 */
 const adultNames=[];
 const pythonSources=[
   ['duoduo','多多影视'],['fengshang','风尚影视'],['junnian','君念影院'],
@@ -32,7 +34,7 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, no new SSR sources, no adult sources, twenty-eight verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, eight new SSR sources, no adult sources, twenty-eight verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -321,4 +323,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 37 entries (including twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the eight JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 45 entries (including twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the sixteen JavaScript sources.');
