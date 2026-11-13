@@ -30,12 +30,12 @@ const pythonSources=[
   ['juxiafan','剧下饭'],['gulu','咕噜'],['bilizhibo','哔哩直播'],
   ['duoduo1920','多多1920'],['yangkuyun','央库云'],['yangshi','央视'],
   ['yangshiyingshi','央视影视'],['miaokan','妙看'],['yingtan4k','影探4K'],
-  ['xingya','星芽短剧'],['guazi','瓜子影视']
+  ['xingya','星芽短剧'],['guazi','瓜子影视'],['juzi','橘汁']
 ];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, eleven new SSR sources, no adult sources, twenty-eight verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, eleven new SSR sources, no adult sources, twenty-nine verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -325,4 +325,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 48 entries (including twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the nineteen JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 49 entries (including twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the nineteen JavaScript sources.');

@@ -284,6 +284,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.juzi",
+      "name": "橘汁（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/juzi.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
