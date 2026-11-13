@@ -116,6 +116,108 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.aigua",
+      "name": "爱瓜TV（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/aigua.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.bubuzhuiju",
+      "name": "布布追剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/bubuzhuiju.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.shortfilm",
+      "name": "短剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/shortfilm.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.qixing",
+      "name": "七星短剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/qixing.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.qimao",
+      "name": "七猫短剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/qimao.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.shijietingshu",
+      "name": "世界听书（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/shijietingshu.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.juxiafan",
+      "name": "剧下饭（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/juxiafan.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.gulu",
+      "name": "咕噜（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/gulu.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.bilizhibo",
+      "name": "哔哩直播（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/bilizhibo.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.duoduo1920",
+      "name": "多多1920（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo1920.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.yangkuyun",
+      "name": "央库云（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/yangkuyun.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.yangshi",
+      "name": "央视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/yangshi.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.yangshiyingshi",
+      "name": "央视影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/yangshiyingshi.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.miaokan",
+      "name": "妙看（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/miaokan.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.yingtan4k",
+      "name": "影探4K（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/yingtan4k.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.xingya",
+      "name": "星芽短剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/xingya.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.guazi",
+      "name": "瓜子影视（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/guazi.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
