@@ -1,6 +1,6 @@
 # CCTVHost 独立影视源合集
 
-主合集现在包含 17 个 CatVod / TVBox JavaScript 影视源、28 个 Python Spider（其中 9 个 Hawk 源已做运行与取流验证，影视追剧于 2026-11-06 加入并通过本地接口验证，2026-11-13 又加入 17 个经五道者聚合实测可用的 PY 源，同日又加入 8 个经初忆 TVBox 配置实测可用的 JS 源和 1 个签名已还原的片帝源），以及 1 个由 iOS 原生实现的豆瓣片名索引。每个独立影视源都使用单独的适配文件；电视盒子 Python/Java 插件包中的 Android JAR 不会被当成 iOS 脚本执行。
+主合集现在包含 19 个 CatVod / TVBox JavaScript 影视源、28 个 Python Spider（其中 9 个 Hawk 源已做运行与取流验证，影视追剧于 2026-11-06 加入并通过本地接口验证，2026-11-13 又加入 17 个经五道者聚合实测可用的 PY 源，同日又加入 8 个经初忆 TVBox 配置实测可用的 JS 源和 1 个签名已还原的片帝源，晚间又加入 2 个 HyProto 签名源（河豚/小苹果，协议已还原、加密自检全过，本机 POST 被挡待 iPhone 实测）），以及 1 个由 iOS 原生实现的豆瓣片名索引。每个独立影视源都使用单独的适配文件；电视盒子 Python/Java 插件包中的 Android JAR 不会被当成 iOS 脚本执行。
 
 ## CCTVHost 统一合集导入
 
@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 46 个条目：17 个 CatVod / TVBox JavaScript 源、28 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 48 个条目：19 个 CatVod / TVBox JavaScript 源、28 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -33,6 +33,8 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `sikv4k.js` | 4K影视 | 浏览型；播放地址由站内 WASM 签名生成，未复现，适配器不提供播放地址 |
 | `luoxue.js` | 洛雪TV | TMDB 推荐浏览型；播放需原站解析流程，适配器不提供播放地址 |
 | `piandi.js` | 懂片帝 | HMAC-SHA256 签名（与看剧 AI 同族）；首页/分类/搜索/详情/解析全链实测通，官方线路 m3u8 本机 200 |
+| `hetun.js` | 河豚4K | HyProto protobuf + RSA/AES 签名；协议已还原，AES/RSA/请求体与 Python 逐字节对过，模拟链路全通；本机 POST 到裸 IP 后端被挡，zone 未验证，需 iPhone 实测 |
+| `xpg.js` | 小苹果 | HyProto protobuf + RSA/AES 签名；与河豚同族，独立公钥/密钥/列表端点；本机 POST 被挡，zone 未验证，需 iPhone 实测 |
 
 ### Hawk Python Spider 源
 

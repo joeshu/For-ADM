@@ -104,6 +104,18 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hetun",
+      "name": "河豚4K",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hetun.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.xpg",
+      "name": "小苹果",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/xpg.js?v=1",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.duoduo",
       "name": "多多影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo.py",
