@@ -21,7 +21,7 @@ test('starting native playback turns the indicator on',()=>{
 });
 
 test('playback events drive the indicator off and on',()=>{
- assert.ok(app.includes("if(event.status==='ready') {state.playLoading=false;"),'the first frame must turn the indicator off');
+ assert.ok(app.includes("if(firstFrame) {state.playLoading=false;"),'the first frame must turn the indicator off');
  assert.ok(app.includes("state.playLoading=true;state.playLoadingText='正在尝试软解播放…'"),'a Cicada fallback must keep the indicator on with fallback text');
  assert.ok(app.includes("if(event.status==='failed'){state.playLoading=false;"),'a failure must turn the indicator off before recovery runs');
  assert.ok(app.includes("if(event.status==='ended'){state.playLoading=false;"),'the end of an episode must turn the indicator off');
@@ -37,10 +37,10 @@ test('native creates the spinner and label inside the player host',()=>{
 
 test('the indicator follows the snapshot flag and stays above the player view',()=>{
  assert.ok(main.includes('- (void)layoutPlayerLoadingIndicator'),'a layout method for the indicator must exist');
- assert.ok(main.includes('BOOL loading=[self.state[@"playLoading"] boolValue]&&!self.playerHost.hidden;'),'the indicator must show only while loading and the player is visible');
+ assert.ok(main.includes('BOOL loading=([self.state[@"playLoading"] boolValue]||self.owner.playbackRuntime.isShowingLoading)&&!self.playerHost.hidden;'),'the indicator must reflect both Web state and Swift coordinator buffering');
  assert.ok(main.includes('[self.state[@"playLoadingText"]'),'the label must read its text from the snapshot');
  assert.ok(main.includes('[self.playerHost bringSubviewToFront:self.loadingSpinner];'),'the spinner must be brought above the player view');
  assert.ok(main.includes('[self.playerHost bringSubviewToFront:self.loadingLabel];'),'the label must be brought above the player view');
- assert.ok(main.includes('[self layoutPlayerLoadingIndicator];CGFloat navH'),'layout must refresh the indicator when the player host is framed');
+ assert.ok(main.includes('[self layoutPlayerLoadingIndicator];'),'layout must refresh the indicator when the player host is framed');
  assert.ok(main.includes('[self.appScreen layoutPlayerLoadingIndicator];return;}'),'layoutPlayer must refresh the indicator after attaching the player view');
 });

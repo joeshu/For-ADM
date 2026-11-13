@@ -159,6 +159,7 @@ test('Round 5 iOS & Settings Cross-Site Connectivity Monitor: probe-all-sites, s
   const app = read('Web/app.mjs');
   const css = read('Web/app.css');
   const main = read('Sources/main.m');
+  const hardwareGuard = read('DetailPlayerStabilityKit/Sources/DetailPlayerStabilityKit/IOSHardwareSessionGuard.swift');
   const hls = read('Sources/HLSProxy.h');
 
   // 1. Verify cross-site connectivity monitor in app.mjs and settings()
@@ -178,7 +179,8 @@ test('Round 5 iOS & Settings Cross-Site Connectivity Monitor: probe-all-sites, s
   assert.ok(main.includes('- (void)didReceiveMemoryWarning'), 'SYController must implement didReceiveMemoryWarning');
   assert.ok(main.includes('[SYPosterImageCache removeAllObjects];'), 'didReceiveMemoryWarning must purge in-memory poster image cache');
   assert.ok(main.includes('@"UIApplicationDidReceiveMemoryWarningNotification"'), 'SYController must observe system memory warning notification');
-  assert.ok(main.includes('@"AVAudioSessionInterruptionNotification"'), 'SYController must handle phone/Siri audio interruption safely');
+  assert.ok(hardwareGuard.includes('forName: AVAudioSession.interruptionNotification'), 'IOSHardwareSessionGuard must own audio interruptions');
+  assert.ok(main.includes('self.playbackRuntime.delegate=self'), 'the native controller must connect to the Swift playback runtime');
   assert.ok(main.includes('全网片源连通性监测'), 'Native settings must display cross-site connectivity monitor section');
 
   // 4. Verify HLSProxy socket restart and listener auto-recovery
@@ -235,7 +237,8 @@ test('Round 7 Comprehensive Review: RuntimeSDK ABI parity, redirected warmPlayli
   assert.ok(runtimeSDK.includes('- (void)didReceiveMemoryWarning;'), 'RuntimeSDK.h must declare -didReceiveMemoryWarning on UIViewController');
   assert.ok(runtimeSDK.includes('enum {AVPlayerTimeControlStatusPlaying=2};'), 'RuntimeSDK.h must declare AVPlayerTimeControlStatusPlaying');
   assert.ok(runtimeSDK.includes('- (void)addObserver:(id)observer selector:(SEL)selector name:(NSString*)name object:(id)object;'), 'RuntimeSDK.h must declare selector-based addObserver on NSNotificationCenter');
-  assert.ok(crossBuild.includes("'_UIApplication','_UIGraphics'"), 'cross-build.py must whitelist _UIApplication and _UIGraphics symbols');
+  assert.ok(crossBuild.includes("required=True,help='Package an executable built with the iPhoneOS SDK'"), 'cross-build.py must only package an SDK-built executable');
+  assert.ok(crossBuild.includes("required=True,help='Directory of Swift runtime libraries produced by swift-stdlib-tool'"), 'cross-build.py must package the Swift runtime');
   assert.equal((hls.match(/@property\(nonatomic,strong\) NSMutableDictionary[^;]*\*playlistCache;/g) || []).length, 2, 'HLSProxy.h must declare playlistCache in both Network.h and stub branches');
 
   // 2. Redirected M3U8 URL key preservation in warmPlaylists
@@ -278,13 +281,13 @@ test('Round 8 Detail Playback, Seeking, HLS Proxy & Cicada ABI Fixes: no duplica
     id: 'vod-1',
     channelId: 2,
     playSources: [
-      {siteId: 'l1', name: '线路1', total: 30, list: Array.from({length: 30}, (_, i) => ({id: 'ep-' + (i + 1), title: '第' + (i + 1) + '集', open: false}))},
-      {siteId: 'l2', name: '线路2', total: 30, list: Array.from({length: 20}, (_, i) => ({id: 'b-ep-' + (i + 1), title: '第' + (i + 1) + '集', open: false}))}
+      {siteId: 'l1', name: '线路1', total: 30, list: Array.from({length: 30}, (_, i) => ({id: 'ep-' + (i + 1), title: '第' + (i + 1) + '集', timelineId: 'episode-' + (i + 1), open: false}))},
+      {siteId: 'l2', name: '线路2', total: 30, list: Array.from({length: 20}, (_, i) => ({id: 'b-ep-' + (i + 1), title: '第' + (i + 1) + '集', timelineId: 'episode-' + (i + 1), open: false}))}
     ]
   };
   const client = {
     site: {origin: 'https://vod.example'},
-    episodes: async () => Array.from({length: 30}, (_, i) => ({id: 'b-ep-' + (i + 1), title: '第' + (i + 1) + '集', open: false})),
+    episodes: async () => Array.from({length: 30}, (_, i) => ({id: 'b-ep-' + (i + 1), title: '第' + (i + 1) + '集', timelineId: 'episode-' + (i + 1), open: false})),
     play: async () => {
       playCalls++;
       return [{url: `https://cdn.example/signed-${playCalls}.m3u8`}];
@@ -333,5 +336,5 @@ test('Round 8 Detail Playback, Seeking, HLS Proxy & Cicada ABI Fixes: no duplica
   assert.ok(cicada.includes('SYCicadaCallInt64(self.player, NSSelectorFromString(@"currentPosition"))'), 'Cicada currentPosition must read int64_t milliseconds');
   assert.ok(cicada.includes('SYCicadaCallVoidInt64UInt(self.player, NSSelectorFromString(@"seekToTime:seekMode:"), timeMs, 0x01)'), 'Cicada seekToTime:seekMode: must pass int64_t milliseconds');
   assert.ok(cicada.includes('SYCicadaCallVoidFloat(self.player, NSSelectorFromString(@"setRate:"), self.pendingRate)'), 'Cicada setRate: must pass float ABI');
-  assert.ok(app.includes("native.controlPlayer('updateMeta'"), 'verifyInBackground must sync verified cicadaURL and warmPlaylists to Native');
+  assert.ok(app.includes("native.controlPlayer('updateMeta'"), 'verifyInBackground must sync warmed playlists to Native');
 });

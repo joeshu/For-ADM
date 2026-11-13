@@ -15,4 +15,9 @@ with zipfile.ZipFile(path) as z:
     for resource in ['Web/index.html','Web/app.js','Web/app.css','Web/hls-cleaner.js','Web/vendor/crypto-js.js']:
         assert len(z.read(base+resource))>100
     assert b'<script type="module"' not in z.read(base+'Web/index.html')
-print(json.dumps({'validUnsignedIPA':True,'bundleId':info['CFBundleIdentifier'],'architecture':'arm64','minimumOS':info['MinimumOSVersion'],'deviceLaunchTested':False,'sha256':hashlib.sha256(open(path,'rb').read()).hexdigest()},indent=2))
+swift_libs={library.rsplit('/',1)[-1] for library in meta['libraries'] if library.rsplit('/',1)[-1].startswith('libswift')}
+assert 'libswiftCore.dylib' in swift_libs, 'detail player binary is missing Swift PlaybackCommandGate'
+for library in swift_libs:
+    assert base+'Frameworks/'+library in names, 'App bundle is missing '+library
+    assert 'SwiftSupport/iphoneos/'+library in names, 'SwiftSupport is missing '+library
+print(json.dumps({'validUnsignedIPA':True,'bundleId':info['CFBundleIdentifier'],'architecture':'arm64','minimumOS':info['MinimumOSVersion'],'deviceLaunchTested':False,'swiftRuntimeLibraries':len(swift_libs),'sha256':hashlib.sha256(open(path,'rb').read()).hexdigest()},indent=2))

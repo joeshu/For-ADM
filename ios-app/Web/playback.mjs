@@ -35,6 +35,7 @@ export async function resolveFirstCandidate(client,detail,lineIndex,episodeIndex
    if(!Array.isArray(line.list)||!line.list.length||line.list.length<Number(line.total||0)){const list=await client.episodes(detail.id,line,signal);if(Array.isArray(list)&&list.length)line.list=list;}
    const at=index===lineIndex?episodeIndex:matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&original.list.length===1,singleEpisodeSource:original.list.length===1});
    if(at<0)continue;
+   if(index!==lineIndex&&!samePlaybackTimeline(requested,line.list[at]))continue;
    const urls=await resolvePlayback(client,detail.id,line,line.list[at],signal);
    if(!urls.length)continue;
    return {lineIndex:index,episodeIndex:at,episode:line.list[at],urls,switched:index!==lineIndex};
@@ -51,6 +52,36 @@ export function matchingEpisode(requested,list,{singleMovie=false,singleEpisodeS
  if(extra(requested)||extra(list[0]))return -1;
  const filmQuality=e=>/^(?:(?:tc|hd|bd|sd|4k|1080p|720p|2160p|蓝光|正片|高清|超清|标清|国语|粤语|中字|国粤双语|中英双字)[\s._-]*)+$/i.test(String(e?.title||'').trim());
  return singleMovie||(singleEpisodeSource&&filmQuality(requested)&&filmQuality(list[0]))?0:-1;
+}
+// Source-local episode IDs and movie-level content IDs can collide across
+// lines. Only compare fields that identify the media asset/timeline itself.
+const primaryTimelineFields=['timelineId','timelineKey','globalId'];
+const assetIdentityFields=['mediaId','assetId','videoId'];
+const sharedIdentity=(left,right,fields)=>{
+ let matched=false;
+ for(const field of fields){
+  const a=left?.[field],b=right?.[field];
+  if(a==null||b==null||!String(a).trim()||!String(b).trim())continue;
+  if(String(a).trim()!==String(b).trim())return false;
+  matched=true;
+ }
+ return matched;
+};
+export function samePlaybackTimeline(left,right){
+ if(!left||!right)return false;
+ const hasPrimary=(item,fields)=>fields.some(field=>item[field]!=null&&String(item[field]).trim());
+ if(hasPrimary(left,primaryTimelineFields)&&hasPrimary(right,primaryTimelineFields)){
+  const primaryMatch=sharedIdentity(left,right,primaryTimelineFields);
+  if(!primaryMatch)return false;
+  return true;
+ }
+ if(hasPrimary(left,assetIdentityFields)&&hasPrimary(right,assetIdentityFields)){
+  const assetMatch=sharedIdentity(left,right,assetIdentityFields);
+  if(!assetMatch)return false;
+  return true;
+ }
+ const leftURLs=new Set(playbackURLs(left).map(item=>item.url));
+ return playbackURLs(right).some(item=>leftURLs.has(item.url));
 }
 async function mediaRequest(client,url,signal,method='GET',headers={}){
  const ctrl=new AbortController(),abort=()=>ctrl.abort();if(signal?.aborted)throw new DOMException('请求取消','AbortError');signal?.addEventListener('abort',abort,{once:true});const timer=setTimeout(abort,8000);
@@ -113,6 +144,7 @@ export async function resolvePlayableEpisode(client,detail,lineIndex,episodeInde
   try{
    if(!Array.isArray(line.list)||!line.list.length||line.list.length<Number(line.total||0)){const list=await client.episodes(detail.id,line,signal);if(Array.isArray(list)&&list.length)line.list=list;}
    const at=index===lineIndex?episodeIndex:matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&original.list.length===1,singleEpisodeSource:original.list.length===1});if(at<0)continue;const episode=line.list[at];
+   if(index!==lineIndex&&!samePlaybackTimeline(requested,episode))continue;
    const reuseInitial=index===initialLineIndex&&Array.isArray(initialUrls)&&initialUrls.length;
    let urls=reuseInitial?initialUrls.map(item=>({...item})):await resolvePlayback(client,detail.id,line,episode,signal),checked=[],expired=false,latencyMs=0,qualityLabel='',bandwidth=0;
    const inspect=async candidates=>{
@@ -125,8 +157,7 @@ export async function resolvePlayableEpisode(client,detail,lineIndex,episodeInde
     for(const {entry,meta,error} of outcomes){
      if(error){if(error.name==='AbortError')throw error;if(error instanceof ServiceError)throw error;last=error;if(error.certificate){try{badHosts.add(new URL(entry.url).host);}catch{}}if([403,404,410].includes(error.status))expired=true;continue;}
      if(!checked.length){latencyMs=Math.max(1,Date.now()-t0);qualityLabel=meta?.qualityLabel||'';bandwidth=meta?.bandwidth||0;}
-     entry.cicadaURL=meta?.variants?.[0]?.href||'';
-     entry.verifiedMeta={qualityLabel:meta?.qualityLabel||'',bandwidth:meta?.bandwidth||0,warmPlaylists:meta?.warmPlaylists||[],cicadaURL:entry.cicadaURL};
+     entry.verifiedMeta={qualityLabel:meta?.qualityLabel||'',bandwidth:meta?.bandwidth||0,warmPlaylists:meta?.warmPlaylists||[]};
      checked.push(entry);
     }
    };

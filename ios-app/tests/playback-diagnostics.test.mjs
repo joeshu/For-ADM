@@ -61,7 +61,7 @@ test('diagnostics copy and clear actions exist',()=>{
 });
 
 test('playback events are recorded at the VOD event sites',()=>{
- assert.ok(app.includes("state.playLoading=false;recordDiag('ready','首帧已出')"),'VOD ready must be recorded and turn the loading indicator off');
+ assert.ok(app.includes("state.playLoading=false;recordDiag('ready','首帧已显示')"),'VOD first frame must be recorded and turn the loading indicator off');
  assert.ok(app.includes("state.diagEngine='Cicada';state.playLoading=true;state.playLoadingText='正在尝试软解播放…';state.playError='';"),'a Cicada fallback must flip the engine and keep the loading indicator on');
  assert.ok(app.includes("recordDiag('cicada','卡顿后改用软解，清晰度不变')"),'a VOD Cicada fallback must be recorded');
  assert.ok(app.includes("if(event.status==='failed'){state.playLoading=false;recordDiag('failed',event.error||'播放器无法读取当前线路')"),'a VOD failure must be recorded before recovery runs');

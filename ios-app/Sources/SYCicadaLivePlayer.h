@@ -15,10 +15,9 @@
 //   - networkTimeout 公开 API 按秒收，prepare 里 ×1000 再传 SDK（毫秒单位）。
 //   - scalingMode 按 CicadaScalingMode 枚举（0=SCALETOFILL、1=SCALEASPECTFIT、
 //     2=SCALEASPECTFILL，见 CicadaSDK.h）。
-//   - 首帧信号：onPlayerEvent(CicadaEventFirstRenderedStart=2) /
-//     onFirstFrameShow / onVideoSizeChanged / 位置轮询兜底（position > 0.5）。
-//   - 硬解失败时自动重试一次软解（setEnableHardwareDecoder:NO），
-//     与 cctvhost 的软件解码重试一致。
+//   - 首帧信号只接受 Cicada 的 FirstRenderedStart / onVideoRendered 等实际渲染回调；
+//     位置推进和视频尺寸变化不能证明用户看到了画面。
+//   - 详情点播由 Swift recovery gate 管理重建；包装器的内部软解重试只用于直播。
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "SYMediaEngine.h"
@@ -40,6 +39,7 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 // 点播用（vodMode 开启时）：位置/时长进度（约 1 秒一次）、播完。
 - (void)cicadaLivePlayer:(id)player didUpdatePosition:(NSTimeInterval)position duration:(NSTimeInterval)duration;
 - (void)cicadaLivePlayerDidComplete:(id)player;
+- (void)cicadaLivePlayer:(id)player didCompleteSeek:(uint64_t)seekID position:(NSTimeInterval)position;
 @end
 
 @interface SYCicadaLivePlayer : NSObject <SYMediaEngine>
@@ -59,13 +59,16 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 @property (nonatomic, readonly) BOOL hasVideoTrack;
 // 点播模式：开启后位置轮询持续上报进度、检测播完与卡顿超时，首帧后不停止轮询。
 @property (nonatomic) BOOL vodMode;
+// Detail playback delegates all VOD retries/rebuilds to PlaybackCommandGate.
+@property (nonatomic) BOOL externalRecoveryManaged;
 // 起播位置（秒）：prepare 后首次 start 时先 seek 到这里再播放；直播保持 0。
 @property (nonatomic) NSTimeInterval startPosition;
 // 首帧看门狗（秒），默认 20；点播回退时 main.m 改为 10（A3），超时不走软解重试。
 @property (nonatomic) NSTimeInterval firstFrameTimeout;
 
 - (void)prepare;
-// 硬解开关：默认 YES（硬件优先）。硬解失败时内部自动重试一次软解。
+// 硬解开关：默认 YES（硬件优先）。软解自动重试由 externalRecoveryManaged 控制；
+// 详情点播应开启外部管理，避免包装器与详情页恢复预算互相叠加。
 - (void)prepareWithHardwareDecoder:(BOOL)enableHardwareDecoder;
 - (void)start;
 - (void)pause;
@@ -77,6 +80,8 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 // 点播控制：seek 用 CICADA_SEEKMODE_ACCURATE（0x01，cctvhost 适配器已确认）；
 // rate 钳制在 0.5–3.0，内部在 start 时应用。
 - (void)seekToTime:(NSTimeInterval)seconds;
+- (void)seekToTime:(NSTimeInterval)seconds seekID:(uint64_t)seekID;
+- (void)cancelSeekID:(uint64_t)seekID;
 - (void)setRate:(float)rate;
 - (NSTimeInterval)currentPosition;
 - (NSTimeInterval)duration;

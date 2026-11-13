@@ -1,4 +1,4 @@
-import {resolvePlayableEpisode,resolveFirstCandidate,verifyMedia,matchingEpisode,mediaHeaders} from './playback.mjs';
+import {resolvePlayableEpisode,resolveFirstCandidate,verifyMedia,matchingEpisode,mediaHeaders,samePlaybackTimeline} from './playback.mjs';
 import {recordLineOutcome,shouldAutoSkipOutro,computeResumeStartAt,orderLinesByHealth} from './player-controller.mjs';
 import {loadVisibleImages} from './image-loader.mjs';
 import {decodePlaylist,parseM3UIncremental,parseXMLTV,channelAlternates,indexChannelAlternates,nextUntriedRouteIndex,normalizePlaylistURL} from './live.mjs';
@@ -25,7 +25,7 @@ if(!clients.has(state.site))state.site=sites[0].id;
 const client=()=>clients.get(state.site),site=()=>sites.find(s=>s.id===state.site);
 const shelfOffsets=new Map(),liveScrollOffsets=new Map(),viewCache=new Map(),discoveryCache=new Map(),pageDOMCache=new Map(),pageScrollCache=new Map(),episodePrefetchCache=new Map();
 const pageCursor=value=>value==null||value===0||value==='0'?'':String(value);
-let controller,prefetchController=null,prefetchTimer=null,toastTimeout,hudTimeout,playbackSession=null,stopImages,nativeSession=null,activeRenderKey=null,activeRenderReady=false,scrollFramePending=false,nativeClearConfirm=false,heroTouchStartX=null,lastHeroInteractionAt=0;
+let controller,prefetchController=null,prefetchTimer=null,toastTimeout,hudTimeout,playbackSession=null,stopImages,nativeSession=null,activeRenderKey=null,activeRenderReady=false,scrollFramePending=false,nativeClearConfirm=false,heroTouchStartX=null,lastHeroInteractionAt=0,nativePlaybackSerial=0,nativeLaunchSerial=0,playSelectionSerial=0;
 function toast(text){clearTimeout(toastTimeout);$('#toast').textContent=text;$('#toast').classList.add('show');toastTimeout=setTimeout(()=>$('#toast').classList.remove('show'),3500);}
 function showPlayerHUD(text){const hud=$('#player-hud');if(!hud)return;clearTimeout(hudTimeout);hud.textContent=text;hud.hidden=false;hud.classList.add('show');hudTimeout=setTimeout(()=>{hud.classList.remove('show');hud.hidden=true;},1400);}
 function rememberSearch(keyword){const q=String(keyword||'').trim();if(!q)return;state.searchHistory=[q,...state.searchHistory.filter(x=>x!==q)].slice(0,8);write('searchHistory',state.searchHistory);}
@@ -254,7 +254,7 @@ async function playLiveVariant(variantIndex=0,{automatic=false,retrySame=false}=
  if(!native.native()){const video=$('#live-video');if(video)await video.play().catch(()=>{});return;}
  // Keep one playback context for all mirrors of this channel. The native bridge
  // can then replace the AVPlayerItem in place instead of tearing down the view.
- const context='live:'+channel.identity+':'+variantIndex;nativeSession={context,kind:'live',session:{channelId:channel.tvgId||channel.name,title:channel.name}};
+ const context='live:'+channel.identity+':'+variantIndex;nativeSession={context,kind:'live',session:{channelId:channel.tvgId||channel.name,title:channel.name}};globalThis.__nativePlaybackContext=context;globalThis.__nativePlaybackAttemptID=0;
  let referer=state.liveLoadedURL;try{referer=new URL(referer).origin+'/';}catch{}
  try{await native.play(route.url,{Referer:referer},{cleanHLS:false,context,frame:playerFrame(),title:channel.name});}catch(error){if(nativeSession?.context===context)await handleLivePlaybackFailure(error.message);}
 }
@@ -597,6 +597,7 @@ function scheduleNextEpisodePrefetch(detailObj,lineIdx,nextEpIdx){
    episodePrefetchCache.delete(cacheKey);
    episodePrefetchCache.set(cacheKey,{result:res,timestamp:Date.now()});
    while(episodePrefetchCache.size>8)episodePrefetchCache.delete(episodePrefetchCache.keys().next().value);
+   const nextCandidate=res.urls?.[0];if(nextCandidate?.url)native.preloadEpisode(cacheKey,nextCandidate.url,mediaHeaders(c,nextCandidate));
    state.nextEpisodeReady=true;
    const badge=$('.cockpit-prefetch');if(badge)badge.hidden=false;
   }catch{}
@@ -787,6 +788,7 @@ function cycleAspectMode(){
  render({liveFast:state.page==='live'});
 }
 window.NativePageAction=(action,payload={})=>{
+ if(action==='prefetch-next-episode'){if(state.page==='detail'&&state.detail&&Number.isInteger(state.pendingEpisodeIndex))scheduleNextEpisodePrefetch(state.detail,state.line,state.pendingEpisodeIndex+1);return;}
  if(action==='page'&&!['home','discover','browse','live','me','saved','settings','diagnostics'].includes(String(payload.id||'')))return;
  if(action==='search-submit'||action==='actor-search'){const query=String(payload.query||payload.id||'').trim();if(!query)return;rememberSearch(query);state.query=query;state.page='search';state.items=[];load();return;}
  if(action==='login-submit'){const account=String(payload.account||'').trim(),password=String(payload.password||'');if(!account||!password)return;state.authError='';void client().login(account,password).then(()=>toast('登录成功')).catch(error=>{state.authError=error.message;}).finally(()=>render());return;}
@@ -804,7 +806,7 @@ window.NativePageAction=(action,payload={})=>{
  if(action==='player-switch-line'){
   // B3：座舱换线。不等 15 秒宽限耗尽，让恢复流程跳过当前地址与线路。
   if(state.page!=='detail'||!state.episode||!state.playURLs.length)return;
-  const session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};
+  const session=detailPlaybackSession(state.episode);
   if(!state.playRecovery||state.playRecovery.key!==sessionKey(session))state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};
   state.playRecovery.failedURLs.add(state.playURLs[state.playIndex]?.url);
   state.playRecovery.failedLines.add(state.line);
@@ -819,7 +821,7 @@ window.NativePageAction=(action,payload={})=>{
  if(action==='sleep-timer-fired'){if(state.sleepTimerMode==='off')return;state.sleepTimerMode='off';state.sleepTimerEndAt=0;toast('🌙 睡眠定时已到，已为你自动暂停播放');render();return;}
  if(action==='episode-order'){state.episodeDesc=!state.episodeDesc;state.episodePage=0;render();return;}
  if(action==='summary-toggle'){state.summaryExpanded=!state.summaryExpanded;render();return;}
- if(action==='play-line'){const index=Number(payload.id);if(!Number.isInteger(index)||!state.playURLs[index])return;saveProgress(undefined);state.playIndex=index;const entry=state.playURLs[index],session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};void verifyMedia(client(),entry.url,controller?.signal,entry.headers,entry.referrerPolicy).then(meta=>{if(meta?.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;entry.cicadaURL=meta?.variants?.[0]?.href||'';state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;render();if(native.native())return launchNativePlayer();return $('#video')?.play().catch(()=>{});}).catch(error=>recoverPlayback(session,error.message));return;}
+ if(action==='play-line'){void choosePlayLine(Number(payload.id));return;}
  if(action==='more'){
   if(!state.loading&&state.next&&['browse','search','collection'].includes(state.page))load({more:true});
   return;
@@ -848,7 +850,7 @@ function episodesPanel(line,episodes){
  const rangeStart=slice[0]?slice[0].index+1:start+1,rangeEnd=slice.length?slice[slice.length-1].index+1:Math.min(start+pageSize,episodes.length);
  return `<section class="episode-section"><div class="episodes-heading"><div><h2 class="smallheading">选集</h2><span class="subtle">已载入 ${episodes.length}${total>episodes.length?` / 共 ${total}`:''} 集${current>=0?` · 正在播放 ${e(episodes[current].title||`第${current+1}集`)}`:''}</span></div><div class="episode-steps">${episodes.length>1?`<button type="button" class="secondary episode-order-btn" data-act="episode-order" aria-pressed="${state.episodeDesc}">${state.episodeDesc?'↓ 倒序':'↑ 正序'}</button>`:''}${pageCount>2&&current>=0&&Math.floor((state.episodeDesc?episodes.length-1-current:current)/pageSize)!==page?`<button type="button" class="secondary" data-act="episode-locate" title="跳转到正在播放的集数所在页">定位当前集</button>`:''}${current>=0?`<button class="secondary" data-act="episode-step" data-id="-1" ${current===0?'disabled':''}>上一集</button><button class="secondary" data-act="episode-step" data-id="1" ${current===episodes.length-1?'disabled':''}>下一集</button>`:''}</div></div>${pageCount>1?`<div class="episode-pages" role="group" aria-label="选集分页"><span>页码</span><div class="episode-page-options">${Array.from({length:pageCount},(_,i)=>`<button type="button" class="episode-page-chip ${i===page?'active':''}" data-act="episode-page" data-id="${i}" aria-current="${i===page?'page':'false'}" aria-label="第 ${i+1} 页，第 ${i*pageSize+1} 至 ${Math.min((i+1)*pageSize,episodes.length)} 集">${i+1}</button>`).join('')}</div><small>第 ${page+1} / ${pageCount} 页 · ${rangeStart}–${rangeEnd} 集</small><input type="number" min="1" max="${episodes.length}" class="episode-jump-input" data-episode-jump placeholder="跳集" aria-label="输入集数跳转到对应页"></div>`:''}<div class="episodes">${slice.map(({episode,index:i})=>{const active=state.episode?.id===episode.id,located=i===state.locatedEpisodeIndex;return `<button class="episode ${active?'active':''} ${located?'is-located':''}" data-act="episode" data-id="${i}" aria-current="${active?'true':'false'}" aria-label="${e(episode.title||'第'+(i+1)+'集')}${active?'，正在播放':'，点击播放'}"><span class="episode-title">${e(episode.title||'第'+(i+1)+'集')}</span>${active?'<small>正在播放</small>':''}</button>`;}).join('')}</div></section>`;
 }
-function saveProgress(time=native.native()?(state.playTime||undefined):$('#video')?.currentTime,session=playbackSession||(!nativeSession?.kind?nativeSession?.session:null),duration=native.native()?(state.playDuration||undefined):$('#video')?.duration){if(!session)return;if(session.preview)time=undefined;const key=sourceKey(session.siteId,session.movie.id);let list=validSavedRows('history'),row=list.find(x=>x.key===key);const prior=row?.episodeId===session.episodeId?row.time:0,priorDuration=row?.episodeId===session.episodeId?row.duration:0;const entry={key,...session,time:Number.isFinite(time)?time:prior||0,...(Number.isFinite(duration)&&duration>0?{duration:Math.round(duration)}:priorDuration>0?{duration:priorDuration}:{}),updated:Date.now()};list=[entry,...list.filter(x=>x.key!==key)].slice(0,100);write('history',list);invalidateHomeDOMCache();}
+function saveProgress(time=native.native()?(state.playTime||undefined):$('#video')?.currentTime,session=playbackSession||(!nativeSession?.kind?nativeSession?.session:null),duration=native.native()?(state.playDuration||undefined):$('#video')?.duration){if(!session)return;if(session.preview)time=undefined;const key=sourceKey(session.siteId,session.movie.id);let list=validSavedRows('history'),row=list.find(x=>x.key===key),sameEpisode=row&&sessionKey(row)===sessionKey(session);const prior=sameEpisode?row.time:0,priorDuration=sameEpisode?row.duration:0;const entry={key,...session,time:Number.isFinite(time)?time:prior||0,...(Number.isFinite(duration)&&duration>0?{duration:Math.round(duration)}:priorDuration>0?{duration:priorDuration}:{}),updated:Date.now()};list=[entry,...list.filter(x=>x.key!==key)].slice(0,100);write('history',list);invalidateHomeDOMCache();}
 
 function playerFrame(){
  const slot=$('#native-player-slot');if(!slot)return {visible:false};
@@ -858,20 +860,50 @@ function playerFrame(){
 function syncNativePlayer(){if(native.native()&&nativeSession&&state.page!=='live')native.layoutPlayer(nativeSession.context,playerFrame());}
 window.addEventListener('resize',()=>requestAnimationFrame(syncNativePlayer));
 window.addEventListener('scroll',()=>{if(scrollFramePending)return;scrollFramePending=true;requestAnimationFrame(()=>{scrollFramePending=false;if(activeRenderKey)pageScrollCache.set(activeRenderKey,window.scrollY);$('.detail-shell .detailtop')?.classList.toggle('scrolled',window.scrollY>36);$('.detail-content .playerbox')?.classList.toggle('is-compact',window.scrollY>90);const topBtn=$('#back-to-top');if(topBtn)topBtn.hidden=window.scrollY<=360;syncNativePlayer();});},{passive:true});
-async function launchNativePlayer(){
+async function launchNativePlayer({forceNewSession=false}={}){
  const entry=state.playURLs[state.playIndex],url=entry?.url;if(!url||!state.episode)return;
  $('#video')?.pause();
- const preview=state.playURLs[state.playIndex]?.preview===true,session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title,preview};
- const context=state.epoch+':'+Date.now();nativeSession={context,session};
+ const preview=state.playURLs[state.playIndex]?.preview===true,session=detailPlaybackSession(state.episode,preview);
+ const launchID=++nativeLaunchSerial,sameEpisode=nativeSession&&!nativeSession.kind&&sessionKey(nativeSession.session)===sessionKey(session),previousContext=sameEpisode?nativeSession.context:'';
+ let confirmedPosition=null,confirmedPlaybackIntent=null;
+ if(sameEpisode&&previousContext&&native.native()){
+  try{const position=await native.playbackPosition(previousContext,nativeSession?.attemptID);if(launchID!==nativeLaunchSerial||state.page!=='detail'||!state.episode||sessionKey(detailPlaybackSession(state.episode))!==sessionKey(session))return;if(position?.ok){confirmedPosition=Number(position.position);if(!Number.isFinite(confirmedPosition)||confirmedPosition<0)confirmedPosition=0;confirmedPlaybackIntent=position.wantsToPlay!==false;}}catch{/* A recent JS progress event remains a safe resume fallback. */}
+ }
+ if(launchID!==nativeLaunchSerial)return;
+ const context=sameEpisode&&!forceNewSession?previousContext:`detail:${++nativePlaybackSerial}`;
+ nativeSession={context,session,attemptID:sameEpisode?nativeSession.attemptID:null,line:state.line,url};globalThis.__nativePlaybackContext=context;globalThis.__nativePlaybackAttemptID=nativeSession.attemptID||0;
  state.diagEngine='AVPlayer';state.playLoading=true;state.playLoadingText='正在加载播放器…';recordDiag('play','开始播放');
- const row=validSavedRows('history').find(x=>x.siteId===session.siteId&&String(x.movie.id)===String(session.movie.id)&&String(x.episodeId)===String(session.episodeId));
- const startAt=computeResumeStartAt({preview,time:row?.time,duration:row?.duration});
+ const row=validSavedRows('history').find(x=>x.siteId===session.siteId&&String(x.movie.id)===String(session.movie.id)&&sessionKey(x)===sessionKey(session));
+ const resumeTime=sameEpisode?(confirmedPosition??(state.playTime||row?.time)):row?.time;
+ const startAt=computeResumeStartAt({preview,time:resumeTime,duration:state.playDuration||row?.duration});
+ if(confirmedPosition!==null)state.playTime=confirmedPosition;
  if(startAt>0){state.playTime=startAt;if(row?.duration>0)state.playDuration=row.duration;}
- saveProgress(undefined,session);
- await native.play(url,mediaHeaders(client(),state.playURLs[state.playIndex]),{cleanHLS:state.cleanHLS,warmPlaylists:state.playURLs[state.playIndex]?.warmPlaylists||[],cicadaURL:entry?.cicadaURL||'',context,frame:playerFrame(),startAt,rate:state.playbackRate,muted:state.playerMuted,title:session.movie.title+' · '+(session.episodeTitle||'')});
+ else if(!sameEpisode){state.playTime=0;state.playDuration=0;}
+ saveProgress(confirmedPosition!==null?confirmedPosition:undefined,session);
+ const result=await native.play(url,mediaHeaders(client(),state.playURLs[state.playIndex]),{cleanHLS:state.cleanHLS,warmPlaylists:state.playURLs[state.playIndex]?.warmPlaylists||[],context,episodeKey:sessionKey(session),...(confirmedPlaybackIntent===null?{}:{wantsToPlay:confirmedPlaybackIntent}),frame:playerFrame(),startAt,rate:state.playbackRate,muted:state.playerMuted,title:session.movie.title+' · '+(session.episodeTitle||'')});
+ if(launchID===nativeLaunchSerial&&nativeSession?.context===context&&Number(result?.attemptID)>0){nativeSession.attemptID=Number(result.attemptID);globalThis.__nativePlaybackAttemptID=nativeSession.attemptID;}
 }
 const authorizationFailure=message=>/unauthori[sz]ed|forbidden|HTTP\s*(?:401|403)|(?:401|403)\b|权限|授权|会员|付费|登录|账号|账户/i.test(String(message||''));
-const sessionKey=session=>`${session.siteId}:${session.movie.id}:${session.episodeId}`;
+const episodeIdentity=title=>{const value=String(title||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,'');const number=value.match(/^(?:第|ep(?:isode)?[._-]?)?0*(\d+)(?:集|话|期|章|节)?$/i);return number?'number:'+Number(number[1]):'';};
+const playbackTimelineKey=episode=>{for(const field of ['timelineId','timelineKey','globalId','mediaId','assetId','videoId']){const value=episode?.[field];if(value!=null&&String(value).trim())return field+':'+String(value).trim();}return '';};
+const detailPlaybackSession=(episode,preview=false)=>({siteId:state.site,movie:detailMovie(),episodeId:episode?.id,episodeTitle:episode?.title,timelineKey:playbackTimelineKey(episode),preview});
+const sessionKey=session=>`${session.siteId}:${session.movie.id}:${episodeIdentity(session.episodeTitle)||session.timelineKey||'id:'+String(session.episodeId??session.episodeTitle??'')}`;
+async function authorizeRecoveryAttempt(session,recovery,crossLine){
+ if(state.playRecovery!==recovery)return false;
+ let allowed=true;
+ if(native.native()){
+  const active=nativeSession;
+  if(!active||active.kind||sessionKey(active.session)!==sessionKey(session))return false;
+  if(!(Number(active.attemptID)>0))return false;
+  try{const result=await native.authorizeRecovery(active.context,crossLine,active.attemptID);allowed=!!result?.allowed&&nativeSession===active&&state.playRecovery===recovery;}
+  catch{allowed=false;}
+ }else{
+  recovery.restarts=recovery.restarts||0;recovery.crossLineRestarts=recovery.crossLineRestarts||0;
+  allowed=recovery.restarts<3&&(!crossLine||recovery.crossLineRestarts<2);
+  if(allowed){recovery.restarts++;if(crossLine)recovery.crossLineRestarts++;}
+ }
+ return allowed;
+}
 async function recoverPlayback(session,message=''){
  const key=sessionKey(session),recovery=state.playRecovery;
  if(state.page!=='detail'||state.site!==session.siteId||String(state.detail?.id)!==session.movie.id||state.episode?.id!==session.episodeId||!recovery||recovery.key!==key||recovery.running)return;
@@ -900,18 +932,38 @@ async function recoverPlayback(session,message=''){
   for(const {index,candidate,meta,error} of outcomes){
    if(!stillCurrent())return;
    if(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;continue;}
-   state.playIndex=index;if(meta?.warmPlaylists?.length)candidate.warmPlaylists=meta.warmPlaylists;candidate.cicadaURL=meta?.cicadaURL||meta?.variants?.[0]?.href||'';state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;state.playError='';state.playStatus='';recovery.running=false;render();if(native.native())await launchNativePlayer();else await $('#video')?.play().catch(()=>{});return;
+   if(!(await authorizeRecoveryAttempt(session,recovery,false))){lastError='自动恢复次数已达上限';break;}
+   state.playIndex=index;if(meta?.warmPlaylists?.length)candidate.warmPlaylists=meta.warmPlaylists;state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;state.playError='';state.playStatus='';recovery.running=false;render();if(native.native())await launchNativePlayer();else await $('#video')?.play().catch(()=>{});return;
   }
   if(authorizationFailure(lastError))break;
  }
  if(authorizationFailure(lastError)){if(stillCurrent()){recovery.running=false;state.playLoading=false;state.playError='原站返回了权限或账号限制，请按原站提示处理。';render();}return;}
  const detail=state.detail,requested=state.episode,lines=detail?.playSources||[],order=orderLinesByHealth(lines,-1,client().preferredPlaybackSiteId,state.lineHealth,state.site);
- let lineTries=0;
- for(const target of order){if(recovery.triedLines.has(target)||recovery.failedLines.has(target)||lines[target]?.preview===true)continue;recovery.triedLines.add(target);const line=lines[target];try{if(!Array.isArray(line.list)||!line.list.length||line.list.length<Number(line.total||0)){const list=await client().episodes(detail.id,line,controller?.signal);if(Array.isArray(list)&&list.length)line.list=list;}if(!stillCurrent())return;const at=matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&lines[state.line]?.list?.length===1,singleEpisodeSource:lines[state.line]?.list?.length===1});if(at<0)continue;lineTries++;state.line=target;state.episodePage=Math.floor(at/20);state.playError='正在切换到另一条同集线路…';state.playStatus='正在试第 '+lineTries+' 条线路…';state.playLoading=true;state.playLoadingText=state.playStatus;render();recordDiag('switch','切换到'+(line.name||('线路 '+(target+1))));toast('原线路连接中断，正在尝试同一集的备用线路');recovery.running=false;await playEpisode(at,{automatic:true});return;}catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}}
- if(!stillCurrent())return;recovery.running=false;state.playLoading=false;state.playError='当前播放线路中断，已尝试可用备用地址和同集线路。可稍后重试或手动换线。'+(lastError&&!authorizationFailure(lastError)?' '+lastError:'');render();recordDiag('failed',lastError||'已尝试全部备用地址和线路');
+ let lineTries=0;let unverifiedTimeline=false;
+ for(const target of order){if(recovery.triedLines.has(target)||recovery.failedLines.has(target)||lines[target]?.preview===true)continue;recovery.triedLines.add(target);const line=lines[target];try{if(!Array.isArray(line.list)||!line.list.length||line.list.length<Number(line.total||0)){const list=await client().episodes(detail.id,line,controller?.signal);if(Array.isArray(list)&&list.length)line.list=list;}if(!stillCurrent())return;const at=matchingEpisode(requested,line.list||[],{singleMovie:Number(detail.channelId)===1&&lines[state.line]?.list?.length===1,singleEpisodeSource:lines[state.line]?.list?.length===1});if(at<0)continue;if(!samePlaybackTimeline(requested,line.list[at])){unverifiedTimeline=true;continue;}if(!(await authorizeRecoveryAttempt(session,recovery,true))){lastError='自动跨线次数已达上限';break;}lineTries++;state.line=target;state.episodePage=Math.floor(at/20);state.playError='正在切换到另一条同集线路…';state.playStatus='正在试第 '+lineTries+' 条线路…';state.playLoading=true;state.playLoadingText=state.playStatus;render();recordDiag('switch','切换到'+(line.name||('线路 '+(target+1))));toast('已确认同一集的时间轴，正在尝试备用线路');recovery.running=false;await playEpisode(at,{automatic:true});return;}catch(error){if(error.name==='AbortError'){recovery.running=false;return;}lastError=error.message;if(authorizationFailure(lastError))break;}}
+ if(!stillCurrent())return;recovery.running=false;state.playLoading=false;state.playError='当前线路已中断，已尝试同线备用地址。'+(unverifiedTimeline?'其他线路无法确认与当前集使用同一时间轴，请手动切换线路并选集。':'已停止自动恢复，请稍后重试或手动换线。')+(lastError&&!authorizationFailure(lastError)?' '+lastError:'');render();recordDiag('failed',lastError||'自动恢复完成');
+}
+async function choosePlayLine(index){
+ if(!Number.isInteger(index)||!state.playURLs[index]||!state.episode)return;
+ const requestID=++playSelectionSerial,{signal,epoch}=cancel(),entry=state.playURLs[index];
+ const session=detailPlaybackSession(state.episode);
+ saveProgress(undefined);state.playIndex=index;state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};
+ try{
+  const meta=await verifyMedia(client(),entry.url,signal,entry.headers,entry.referrerPolicy);
+  if(requestID!==playSelectionSerial||epoch!==state.epoch||state.page!=='detail'||sessionKey(detailPlaybackSession(state.episode))!==sessionKey(session))return;
+  if(meta?.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;render();
+  if(native.native())await launchNativePlayer({forceNewSession:true});else await $('#video')?.play().catch(()=>{});
+ }catch(error){if(requestID===playSelectionSerial&&epoch===state.epoch&&error.name!=='AbortError')await recoverPlayback(session,error.message);}
 }
 native.onPlaybackEvent=event=>{
- if(event.context!==nativeSession?.context)return;const {session}=nativeSession;
+ if(event.context!==nativeSession?.context)return;
+ if(event.attemptID&&nativeSession&&!nativeSession.kind){
+  if(nativeSession.attemptID&&Number(event.attemptID)!==Number(nativeSession.attemptID)){
+   if(event.status==='cicadaFallback'&&Number(event.previousAttemptID)===Number(nativeSession.attemptID)){nativeSession.attemptID=Number(event.attemptID);globalThis.__nativePlaybackAttemptID=nativeSession.attemptID;}
+   else return;
+  }else {nativeSession.attemptID=Number(event.attemptID);globalThis.__nativePlaybackAttemptID=nativeSession.attemptID;}
+ }
+ const {session}=nativeSession;
  if(nativeSession.kind==='live'){
   const formatLabel=liveFormatLabel();
   if(event.status==='ready'){state.liveLastPlaybackTime=null;state.livePlaybackProgressAt=Date.now();state.liveStatus='播放已连接，画面加载中';state.liveError='';state.diagEngine='AVPlayer';recordDiag('ready','直播已连接',{title:liveChannel()?.name||'直播'});render({liveFast:true});}
@@ -937,21 +989,23 @@ native.onPlaybackEvent=event=>{
  if(event.status==='progress'&&state.playURLs[state.playIndex]?.preview!==true){
   if(Number(event.removedAdSegments)>0){state.removedAdSegments=Number(event.removedAdSegments);state.removedAdSeconds=Number(event.removedAdSeconds)||0;}
   state.playTime=Number(event.time)||0;state.playDuration=Number(event.duration)||state.playDuration||0;
-  if(native.native())native.syncProgress(state.playTime,state.playDuration);
   saveProgress(Number(event.time),session,Number(event.duration)||undefined);
   if(shouldAutoSkipOutro({preview:false,outroSkipped:nativeSession.outroSkipped,autoNext:state.autoNext,skipOutroSeconds:state.skipOutroSeconds,duration:state.playDuration,currentTime:state.playTime})){
    const list=state.detail?.playSources?.[state.line]?.list||[],idx=list.findIndex(x=>x.id===session.episodeId);
    if(idx>=0&&idx<list.length-1){nativeSession.outroSkipped=true;toast('已自动跳过片尾，切入下一集');void playEpisode(idx+1);}
   }
  }
- if(event.status==='ready'&&state.playRecovery?.key===sessionKey(session)){state.playRecovery.running=false;state.playRecovery.startedAt=0;if(state.playError){state.playError='';render();}}
- if(event.status==='ready') {state.playLoading=false;recordDiag('ready','首帧已出');const curLine=state.detail?.playSources?.[state.line];if(curLine){state.lineHealth=recordLineOutcome(state.lineHealth,state.site,curLine,{ok:true,latencyMs:state.playLatencyMs||0});write('lineHealth',state.lineHealth);}}
+ if(event.status==='seekCompleted'){state.playTime=Number(event.time)||0;state.playDuration=Number(event.duration)||state.playDuration||0;saveProgress(state.playTime,session,state.playDuration||undefined);showPlayerHUD('已定位至 '+formatDuration(state.playTime));}
+ if(event.status==='seekFailed'){toast(event.error||'定位未完成，请重试');}
+ const firstFrame=event.status==='firstFrame'||event.status==='ready';
+ if(firstFrame&&state.playRecovery?.key===sessionKey(session)){state.playRecovery.running=false;state.playRecovery.startedAt=0;if(state.playError){state.playError='';render();}}
+ if(firstFrame) {state.playLoading=false;recordDiag('ready','首帧已显示');const curLine=state.detail?.playSources?.[state.line];if(curLine){state.lineHealth=recordLineOutcome(state.lineHealth,state.site,curLine,{ok:true,latencyMs:state.playLatencyMs||0});write('lineHealth',state.lineHealth);}}
  if(event.status==='cicadaFallback'){state.diagEngine='Cicada';state.playLoading=true;state.playLoadingText='正在尝试软解播放…';state.playError='';if(state.playRecovery)state.playRecovery.running=false;recordDiag('cicada','卡顿后改用软解，清晰度不变');toast('当前线路改用软解播放，清晰度不变');render();}
  // J1：点播流没有视频轨道（Cicada 也起不来时才到这里）。只留声音，
  // 不自动换线——换不换由用户决定，和直播的 audioOnly 一致。
  if(event.status==='audioOnly'){recordDiag('audioOnly','无视频轨道，当前仅播放声音');toast('该视频没有可识别的视频轨道，仅播放声音');render();}
  if(event.status==='failed'){state.playLoading=false;recordDiag('failed',event.error||'播放器无法读取当前线路');const curLine=state.detail?.playSources?.[state.line];if(curLine){state.lineHealth=recordLineOutcome(state.lineHealth,state.site,curLine,{ok:false});write('lineHealth',state.lineHealth);}void recoverPlayback(session,event.error||'播放器无法读取当前线路');}
- if(event.status==='ended'){state.playLoading=false;recordDiag('ended','本集播完');saveProgress(0,session,state.playDuration||undefined);state.playTime=0;if(native.native())native.syncProgress(0,state.playDuration||0);if(state.sleepTimerMode==='episode'){state.sleepTimerMode='off';native.controlPlayer('pause');toast('🌙 本集已播完，睡眠定时已自动暂停播放');render();return;}if(state.autoNext&&state.site===session.siteId&&String(state.detail?.id)===session.movie.id){const list=state.detail?.playSources?.[state.line]?.list||[],index=list.findIndex(x=>x.id===session.episodeId);if(index>=0&&index<list.length-1)playEpisode(index+1);}}
+ if(event.status==='ended'){state.playLoading=false;recordDiag('ended','本集播完');saveProgress(0,session,state.playDuration||undefined);state.playTime=0;if(state.sleepTimerMode==='episode'){state.sleepTimerMode='off';native.controlPlayer('pause');toast('🌙 本集已播完，睡眠定时已自动暂停播放');render();return;}if(state.autoNext&&state.site===session.siteId&&String(state.detail?.id)===session.movie.id){const list=state.detail?.playSources?.[state.line]?.list||[],index=list.findIndex(x=>x.id===session.episodeId);if(index>=0&&index<list.length-1)playEpisode(index+1);}}
 };
 function applyResolvedEpisode(d,result,{prefetch=false}={}){
  state.line=result.lineIndex;state.episode=result.episode;state.pendingEpisodeIndex=result.episodeIndex;
@@ -973,11 +1027,11 @@ async function verifyInBackground(client,detail,lineIndex,episodeIndex,signal,ep
   if(epoch!==state.epoch)return;
   if(state.page!=='detail'||!state.episode||String(state.detail?.id)!==String(detail.id))return;
   const verifiedByUrl=new Map(result.urls.filter(u=>u.verifiedMeta).map(u=>[u.url,u.verifiedMeta]));
-  for(const entry of state.playURLs){const meta=verifiedByUrl.get(entry.url);if(meta){entry.verifiedMeta=meta;entry.cicadaURL=meta.cicadaURL||entry.cicadaURL||'';if(meta.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;}}
+  for(const entry of state.playURLs){const meta=verifiedByUrl.get(entry.url);if(meta){entry.verifiedMeta=meta;if(meta.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;}}
   if(!result.switched){for(const u of result.urls)if(u?.url&&!state.playURLs.some(x=>x.url===u.url)&&state.playURLs.length<4)state.playURLs.push(u);}
   if(result.qualityLabel){state.playQualityLabel=result.qualityLabel;state.playBandwidth=result.bandwidth||0;}
   const playing=state.playURLs[state.playIndex];
-  if(playing&&verifiedByUrl.has(playing.url)&&native.native())native.controlPlayer('updateMeta',{cicadaURL:playing.cicadaURL||'',warmPlaylists:playing.warmPlaylists||[]});
+  if(playing&&verifiedByUrl.has(playing.url)&&native.native())native.controlPlayer('updateMeta',{warmPlaylists:playing.warmPlaylists||[]});
   if(playing&&verifiedByUrl.has(playing.url)){render();return;}
   // 后台验证只在“还在等首帧、没进软解回退、恢复流程没在跑”时才
   // 能打断播放：软解回退有自己的 10 秒首帧看门狗，验证中途换线
@@ -995,7 +1049,7 @@ async function verifyInBackground(client,detail,lineIndex,episodeIndex,signal,ep
     if(playing.url)recovery.failedURLs.add(playing.url);
     recovery.backgroundSwitches=(recovery.backgroundSwitches||0)+1;
     state.line=result.lineIndex;recordDiag('switch','后台验证发现当前线路不可用，已切换到'+(detail.playSources?.[result.lineIndex]?.name||'可用线路'));toast('当前线路验证失败，已切换到可用线路');await playEpisode(result.episodeIndex,{automatic:true});return;}
-   const session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};
+   const session=detailPlaybackSession(state.episode);
    recordDiag('failed','当前地址验证失败，正在尝试备用地址');
    void recoverPlayback(session,'当前地址验证失败，正在尝试备用地址');
    return;
@@ -1005,10 +1059,11 @@ async function verifyInBackground(client,detail,lineIndex,episodeIndex,signal,ep
 }
 async function playEpisode(index,{automatic=false}={}){
  const d=state.detail,selected=state.line,line=d?.playSources?.[selected];if(!line?.list?.[index])return;
+ const playID=++playSelectionSerial;
  cancelEpisodePrefetch();state.nextEpisodeReady=false;
- const requested=line.list[index],recoveryKey=`${state.site}:${d.id}:${requested.id}`,prefetchKey=`${state.site}:${d.id}:${selected}:${index}`;
+ const requested=line.list[index],requestedSession=detailPlaybackSession(requested),recoveryKey=sessionKey(requestedSession),sameEpisode=!!(nativeSession&&!nativeSession.kind&&sessionKey(nativeSession.session)===recoveryKey),prefetchKey=`${state.site}:${d.id}:${selected}:${index}`;
  if(!automatic||state.playRecovery?.key!==recoveryKey)state.playRecovery={key:recoveryKey,failedURLs:new Set(),failedLines:new Set(),triedLines:new Set(),running:false};
- const c=client(),{signal,epoch}=cancel();saveProgress($('#video')?.currentTime);if(!automatic){state.playTime=0;state.playDuration=0;}state.playURLs=[];state.episode=null;state.playError='';state.pendingEpisodeIndex=index;
+ const c=client(),{signal,epoch}=cancel();saveProgress($('#video')?.currentTime);if(!automatic&&!sameEpisode){state.playTime=0;state.playDuration=0;}state.playURLs=[];state.episode=null;state.playError='';state.pendingEpisodeIndex=index;
  const cachedPrefetch=!automatic?episodePrefetchCache.get(prefetchKey):null;
  const usePrefetch=cachedPrefetch&&(Date.now()-cachedPrefetch.timestamp<180000);
  if(usePrefetch)episodePrefetchCache.delete(prefetchKey);
@@ -1016,23 +1071,23 @@ async function playEpisode(index,{automatic=false}={}){
  try{
   if(usePrefetch){
    const result=cachedPrefetch.result;
-   if(epoch!==state.epoch)return;
+   if(epoch!==state.epoch||playID!==playSelectionSerial)return;
    applyResolvedEpisode(d,result,{prefetch:true});
-   if(native.native())await launchNativePlayer();else $('#video')?.play().catch(()=>{});
+   if(native.native())await launchNativePlayer({forceNewSession:!automatic});else $('#video')?.play().catch(()=>{});
    scheduleNextEpisodePrefetch(d,result.lineIndex,result.episodeIndex+1);
-   window.scrollTo({top:0,behavior:'smooth'});
+   if(!automatic)window.scrollTo({top:0,behavior:'smooth'});
    return;
   }
   // A1 先播后验：先拿第一条基本有效的地址起播，验证在后台并行跑。
   const fast=await resolveFirstCandidate(c,d,selected,index,signal,{excludedLines:automatic?[...state.playRecovery.failedLines]:[],lineHealth:state.lineHealth});
-  if(epoch!==state.epoch)return;
+  if(epoch!==state.epoch||playID!==playSelectionSerial)return;
   applyResolvedEpisode(d,{...fast,latencyMs:0,qualityLabel:'',bandwidth:0});
-  if(native.native())await launchNativePlayer();else $('#video')?.play().catch(()=>{});
+  if(native.native())await launchNativePlayer({forceNewSession:!automatic});else $('#video')?.play().catch(()=>{});
   scheduleNextEpisodePrefetch(d,fast.lineIndex,fast.episodeIndex+1);
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(!automatic)window.scrollTo({top:0,behavior:'smooth'});
   void verifyInBackground(c,d,selected,index,signal,epoch);
- }catch(error){if(epoch===state.epoch&&error.name!=='AbortError'){if(state.playRecovery)state.playRecovery.running=false;state.playError=error.message;state.loading=false;state.playLoading=false;state.playStatus='';render();}}
- finally{if(epoch===state.epoch&&state.loading){state.loading=false;state.playStatus='';render();}}
+ }catch(error){if(epoch===state.epoch&&playID===playSelectionSerial&&error.name!=='AbortError'){if(state.playRecovery)state.playRecovery.running=false;state.playError=error.message;state.loading=false;state.playLoading=false;state.playStatus='';render();}}
+ finally{if(epoch===state.epoch&&playID===playSelectionSerial&&state.loading){state.loading=false;state.playStatus='';render();}}
 }
 
 function wireVideo(){
@@ -1049,7 +1104,7 @@ function wireVideo(){
  video.classList.toggle('is-mirrored',state.playerMirrored);
  if(video.dataset.wiredUrl===video.getAttribute('src'))return;
  video.dataset.wiredUrl=video.getAttribute('src')||'';
- const preview=state.playURLs[state.playIndex]?.preview===true,session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title,preview};
+ const preview=state.playURLs[state.playIndex]?.preview===true,session=detailPlaybackSession(state.episode,preview);
  playbackSession=session;saveProgress(undefined,session);
  video.addEventListener('loadedmetadata',()=>{if(preview)return;if(Number.isFinite(video.duration)&&video.duration>0)saveProgress(undefined,session,video.duration);const row=validSavedRows('history').find(x=>x.siteId===session.siteId&&String(x.movie.id)===String(session.movie.id)&&String(x.episodeId)===String(session.episodeId));if(row?.time>3&&row.time<video.duration-5){video.currentTime=row.time;showPlayerHUD('已续播至 '+formatDuration(row.time));}});
  let last=0,outroSkipped=false;video.addEventListener('timeupdate',()=>{if(!preview&&Date.now()-last>5000){saveProgress(video.currentTime,session,video.duration);last=Date.now();}if(shouldAutoSkipOutro({preview,outroSkipped,autoNext:state.autoNext,skipOutroSeconds:state.skipOutroSeconds,duration:video.duration,currentTime:video.currentTime})){const list=state.detail?.playSources?.[state.line]?.list||[],idx=list.findIndex(x=>x.id===state.episode?.id);if(idx>=0&&idx<list.length-1){outroSkipped=true;toast('已自动跳过片尾，切入下一集');playEpisode(idx+1);}}});
@@ -1220,16 +1275,17 @@ else if(act==='episode-step'){const list=state.detail?.playSources?.[state.line]
 else if(act==='episode-page'){state.episodePage=Math.max(0,Number(id)||0);render();}
 else if(act==='play-source'){
  const target=Number(id);if(target===state.line)return;
- const requested=state.episode,oldLine=state.detail?.playSources?.[state.line],{signal,epoch}=cancel();
+ const selectionID=++playSelectionSerial,requested=state.episode,oldLine=state.detail?.playSources?.[state.line],{signal,epoch}=cancel();
  saveProgress($('#video')?.currentTime);state.line=target;state.episodePage=0;state.playURLs=[];state.episode=null;state.loading=true;state.playError='';state.error='';render();
  try{
-  await loadEpisodes(signal);if(epoch!==state.epoch)return;
-  const list=state.detail?.playSources?.[target]?.list||[],at=requested?matchingEpisode(requested,list,{singleMovie:Number(state.detail?.channelId)===1&&oldLine?.list?.length===1,singleEpisodeSource:oldLine?.list?.length===1}):-1;
+  await loadEpisodes(signal);if(epoch!==state.epoch||selectionID!==playSelectionSerial)return;
+  const list=state.detail?.playSources?.[target]?.list||[];let at=requested?matchingEpisode(requested,list,{singleMovie:Number(state.detail?.channelId)===1&&oldLine?.list?.length===1,singleEpisodeSource:oldLine?.list?.length===1}):-1;
+  if(requested&&at>=0&&!samePlaybackTimeline(requested,list[at]))at=-1;
   state.loading=false;
   if(requested&&at>=0){await playEpisode(at);return;}
-  if(requested)toast('这条线路没有对应集数，请重新选择选集。');
- }catch(error){if(epoch===state.epoch&&error.name!=='AbortError')state.error=error.message;}
- finally{if(epoch===state.epoch){state.loading=false;render();}}
+  if(requested)toast('无法确认这条线路与当前集使用同一时间轴，请重新选择集数。');
+ }catch(error){if(epoch===state.epoch&&selectionID===playSelectionSerial&&error.name!=='AbortError')state.error=error.message;}
+ finally{if(epoch===state.epoch&&selectionID===playSelectionSerial){state.loading=false;render();}}
 }
 else if(act==='episode')await playEpisode(Number(id));
 else if(act==='native-player'){if(!native.native()){$('#video')?.webkitEnterFullscreen?.();return;}await launchNativePlayer();}
@@ -1260,7 +1316,7 @@ root.addEventListener('input',event=>{if(event.target.id==='search-query'){const
 root.addEventListener('submit',async event=>{event.preventDefault();if(event.target.id==='live-import-form'){await loadLivePlaylist(event.target.elements.url.value);}
 else if(event.target.id==='live-search-form'){state.liveSearch=event.target.elements.query.value.trim();state.liveVisibleCount=80;render();}
 else if(event.target.id==='search-form'){const query=$('#search-query').value.trim();if(!query)return;rememberSearch(query);state.query=query;state.page='search';state.items=[];load();}else if(event.target.id==='login-form'){const form=event.target,account=form.elements.account.value.trim(),password=form.elements.password.value;if(!account||!password)return;form.querySelector('button').disabled=true;state.authError='';try{await client().login(account,password);form.reset();toast('登录成功');}catch(error){state.authError=error.message;}render();}});
-root.addEventListener('change',async event=>{if(event.target.dataset.cleanHls!==undefined){state.cleanHLS=event.target.checked;write('cleanHLS',state.cleanHLS);toast('已更新，下次播放生效');}if(event.target.dataset.autoNext!==undefined){state.autoNext=event.target.checked;write('autoNext',state.autoNext);toast(state.autoNext?'已开启自动连播':'已关闭自动连播');}if(event.target.dataset.gridColumns!==undefined){state.columns=event.target.value;localStorage.setItem('sanyuan:columns',state.columns);render();}if(event.target.dataset.playerRate!==undefined){const rate=Number(event.target.value);if([0.5,0.75,1,1.25,1.5,2].includes(rate)){applyLivePlaybackRate(rate);toast('默认倍速已更新');}}if(event.target.dataset.episodePage!==undefined){state.episodePage=Number(event.target.dataset.episodePage);render();}if(event.target.dataset.episodeJump!==undefined){const num=Math.floor(Number(event.target.value));if(Number.isFinite(num)&&num>=1){const list=state.detail?.playSources?.[state.line]?.list||[];if(list.length){const targetIdx=Math.max(0,Math.min(list.length-1,num-1));state.locatedEpisodeIndex=targetIdx;state.episodePage=Math.floor((state.episodeDesc?list.length-1-targetIdx:targetIdx)/20);render();toast('已定位至第 '+(targetIdx+1)+' 集');requestAnimationFrame(()=>pageRoot.querySelector('.episode[data-id="'+targetIdx+'"]')?.scrollIntoView({behavior:'smooth',block:'nearest'}));}}}if(event.target.dataset.filter){cacheView();state.filters[event.target.dataset.filter]=event.target.value;state.items=[];if(!restoreView())load();else render();}if(event.target.id==='source-line'){root.querySelector('[data-act="play-source"][data-id="'+Number(event.target.value)+'"]')?.click();}if(event.target.id==='play-line'){saveProgress($('#video')?.currentTime);state.playIndex=Number(event.target.value);const entry=state.playURLs[state.playIndex],session={siteId:state.site,movie:detailMovie(),episodeId:state.episode.id,episodeTitle:state.episode.title};state.playRecovery={key:sessionKey(session),failedURLs:new Set(),failedLines:new Set(),triedLines:new Set([state.line]),running:false};try{const meta=await verifyMedia(client(),entry.url,controller?.signal,entry.headers,entry.referrerPolicy);if(meta?.warmPlaylists?.length)entry.warmPlaylists=meta.warmPlaylists;entry.cicadaURL=meta?.variants?.[0]?.href||'';state.playQualityLabel=meta?.qualityLabel||'';state.playBandwidth=meta?.bandwidth||0;render();if(native.native())await launchNativePlayer();else $('#video')?.play().catch(()=>{});}catch(error){await recoverPlayback(session,error.message);}}});
+root.addEventListener('change',async event=>{if(event.target.dataset.cleanHls!==undefined){state.cleanHLS=event.target.checked;write('cleanHLS',state.cleanHLS);toast('已更新，下次播放生效');}if(event.target.dataset.autoNext!==undefined){state.autoNext=event.target.checked;write('autoNext',state.autoNext);toast(state.autoNext?'已开启自动连播':'已关闭自动连播');}if(event.target.dataset.gridColumns!==undefined){state.columns=event.target.value;localStorage.setItem('sanyuan:columns',state.columns);render();}if(event.target.dataset.playerRate!==undefined){const rate=Number(event.target.value);if([0.5,0.75,1,1.25,1.5,2].includes(rate)){applyLivePlaybackRate(rate);toast('默认倍速已更新');}}if(event.target.dataset.episodePage!==undefined){state.episodePage=Number(event.target.dataset.episodePage);render();}if(event.target.dataset.episodeJump!==undefined){const num=Math.floor(Number(event.target.value));if(Number.isFinite(num)&&num>=1){const list=state.detail?.playSources?.[state.line]?.list||[];if(list.length){const targetIdx=Math.max(0,Math.min(list.length-1,num-1));state.locatedEpisodeIndex=targetIdx;state.episodePage=Math.floor((state.episodeDesc?list.length-1-targetIdx:targetIdx)/20);render();toast('已定位至第 '+(targetIdx+1)+' 集');requestAnimationFrame(()=>pageRoot.querySelector('.episode[data-id="'+targetIdx+'"]')?.scrollIntoView({behavior:'smooth',block:'nearest'}));}}}if(event.target.dataset.filter){cacheView();state.filters[event.target.dataset.filter]=event.target.value;state.items=[];if(!restoreView())load();else render();}if(event.target.id==='source-line'){root.querySelector('[data-act="play-source"][data-id="'+Number(event.target.value)+'"]')?.click();}if(event.target.id==='play-line'){void choosePlayLine(Number(event.target.value));}});
 window.addEventListener('pagehide',()=>saveProgress($('#video')?.currentTime,playbackSession,$('#video')?.duration));
 window.addEventListener('online',()=>{if(!state.error||state.loading)return;toast('网络已恢复，正在重新加载');if(state.page==='discover')loadDiscovery({refresh:true});else if(['home','browse','search','collection'].includes(state.page))load();});
 setInterval(()=>{

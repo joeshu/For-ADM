@@ -21,8 +21,9 @@
 //      onVideoSizeChanged:width:height:rotation:。
 //      其余（onPrepared:、onFirstFrameShow:、onLoadingStart:、onLoadingEnd:、
 //      onSeekEnd:、onPlayerEvent:eventType:）只在 C++ 层或头文件中确认，
-//      拼写为 best-effort，并用 1 秒位置轮询兜底：位置推进即视为首帧已出。
-//      回调缺失时绝不静默黑屏——20 秒首帧看门狗会报错。
+//      拼写为 best-effort。首帧只由明确的 FirstRenderedStart /
+//      onFirstFrameShow: / onVideoRendered: 渲染回调确认；位置推进和尺寸变化
+//      都不能证明画面已经显示。回调缺失时 20 秒首帧看门狗会报错。
 //      onPlayerEvent 的 CicadaEventFirstRenderedStart = 2（见 CicadaSDK.h
 //      的 CicadaEventType），是头文件里明确的首帧信号。
 //   4) 时长/位置单位：CicadaPlayer 二进制中 currentPosition / getDuration /
@@ -133,11 +134,17 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 @property (nonatomic) float pendingRate;
 @property (nonatomic) BOOL hasPendingRate;
 @property (nonatomic) BOOL startPositionApplied;
+@property (nonatomic) uint64_t activeSeekID;
+@property (nonatomic) uint64_t queuedSeekID;
+@property (nonatomic) NSTimeInterval queuedSeekTarget;
+@property (nonatomic) NSTimeInterval activeSeekTarget;
+@property (nonatomic) BOOL activeSeekCancelled;
 // paused 对外只读，内部可写（公开头文件里是 readonly）。
 @property (nonatomic, readwrite) BOOL paused;
 @property (nonatomic) BOOL completedReported;
 @property (nonatomic) NSTimeInterval lastProgressPosition;
 @property (nonatomic) NSInteger stallSeconds;
+- (void)startQueuedSeekIfNeeded;
 @end
 
 @implementation SYCicadaLivePlayer
@@ -287,7 +294,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     self.completedReported = NO;
     if (self.startPosition > 0 && !self.startPositionApplied) {
         self.startPositionApplied = YES;
-        [self seekToTime:self.startPosition];
+        [self issueSeekToTime:self.startPosition seekID:0];
     }
     if (self.hasPendingRate) [self applyPendingRate];
     SYCicadaCallVoid(self.player, NSSelectorFromString(@"start"));
@@ -317,13 +324,98 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 }
 
 - (void)seekToTime:(NSTimeInterval)seconds {
-    if (self.destroyed || !self.player || !isfinite(seconds)) return;
-    if (![self.player respondsToSelector:NSSelectorFromString(@"seekToTime:seekMode:")]) return;
+    [self seekToTime:seconds seekID:0];
+}
+
+- (void)seekToTime:(NSTimeInterval)seconds seekID:(uint64_t)seekID {
+    if (!seekID) {
+        [self issueSeekToTime:seconds seekID:0];
+        return;
+    }
+    if (self.activeSeekID) {
+        // Cicada does not return a request identifier. Serialize operations and
+        // coalesce rapid input to the latest target so a late SeekEnd cannot
+        // complete a newer command.
+        self.queuedSeekID = seekID;
+        self.queuedSeekTarget = seconds;
+        return;
+    }
+    self.activeSeekID = seekID;
+    self.activeSeekCancelled = NO;
+    [self issueSeekToTime:seconds seekID:seekID];
+}
+
+- (void)cancelSeekID:(uint64_t)seekID {
+    if (!seekID || self.destroyed) return;
+    if (self.queuedSeekID == seekID) {
+        self.queuedSeekID = 0;
+        self.queuedSeekTarget = 0;
+        return;
+    }
+    if (self.activeSeekID == seekID) self.activeSeekCancelled = YES;
+}
+
+- (void)issueSeekToTime:(NSTimeInterval)seconds seekID:(uint64_t)seekID {
+    if (self.destroyed || !self.player || !isfinite(seconds) || ![self.player respondsToSelector:NSSelectorFromString(@"seekToTime:seekMode:")]) {
+        if (seekID && self.activeSeekID == seekID) {
+            self.activeSeekID = 0;
+            self.activeSeekTarget = 0;
+            self.activeSeekCancelled = NO;
+            [self startQueuedSeekIfNeeded];
+        }
+        return;
+    }
     // CICADA_SEEKMODE_ACCURATE（0x01，见 CicadaSDK.h；seekToTime:seekMode: 首参为 int64_t 毫秒）。
     int64_t timeMs = (int64_t)llround(MAX(0, seconds) * 1000.0);
     self.stallSeconds = 0;
     self.lastProgressPosition = MAX(0, seconds);
     SYCicadaCallVoidInt64UInt(self.player, NSSelectorFromString(@"seekToTime:seekMode:"), timeMs, 0x01);
+    if(seekID){
+        self.activeSeekTarget = MAX(0, seconds);
+        __weak typeof(self) weakSelf=self;NSUInteger generation=self.generation;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(9*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+            typeof(self) owner=weakSelf;
+            if(!owner||owner.destroyed||owner.generation!=generation||owner.activeSeekID!=seekID)return;
+            // The SDK has no seek request token and may omit SeekEnd on a bad
+            // stream. Let the Swift 8s gate fail the UI request, then release
+            // the wrapper queue so a later seek is still usable.
+            owner.activeSeekID=0;
+            owner.activeSeekTarget=0;
+            owner.activeSeekCancelled=NO;
+            [owner startQueuedSeekIfNeeded];
+        });
+    }
+}
+
+- (void)startQueuedSeekIfNeeded {
+    if(self.destroyed||!self.player||self.activeSeekID||!self.queuedSeekID)return;
+    uint64_t nextID=self.queuedSeekID;NSTimeInterval nextTarget=self.queuedSeekTarget;
+    self.queuedSeekID=0;self.queuedSeekTarget=0;self.activeSeekID=nextID;self.activeSeekCancelled=NO;
+    [self issueSeekToTime:nextTarget seekID:nextID];
+}
+
+- (void)completeActiveSeekFromPlayer:(id)player {
+    if (self.destroyed || !self.player || (player && player != self.player) || !self.activeSeekID) return;
+    uint64_t completedID = self.activeSeekID;
+    if (self.activeSeekCancelled) {
+        self.activeSeekID = 0;
+        self.activeSeekTarget = 0;
+        self.activeSeekCancelled = NO;
+        [self startQueuedSeekIfNeeded];
+        return;
+    }
+    NSTimeInterval actual = self.currentPosition;
+    NSTimeInterval tolerance = MAX(1.5, MIN(4.0, self.activeSeekTarget * 0.005));
+    // Cicada's SeekEnd callback has no request ID. Ignore a late completion
+    // from an older seek when the player is still at that seek's position.
+    if (!isfinite(actual) || fabs(actual - self.activeSeekTarget) > tolerance) return;
+    self.activeSeekID = 0;
+    self.activeSeekTarget = 0;
+    self.activeSeekCancelled = NO;
+    if ([self.delegate respondsToSelector:@selector(cicadaLivePlayer:didCompleteSeek:position:)]) {
+        [self.delegate cicadaLivePlayer:self didCompleteSeek:completedID position:actual];
+    }
+    [self startQueuedSeekIfNeeded];
 }
 
 - (void)setRate:(float)rate {
@@ -341,6 +433,10 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 - (void)stop {
     if (self.destroyed || !self.player) return;
     self.startRequested = NO;
+    self.activeSeekID = 0;
+    self.activeSeekTarget = 0;
+    self.activeSeekCancelled = NO;
+    self.queuedSeekID = 0;
     SYCicadaCallVoid(self.player, NSSelectorFromString(@"stop"));
     if (self.state != SYCicadaLivePlayerStateFailed) self.state = SYCicadaLivePlayerStateIdle;
 }
@@ -349,6 +445,10 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     if (self.destroyed && !self.player) return;
     self.destroyed = YES;
     self.generation++;
+    self.activeSeekID = 0;
+    self.activeSeekTarget = 0;
+    self.activeSeekCancelled = NO;
+    self.queuedSeekID = 0;
     [self.pollTimer invalidate]; self.pollTimer = nil;
     [self.firstFrameWatchdog invalidate]; self.firstFrameWatchdog = nil;
     [self.preparedFallbackTimer invalidate]; self.preparedFallbackTimer = nil;
@@ -456,8 +556,6 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         SYCicadaLivePlayer *owner = weakSelf;
         if (!owner || generation != owner.generation || owner.destroyed || !owner.player) return;
         NSTimeInterval position = owner.currentPosition;
-        // 首帧兜底：位置推进即视为画面已出（onFirstFrameShow 未到时也生效）。
-        if (!owner.firstFrameReported && position > 0.5) [owner handleFirstFrame];
         if (owner.vodMode) [owner reportVODProgressWithPosition:position duration:owner.duration];
     }];
 }
@@ -492,7 +590,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     // 硬解失败时先重试一次软解（与 cctvhost 的软件解码重试一致）：
     // 拆掉当前播放器，用 setEnableHardwareDecoder:NO 重建。软解也失败
     // 或已重试过，才真正上报失败。
-    if (allowSoftwareRetry && self.enableHardwareDecoder && !self.softwareRetryDone && self.player) {
+    if (allowSoftwareRetry && !self.externalRecoveryManaged && self.enableHardwareDecoder && !self.softwareRetryDone && self.player) {
         self.softwareRetryDone = YES;
         NSTimeInterval retryPosition = [self currentPosition];
         id player = self.player;
@@ -505,7 +603,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         self.firstFrameReported = NO;
         self.startRequested = YES;
         // 点播重试：从断点续播，而不是回到起播位置；直播保持 0，不 seek。
-        if (self.vodMode) { self.startPosition = MAX(self.startPosition, retryPosition); self.startPositionApplied = NO; }
+        if (self.vodMode) { self.startPosition = retryPosition; self.startPositionApplied = NO; }
         if (player) {
             SYCicadaCallVoidObject(player, NSSelectorFromString(@"setDelegate:"), nil);
             SYCicadaCallVoid(player, NSSelectorFromString(@"stop"));
@@ -541,12 +639,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     if (eventType == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (self.destroyed || (player && self.player && player != self.player)) return;
-            if (self.preparedReported) {
-                self.startPositionApplied = NO;
-                if (!self.paused) [self start];
-            } else {
-                [self handlePrepared];
-            }
+            [self handlePrepared];
         });
     } else if (eventType == 2) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -556,6 +649,8 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleCompletion];
         });
+    } else if (eventType == 6) {
+        dispatch_async(dispatch_get_main_queue(), ^{ [self completeActiveSeekFromPlayer:player]; });
     }
 }
 
@@ -576,9 +671,9 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     // 注意：position 参数的类型（NSNumber 还是原始 int64）无法从二进制确认；
     // 这里不读它，改走轮询读到的 currentPosition，避免类型猜错导致崩溃。
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self.destroyed) return;
+        if (self.destroyed || (player && self.player && player != self.player)) return;
         NSTimeInterval seconds = self.currentPosition;
-        if (!self.firstFrameReported && seconds > 0.5) [self handleFirstFrame];
+        (void)seconds;
     });
 }
 
@@ -597,36 +692,35 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 - (void)onVideoSizeChanged:(id)player width:(int)width height:(int)height rotation:(int)rotation {
     // 宽高/旋转按 CicadaSDK.h 声明的 int 读取；SDK 上报尺寸变化本身即证明有视频轨。
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self.destroyed) return;
+        if (self.destroyed || (player && self.player && player != self.player)) return;
         _hasVideoTrack = YES;
         if (width > 0 && height > 0) self.videoSize = CGSizeMake(width, height);
-        if (!self.firstFrameReported) [self handleFirstFrame];
     });
 }
 
 - (void)onVideoRendered:(id)player timeMs:(int64_t)timeMs pts:(int64_t)pts {
-    // 首帧已渲染的又一信号；位置轮询已覆盖，这里只作代收点。
+    // SDK 的 rendered 回调代表画面提交；只在这个信号到来时确认首帧。
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (!self.destroyed && !self.firstFrameReported && timeMs > 0) [self handleFirstFrame];
+        if (!self.destroyed && !self.firstFrameReported && timeMs > 0 && (!player || !self.player || player == self.player)) [self handleFirstFrame];
     });
 }
 
 // Best-effort 回调（selector 拼写未在二进制中直接确认，见文件头注释）。
 - (void)onPrepared:(id)player {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (!self.destroyed) [self handlePrepared];
+        if (!self.destroyed && (!player || !self.player || player == self.player)) [self handlePrepared];
     });
 }
 
 - (void)onFirstFrameShow:(id)player {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (!self.destroyed) [self handleFirstFrame];
+        if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleFirstFrame];
     });
 }
 
 - (void)onCompletion:(id)player {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (!self.destroyed) [self handleCompletion];
+        if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleCompletion];
     });
 }
 
@@ -639,7 +733,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 }
 
 - (void)onSeekEnd:(id)player {
-    // 直播不 seek，只作代收点。
+    dispatch_async(dispatch_get_main_queue(), ^{ [self completeActiveSeekFromPlayer:player]; });
 }
 
 @end

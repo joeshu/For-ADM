@@ -12,7 +12,7 @@ const main=read('Sources/main.m');
 const vod=main.slice(main.indexOf('- (void)inspectVODVideoTracksForItem:'),main.indexOf('// ---------- Cicada'));
 
 test('a VOD item is inspected for video tracks when it becomes ready',()=>{
- assert.ok(main.includes("if(self.nativeItem.status==1){[self sendPlayback:@{@\"context\":self.playContext?:@\"\",@\"status\":@\"ready\"}];if([self.playContext hasPrefix:@\"live:\"])[self inspectLiveVideoTracksForItem:self.nativeItem];else [self inspectVODVideoTracksForItem:self.nativeItem context:self.playContext?:@\"\"];}"),'ReadyToPlay must inspect VOD tracks exactly like live tracks');
+ assert.ok(main.includes("if(self.nativeItem.status==1){[self sendPlayback:@{@\"context\":self.playContext?:@\"\",@\"status\":@\"prepared\"}];if([self.playContext hasPrefix:@\"live:\"])[self inspectLiveVideoTracksForItem:self.nativeItem];else [self inspectVODVideoTracksForItem:self.nativeItem context:self.playContext?:@\"\"];}"),'ReadyToPlay must inspect VOD tracks exactly like live tracks');
  assert.ok(main.includes('- (void)inspectVODVideoTracksForItem:(AVPlayerItem*)item context:(NSString*)context {'),'the VOD inspection must exist as its own method');
  assert.ok(vod.includes("[asset loadTracksWithMediaType:AVMediaTypeVideo completionHandler:"),'the inspection must load the video tracks');
  assert.ok(vod.includes("if(!item||item!=self.nativeItem||[self.playContext hasPrefix:@\"live:\"]||self.vodTrackInspectionItem==item)return;"),'the inspection must run once per item and never for live');

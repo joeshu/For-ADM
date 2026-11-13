@@ -18,10 +18,34 @@ simulator_failure() {
 trap 'simulator_failure "$?" "$LINENO" "$BASH_COMMAND"' ERR
 sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 sim_arch="$(uname -m)"
-mkdir -p dist/simulator
+toolchain_path="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain"
+mkdir -p dist/simulator dist/simulator/sdk
 cp -R dist/Payload/Sanyuan.app dist/simulator/
 sim_app="$PWD/dist/simulator/Sanyuan.app"
-xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -target "$sim_arch-apple-ios15.0-simulator" -DSY_SIMULATOR_SMOKE=1 -fobjc-arc -fblocks -Oz Sources/main.m Sources/SYCicadaLivePlayer.m -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore -lz -o "$sim_app/Sanyuan"
+rm -f "$sim_app"/Frameworks/libswift*.dylib
+swift_sources=()
+while IFS= read -r swift_source; do swift_sources+=("$swift_source"); done < <(find DetailPlayerStabilityKit/Sources/DetailPlayerStabilityKit -name '*.swift' -type f | sort)
+if [[ ${#swift_sources[@]} -eq 0 ]]; then
+  echo "DetailPlayerStabilityKit has no Swift sources" >&2
+  exit 1
+fi
+sim_target="$sim_arch-apple-ios15.0-simulator"
+xcrun --sdk iphonesimulator swiftc -sdk "$sdk_path" -target "$sim_target" -module-name SanyuanPlayback \
+  -parse-as-library -whole-module-optimization -O -emit-object -emit-module \
+  -emit-module-path dist/simulator/sdk/SanyuanPlayback.swiftmodule \
+  -emit-objc-header -emit-objc-header-path dist/simulator/sdk/SanyuanPlayback-Swift.h \
+  "${swift_sources[@]}" -o dist/simulator/sdk/playback.o
+xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -I dist/simulator/sdk -target "$sim_target" \
+  -DSY_SIMULATOR_SMOKE=1 -fobjc-arc -fblocks -Oz -c Sources/main.m -o dist/simulator/sdk/main.o
+xcrun --sdk iphonesimulator clang -isysroot "$sdk_path" -target "$sim_target" \
+  -fobjc-arc -fblocks -Oz -c Sources/SYCicadaLivePlayer.m -o dist/simulator/sdk/cicada.o
+xcrun --sdk iphonesimulator swiftc -sdk "$sdk_path" -target "$sim_target" -module-name SanyuanSimulator \
+  dist/simulator/sdk/main.o dist/simulator/sdk/cicada.o dist/simulator/sdk/playback.o \
+  -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation \
+  -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore \
+  -lz -Xlinker -rpath -Xlinker @executable_path/Frameworks -o "$sim_app/Sanyuan"
+"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable "$sim_app/Sanyuan" \
+  --destination "$sim_app/Frameworks" --platform iphonesimulator --toolchain "$toolchain_path"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
@@ -29,7 +53,7 @@ with open(p,'rb') as f:d=plistlib.load(f)
 d['CFBundleSupportedPlatforms']=['iPhoneSimulator'];d.pop('UIRequiredDeviceCapabilities',None)
 with open(p,'wb') as f:plistlib.dump(d,f)
 PY
-codesign --force --sign - --timestamp=none "$sim_app"
+codesign --deep --force --sign - --timestamp=none "$sim_app"
 sim_device="${SIMULATOR_UDID:-$(xcrun simctl list devices available --json | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(x["udid"] for k,v in d["devices"].items() if ".iOS-" in k for x in v if x.get("isAvailable") and x["name"].startswith("iPhone")))')}"
 # Fresh GitHub runners normally have no booted device.
 xcrun simctl boot "$sim_device" || true

@@ -26,7 +26,8 @@ test('resolveFirstCandidate returns the first address without verifying it',asyn
 });
 
 test('resolveFirstCandidate walks lines in the same order as the full resolver',async()=>{
- const d={id:9,playSources:[{siteId:1,name:'空线路',list:[episode(1,'第1集','https://cdn.example/empty.m3u8',false)]},{siteId:2,name:'好线路',list:[episode(2,'第1集','https://cdn.example/good.m3u8',false)]}]};
+ const first=episode(1,'第1集','https://cdn.example/empty.m3u8',false),second=episode(2,'第1集','https://cdn.example/good.m3u8',false);first.timelineId=second.timelineId='episode:1';
+ const d={id:9,playSources:[{siteId:1,name:'空线路',list:[first]},{siteId:2,name:'好线路',list:[second]}]};
  const c={site,play:async p=>p.siteId===1?[]:[{url:'https://cdn.example/good.m3u8'}],transport:async()=>hls};
  const r=await resolveFirstCandidate(c,d,0,0);
  assert.equal(r.lineIndex,1);
@@ -41,7 +42,7 @@ test('candidate verification runs in parallel and stamps verifiedMeta',async()=>
  const r=await resolvePlayableEpisode(c,d,0,0);
  assert.equal(r.urls.length,3,'all three verified candidates stay available');
  assert.ok(r.urls.every(u=>u.verifiedMeta),'every verified candidate must carry verifiedMeta');
- assert.equal(r.urls[0].verifiedMeta.cicadaURL,'','a plain media playlist has no Cicada variant URL');
+ assert.equal(r.urls[0].verifiedMeta.qualityLabel,'','a plain media playlist has no quality label');
  assert.ok(r.urls[0].verifiedMeta.warmPlaylists.length>0,'verified entries must carry their warmed playlists');
  assert.equal(seen.length,3,'all three candidates must be verified in one parallel round');
 });
@@ -68,5 +69,5 @@ test('background verification merges results and recovers early when the playing
 
 test('recovery reuses an already-verified candidate instead of verifying it again',()=>{
  assert.ok(app.includes('candidate.verifiedMeta?Promise.resolve('),'recovery must prefer the verified metadata');
- assert.ok(app.includes("candidate.cicadaURL=meta?.cicadaURL||meta?.variants?.[0]?.href||''"),'the Cicada URL must come from either metadata shape');
+ assert.ok(!app.includes('candidate.cicadaURL='),'the recovery path must not replace the active media URL with a different HLS timeline');
 });

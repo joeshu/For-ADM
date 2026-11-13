@@ -15,6 +15,7 @@ public final class IOSHardwareSessionGuard {
     private var routeChangeObserver: NSObjectProtocol?
     private var memoryWarningObserver: NSObjectProtocol?
     private var preloadAssets: [String: AVURLAsset] = [:]
+    private var preloadOrder: [String] = []
 
     public init(coordinator: PlaybackSessionCoordinator) {
         self.coordinator = coordinator
@@ -82,7 +83,12 @@ public final class IOSHardwareSessionGuard {
     public func handleAudioInterruption(began: Bool, shouldResume: Bool) {
         guard let coordinator else { return }
         if began {
-            wasPlayingBeforeInterruption = coordinator.currentState.isActivelyPlaying
+            switch coordinator.currentState {
+            case .preparing, .playing, .buffering:
+                wasPlayingBeforeInterruption = !coordinator.userManuallyPaused
+            default:
+                wasPlayingBeforeInterruption = false
+            }
             if wasPlayingBeforeInterruption {
                 coordinator.pause(manual: false)
             }
@@ -98,10 +104,17 @@ public final class IOSHardwareSessionGuard {
         coordinator?.pause(manual: true)
     }
 
-    public func preloadNextEpisode(episodeId: String, streamURL: URL) {
-        guard !preloadedEpisodeIds.contains(episodeId) else { return }
+    public func preloadNextEpisode(episodeId: String, streamURL: URL, headers: [String: String] = [:]) {
+        guard !episodeId.isEmpty, !preloadedEpisodeIds.contains(episodeId) else { return }
+        while preloadOrder.count >= 2 {
+            let oldest = preloadOrder.removeFirst()
+            preloadAssets.removeValue(forKey: oldest)?.cancelLoading()
+            preloadedEpisodeIds.remove(oldest)
+        }
         preloadedEpisodeIds.insert(episodeId)
-        let asset = AVURLAsset(url: streamURL)
+        preloadOrder.append(episodeId)
+        let options: [String: Any]? = headers.isEmpty ? nil : ["AVURLAssetHTTPHeaderFieldsKey": headers]
+        let asset = AVURLAsset(url: streamURL, options: options)
         asset.loadValuesAsynchronously(forKeys: ["playable"])
         preloadAssets[episodeId] = asset
     }
@@ -109,6 +122,7 @@ public final class IOSHardwareSessionGuard {
     public func purgePreloadCacheOnMemoryWarning() {
         preloadAssets.values.forEach { $0.cancelLoading() }
         preloadAssets.removeAll()
+        preloadOrder.removeAll()
         preloadedEpisodeIds.removeAll()
     }
 }

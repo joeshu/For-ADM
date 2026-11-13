@@ -93,7 +93,7 @@ test('Cicada frameworks are bundled for device builds and excluded from the simu
  assert.ok(fs.existsSync(path.join(root,'Frameworks/alivcffmpeg.framework/alivcffmpeg')),'alivcffmpeg binary must exist');
  const macos=read('tools/build-macos.sh');
  assert.ok(macos.includes('-framework CicadaPlayerSDK'),'device build must link CicadaPlayerSDK');
- assert.ok(macos.includes('-Wl,-rpath,@executable_path/Frameworks'),'device build must set the Frameworks rpath');
+ assert.ok(macos.includes('-Xlinker -rpath -Xlinker @executable_path/Frameworks'),'device build must set the Frameworks rpath');
  const cross=read('tools/cross-build.py');
  assert.ok(cross.includes("'-framework','CicadaPlayerSDK'"),'cross build must link CicadaPlayerSDK');
  assert.ok(cross.includes("app/'Frameworks'"),'cross build must embed frameworks into the .app bundle');
