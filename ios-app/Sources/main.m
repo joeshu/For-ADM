@@ -898,7 +898,13 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     double position=[event[@"time"] doubleValue],duration=[event[@"duration"] doubleValue];
     BOOL actuallyPlaying=self.cicadaFallbackActive?(self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused):(self.nativePlayer.player.rate>0&&self.nativePlayer.player.timeControlStatus==AVPlayerTimeControlStatusPlaying);
     if([status isEqualToString:@"seekCompleted"])[self.playbackRuntime nativeSeekCompletedAtPosition:position sessionIdentifier:self.playbackRuntime.activeSessionIdentifier];
-    [self.playbackRuntime receivePlaybackEventForContext:eventContext status:status currentTime:position duration:duration playing:actuallyPlaying wantsToPlay:[self.playbackGate desiredPlaybackWithContext:eventContext] errorMessage:[event[@"error"] isKindOfClass:NSString.class]?event[@"error"]:@""]];
+    [self.playbackRuntime receivePlaybackEventForContext:eventContext
+                                                    status:status
+                                               currentTime:position
+                                                 duration:duration
+                                                   playing:actuallyPlaying
+                                              wantsToPlay:[self.playbackGate desiredPlaybackWithContext:eventContext]
+                                              errorMessage:[event[@"error"] isKindOfClass:NSString.class]?event[@"error"]:@""];
     [self.appScreen layoutPlayerLoadingIndicator];
   }
 #if defined(SY_SIMULATOR_SMOKE)
@@ -1048,7 +1054,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  if(self.cicadaFallbackActive&&self.cicadaLivePlayer){
   [self.cicadaLivePlayer seekToTime:seconds seekID:seekID];
  }else if(self.nativePlayer.player){
-  AVPlayer*player=self.nativePlayer.player;AVPlayerItem*item=self.nativeItem;[player cancelPendingSeeks];
+  AVPlayer*player=self.nativePlayer.player;AVPlayerItem*item=self.nativeItem;[item cancelPendingSeeks];
   [player seekToTime:CMTimeMakeWithSeconds(seconds,600) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:^(BOOL finished){
    if(!finished)return;dispatch_async(SYMainQueue(),^{
     if(self.nativePlayer.player!=player||self.nativeItem!=item)return;
