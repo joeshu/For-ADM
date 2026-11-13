@@ -40,6 +40,7 @@ typedef NS_ENUM(NSInteger, SYCicadaLivePlayerState) {
 - (void)cicadaLivePlayer:(id)player didUpdatePosition:(NSTimeInterval)position duration:(NSTimeInterval)duration;
 - (void)cicadaLivePlayerDidComplete:(id)player;
 - (void)cicadaLivePlayer:(id)player didCompleteSeek:(uint64_t)seekID position:(NSTimeInterval)position;
+- (void)cicadaLivePlayer:(id)player bufferingChanged:(BOOL)buffering;
 @end
 
 @interface SYCicadaLivePlayer : NSObject <SYMediaEngine>

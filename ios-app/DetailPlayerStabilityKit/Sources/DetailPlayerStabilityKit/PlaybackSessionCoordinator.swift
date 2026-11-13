@@ -169,7 +169,8 @@ public final class PlaybackSessionCoordinator: PlayerEngineDelegate {
         switch newState {
         case .playing:
             setLoadingVisible(false, immediate: true)
-            setPosterVisible(false)
+            // A running media clock does not guarantee a displayed video frame.
+            // Only engineDidRenderFirstFrame may remove the poster.
             retryCountForCurrentLine = 0
         case .buffering:
             scheduleDebouncedLoading()

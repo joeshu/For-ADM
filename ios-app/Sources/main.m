@@ -713,6 +713,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationDidReceiveMemoryWarningNotification" object:nil];
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationDidEnterBackgroundNotification" object:nil];
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationWillEnterForegroundNotification" object:nil];
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationDidBecomeActiveNotification" object:nil];
 #if defined(SY_SIMULATOR_SMOKE)
   [self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:2];
 #endif
@@ -775,6 +776,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)playbackRuntimeRequestPlay:(SYPlaybackRuntimeBridge*)runtime {
   if(runtime!=self.playbackRuntime||![self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])return;
   self.nativePausedForInterruption=NO;self.cicadaPausedForInterruption=NO;
+  if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&(self.cicadaPausedForBackground||UIApplication.sharedApplication.applicationState==UIApplicationStateBackground)){
+    self.cicadaPausedForBackground=YES;
+    return;
+  }
   if(self.cicadaFallbackActive&&self.cicadaLivePlayer){[self.cicadaLivePlayer resume];if(!self.cicadaLivePlayer.paused)[runtime receivePlaybackEventForContext:self.playContext status:@"playing" currentTime:[self.cicadaLivePlayer currentPosition] duration:[self.cicadaLivePlayer duration] playing:YES wantsToPlay:YES errorMessage:@""];return;}
   if(self.nativePlayer.player){[self.nativePlayer.player play];self.nativePlayer.player.rate=self.currentVODRate>=0.5?self.currentVODRate:1;}
 }
@@ -783,8 +788,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   if(manual){[self.playbackGate setWantsToPlayWithContext:self.playContext?:@"" wantsToPlay:NO];self.nativePausedForInterruption=NO;self.cicadaPausedForInterruption=NO;}
   else{self.nativePausedForInterruption=!self.cicadaFallbackActive&&self.nativePlayer.player!=nil;self.cicadaPausedForInterruption=self.cicadaFallbackActive&&self.cicadaLivePlayer!=nil;}
   if(self.cicadaFallbackActive&&self.cicadaLivePlayer){
-    if(!self.cicadaLivePlayer.paused)[self.cicadaLivePlayer pause];
-  }else if(self.nativePlayer.player&&self.nativePlayer.player.timeControlStatus==AVPlayerTimeControlStatusPlaying){
+    // Also cancel a start requested while Cicada is still preparing.
+    [self.cicadaLivePlayer pause];
+  }else if(self.nativePlayer.player){
+    // Waiting players have a pending play intent even before their first frame.
     [self.nativePlayer.player pause];
   }
   double position=self.cicadaFallbackActive?[self.cicadaLivePlayer currentPosition]:CMTimeGetSeconds(self.nativePlayer.player.currentTime);
@@ -823,7 +830,11 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     if(self.liveScreen&&self.liveScreen.liveRendererLayer&&self.nativePlayer.player){
       self.liveScreen.liveRendererLayer.player=self.nativePlayer.player;
     }
-    if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){self.cicadaPausedForBackground=NO;if([self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])[self.cicadaLivePlayer resume];}
+  }else if([note.name isEqualToString:@"UIApplicationDidBecomeActiveNotification"]){
+    if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){
+      self.cicadaPausedForBackground=NO;
+      if(!self.cicadaPausedForInterruption&&[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])[self playbackRuntimeRequestPlay:self.playbackRuntime];
+    }
   }
 }
 
@@ -1210,7 +1221,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     if(self.nativePlayer.player.muted)[cicada setMuted:YES];
     [cicada prepare];
     BOOL wanted=[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""];
-    if(wanted)[cicada start];
+    if(wanted&&UIApplication.sharedApplication.applicationState!=UIApplicationStateBackground)[cicada start];
+    else if(wanted){[cicada pause];self.cicadaPausedForBackground=YES;}
     return YES;
 }
 
@@ -1260,6 +1272,14 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"progress",@"time":@(position),@"duration":@(duration),@"removedAdSegments":@0,@"removedAdSeconds":@0}];
 }
 
+- (void)cicadaLivePlayer:(id)player bufferingChanged:(BOOL)buffering {
+    if(player!=self.cicadaLivePlayer||!self.cicadaFallbackActive||[self.playContext hasPrefix:@"live:"])return;
+    BOOL wants=[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""];
+    BOOL paused=self.cicadaLivePlayer.paused||self.cicadaPausedForBackground||!wants;
+    NSString*status=paused?@"paused":(buffering?@"buffering":@"playing");
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":status}];
+}
+
 - (void)cicadaLivePlayer:(id)player didCompleteSeek:(uint64_t)seekID position:(NSTimeInterval)position {
     if(player!=self.cicadaLivePlayer||![self.playbackGate finishSeekWithContext:self.playContext?:@"" attempt:self.playbackAttemptID seekID:seekID actualPosition:position])return;
     if(self.pendingSeekID==seekID)self.pendingSeekID=0;
@@ -1305,6 +1325,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
       }else if(player.timeControlStatus==AVPlayerTimeControlStatusPaused){
         [self.playbackGate setWantsToPlayWithContext:self.playContext wantsToPlay:NO];
         [self.playbackRuntime receivePlaybackEventForContext:self.playContext status:@"paused" currentTime:CMTimeGetSeconds(player.currentTime) duration:self.nativeItem?CMTimeGetSeconds(self.nativeItem.duration):0 playing:NO wantsToPlay:NO errorMessage:@""];
+      }else if(player.timeControlStatus==AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate){
+        [self sendPlayback:@{@"context":self.playContext,@"status":@"buffering"}];
       }
     });return;
   }

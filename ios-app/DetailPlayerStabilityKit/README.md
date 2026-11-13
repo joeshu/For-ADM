@@ -9,7 +9,7 @@
 
 ## 构建
 
-在 macOS/Xcode 环境运行 `bash tools/build-macos.sh`。脚本用 iPhoneOS SDK 编译 Swift 源码并生成 `SanyuanPlayback-Swift.h`，再与 Objective-C 播放器链接；Swift 运行时同时放入 App 的 `Frameworks` 和 IPA 的 `SwiftSupport/iphoneos`。`tools/check-ipa.py` 会拒绝缺少 Swift 运行时的详情页产物。
+在 macOS/Xcode 环境运行 `bash tools/build-macos.sh`。脚本用 iPhoneOS SDK 编译 Swift 源码并生成 `SanyuanPlayback-Swift.h`，再与 Objective-C 播放器链接。`/usr/lib/swift/` 依赖由 iOS 系统提供；需要随应用分发的 Swift 运行库由 `swift-stdlib-tool` 收集，放入 App 的 `Frameworks` 和 IPA 的 `SwiftSupport/iphoneos`。校验器只要求应用依赖的运行库齐全，系统库无需重复嵌入。CI 还运行包内 Swift 状态机和中断回归测试。
 
 Linux 下的 LLVM 源码构建已停用：它没有 iPhoneOS SDK，也不能生成本包的 Objective-C 桥接头。`tools/cross-build.py` 只接受 SDK 编译好的二进制及 `swift-stdlib-tool` 输出的运行时目录。
 

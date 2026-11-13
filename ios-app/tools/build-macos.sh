@@ -5,7 +5,9 @@ npm ci
 npm run build:web
 sdk_path="$(xcrun --sdk iphoneos --show-sdk-path)"
 toolchain_path="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain"
-mkdir -p dist/sdk dist/swift-runtime
+mkdir -p dist/sdk
+rm -rf dist/swift-runtime
+mkdir -p dist/swift-runtime
 swift_sources=()
 while IFS= read -r swift_source; do swift_sources+=("$swift_source"); done < <(find DetailPlayerStabilityKit/Sources/DetailPlayerStabilityKit -name '*.swift' -type f | sort)
 if [[ ${#swift_sources[@]} -eq 0 ]]; then
@@ -30,28 +32,11 @@ xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module
   -Xlinker -no_adhoc_codesign -Xlinker -no_fixup_chains -Xlinker -headerpad -Xlinker 0x1000 \
   -o dist/sdk/Sanyuan
 echo "Linked the iOS app. Collecting the Swift runtime and packaging the IPA."
-swift_libraries="$toolchain_path/usr/lib/swift/iphoneos"
-if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then swift_libraries="$toolchain_path/usr/lib/swift-5.0/iphoneos"; fi
-if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then
-  echo "Could not find the iPhoneOS Swift standard libraries in $toolchain_path/usr/lib" >&2
-  exit 1
-fi
-echo "Swift runtime source: $swift_libraries"
-swift_dependencies=()
-while IFS= read -r swift_dependency; do swift_dependencies+=("$swift_dependency"); done \
-  < <(python3 tools/swift-runtime-dependencies.py dist/sdk/Sanyuan)
-if [[ ${#swift_dependencies[@]} -eq 0 ]]; then
-  echo "The iPhoneOS executable has no Swift runtime dependencies" >&2
-  exit 1
-fi
-resource_args=()
-for swift_dependency in "${swift_dependencies[@]}"; do
-  echo "Embedding Swift runtime dependency: $swift_dependency"
-  resource_args+=(--resource-library "$swift_dependency")
-done
-"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --verbose --scan-executable dist/sdk/Sanyuan \
-  --unsigned-destination dist/swift-runtime --resource-destination dist/swift-runtime \
-  --platform iphoneos --source-libraries "$swift_libraries" "${resource_args[@]}"
+# The OS supplies /usr/lib/swift dependencies. The tool collects only runtime
+# libraries linked through @rpath, including their transitive dependencies,
+# and discovers every Swift compatibility-library directory in this toolchain.
+"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --scan-executable dist/sdk/Sanyuan \
+  --scan-folder Frameworks --destination dist/swift-runtime --platform iphoneos
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
 version="$(node -p "require('./package.json').version")"
 python3 tools/check-ipa.py "dist/Sanyuan-${version}-unsigned.ipa"

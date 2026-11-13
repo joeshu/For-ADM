@@ -11,6 +11,7 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const app=read('Web/app.mjs');
 const main=read('Sources/main.m');
 const cicadaH=read('Sources/SYCicadaLivePlayer.h');
+const cicadaM=read('Sources/SYCicadaLivePlayer.m');
 const hardware=read('DetailPlayerStabilityKit/Sources/DetailPlayerStabilityKit/IOSHardwareSessionGuard.swift');
 const runtime=read('DetailPlayerStabilityKit/Sources/DetailPlayerStabilityKit/PlaybackRuntimeBridge.swift');
 const lifecycle=main.slice(main.indexOf('- (void)handleAppLifecycle:'),main.indexOf('- (void)layoutPlayer:'));
@@ -19,8 +20,28 @@ test('backgrounding pauses Cicada when picture-in-picture is not active',()=>{
  assert.ok(lifecycle.includes('if(wants&&self.cicadaFallbackActive&&self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused){'),'backgrounding must pause only a playing Cicada player while playback is still wanted');
  assert.ok(lifecycle.includes('BOOL pipActive=self.nativePlayer.pictureInPicture;'),'backgrounding must check whether PiP took over first');
  assert.ok(lifecycle.includes("if(!pipActive){[self.cicadaLivePlayer pause];self.cicadaPausedForBackground=YES;}"),'without PiP the Cicada player must be paused on backgrounding');
- assert.ok(lifecycle.includes('if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){self.cicadaPausedForBackground=NO;if([self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])[self.cicadaLivePlayer resume];}'),'returning to the foreground must resume only a background-paused Cicada player when the user still wants playback');
+ const active=lifecycle.slice(lifecycle.indexOf('UIApplicationDidBecomeActiveNotification'));
+ assert.ok(active.includes('if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){'),'Cicada resume must wait until the app is active');
+ assert.ok(active.includes('if(!self.cicadaPausedForInterruption&&[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])[self playbackRuntimeRequestPlay:self.playbackRuntime];'),'foreground resume must preserve manual and interruption pauses and update the runtime');
+ const play=main.slice(main.indexOf('- (void)playbackRuntimeRequestPlay:'),main.indexOf('- (void)playbackRuntime:(SYPlaybackRuntimeBridge*)runtime requestPauseManually:'));
+ assert.ok(play.indexOf('self.cicadaPausedForBackground||UIApplication.sharedApplication.applicationState==UIApplicationStateBackground')<play.indexOf('[self.cicadaLivePlayer resume]'),'an interruption ending in the background must not restart Cicada');
+ assert.ok(main.includes('if(wanted&&UIApplication.sharedApplication.applicationState!=UIApplicationStateBackground)[cicada start];'),'a fallback created in the background must follow the same pause policy');
  assert.ok(main.includes('self.cicadaPausedForBackground=NO;self.cicadaPausedForInterruption=NO;'),'starting a new playback must clear the pause flags');
+});
+
+test('native buffering callbacks reach the current detail session without changing playback intent',()=>{
+ const intent=main.slice(main.indexOf('if(context==&SYPlaybackIntent)'),main.indexOf('if(context==&SYVODRendererDisplayReady)'));
+ const waiting=intent.slice(intent.indexOf('AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate'));
+ assert.ok(waiting.includes('[self sendPlayback:@{@"context":self.playContext,@"status":@"buffering"}]'),'AVPlayer waiting must enter the context/attempt event gate');
+ assert.ok(!waiting.includes('setWantsToPlay'),'waiting is observed playback state, not a manual pause');
+ const buffering=main.slice(main.indexOf('- (void)cicadaLivePlayer:(id)player bufferingChanged:'),main.indexOf('- (void)cicadaLivePlayer:(id)player didCompleteSeek:'));
+ assert.ok(buffering.includes('player!=self.cicadaLivePlayer||!self.cicadaFallbackActive'),'a replaced Cicada decoder cannot change the current session');
+ assert.ok(buffering.includes('self.cicadaLivePlayer.paused||self.cicadaPausedForBackground||!wants'),'loading-end cannot clear manual or background pause');
+ assert.ok(buffering.includes('[self sendPlayback:'),'Cicada buffering must use the same context/attempt event gate');
+ const report=cicadaM.slice(cicadaM.indexOf('- (void)reportBuffering:'),cicadaM.indexOf('- (void)onSeekEnd:'));
+ assert.ok(report.includes('self.generation != generation')&&report.includes('player != self.player'),'queued buffering events must reject old decoder generations');
+ assert.ok(report.includes('if (self.buffering == buffering) return;'),'SDK event and selector duplicates must be coalesced');
+ assert.ok(cicadaM.includes('eventType == 4 || eventType == 5'),'the verified SDK loading events must be connected');
 });
 
 test('an audio interruption pauses and resumes Cicada as well as AVPlayer',()=>{

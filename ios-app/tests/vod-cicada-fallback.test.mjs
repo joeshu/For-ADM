@@ -72,7 +72,9 @@ test('the VOD fallback reuses the active timeline and confirmed position, keepin
  assert.ok(fallback.includes('cicada.startPosition=startAt'),'the fallback must resume from the stall position');
  assert.ok(fallback.includes('[cicada setRate:rate]'),'the fallback must keep the playback rate');
  assert.ok(fallback.includes('[cicada setMuted:YES]'),'the fallback must keep the muted state');
- assert.ok(fallback.includes('if(wanted)[cicada start];'),'the fallback must respect the stored play/pause intent');
+ assert.ok(fallback.includes('BOOL wanted=[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""];'),'the fallback must read the stored play/pause intent for the active context');
+ assert.ok(fallback.includes('if(wanted&&UIApplication.sharedApplication.applicationState!=UIApplicationStateBackground)[cicada start];'),'the fallback may start only when playback is wanted and the app is not backgrounded');
+ assert.ok(fallback.includes('else if(wanted){[cicada pause];self.cicadaPausedForBackground=YES;}'),'a wanted background fallback must cancel pending startup and record a foreground resume, while a manual pause must stay paused');
  assert.ok(fallback.includes('@"cicadaFallback"'),'the fallback must tell JS the engine switched');
 });
 

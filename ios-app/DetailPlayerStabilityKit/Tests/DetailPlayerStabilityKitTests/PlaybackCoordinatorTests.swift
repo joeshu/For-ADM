@@ -248,4 +248,36 @@ final class PlaybackCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(avMock.preparedURLs.last?.0, refreshedURL)
     }
+
+    func test13_PlayingKeepsPosterUntilCurrentSessionFirstFrame() {
+        let avMock = MockPlayerEngine(kernel: .avPlayer)
+        let coordinator = PlaybackSessionCoordinator(engines: [.avPlayer: avMock])
+        coordinator.load(request: makeSampleRequest(id: "ep1"))
+        let staleSession = coordinator.currentSessionId
+        coordinator.load(request: makeSampleRequest(id: "ep2"))
+
+        coordinator.play()
+        XCTAssertEqual(coordinator.currentState, .playing)
+        XCTAssertTrue(coordinator.isPosterVisible, "Playing can precede video rendering")
+        avMock.delegate?.engineDidRenderFirstFrame(avMock, sessionId: staleSession)
+        XCTAssertTrue(coordinator.isPosterVisible)
+        avMock.delegate?.engineDidRenderFirstFrame(avMock, sessionId: coordinator.currentSessionId)
+        XCTAssertFalse(coordinator.isPosterVisible)
+    }
+
+    func test14_InterruptionDuringBufferingHonorsSubsequentManualPause() {
+        let avMock = MockPlayerEngine(kernel: .avPlayer)
+        let coordinator = PlaybackSessionCoordinator(engines: [.avPlayer: avMock])
+        let hardwareGuard = IOSHardwareSessionGuard(coordinator: coordinator)
+        coordinator.load(request: makeSampleRequest(id: "ep1"))
+        avMock.delegate?.engine(avMock, didChangeState: .buffering, sessionId: coordinator.currentSessionId)
+
+        hardwareGuard.handleAudioInterruption(began: true, shouldResume: false)
+        XCTAssertEqual(avMock.pauseCount, 1)
+        XCTAssertFalse(coordinator.userManuallyPaused)
+        coordinator.pause(manual: true)
+        hardwareGuard.handleAudioInterruption(began: false, shouldResume: true)
+        XCTAssertEqual(avMock.playCount, 0)
+        XCTAssertTrue(coordinator.userManuallyPaused)
+    }
 }

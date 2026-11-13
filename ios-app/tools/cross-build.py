@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Package an unsigned arm64 iOS application built with Apple's iPhoneOS SDK."""
 import argparse,os,pathlib,json,plistlib,zipfile,shutil,hashlib
-from macho import inspect
+from macho import inspect, validate_swift_runtime
 root=pathlib.Path(__file__).resolve().parents[1]
 # Marketing version comes from package.json (single source of truth); the IPA
 # filename and CFBundleShortVersionString derive from it. CFBundleVersion is a
@@ -19,7 +19,6 @@ app=out/'Payload/Sanyuan.app';app.mkdir(parents=True,exist_ok=True)
 shutil.copy2(args.binary,app/'Sanyuan')
 os.chmod(app/'Sanyuan',0o755)
 metadata=inspect((app/'Sanyuan').read_bytes())
-swift_dependencies=sorted({pathlib.PurePosixPath(name).name for name in metadata['libraries'] if pathlib.PurePosixPath(name).name.startswith('libswift') and name.endswith('.dylib')})
 info=dict(CFBundleName='三源影视',CFBundleDisplayName='三源影视',CFBundleIdentifier='com.joeshu.sanyuan',CFBundleExecutable='Sanyuan',CFBundlePackageType='APPL',CFBundleShortVersionString=version,CFBundleVersion=build_number,CFBundleSupportedPlatforms=['iPhoneOS'],MinimumOSVersion='15.0',UIDeviceFamily=[1,2],UIRequiredDeviceCapabilities=['arm64'],LSRequiresIPhoneOS=True,UILaunchScreen={},UIStatusBarStyle='UIStatusBarStyleDefault',UIViewControllerBasedStatusBarAppearance=True,UISupportedOrientations=['UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'],ITSAppUsesNonExemptEncryption=False,NSAppTransportSecurity={'NSAllowsArbitraryLoads':True},CFBundleIcons={'CFBundlePrimaryIcon':{'CFBundleIconFiles':['AppIcon60x60'],'UIPrerenderedIcon':False}})
 info['UIBackgroundModes']=['audio']
 info['UIApplicationSceneManifest']={'UIApplicationSupportsMultipleScenes':False,'UISceneConfigurations':{'UIWindowSceneSessionRoleApplication':[{'UISceneConfigurationName':'Default Configuration','UISceneDelegateClassName':'SYSceneDelegate'}]}}
@@ -41,14 +40,16 @@ if frameworks_dir.is_dir():
 if args.swift_support:
     swift_support=pathlib.Path(args.swift_support).resolve()
     dylibs=sorted(swift_support.rglob('libswift*.dylib'))
-    copied_names={dylib.name for dylib in dylibs}
-    missing=sorted(set(swift_dependencies)-copied_names)
-    if missing:raise RuntimeError('Swift executable references runtime libraries that swift-stdlib-tool did not provide: '+', '.join(missing))
     app_frameworks=app/'Frameworks';app_frameworks.mkdir(exist_ok=True)
     swift_support_ipa=out/'SwiftSupport/iphoneos';swift_support_ipa.mkdir(parents=True,exist_ok=True)
     for dylib in dylibs:
         shutil.copy2(dylib,app_frameworks/dylib.name)
         shutil.copy2(dylib,swift_support_ipa/dylib.name)
+bundled_binaries=[('Sanyuan',(app/'Sanyuan').read_bytes())]
+bundled_binaries.extend((str(path.relative_to(app)),path.read_bytes()) for path in sorted((app/'Frameworks').rglob('*')) if path.is_file())
+swift_report=validate_swift_runtime(bundled_binaries,
+    {path.name for path in (app/'Frameworks').glob('libswift*.dylib')},
+    {path.name for path in (out/'SwiftSupport/iphoneos').glob('libswift*.dylib')})
 assert metadata['cpu']==0x100000c and metadata['kind']==2 and metadata['platform'][0]==2 and not metadata['signed']
 assert not (app/'embedded.mobileprovision').exists() and not (app/'_CodeSignature').exists()
 ipa=out/f'Sanyuan-{version}-unsigned.ipa'
@@ -57,5 +58,5 @@ with zipfile.ZipFile(ipa,'w',zipfile.ZIP_DEFLATED) as z:
         if not bundle_root.is_dir():continue
         for f in sorted(bundle_root.rglob('*')):
             if f.is_file():z.write(f,f.relative_to(out))
-report={k:v for k,v in metadata.items() if k not in ('commands','undefined')};report.update(ipa=ipa.name,sha256=hashlib.sha256(ipa.read_bytes()).hexdigest(),bytes=ipa.stat().st_size,deviceLaunchTested=False,swiftRuntimeDependencies=swift_dependencies,swiftRuntimeLibraries=len(list((app/'Frameworks').glob('libswift*.dylib'))),buildMethod='apple-sdk')
+report={k:v for k,v in metadata.items() if k not in ('commands','undefined')};report.update(ipa=ipa.name,sha256=hashlib.sha256(ipa.read_bytes()).hexdigest(),bytes=ipa.stat().st_size,deviceLaunchTested=False,buildMethod='apple-sdk',**swift_report)
 (out/'build-report.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))

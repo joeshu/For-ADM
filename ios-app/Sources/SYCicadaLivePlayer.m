@@ -141,6 +141,7 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
 @property (nonatomic) BOOL activeSeekCancelled;
 // paused 对外只读，内部可写（公开头文件里是 readonly）。
 @property (nonatomic, readwrite) BOOL paused;
+@property (nonatomic) BOOL buffering;
 @property (nonatomic) BOOL completedReported;
 @property (nonatomic) NSTimeInterval lastProgressPosition;
 @property (nonatomic) NSInteger stallSeconds;
@@ -649,6 +650,8 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (!self.destroyed && (!player || !self.player || player == self.player)) [self handleCompletion];
         });
+    } else if (eventType == 4 || eventType == 5) {
+        [self reportBuffering:eventType == 4 fromPlayer:player];
     } else if (eventType == 6) {
         dispatch_async(dispatch_get_main_queue(), ^{ [self completeActiveSeekFromPlayer:player]; });
     }
@@ -724,12 +727,24 @@ static NSInteger SYCicadaLiveCodeFromModel(id model) {
     });
 }
 
+- (void)reportBuffering:(BOOL)buffering fromPlayer:(id)player {
+    NSUInteger generation = self.generation;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.destroyed || self.generation != generation || (player && self.player && player != self.player)) return;
+        if (self.buffering == buffering) return;
+        self.buffering = buffering;
+        if ([self.delegate respondsToSelector:@selector(cicadaLivePlayer:bufferingChanged:)]) {
+            [self.delegate cicadaLivePlayer:self bufferingChanged:buffering];
+        }
+    });
+}
+
 - (void)onLoadingStart:(id)player {
-    // 直播不做缓冲 UI，只作代收点。
+    [self reportBuffering:YES fromPlayer:player];
 }
 
 - (void)onLoadingEnd:(id)player {
-    // 直播不做缓冲 UI，只作代收点。
+    [self reportBuffering:NO fromPlayer:player];
 }
 
 - (void)onSeekEnd:(id)player {

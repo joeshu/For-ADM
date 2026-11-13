@@ -19,7 +19,9 @@ trap 'simulator_failure "$?" "$LINENO" "$BASH_COMMAND"' ERR
 sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 sim_arch="$(uname -m)"
 toolchain_path="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain"
-mkdir -p dist/simulator dist/simulator/sdk
+rm -rf dist/simulator
+rm -f dist/simulator-*.json dist/simulator-*.png dist/simulator-system.log
+mkdir -p dist/simulator/sdk
 cp -R dist/Payload/Sanyuan.app dist/simulator/
 sim_app="$PWD/dist/simulator/Sanyuan.app"
 rm -f "$sim_app"/Frameworks/libswift*.dylib
@@ -44,26 +46,10 @@ xcrun --sdk iphonesimulator swiftc -sdk "$sdk_path" -target "$sim_target" -modul
   -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation \
   -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore \
   -lz -Xlinker -rpath -Xlinker @executable_path/Frameworks -o "$sim_app/Sanyuan"
-sim_swift_libraries="$toolchain_path/usr/lib/swift/iphonesimulator"
-if [[ ! -f "$sim_swift_libraries/libswiftCore.dylib" ]]; then sim_swift_libraries="$toolchain_path/usr/lib/swift-5.0/iphonesimulator"; fi
-if [[ ! -f "$sim_swift_libraries/libswiftCore.dylib" ]]; then
-  echo "Could not find the iOS Simulator Swift standard libraries in $toolchain_path/usr/lib" >&2
-  exit 1
-fi
-sim_swift_dependencies=()
-while IFS= read -r swift_dependency; do sim_swift_dependencies+=("$swift_dependency"); done \
-  < <(python3 tools/swift-runtime-dependencies.py "$sim_app/Sanyuan")
-if [[ ${#sim_swift_dependencies[@]} -eq 0 ]]; then
-  echo "The iOS Simulator executable has no Swift runtime dependencies" >&2
-  exit 1
-fi
-sim_resource_args=()
-for swift_dependency in "${sim_swift_dependencies[@]}"; do
-  sim_resource_args+=(--resource-library "$swift_dependency")
-done
-"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --verbose --scan-executable "$sim_app/Sanyuan" \
-  --unsigned-destination "$sim_app/Frameworks" --resource-destination "$sim_app/Frameworks" \
-  --platform iphonesimulator --source-libraries "$sim_swift_libraries" "${sim_resource_args[@]}"
+# --destination copies directly to Frameworks; --unsigned-destination adds a
+# platform subdirectory that dyld's @executable_path/Frameworks cannot resolve.
+"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --scan-executable "$sim_app/Sanyuan" \
+  --scan-folder "$sim_app/Frameworks" --destination "$sim_app/Frameworks" --platform iphonesimulator
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
