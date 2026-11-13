@@ -37,7 +37,7 @@ if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then
   exit 1
 fi
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable dist/sdk/Sanyuan \
-  --destination dist/swift-runtime --platform iphoneos --source-libraries "$swift_libraries"
+  --unsigned-destination dist/swift-runtime --platform iphoneos --source-libraries "$swift_libraries"
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
 version="$(node -p "require('./package.json').version")"
 python3 tools/check-ipa.py "dist/Sanyuan-${version}-unsigned.ipa"

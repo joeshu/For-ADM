@@ -51,7 +51,7 @@ if [[ ! -f "$sim_swift_libraries/libswiftCore.dylib" ]]; then
   exit 1
 fi
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable "$sim_app/Sanyuan" \
-  --destination "$sim_app/Frameworks" --platform iphonesimulator --source-libraries "$sim_swift_libraries"
+  --unsigned-destination "$sim_app/Frameworks" --platform iphonesimulator --source-libraries "$sim_swift_libraries"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]
