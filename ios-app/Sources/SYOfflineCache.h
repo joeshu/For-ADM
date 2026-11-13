@@ -18,8 +18,6 @@ NS_ASSUME_NONNULL_BEGIN
                  completion:(void (^ _Nullable)(BOOL ok, NSString * _Nullable errorMessage))completion;
 @end
 
-NS_ASSUME_NONNULL_END
-
 @implementation SYOfflineCacheManager
 
 + (instancetype)sharedManager {
@@ -58,7 +56,8 @@ NS_ASSUME_NONNULL_END
     return result;
 }
 
-- (nullable NSURL *)localPlaybackURLForKey:(NSString *)key {
+- (nullable NSURL *)localPlaybackURLForKey:(nullable NSString *)key {
+    if (!key.length) return nil;
     NSString *dir = [[self cacheDirectory] stringByAppendingPathComponent:[self safeKey:key]];
     NSString *indexPath = [dir stringByAppendingPathComponent:@"index.m3u8"];
     if ([NSFileManager.defaultManager fileExistsAtPath:indexPath]) {
@@ -67,16 +66,17 @@ NS_ASSUME_NONNULL_END
     return nil;
 }
 
-- (void)deleteEpisodeWithKey:(NSString *)key {
+- (void)deleteEpisodeWithKey:(nullable NSString *)key {
+    if (!key.length) return;
     NSString *dir = [[self cacheDirectory] stringByAppendingPathComponent:[self safeKey:key]];
     [NSFileManager.defaultManager removeItemAtPath:dir error:nil];
 }
 
-- (void)cacheEpisodeWithKey:(NSString *)key
-                      title:(NSString *)title
-                        url:(NSURL *)url
-                    headers:(NSDictionary *)headers
-                 completion:(void(^)(BOOL ok, NSString * _Nullable errorMessage))completion {
+- (void)cacheEpisodeWithKey:(nullable NSString *)key
+                      title:(nullable NSString *)title
+                        url:(nullable NSURL *)url
+                    headers:(nullable NSDictionary *)headers
+                 completion:(void (^ _Nullable)(BOOL ok, NSString * _Nullable errorMessage))completion {
     if (!key.length || !url) {
         if (completion) completion(NO, @"缺少缓存参数");
         return;
@@ -106,3 +106,5 @@ NS_ASSUME_NONNULL_END
 }
 
 @end
+
+NS_ASSUME_NONNULL_END
