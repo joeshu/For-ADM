@@ -24,6 +24,8 @@ rm -f dist/simulator-*.json dist/simulator-*.png dist/simulator-system.log
 mkdir -p dist/simulator/sdk
 cp -R dist/Payload/Sanyuan.app dist/simulator/
 sim_app="$PWD/dist/simulator/Sanyuan.app"
+mkdir -p "$sim_app/SmokeMedia"
+cp tests/fixtures/simulator-media/video.m3u8 tests/fixtures/simulator-media/segment-*.ts "$sim_app/SmokeMedia/"
 rm -f "$sim_app"/Frameworks/libswift*.dylib
 swift_sources=()
 while IFS= read -r swift_source; do swift_sources+=("$swift_source"); done < <(find DetailPlayerStabilityKit/Sources/DetailPlayerStabilityKit -name '*.swift' -type f | sort)
@@ -93,7 +95,7 @@ for attempt in $(seq 1 200); do
   fi
   if [ -f dist/simulator-discover-smoke.json ] && [ -f dist/simulator-playback-smoke.json ] && [ -f dist/simulator-live-smoke.json ] && [ -f dist/simulator-live-video-smoke.json ] && [ -f dist/simulator-live-video.png ]; then
     cat dist/simulator-smoke.json dist/simulator-discover-smoke.json dist/simulator-playback-smoke.json dist/simulator-live-smoke.json dist/simulator-live-video-smoke.json
-    python3 -c 'import json; s=json.load(open("dist/simulator-smoke.json")); d=json.load(open("dist/simulator-discover-smoke.json")); p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); v=json.load(open("dist/simulator-live-video-smoke.json")); assert s["encryptedPosterDecoder"], s; assert d["nativeDiscoverPage"] and d["bottomNavigationItems"]>=5 and d["paginationCursorIsString"], d; assert p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["embeddedLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["livePlayerAttachedToHost"] and l["livePlayerFillsHost"] and l["livePlayerResizesWithHost"] and l["avPlayerControllerEmbedded"] and l["avPlayerControllerResizesWithHost"] and l["routePickerAbovePlayer"] and l["categoryActionReachedBridge"] and l["categorySwitchReturnsToTop"] and l["fastSwitchUpdatesWithoutRebuild"] and l["gzipEPGDecoded"], l; assert v["status"]=="videoReady" and v["rendererAttached"] and v["rendererReady"] and v["playURLIsLoopback"] and v["presentationWidth"]>0 and v["presentationHeight"]>0, v'
+    python3 -c 'import json; s=json.load(open("dist/simulator-smoke.json")); d=json.load(open("dist/simulator-discover-smoke.json")); p=json.load(open("dist/simulator-playback-smoke.json")); l=json.load(open("dist/simulator-live-smoke.json")); v=json.load(open("dist/simulator-live-video-smoke.json")); assert s["encryptedPosterDecoder"], s; assert d["nativeDiscoverPage"] and d["bottomNavigationItems"]>=5 and d["paginationCursorIsString"], d; assert p["nativePlayerReady"] and p["firstFrameReady"] and p["rendererReady"] and p["presentationWidth"]>0 and p["presentationHeight"]>0 and p["playbackTime"]>1 and p["hlsProxyActive"] and p["inlinePlayback"] and p["nativePageController"], p; assert l["nativeLiveScreen"] and l["embeddedLiveScreen"] and l["pinnedPlayerHost"] and l["airplayRoutePicker"] and l["livePlayerAttachedToHost"] and l["livePlayerFillsHost"] and l["livePlayerResizesWithHost"] and l["avPlayerControllerEmbedded"] and l["avPlayerControllerResizesWithHost"] and l["routePickerAbovePlayer"] and l["categoryActionReachedBridge"] and l["categorySwitchReturnsToTop"] and l["fastSwitchUpdatesWithoutRebuild"] and l["gzipEPGDecoded"], l; assert v["status"]=="videoReady" and v["rendererAttached"] and v["rendererReady"] and v["playURLIsLoopback"] and v["presentationWidth"]>0 and v["presentationHeight"]>0, v'
     base_smoke_passed=1
     break
   fi

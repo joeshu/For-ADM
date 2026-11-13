@@ -8,7 +8,26 @@
 #import <CommonCrypto/CommonCryptor.h>
 #import <objc/runtime.h>
 #if defined(SY_SIMULATOR_SMOKE)
-#import <CoreFoundation/CFByteOrder.h>
+// Feed a bundled, real H.264 video through the same HLS proxy used by VOD.
+// This protocol exists only in the separately compiled simulator executable.
+@interface SYSmokeMediaProtocol:NSURLProtocol @end
+@implementation SYSmokeMediaProtocol
++ (BOOL)canInitWithRequest:(NSURLRequest*)request{return [request.URL.host isEqualToString:@"smoke.invalid"];}
++ (NSURLRequest*)canonicalRequestForRequest:(NSURLRequest*)request{return request;}
+- (void)startLoading {
+  NSString*name=self.request.URL.lastPathComponent;
+  NSSet*allowed=[NSSet setWithArray:@[@"video.m3u8",@"segment-00.ts",@"segment-01.ts",@"segment-02.ts"]];
+  NSURL*url=[[NSBundle.mainBundle.resourceURL URLByAppendingPathComponent:@"SmokeMedia"] URLByAppendingPathComponent:name];
+  NSData*data=[allowed containsObject:name]?[NSData dataWithContentsOfURL:url]:nil;
+  if(!data){[self.client URLProtocol:self didFailWithError:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorFileDoesNotExist userInfo:@{NSLocalizedDescriptionKey:@"Bundled simulator video fixture is missing"}]];return;}
+  NSString*type=[name hasSuffix:@".m3u8"]?@"application/vnd.apple.mpegurl":@"video/mp2t";
+  NSHTTPURLResponse*response=[[NSHTTPURLResponse alloc]initWithURL:self.request.URL statusCode:200 HTTPVersion:@"HTTP/1.1" headerFields:@{@"Content-Type":type,@"Content-Length":@(data.length).stringValue}];
+  [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+  if(![self.request.HTTPMethod isEqualToString:@"HEAD"])[self.client URLProtocol:self didLoadData:data];
+  [self.client URLProtocolDidFinishLoading:self];
+}
+- (void)stopLoading {}
+@end
 #endif
 @class SYController;
 static char SYPlaybackStatus;
@@ -690,6 +709,11 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   self.playbackGate=[SYPlaybackCommandGate new];
   self.playbackRuntime=[SYPlaybackRuntimeBridge new];self.playbackRuntime.delegate=self;
   self.tasks=[NSMutableDictionary dictionary];self.hlsProxy=[SYHLSProxy new];
+#if defined(SY_SIMULATOR_SMOKE)
+  NSURLSessionConfiguration*smokeConfig=[NSURLSessionConfiguration ephemeralSessionConfiguration];
+  smokeConfig.protocolClasses=@[SYSmokeMediaProtocol.class];
+  [self.hlsProxy.session invalidateAndCancel];self.hlsProxy.session=[NSURLSession sessionWithConfiguration:smokeConfig];
+#endif
   NSURLSessionConfiguration*sessionConfig=[NSURLSessionConfiguration ephemeralSessionConfiguration];
   sessionConfig.timeoutIntervalForRequest=18;sessionConfig.HTTPMaximumConnectionsPerHost=6;
   self.session=[NSURLSession sessionWithConfiguration:sessionConfig];
@@ -753,7 +777,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 }
 - (void)runPlaybackSmoke {
   if(!self.hlsProxy.port){if(self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:1];return;}
-  if(!self.smokePlaybackStarted){self.smokePlaybackStarted=YES;self.smokePlaybackDebug=[@{@"phase":@"evaluate-started",@"proxyPort":@(self.hlsProxy.port)} mutableCopy];[self writeSmokePlaybackDebug];[self.web evaluateJavaScript:@"(()=>{if(!window.NativeTransport)return {error:'NativeTransport missing'};window.NativeTransport.syncPage({page:'detail',theme:'white',site:'smoke',siteName:'模拟器检查',movie:{id:'1',title:'原生播放器检查',metadata:'本地测试媒体',actors:[],summary:'',imageURLs:[]},playSources:[],line:0,episode:{title:'静音测试',index:0},playURLs:[{url:'https://smoke.invalid/silence.m3u8'}],playIndex:0,loading:false});return window.NativeTransport.play('https://smoke.invalid/silence.m3u8',{}, {context:'smoke:playback',cleanHLS:true,frame:{visible:true,x:0,y:360,width:390,height:220,viewportWidth:390},title:'原生播放器检查'});})()" completionHandler:^(id result,NSError*error){self.smokePlaybackDebug[@"phase"]=@"evaluate-completed";if(result)self.smokePlaybackDebug[@"javascriptResult"]=[result description]?:@"";if(error)self.smokePlaybackDebug[@"javascriptError"]=error.localizedDescription?:@"unknown";[self writeSmokePlaybackDebug];}];}
+  if(!self.smokePlaybackStarted){self.smokePlaybackStarted=YES;self.smokePlaybackDebug=[@{@"phase":@"evaluate-started",@"proxyPort":@(self.hlsProxy.port)} mutableCopy];[self writeSmokePlaybackDebug];[self.web evaluateJavaScript:@"(()=>{if(!window.NativeTransport)return {error:'NativeTransport missing'};window.NativeTransport.syncPage({page:'detail',theme:'white',site:'smoke',siteName:'模拟器检查',movie:{id:'1',title:'原生播放器检查',metadata:'本地测试媒体',actors:[],summary:'',imageURLs:[]},playSources:[],line:0,episode:{title:'本地视频测试',index:0},playURLs:[{url:'https://smoke.invalid/video.m3u8'}],playIndex:0,loading:false});return window.NativeTransport.play('https://smoke.invalid/video.m3u8',{}, {context:'smoke:playback',cleanHLS:true,frame:{visible:true,x:0,y:360,width:390,height:220,viewportWidth:390},title:'原生播放器检查'});})()" completionHandler:^(id result,NSError*error){self.smokePlaybackDebug[@"phase"]=@"evaluate-completed";if(result)self.smokePlaybackDebug[@"javascriptResult"]=[result description]?:@"";if(error)self.smokePlaybackDebug[@"javascriptError"]=error.localizedDescription?:@"unknown";[self writeSmokePlaybackDebug];}];}
   if(!self.smokePlayerReady&&self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:2];
 }
 - (void)writeSmokePlaybackDebug {if(!self.smokePlaybackDebug)return;NSData*data=[NSJSONSerialization dataWithJSONObject:self.smokePlaybackDebug options:NSJSONWritingPrettyPrinted error:NULL];if(data)[data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke-debug.json"] atomically:YES];}
@@ -869,14 +893,6 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  if(screen){[screen willMoveToParentViewController:nil];[screen.view removeFromSuperview];[screen removeFromParentViewController];}self.appScreen.content.hidden=NO;self.appScreen.view.hidden=NO;[self.appScreen.view setNeedsLayout];[self setNeedsStatusBarAppearanceUpdate];
 }
 - (UIStatusBarStyle)preferredStatusBarStyle {if(self.liveScreen)return [self.liveSnapshot[@"theme"] isEqualToString:@"black"]?1:0;return self.detailStatusStyle||[self.pageSnapshot[@"theme"] isEqualToString:@"black"]?1:0;}
-#if defined(SY_SIMULATOR_SMOKE)
-- (NSURL*)smokeAudioFixtureURL {
-  const uint32_t sampleRate=8000,seconds=12,channels=1,bitsPerSample=16,dataBytes=sampleRate*seconds*channels*(bitsPerSample/8);
-  NSMutableData*wav=[NSMutableData data];uint32_t riffSize=CFSwapInt32HostToLittle(36+dataBytes),rate=CFSwapInt32HostToLittle(sampleRate),byteRate=CFSwapInt32HostToLittle(sampleRate*channels*(bitsPerSample/8)),payloadSize=CFSwapInt32HostToLittle(dataBytes);uint16_t format=CFSwapInt16HostToLittle(1),channelCount=CFSwapInt16HostToLittle(channels),alignment=CFSwapInt16HostToLittle(channels*(bitsPerSample/8)),sampleBits=CFSwapInt16HostToLittle(bitsPerSample);
-  [wav appendBytes:"RIFF" length:4];[wav appendBytes:&riffSize length:4];[wav appendBytes:"WAVEfmt " length:8];uint32_t formatSize=CFSwapInt32HostToLittle(16);[wav appendBytes:&formatSize length:4];[wav appendBytes:&format length:2];[wav appendBytes:&channelCount length:2];[wav appendBytes:&rate length:4];[wav appendBytes:&byteRate length:4];[wav appendBytes:&alignment length:2];[wav appendBytes:&sampleBits length:2];[wav appendBytes:"data" length:4];[wav appendBytes:&payloadSize length:4];[wav appendData:[NSMutableData dataWithLength:dataBytes]];
-  NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-smoke-silence.wav"];if(![wav writeToFile:path atomically:YES])return nil;return [NSURL fileURLWithPath:path];
-}
-#endif
 - (void)deliver:(NSDictionary*)result {
   NSData*data=[NSJSONSerialization dataWithJSONObject:result options:0 error:NULL];
   if(!data)return;
@@ -921,10 +937,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 #if defined(SY_SIMULATOR_SMOKE)
   if([event[@"context"] isEqualToString:@"smoke:playback"]){self.smokePlaybackDebug[@"phase"]=[event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"playback-event";if(event[@"error"])self.smokePlaybackDebug[@"playbackError"]=event[@"error"];if(event[@"time"])self.smokePlaybackDebug[@"playbackTime"]=event[@"time"];[self writeSmokePlaybackDebug];}
   if([event[@"context"] isEqualToString:@"live:smoke-cctv2"]){NSString*livePath=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"];NSDictionary*old=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:livePath]?:[NSData data] options:0 error:NULL];if(![old[@"status"] isEqualToString:@"videoReady"]){NSString*status=(self.nativeVideoReady||[event[@"status"] isEqualToString:@"videoReady"])?@"videoReady":([event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"unknown");NSMutableDictionary*liveResult=[@{@"context":event[@"context"],@"status":status,@"proxyEnabled":@(self.liveScreen!=nil),@"rendererAttached":@(self.liveRendererAttached),@"rendererReady":@(self.liveScreen.liveRendererLayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"playURLIsLoopback":@([self.nativeItem.asset isKindOfClass:AVURLAsset.class]&&[((AVURLAsset*)self.nativeItem.asset).URL.host isEqualToString:@"127.0.0.1"]),@"proxyHTTPStatus":@(self.hlsProxy.lastHTTPStatus),@"proxyError":self.hlsProxy.lastTransportError?:@""} mutableCopy];if(event[@"error"])liveResult[@"error"]=event[@"error"];NSData*liveData=[NSJSONSerialization dataWithJSONObject:liveResult options:NSJSONWritingPrettyPrinted error:NULL];if(liveData)[liveData writeToFile:livePath atomically:YES];}}
-  if([event[@"status"] isEqualToString:@"ready"])self.smokePlayerReady=YES;
-  if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1&&!self.smokeLiveStarted){
+  if([eventContext isEqualToString:@"smoke:playback"]&&[event[@"status"] isEqualToString:@"firstFrame"]&&self.nativeVideoReady)self.smokePlayerReady=YES;
+  if([eventContext isEqualToString:@"smoke:playback"]&&[event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&self.vodRendererLayer.readyForDisplay&&self.nativeItem.presentationSize.width>0&&self.nativeItem.presentationSize.height>0&&[event[@"time"] doubleValue]>1&&!self.smokeLiveStarted){
     self.smokeLiveStarted=YES;
-    NSDictionary*result=@{@"nativePlayerReady":@YES,@"hlsProxyActive":@(self.smokeProxyActive),@"removedAdSegments":@(self.hlsProxy.removed),@"inlinePlayback":@(self.nativePlayer.parentViewController==self.appScreen&&self.presentedViewController==nil&&self.nativePlayer.view.superview==self.appScreen.detailPlayerContainer.stageView&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"nativePageController":@(self.appScreen.view.superview==self.view),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
+    NSDictionary*result=@{@"nativePlayerReady":@YES,@"firstFrameReady":@(self.nativeVideoReady),@"rendererReady":@(self.vodRendererLayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"hlsProxyActive":@(self.smokeProxyActive),@"removedAdSegments":@(self.hlsProxy.removed),@"inlinePlayback":@(self.nativePlayer.parentViewController==self.appScreen&&self.presentedViewController==nil&&self.nativePlayer.view.superview==self.appScreen.detailPlayerContainer.stageView&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"nativePageController":@(self.appScreen.view.superview==self.view),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
     NSData*report=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
     [report writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke.json"] atomically:YES];
     [self.nativePlayer.player pause];
@@ -1510,8 +1526,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     NSURL*playURL=livePlayback?[self.hlsProxy prepareLive:url headers:headers]:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
     if(!livePlayback&&[body[@"warmPlaylists"] isKindOfClass:NSArray.class])[self.hlsProxy seedPlaylists:body[@"warmPlaylists"]];
     #if defined(SY_SIMULATOR_SMOKE)
-    self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
-    if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}
+    if([requestedContext isEqualToString:@"smoke:playback"])self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"]&&[playURL.host isEqualToString:@"127.0.0.1"];
 #endif
     [self destroyCicadaPlayer];self.cicadaFallbackAttempted=NO;self.cicadaVODFallbackAttempted=NO;if(livePlayback)self.livePlaybackHeaders=headers;
     if(!livePlayback)self.vodCicadaHeaders=headers;
