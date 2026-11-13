@@ -158,6 +158,78 @@
       "type": "script"
     },
     {
+      "key": "joeshu.wangzi",
+      "name": "王子",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/wangzi.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.moliget",
+      "name": "茉莉Get",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/moliget.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.juquan99",
+      "name": "剧圈99",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/juquan99.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.banri99",
+      "name": "半日99",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/banri99.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.yiqi",
+      "name": "一起影视",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/yiqi.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hanquan",
+      "name": "韩圈",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hanquan.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.xiqu",
+      "name": "戏曲多多",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/xiqu.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.weiguan",
+      "name": "围观短剧",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/weiguan.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.haokan",
+      "name": "好看短剧",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/haokan.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.bashi",
+      "name": "巴士动漫",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/bashi.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.guluapp",
+      "name": "咕噜（APP）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/guluapp.js?v=1",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hema",
+      "name": "河马短剧",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hema.js?v=1",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.duoduo",
       "name": "多多影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duoduo.py",

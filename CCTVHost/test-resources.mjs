@@ -22,8 +22,13 @@ const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
  * zone 回 100002，适配器文件暂存工作区未入库；苹果与已上架的
  * 小苹果是同一后端，不重复加；茉莉只有网盘链接，未写适配器。
  * 同日晚按用户要求剔除其中 8 站（浏览型/未通）：马猴影视、三六零、
- * 快映fox、骚火影视、枫叶影视、双星、稀饭、剧圈影视；保留 7 站。 */
-const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','piandi','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe'];
+ * 快映fox、骚火影视、枫叶影视、双星、稀饭、剧圈影视；保留 7 站。
+ * 2026-11-14 凌晨新增 12 站（TVBoxOSC 第二批，签名缺口已逐个还原）：
+ * 王子、茉莉Get、剧圈99、半日99、一起影视、韩圈、戏曲多多、围观短剧、
+ * 好看短剧、巴士动漫、咕噜（APP）、河马短剧。热播影视、蓝鸟、蓝鹰、
+ * 飞娱只跑通 mock（host 本机不通），文件暂存工作区未入库；1905、
+ * 厂长影视、果果短剧、橘汁 AppDrama、瓜子影视 native 未解出。 */
+const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','piandi','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe','wangzi','moliget','juquan99','banri99','yiqi','hanquan','xiqu','weiguan','haokan','bashi','guluapp','hema'];
 /* 2026-11-12 曾新增 7 组站的 10 个 18+ 成人适配器（黑桃/鬼片/野果/剧果/
  * 禁果/笔盒/黄果/红果黄剧/黄果剧场/帝果），2026-11-13 按用户要求全部从订阅
  * 移除；适配器文件已于同日从仓库删除，只能从 git 历史找回。 */
@@ -43,7 +48,7 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, eighteen new SSR sources, no adult sources, twenty-nine verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, thirty new SSR sources, no adult sources, twenty-nine verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -302,7 +307,7 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(home.list[0].vod_name,'测试影片',id+' maps site cards to CatVod fields');
   assert.ok(Array.isArray(home.class),id+' home call returns site categories');
 
-  const specialTypeIds={huayi:'21',bubu:'电影',fanshe:'20',jili:'20'};
+  const specialTypeIds={huayi:'21',bubu:'电影',fanshe:'20',jili:'20',juquan99:'20',guluapp:'movie'};
   const typeId=id==='yqk'||id==='qntv'?'2:9':(id==='souju'||id==='kanju'||id==='piandi'?'movie':(id==='hetun'?'21':(specialTypeIds[id]||'1')));
   const category=await plugin.category(typeId,'2',true,{});
   assert.equal(category.list.length,1,id+' category call returns playable cards');
@@ -312,7 +317,7 @@ for(const id of [...names,...newNames,...adultNames]){
     assert.equal(String(categoryArgs.parentChannelId),'2',id+' maps parent channel');
     assert.equal(String(categoryArgs.childChannelId),'9',id+' maps child category');
   }else if(id==='souju'||id==='kanju'||id==='piandi')assert.equal(categoryArgs.kind,'movie',id+' maps content kind');
-  else if(id==='hetun'||id==='xpg'||id==='huayi'||id==='bubu'||id==='fanshe')assert.equal(categoryArgs.kind,typeId,id+' maps content kind');
+  else if(id==='hetun'||id==='xpg'||id==='huayi'||id==='bubu'||id==='fanshe'||id==='wangzi'||id==='moliget'||id==='juquan99'||id==='banri99'||id==='guluapp')assert.equal(categoryArgs.kind,typeId,id+' maps content kind');
   else if(id==='jili')assert.equal(String(categoryArgs.channelId),'20',id+' maps source channel');
   else assert.equal(String(categoryArgs.channelId),'1',id+' maps source channel');
 
@@ -335,4 +340,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 56 entries (including twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the twenty-six JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 68 entries (including twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-eight JavaScript sources.');

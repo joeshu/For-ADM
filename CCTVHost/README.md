@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 56 个条目：26 个 CatVod / TVBox JavaScript 源、29 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 68 个条目：38 个 CatVod / TVBox JavaScript 源、29 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -42,6 +42,18 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `ikanbot.js` | 爱看机器人 | 抓站 + /api/getResN（token 推导已破译）；首页/分类/搜索/播放页实测通，两条 m3u8 本机 200；/play/ 后被 Cloudflare 挑战，需 iPhone 实测 |
 | `xingchen.js` | 星辰影视 | 抓站；全链实测通，播放 m3u8 本机 200 |
 | `fanshe.js` | 番社动漫 | 规则抓站（哆啦A梦专站）；全链实测通，播放 m3u8 本机 206（AES-128 分片） |
+| `wangzi.js` | 王子 | AppGet 签名已还原；全链实测通，搜仙逆 17 条、18 线、RY 线 m3u8 本机 200 |
+| `moliget.js` | 茉莉Get | AppGet 签名已还原；全链实测通，三种解析分支都通 |
+| `juquan99.js` | 剧圈99 | App99 签名已还原（SHA-256，AES 密钥=uuid）；全链实测通，搜仙逆 7 条、9 线、解析出真 MP4 |
+| `banri99.js` | 半日99 | App99 同族；全链实测通，搜仙逆 21 条、NBY 解析 m3u8 本机 200 |
+| `yiqi.js` | 一起影视 | MD5 签名已还原；全链实测通，12 线里 6 条 m3u8 HEAD 200 |
+| `hanquan.js` | 韩圈 | MD5 签名已还原；全链实测通，解析出直链 m3u8（200、33KB 真清单）；搜索本机全空，需手机复测 |
+| `xiqu.js` | 戏曲多多 | 所谓 MD5 签名根本不存在（md5 头是固定常量）；全链实测通，播一集 m3u8 本机 200 |
+| `weiguan.js` | 围观短剧 | 无请求签名；全链实测通，88 集全免费、播一集 mp4 本机 206 |
+| `haokan.js` | 好看短剧 | BAIDUCUID 还活着；全链实测通，94 集、播一集 1080p MP4 HEAD 200；搜索未验到，需手机复测 |
+| `bashi.js` | 巴士动漫 | key/t 播放页 iframe 现取现用（9 分钟后复用会 403）；全链实测通，播一集 QQ MP4 206 + ftyp 校验 |
+| `guluapp.js` | 咕噜（APP） | 原生 ECDH 握手 + HMAC 会话密钥 + AES-GCM protobuf 全套纯 JS 复现；全链实测通，搜仙逆 28 条、详情 230 集；解析站日配额已用完，需手机复测 |
+| `hema.js` | 河马短剧 | host 藏在 helper 类里（freevideo.zqqds.cn），AES-CBC 协议已还原；全链实测通，播两集 mp4（206 + ftyp 校验） |
 
 ### Hawk Python Spider 源
 
