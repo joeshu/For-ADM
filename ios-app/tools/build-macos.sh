@@ -16,8 +16,11 @@ xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module
   -parse-as-library -whole-module-optimization -O -emit-object -emit-module -emit-module-path dist/sdk/SanyuanPlayback.swiftmodule \
   -emit-objc-header -emit-objc-header-path dist/sdk/SanyuanPlayback-Swift.h \
   "${swift_sources[@]}" -o dist/sdk/playback.o
+echo "Built the Swift playback module. Compiling the Objective-C host."
 xcrun --sdk iphoneos clang -isysroot "$sdk_path" -I dist/sdk -target arm64-apple-ios15.0 -fobjc-arc -fblocks -Oz -c Sources/main.m -o dist/sdk/main.o
+echo "Built the Objective-C host. Compiling the Cicada wrapper."
 xcrun --sdk iphoneos clang -isysroot "$sdk_path" -target arm64-apple-ios15.0 -fobjc-arc -fblocks -Oz -c Sources/SYCicadaLivePlayer.m -o dist/sdk/cicada.o
+echo "Built the Cicada wrapper. Linking the iOS app."
 xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module-name SanyuanApp \
   dist/sdk/main.o dist/sdk/cicada.o dist/sdk/playback.o \
   -framework UIKit -framework Foundation -framework WebKit -framework AVKit -framework AVFoundation \
@@ -26,6 +29,7 @@ xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module
   -Xlinker -rpath -Xlinker @executable_path/Frameworks -lz \
   -Xlinker -no_adhoc_codesign -Xlinker -no_fixup_chains -Xlinker -headerpad -Xlinker 0x1000 \
   -o dist/sdk/Sanyuan
+echo "Linked the iOS app. Collecting the Swift runtime and packaging the IPA."
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable dist/sdk/Sanyuan \
   --destination dist/swift-runtime --platform iphoneos --toolchain "$toolchain_path"
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
