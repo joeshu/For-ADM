@@ -122,12 +122,6 @@
       "type": 3
     },
     {
-      "key": "joeshu.hongguo",
-      "name": "红果短剧",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/hongguo.js?v=1",
-      "type": "script"
-    },
-    {
       "key": "joeshu.sorani",
       "name": "青空次元",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/sorani.js?v=1",

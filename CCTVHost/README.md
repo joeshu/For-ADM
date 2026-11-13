@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 22 个条目：10 个 CatVod / TVBox JavaScript 源、11 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 21 个条目：9 个 CatVod / TVBox JavaScript 源、11 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -24,7 +24,6 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `dyls.js` | 电影猎手 | 原站 RSA/HMAC 请求协议、公开解析接口和原站媒体请求头 |
 | `souju.js` | 搜剧 AI | 独立访客会话、签名接口和分集播放线路 |
 | `kanju.js` | 看剧 AI | 独立公开目录接口和授权线路解析 |
-| `hongguo.js` | 红果短剧 | 官网 SSR 公开目录/详情（仅前几集可公开访问；播放与搜索受保护，不提供） |
 | `sorani.js` | 青空次元 | SSR 公开番剧目录/详情（仅非成人分类；搜索覆盖首页目录；播放未提供） |
 
 ### Hawk Python Spider 源
