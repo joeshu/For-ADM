@@ -36,7 +36,11 @@ if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then
   echo "Could not find the iPhoneOS Swift standard libraries in $toolchain_path/usr/lib" >&2
   exit 1
 fi
-"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable dist/sdk/Sanyuan \
+echo "Swift runtime source: $swift_libraries"
+printf 'Swift runtime library: %s\n' "$swift_libraries"/libswift*.dylib
+"$toolchain_path/usr/bin/swift-stdlib-tool" --print --scan-executable dist/sdk/Sanyuan \
+  --platform iphoneos --source-libraries "$swift_libraries"
+"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --verbose --scan-executable dist/sdk/Sanyuan \
   --unsigned-destination dist/swift-runtime --platform iphoneos --source-libraries "$swift_libraries"
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
 version="$(node -p "require('./package.json').version")"

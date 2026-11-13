@@ -50,7 +50,7 @@ if [[ ! -f "$sim_swift_libraries/libswiftCore.dylib" ]]; then
   echo "Could not find the iOS Simulator Swift standard libraries in $toolchain_path/usr/lib" >&2
   exit 1
 fi
-"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable "$sim_app/Sanyuan" \
+"$toolchain_path/usr/bin/swift-stdlib-tool" --copy --verbose --verbose --scan-executable "$sim_app/Sanyuan" \
   --unsigned-destination "$sim_app/Frameworks" --platform iphonesimulator --source-libraries "$sim_swift_libraries"
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
