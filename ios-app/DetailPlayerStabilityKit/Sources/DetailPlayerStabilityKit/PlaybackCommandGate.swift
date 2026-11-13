@@ -163,7 +163,7 @@ public final class PlaybackCommandGate: NSObject {
     public func stop(context: String) {
         lock.lock(); defer { lock.unlock() }
         guard context == self.context else { return }
-        context = ""
+        self.context = ""
         episodeKey = ""
         activeAttempt = 0
         activeKernel = ""
