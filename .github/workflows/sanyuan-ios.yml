@@ -33,6 +33,9 @@ jobs:
       - name: Install dependencies and test adapters
         working-directory: ios-app
         run: npm ci && npm test
+      - name: Verify Swift playback state and interruption handling
+        working-directory: ios-app
+        run: swift test --package-path DetailPlayerStabilityKit
       - name: Verify native HLS cleaning transport
         working-directory: ios-app
         run: npm run build:web && bash tools/check-hls-macos.sh

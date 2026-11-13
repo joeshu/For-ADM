@@ -7,7 +7,8 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 // stream is not delivering frames; rebuilding with software decode
 // cannot fix that, it only doubles the wait. So the VOD fallback path
 // now waits 10s for its first frame and reports a timeout straight
-// away, while real decode errors keep the one software retry.
+// away. Live playback keeps its one software retry; detail VOD delegates
+// retries to the shared playback recovery budget.
 const root=fileURLToPath(new URL('../',import.meta.url));
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const main=read('Sources/main.m'),player=read('Sources/SYCicadaLivePlayer.m'),header=read('Sources/SYCicadaLivePlayer.h');
@@ -28,8 +29,8 @@ test('a first-frame timeout fails fast instead of rebuilding with software decod
  assert.ok(player.includes('reportErrorWithCode:-1001 message:[NSString stringWithFormat:@"CicadaPlayer %.0f 秒内未显示首帧", owner.firstFrameTimeout] allowSoftwareRetry:NO'),'the watchdog must report the timeout without a software retry');
 });
 
-test('decode errors still get one software retry',()=>{
+test('decode errors can retry in the wrapper only when recovery is not externally managed',()=>{
  assert.ok(player.includes('- (void)reportErrorWithCode:(NSInteger)code message:(NSString *)message {'),'the two-argument reporter must exist');
  assert.ok(player.includes('[self reportErrorWithCode:code message:message allowSoftwareRetry:YES];'),'the two-argument reporter must still default to allowing the software retry');
- assert.ok(player.includes('if (allowSoftwareRetry && self.enableHardwareDecoder && !self.softwareRetryDone && self.player)'),'the software retry must still happen for errors that allow it');
+ assert.ok(player.includes('if (allowSoftwareRetry && !self.externalRecoveryManaged && self.enableHardwareDecoder && !self.softwareRetryDone && self.player)'),'the detail fallback must defer retries to the shared gate while live may use the wrapper retry');
 });

@@ -3,17 +3,19 @@
 // 支持容量上限（2GB）自动淘汰、列表查询、单集删除与本地播放 URL 解析。
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface SYOfflineCacheManager : NSObject
 + (instancetype)sharedManager;
 - (NSString *)cacheDirectory;
 - (NSArray<NSDictionary *> *)listCachedEpisodes;
-- (nullable NSURL *)localPlaybackURLForKey:(NSString *)key;
-- (void)deleteEpisodeWithKey:(NSString *)key;
-- (void)cacheEpisodeWithKey:(NSString *)key
-                      title:(NSString *)title
-                        url:(NSURL *)url
-                    headers:(NSDictionary *)headers
-                 completion:(void(^)(BOOL ok, NSString * _Nullable errorMessage))completion;
+- (nullable NSURL *)localPlaybackURLForKey:(nullable NSString *)key;
+- (void)deleteEpisodeWithKey:(nullable NSString *)key;
+- (void)cacheEpisodeWithKey:(nullable NSString *)key
+                      title:(nullable NSString *)title
+                        url:(nullable NSURL *)url
+                    headers:(nullable NSDictionary *)headers
+                 completion:(void (^ _Nullable)(BOOL ok, NSString * _Nullable errorMessage))completion;
 @end
 
 @implementation SYOfflineCacheManager
@@ -54,7 +56,8 @@
     return result;
 }
 
-- (nullable NSURL *)localPlaybackURLForKey:(NSString *)key {
+- (nullable NSURL *)localPlaybackURLForKey:(nullable NSString *)key {
+    if (!key.length) return nil;
     NSString *dir = [[self cacheDirectory] stringByAppendingPathComponent:[self safeKey:key]];
     NSString *indexPath = [dir stringByAppendingPathComponent:@"index.m3u8"];
     if ([NSFileManager.defaultManager fileExistsAtPath:indexPath]) {
@@ -63,16 +66,17 @@
     return nil;
 }
 
-- (void)deleteEpisodeWithKey:(NSString *)key {
+- (void)deleteEpisodeWithKey:(nullable NSString *)key {
+    if (!key.length) return;
     NSString *dir = [[self cacheDirectory] stringByAppendingPathComponent:[self safeKey:key]];
     [NSFileManager.defaultManager removeItemAtPath:dir error:nil];
 }
 
-- (void)cacheEpisodeWithKey:(NSString *)key
-                      title:(NSString *)title
-                        url:(NSURL *)url
-                    headers:(NSDictionary *)headers
-                 completion:(void(^)(BOOL ok, NSString * _Nullable errorMessage))completion {
+- (void)cacheEpisodeWithKey:(nullable NSString *)key
+                      title:(nullable NSString *)title
+                        url:(nullable NSURL *)url
+                    headers:(nullable NSDictionary *)headers
+                 completion:(void (^ _Nullable)(BOOL ok, NSString * _Nullable errorMessage))completion {
     if (!key.length || !url) {
         if (completion) completion(NO, @"缺少缓存参数");
         return;
@@ -102,3 +106,5 @@
 }
 
 @end
+
+NS_ASSUME_NONNULL_END

@@ -9,15 +9,15 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const app=read('Web/app.mjs');
 const main=read('Sources/main.m');
 const transport=read('Web/transport.mjs');
-const progress=app.slice(app.indexOf("if(event.status==='progress'"),app.indexOf("if(event.status==='ready'&&state.playRecovery"));
+const progress=app.slice(app.indexOf("if(event.status==='progress'"),app.indexOf('const firstFrame=event.status'));
 
-test('progress events are pushed to the native screen through a light message, not a full rebuild',()=>{
+test('native progress events update the native screen directly without a WebView round trip',()=>{
  assert.ok(progress.includes("state.playTime=Number(event.time)||0;"),'progress must record the current time');
  assert.ok(progress.includes("state.playDuration=Number(event.duration)||state.playDuration||0;"),'progress must record the duration');
- assert.ok(progress.includes('if(native.native())native.syncProgress(state.playTime,state.playDuration);'),'progress must reach the native screen');
- assert.ok(transport.includes("syncProgress(time,duration){if(native())globalThis.webkit.messageHandlers.native.postMessage({id:'page-progress',type:'pageProgress',time,duration});}"),'the transport must send the pageProgress message');
- assert.ok(main.includes("if([type isEqualToString:@\"pageProgress\"]"),'native must handle pageProgress');
- assert.ok(main.includes('[self.appScreen applyProgressTime:progressTime duration:progressDuration]'),'pageProgress must update only the slider, not rebuild the page');
+ assert.ok(!transport.includes('syncProgress('),'the WebView must not relay each native progress tick back to UIKit');
+ assert.ok(!main.includes('pageProgress'),'there must be no pageProgress bridge path');
+ const sendPlayback=main.slice(main.indexOf('- (void)sendPlayback:'),main.indexOf('#if defined(SY_SIMULATOR_SMOKE)',main.indexOf('- (void)sendPlayback:')));
+ assert.ok(sendPlayback.includes('[self.appScreen applyProgressTime:[event[@"time"] doubleValue] duration:[event[@"duration"] doubleValue]]'),'accepted native progress must update only the slider');
 });
 
 test('the native progress row shows a slider with both time labels and seeks on release',()=>{
@@ -25,11 +25,11 @@ test('the native progress row shows a slider with both time labels and seeks on 
  assert.ok(main.includes('self.progressCurrentLabel=[self label:[self formatDuration:snapshotTime]'),'the current-time label must start from the snapshot');
  assert.ok(main.includes('self.progressDurationLabel=[self label:[self formatDuration:snapshotDuration]'),'the duration label must start from the snapshot');
  assert.ok(main.includes('- (void)applyProgressTime:(NSTimeInterval)time duration:(NSTimeInterval)duration {'),'progress updates must go through applyProgressTime');
- assert.ok(main.includes('if(!self.progressScrubbing)self.progressSlider.value='),'a progress update must not move the thumb while the user is dragging');
+ assert.ok(main.includes('if(!self.progressScrubbing&&!self.progressSeeking)self.progressSlider.value='),'a progress update must not move the thumb while dragging or seeking');
  assert.ok(main.includes('- (void)progressSliderReleased:(UISlider*)sender {'),'releasing the slider must seek');
  assert.ok(main.includes('[self.owner seekNativePlayerToTime:sender.value];'),'release must seek the player to the slider value');
  assert.ok(main.includes('- (void)seekNativePlayerToTime:(NSTimeInterval)seconds {'),'the seek must be implemented on the controller');
- assert.ok(main.includes('if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer seekToTime:seconds];'),'a Cicada fallback must seek through Cicada, not AVPlayer');
+ assert.ok(main.includes('if(self.cicadaFallbackActive&&self.cicadaLivePlayer){\n  [self.cicadaLivePlayer seekToTime:seconds seekID:seekID];'),'a Cicada fallback must seek through Cicada with the active seek identity');
  assert.ok(main.includes('- (NSString*)formatDuration:(NSTimeInterval)seconds {'),'durations must be formatted as m:ss / h:mm:ss');
 });
 

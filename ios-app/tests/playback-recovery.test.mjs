@@ -38,7 +38,7 @@ test('line trials show their number while switching',()=>{
 });
 
 test('giving up clears the loading indicator',()=>{
- assert.ok(recovery.includes("recovery.running=false;state.playLoading=false;state.playError='当前播放线路中断"),'giving up must stop the loading indicator');
+ assert.ok(recovery.includes("recovery.running=false;state.playLoading=false;state.playError='当前线路已中断"),'giving up must stop the loading indicator');
  assert.ok(recovery.includes("state.playLoading=false;state.playError='原站返回了权限或账号限制"),'an authorization failure must also stop the loading indicator');
 });
 

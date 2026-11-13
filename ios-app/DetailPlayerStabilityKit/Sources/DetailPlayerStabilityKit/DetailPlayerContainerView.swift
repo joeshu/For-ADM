@@ -1,12 +1,13 @@
 #if canImport(UIKit)
 import UIKit
 
+@objc(SYDetailPlayerContainerView)
+@objcMembers
 public final class DetailPlayerContainerView: UIView {
     public let stageView: UIView = {
         let view = UIView()
         view.backgroundColor = .black
         view.clipsToBounds = true
-        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
@@ -15,71 +16,65 @@ public final class DetailPlayerContainerView: UIView {
         iv.contentMode = .scaleAspectFill
         iv.clipsToBounds = true
         iv.backgroundColor = .black
-        iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
     }()
 
     public let progressSlider: UISlider = {
         let slider = UISlider()
-        slider.translatesAutoresizingMaskIntoConstraints = false
         return slider
     }()
 
     private weak var mountedRenderView: UIView?
+    private var isPosterVisible = true
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        setupLockedAspectRatio()
+        setupSubviews()
     }
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupLockedAspectRatio()
+        setupSubviews()
     }
 
-    private func setupLockedAspectRatio() {
+    private func setupSubviews() {
         backgroundColor = .black
         clipsToBounds = true
-        translatesAutoresizingMaskIntoConstraints = false
-
-        let aspectConstraint = heightAnchor.constraint(equalTo: widthAnchor, multiplier: 9.0 / 16.0)
-        aspectConstraint.priority = .required
-        aspectConstraint.isActive = true
 
         addSubview(stageView)
         stageView.addSubview(posterImageView)
         addSubview(progressSlider)
+    }
 
-        NSLayoutConstraint.activate([
-            stageView.topAnchor.constraint(equalTo: topAnchor),
-            stageView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            stageView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            posterImageView.topAnchor.constraint(equalTo: stageView.topAnchor),
-            posterImageView.leadingAnchor.constraint(equalTo: stageView.leadingAnchor),
-            posterImageView.trailingAnchor.constraint(equalTo: stageView.trailingAnchor),
-            posterImageView.bottomAnchor.constraint(equalTo: stageView.bottomAnchor),
-
-            progressSlider.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            progressSlider.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
-            progressSlider.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -8)
-        ])
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        stageView.frame = bounds
+        mountedRenderView?.frame = stageView.bounds
+        posterImageView.frame = stageView.bounds
+        let sliderHeight: CGFloat = 32
+        progressSlider.frame = CGRect(
+            x: 16,
+            y: max(0, bounds.height - safeAreaInsets.bottom - sliderHeight - 8),
+            width: max(0, bounds.width - 32),
+            height: sliderHeight
+        )
     }
 
     public func mountRenderView(_ renderView: UIView) {
+        if mountedRenderView === renderView, renderView.superview === stageView {
+            renderView.frame = stageView.bounds
+            return
+        }
+        mountedRenderView?.removeFromSuperview()
         mountedRenderView = renderView
-        renderView.translatesAutoresizingMaskIntoConstraints = false
+        renderView.translatesAutoresizingMaskIntoConstraints = true
+        renderView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        renderView.frame = stageView.bounds
         stageView.insertSubview(renderView, belowSubview: posterImageView)
-        NSLayoutConstraint.activate([
-            renderView.topAnchor.constraint(equalTo: stageView.topAnchor),
-            renderView.leadingAnchor.constraint(equalTo: stageView.leadingAnchor),
-            renderView.trailingAnchor.constraint(equalTo: stageView.trailingAnchor),
-            renderView.bottomAnchor.constraint(equalTo: stageView.bottomAnchor)
-        ])
     }
 
     public func setPosterVisible(_ visible: Bool, animated: Bool = true) {
+        isPosterVisible = visible
         let targetAlpha: CGFloat = visible ? 1.0 : 0.0
         if animated {
             UIView.animate(withDuration: 0.22) {
@@ -88,6 +83,11 @@ public final class DetailPlayerContainerView: UIView {
         } else {
             posterImageView.alpha = targetAlpha
         }
+    }
+
+    public func setPosterImage(_ image: UIImage?) {
+        posterImageView.image = image
+        posterImageView.alpha = isPosterVisible ? 1 : 0
     }
 
     public func attachNavigationPopGestureExclusion(in navigationController: UINavigationController?) {

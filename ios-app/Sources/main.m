@@ -3,16 +3,38 @@
 #import "SYCicadaLivePlayer.h"
 #import "SYMediaEngine.h"
 #import "SYOfflineCache.h"
+#import "SanyuanPlayback-Swift.h"
 #import <zlib.h>
 #import <CommonCrypto/CommonCryptor.h>
 #import <objc/runtime.h>
 #if defined(SY_SIMULATOR_SMOKE)
-#import <CoreFoundation/CFByteOrder.h>
+// Feed a bundled, real H.264 video through the same HLS proxy used by VOD.
+// This protocol exists only in the separately compiled simulator executable.
+@interface SYSmokeMediaProtocol:NSURLProtocol @end
+@implementation SYSmokeMediaProtocol
++ (BOOL)canInitWithRequest:(NSURLRequest*)request{return [request.URL.host isEqualToString:@"smoke.invalid"];}
++ (NSURLRequest*)canonicalRequestForRequest:(NSURLRequest*)request{return request;}
+- (void)startLoading {
+  NSString*name=self.request.URL.lastPathComponent;
+  NSSet*allowed=[NSSet setWithArray:@[@"video.m3u8",@"segment-00.ts",@"segment-01.ts",@"segment-02.ts"]];
+  NSURL*url=[[NSBundle.mainBundle.resourceURL URLByAppendingPathComponent:@"SmokeMedia"] URLByAppendingPathComponent:name];
+  NSData*data=[allowed containsObject:name]?[NSData dataWithContentsOfURL:url]:nil;
+  if(!data){[self.client URLProtocol:self didFailWithError:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorFileDoesNotExist userInfo:@{NSLocalizedDescriptionKey:@"Bundled simulator video fixture is missing"}]];return;}
+  NSString*type=[name hasSuffix:@".m3u8"]?@"application/vnd.apple.mpegurl":@"video/mp2t";
+  NSHTTPURLResponse*response=[[NSHTTPURLResponse alloc]initWithURL:self.request.URL statusCode:200 HTTPVersion:@"HTTP/1.1" headerFields:@{@"Content-Type":type,@"Content-Length":@(data.length).stringValue}];
+  [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+  if(![self.request.HTTPMethod isEqualToString:@"HEAD"])[self.client URLProtocol:self didLoadData:data];
+  [self.client URLProtocolDidFinishLoading:self];
+}
+- (void)stopLoading {}
+@end
 #endif
 @class SYController;
 static char SYPlaybackStatus;
+static char SYPlaybackIntent;
 static char SYVideoPresentationSize;
 static char SYLiveRendererDisplayReady;
+static char SYVODRendererDisplayReady;
 static char SYPosterAssetKeys;
 static NSMutableDictionary *SYPosterImageCache;
 static NSMutableDictionary *SYPosterRequests;
@@ -100,6 +122,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic,strong) NSDictionary*state;
 @property(nonatomic,strong) UIScrollView*content;
 @property(nonatomic,strong) UIView*playerHost;
+@property(nonatomic,strong) SYDetailPlayerContainerView*detailPlayerContainer;
 @property(nonatomic,strong) UIActivityIndicatorView*loadingSpinner;
 @property(nonatomic,strong) UILabel*loadingLabel;
 @property(nonatomic,strong) AVRoutePickerView*routePicker;
@@ -112,6 +135,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic,strong) UILabel*progressCurrentLabel;
 @property(nonatomic,strong) UILabel*progressDurationLabel;
 @property(nonatomic) BOOL progressScrubbing;
+@property(nonatomic) BOOL progressSeeking;
 @property(nonatomic,strong) UIView*topBar;
 @property(nonatomic,strong) UIView*bottomBar;
 @property(nonatomic,strong) UILabel*titleLabel;
@@ -125,6 +149,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic,strong) UITextField*accountField;
 @property(nonatomic,strong) UITextField*passwordField;
 @property(nonatomic,copy) NSString*renderedPageKey;
+@property(nonatomic,copy) NSString*detailPosterMovieID;
 - (NSString*)renderKeyForState:(NSDictionary*)state;
 - (void)applyState:(NSDictionary*)state;
 - (void)layoutPlayerLoadingIndicator;
@@ -135,13 +160,14 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (BOOL)applyHeroCarouselState:(NSDictionary*)state;
 - (BOOL)applyDetailFastState:(NSDictionary*)state;
 - (void)loadPosters:(NSArray*)addresses into:(UIImageView*)imageView;
+- (void)applyDetailPoster:(NSDictionary*)movie;
 - (void)setPosterAssetKeys:(UIImageView*)imageView forMovie:(NSDictionary*)movie;
 - (void)loadVisiblePostersInShelf:(UIScrollView*)shelf;
 - (CGFloat)addShelf:(NSArray*)items title:(NSString*)title y:(CGFloat)y;
 - (SYLiveActionButton*)shelfCardForMovie:(NSDictionary*)movie frame:(CGRect)frame cardWidth:(CGFloat)cardWidth posterHeight:(CGFloat)posterHeight;
 - (NSUInteger)shelfColumnCount;
 @end
-@interface SYController:UIViewController<WKNavigationDelegate,SYCicadaLivePlayerDelegate>
+@interface SYController:UIViewController<WKNavigationDelegate,SYCicadaLivePlayerDelegate,SYPlaybackRuntimeBridgeDelegate>
 @property(nonatomic,strong) WKWebView*web;
 @property(nonatomic,strong) SYHLSProxy*hlsProxy;
 @property(nonatomic,strong) SYBridge*bridge;
@@ -156,6 +182,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic,strong) AVPlayerItem*nativeItem;
 @property(nonatomic,strong) AVPlayerItem*liveTrackInspectionItem;
 @property(nonatomic,strong) AVPlayerItem*vodTrackInspectionItem;
+@property(nonatomic,strong) AVPlayerLayer*vodRendererLayer;
+@property(nonatomic) NSUInteger vodRendererAttachAttempts;
 @property(nonatomic,strong) id timeObserver;
 @property(nonatomic,strong) id endObserver;
 @property(nonatomic,strong) id stalledObserver;
@@ -165,6 +193,12 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic) NSInteger vodStallChecks;
 @property(nonatomic) double lastVODProgressTime;
 @property(nonatomic,copy) NSString*playContext;
+@property(nonatomic,strong) SYPlaybackCommandGate*playbackGate;
+@property(nonatomic,strong) SYPlaybackRuntimeBridge*playbackRuntime;
+@property(nonatomic) uint64_t playbackAttemptID;
+@property(nonatomic) uint64_t playbackEventSequence;
+@property(nonatomic) uint64_t pendingSeekID;
+@property(nonatomic) uint64_t pendingSliderSeekID;
 @property(nonatomic,copy) NSString*preferredVideoGravity;
 @property(nonatomic) BOOL detailStatusStyle;
 @property(nonatomic) BOOL nativeVideoReady;
@@ -174,11 +208,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic) BOOL cicadaFallbackActive;
 @property(nonatomic) BOOL cicadaFallbackAttempted;
 @property(nonatomic,strong,nullable) NSDictionary*livePlaybackHeaders;
-// 点播 Cicada 回退：AVPlayer 卡顿时同线同清晰度换 Cicada 解。vodCicadaURL 为
-// 最高清晰度分变体直连地址（JS 传 cicadaURL），没有时退回原站直连地址，
-// 再没有时退回代理地址；headers 与 AVPlayer 用同一份。
-@property(nonatomic,strong,nullable) NSURL*vodDirectURL;
-@property(nonatomic,strong,nullable) NSURL*vodCicadaURL;
+// 点播 Cicada 回退沿用 AVPlayer 正在读取的 asset URL，保住 HLS 清洗后的
+// 时间轴；代理 URL 和对应资源表在回退期间保持不变。
 @property(nonatomic,strong,nullable) NSDictionary*vodCicadaHeaders;
 @property(nonatomic) BOOL cicadaVODFallbackAttempted;
 // I1/I2/I3：后台暂停、音频打断、原生睡眠定时共用的状态。
@@ -186,6 +217,8 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 @property(nonatomic) NSTimeInterval sleepTimerEndAt;
 @property(nonatomic) BOOL cicadaPausedForBackground;
 @property(nonatomic) BOOL cicadaPausedForInterruption;
+@property(nonatomic) BOOL nativePausedForInterruption;
+@property(nonatomic) BOOL suppressPlaybackIntentUpdates;
 @property(nonatomic) double pendingStartAt;
 @property(nonatomic) double lastSeekTargetTime;
 @property(nonatomic) double lastSeekTimestamp;
@@ -208,6 +241,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (void)receive:(WKScriptMessage*)message;
 - (void)inspectLiveVideoTracksForItem:(AVPlayerItem*)item;
 - (void)inspectVODVideoTracksForItem:(AVPlayerItem*)item context:(NSString*)context;
+- (void)attachVODRendererForItem:(AVPlayerItem*)item;
 - (void)attachLiveLayerRendererForItem:(AVPlayerItem*)item;
 - (BOOL)tryCicadaFallbackForItem:(AVPlayerItem*)item;
 - (BOOL)tryCicadaVODFallbackForItem:(AVPlayerItem*)item;
@@ -416,14 +450,40 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 - (UILabel*)label:(NSString*)text size:(CGFloat)size bold:(BOOL)bold color:(UIColor*)color {UILabel*l=[UILabel new];l.text=text?:@"";l.textColor=color?:[self ink];l.font=bold?[UIFont boldSystemFontOfSize:size]:[UIFont systemFontOfSize:size];l.numberOfLines=0;return l;}
 - (SYLiveActionButton*)button:(NSString*)title action:(NSString*)action payload:(NSDictionary*)payload {SYLiveActionButton*b=[SYLiveActionButton buttonWithType:UIButtonTypeSystem];b.action=action;b.payload=payload?:@{};b.backgroundColor=[self surface];b.layer.cornerRadius=16;b.layer.borderWidth=.5;b.layer.borderColor=[UIColor colorWithRed:.55 green:.68 blue:.63 alpha:[self isAppDarkTheme]?.22:.09].CGColor;b.contentEdgeInsets=UIEdgeInsetsMake(8,12,8,12);b.titleLabel.font=[UIFont systemFontOfSize:14 weight:UIFontWeightMedium];b.titleLabel.lineBreakMode=NSLineBreakByTruncatingTail;[b setTitle:title forState:UIControlStateNormal];[b setTitleColor:[self ink] forState:UIControlStateNormal];[b addTarget:self action:@selector(actionPressed:) forControlEvents:UIControlEventTouchUpInside];return b;}
 - (void)actionPressed:(SYLiveActionButton*)sender {if([sender.action isEqualToString:@"search-submit"]){[self.owner sendPageAction:sender.action payload:@{@"query":self.searchField.text?:@""}];return;}if([sender.action isEqualToString:@"login-submit"]){[self.owner sendPageAction:sender.action payload:@{@"account":self.accountField.text?:@"",@"password":self.passwordField.text?:@""}];return;}[self.owner sendPageAction:sender.action payload:sender.payload?:@{}];}
-- (void)viewDidLoad {[super viewDidLoad];self.view.backgroundColor=[UIColor colorWithRed:.953 green:.961 blue:.980 alpha:1];self.topBar=[UIView new];self.topBar.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.topBar];self.titleLabel=[self label:@"三源影视" size:20 bold:YES color:[self ink]];[self.topBar addSubview:self.titleLabel];self.content=[UIScrollView new];self.content.delegate=self;self.content.alwaysBounceVertical=YES;self.content.showsVerticalScrollIndicator=NO;self.content.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.content];self.playerHost=[UIView new];self.playerHost.backgroundColor=UIColor.blackColor;self.playerHost.clipsToBounds=YES;self.playerHost.layer.cornerRadius=14;self.playerHost.hidden=YES;[self.view addSubview:self.playerHost];self.loadingSpinner=[[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];self.loadingSpinner.color=UIColor.whiteColor;self.loadingSpinner.hidden=YES;[self.playerHost addSubview:self.loadingSpinner];self.loadingLabel=[self label:@"正在加载播放器…" size:13 bold:NO color:UIColor.whiteColor];self.loadingLabel.textAlignment=NSTextAlignmentCenter;self.loadingLabel.hidden=YES;[self.playerHost addSubview:self.loadingLabel];self.routePicker=[[AVRoutePickerView alloc]initWithFrame:CGRectMake(0,0,44,40)];self.routePicker.tintColor=UIColor.whiteColor;self.routePicker.activeTintColor=[UIColor systemBlueColor];[self.playerHost addSubview:self.routePicker];self.bottomBar=[UIView new];self.bottomBar.backgroundColor=UIColor.whiteColor;self.bottomBar.layer.cornerRadius=32;self.bottomBar.layer.borderWidth=.5;self.bottomBar.layer.shadowColor=[UIColor colorWithRed:.08 green:.14 blue:.24 alpha:1].CGColor;self.bottomBar.layer.shadowOpacity=.14;self.bottomBar.layer.shadowRadius=20;self.bottomBar.layer.shadowOffset=CGSizeMake(0,6);[self.view addSubview:self.bottomBar];}
-- (void)viewDidLayoutSubviews {[super viewDidLayoutSubviews];CGFloat w=self.view.bounds.size.width,h=self.view.bounds.size.height,top=self.view.safeAreaInsets.top;self.topBar.frame=CGRectMake(0,top,w,54);self.titleLabel.frame=CGRectMake(20,5,w-40,35);BOOL detail=[self.state[@"page"] isEqualToString:@"detail"],live=[self.state[@"page"] isEqualToString:@"live"],playing=[self.state[@"playURLs"] count]>0||[self.state[@"playLoading"] boolValue]||self.owner.nativePlayer!=nil||self.owner.cicadaLivePlayer!=nil;self.playerHost.hidden=!(detail&&playing);CGFloat pH=MIN(w*9.0/16.0,245),pY=top+54;if(!self.playerHost.hidden){self.playerHost.frame=CGRectMake(0,pY,w,pH);if(self.owner.nativePlayer&&!self.owner.nativePlayer.fullScreen&&self.owner.nativePlayer.view.superview==self.playerHost)self.owner.nativePlayer.view.frame=self.playerHost.bounds;if(self.owner.cicadaFallbackActive&&self.owner.cicadaLivePlayer&&self.owner.cicadaLivePlayer.playerView.superview==self.playerHost)self.owner.cicadaLivePlayer.playerView.frame=self.playerHost.bounds;self.routePicker.frame=CGRectMake(w-52,8,44,40);[self.playerHost bringSubviewToFront:self.routePicker];}[self layoutPlayerLoadingIndicator];CGFloat navH=68,navY=h-self.view.safeAreaInsets.bottom-navH-8;self.bottomBar.hidden=detail||[self.state[@"page"] isEqualToString:@"collection"]||[self.state[@"page"] isEqualToString:@"diagnostics"];self.bottomBar.frame=CGRectMake(14,navY,w-28,navH);CGFloat cY=self.playerHost.hidden?top+54:pY+pH,contentBottom=h-self.view.safeAreaInsets.bottom;self.content.frame=CGRectMake(0,cY,w,MAX(0,contentBottom-cY));self.content.contentInset=UIEdgeInsetsMake(0,0,self.bottomBar.hidden?20:(navH+18),0);self.content.hidden=live;if(live&&self.owner.liveScreen){UIView*liveView=self.owner.liveScreen.view;liveView.frame=CGRectMake(0,top+54,w,MAX(0,navY-top-54));[liveView setNeedsLayout];[liveView layoutIfNeeded];[self.view bringSubviewToFront:liveView];}[self.view bringSubviewToFront:self.topBar];[self.view bringSubviewToFront:self.playerHost];[self.view bringSubviewToFront:self.bottomBar];if(!self.content.hidden)for(UIView*view in self.content.subviews)if([view isKindOfClass:UIScrollView.class]&&view.tag==9301)[self loadVisiblePostersInShelf:(UIScrollView*)view];}
+- (void)viewDidLoad {[super viewDidLoad];self.view.backgroundColor=[UIColor colorWithRed:.953 green:.961 blue:.980 alpha:1];self.topBar=[UIView new];self.topBar.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.topBar];self.titleLabel=[self label:@"三源影视" size:20 bold:YES color:[self ink]];[self.topBar addSubview:self.titleLabel];self.content=[UIScrollView new];self.content.delegate=self;self.content.alwaysBounceVertical=YES;self.content.showsVerticalScrollIndicator=NO;self.content.backgroundColor=self.view.backgroundColor;[self.view addSubview:self.content];self.detailPlayerContainer=[SYDetailPlayerContainerView new];self.detailPlayerContainer.backgroundColor=UIColor.blackColor;self.detailPlayerContainer.clipsToBounds=YES;self.detailPlayerContainer.layer.cornerRadius=14;self.detailPlayerContainer.hidden=YES;self.detailPlayerContainer.progressSlider.hidden=YES;self.playerHost=self.detailPlayerContainer;self.owner.playbackRuntime.containerView=self.detailPlayerContainer;[self.view addSubview:self.playerHost];self.loadingSpinner=[[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];self.loadingSpinner.color=UIColor.whiteColor;self.loadingSpinner.hidden=YES;[self.playerHost addSubview:self.loadingSpinner];self.loadingLabel=[self label:@"正在加载播放器…" size:13 bold:NO color:UIColor.whiteColor];self.loadingLabel.textAlignment=NSTextAlignmentCenter;self.loadingLabel.hidden=YES;[self.playerHost addSubview:self.loadingLabel];self.routePicker=[[AVRoutePickerView alloc]initWithFrame:CGRectMake(0,0,44,40)];self.routePicker.tintColor=UIColor.whiteColor;self.routePicker.activeTintColor=[UIColor systemBlueColor];[self.playerHost addSubview:self.routePicker];self.bottomBar=[UIView new];self.bottomBar.backgroundColor=UIColor.whiteColor;self.bottomBar.layer.cornerRadius=32;self.bottomBar.layer.borderWidth=.5;self.bottomBar.layer.shadowColor=[UIColor colorWithRed:.08 green:.14 blue:.24 alpha:1].CGColor;self.bottomBar.layer.shadowOpacity=.14;self.bottomBar.layer.shadowRadius=20;self.bottomBar.layer.shadowOffset=CGSizeMake(0,6);[self.view addSubview:self.bottomBar];}
+- (void)viewDidLayoutSubviews {
+ [super viewDidLayoutSubviews];
+ CGFloat w=self.view.bounds.size.width,h=self.view.bounds.size.height,top=self.view.safeAreaInsets.top;
+ self.topBar.frame=CGRectMake(0,top,w,54);self.titleLabel.frame=CGRectMake(20,5,w-40,35);
+ BOOL detail=[self.state[@"page"] isEqualToString:@"detail"],live=[self.state[@"page"] isEqualToString:@"live"];
+ BOOL playing=[self.state[@"playURLs"] count]>0||[self.state[@"playLoading"] boolValue]||self.owner.nativePlayer!=nil||self.owner.cicadaLivePlayer!=nil;
+ self.playerHost.hidden=!(detail&&playing);
+ CGFloat pH=MIN(w*9.0/16.0,245),pY=top+54;
+ if(!self.playerHost.hidden){
+  self.playerHost.frame=CGRectMake(0,pY,w,pH);[self.detailPlayerContainer setNeedsLayout];[self.detailPlayerContainer layoutIfNeeded];
+  if(self.owner.cicadaFallbackActive&&self.owner.cicadaLivePlayer){[self.detailPlayerContainer mountRenderView:self.owner.cicadaLivePlayer.playerView];}
+  else if(self.owner.nativePlayer&&!self.owner.nativePlayer.fullScreen){[self.detailPlayerContainer mountRenderView:self.owner.nativePlayer.view];}
+  self.routePicker.frame=CGRectMake(w-52,8,44,40);[self.playerHost bringSubviewToFront:self.routePicker];
+ }
+ [self layoutPlayerLoadingIndicator];
+ CGFloat navH=68,navY=h-self.view.safeAreaInsets.bottom-navH-8;
+ self.bottomBar.hidden=detail||[self.state[@"page"] isEqualToString:@"collection"]||[self.state[@"page"] isEqualToString:@"diagnostics"];
+ self.bottomBar.frame=CGRectMake(14,navY,w-28,navH);
+ CGFloat cY=self.playerHost.hidden?top+54:pY+pH,contentBottom=h-self.view.safeAreaInsets.bottom;
+ self.content.frame=CGRectMake(0,cY,w,MAX(0,contentBottom-cY));
+ self.content.contentInset=UIEdgeInsetsMake(0,0,self.bottomBar.hidden?20:(navH+18),0);self.content.hidden=live;
+ if(live&&self.owner.liveScreen){UIView*liveView=self.owner.liveScreen.view;liveView.frame=CGRectMake(0,top+54,w,MAX(0,navY-top-54));[liveView setNeedsLayout];[liveView layoutIfNeeded];[self.view bringSubviewToFront:liveView];}
+ [self.view bringSubviewToFront:self.topBar];[self.view bringSubviewToFront:self.playerHost];[self.view bringSubviewToFront:self.bottomBar];
+ NSDictionary*movie=[self.state[@"movie"] isKindOfClass:NSDictionary.class]?self.state[@"movie"]:@{};
+ if(detail)[self applyDetailPoster:movie];else self.detailPosterMovieID=nil;
+ if(!self.content.hidden)for(UIView*view in self.content.subviews)if([view isKindOfClass:UIScrollView.class]&&view.tag==9301)[self loadVisiblePostersInShelf:(UIScrollView*)view];
+}
 - (void)layoutPlayerLoadingIndicator {
  // A2/H5：原生播放器里的加载/缓冲指示。播放器画面是纯黑的 playerHost，
  // 首帧未出、软解重建时没有其它地方能看到状态；用快照里的 playLoading
  // 驱动一个转圈 + 一行状态文字，盖在播放器画面之上。
  if(!self.loadingSpinner||!self.loadingLabel)return;
- BOOL loading=[self.state[@"playLoading"] boolValue]&&!self.playerHost.hidden;
+ BOOL loading=([self.state[@"playLoading"] boolValue]||self.owner.playbackRuntime.isShowingLoading)&&!self.playerHost.hidden;
  self.loadingSpinner.hidden=!loading;self.loadingLabel.hidden=!loading;
  if(!loading){[self.loadingSpinner stopAnimating];return;}
  CGFloat pw=self.playerHost.bounds.size.width,ph=self.playerHost.bounds.size.height;
@@ -443,20 +503,20 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  return [NSString stringWithFormat:@"%ld:%02ld",(long)(total/60),(long)(total%60)];
 }
 - (void)applyProgressTime:(NSTimeInterval)time duration:(NSTimeInterval)duration {
- // E1：轻量进度更新（pageProgress 消息），只动滑块和两端时间，
+ // 轻量进度更新，只动滑块和两端时间，
  // 不走整页重建。拖动中不改滑块位置，避免和手指打架。
  if(!self.progressSlider||!self.progressCurrentLabel||!self.progressDurationLabel)return;
  if(duration>0)self.progressSlider.maximumValue=duration;
- if(!self.progressScrubbing)self.progressSlider.value=MIN(MAX(0,time),self.progressSlider.maximumValue);
+  if(!self.progressScrubbing&&!self.progressSeeking)self.progressSlider.value=MIN(MAX(0,time),self.progressSlider.maximumValue);
  self.progressCurrentLabel.text=[self formatDuration:time];
- self.progressDurationLabel.text=[self formatDuration:duration];
+ self.progressDurationLabel.text=[self formatDuration:duration>0?duration:self.progressSlider.maximumValue];
 }
 - (void)progressSliderChanged:(UISlider*)sender {
  self.progressScrubbing=YES;
  self.progressCurrentLabel.text=[self formatDuration:sender.value];
 }
 - (void)progressSliderReleased:(UISlider*)sender {
- self.progressScrubbing=NO;
+  self.progressScrubbing=NO;self.progressSeeking=YES;
  [self.owner seekNativePlayerToTime:sender.value];
 }
 - (UIButton*)addButton:(NSString*)title action:(NSString*)action data:(NSDictionary*)data y:(CGFloat)y height:(CGFloat)height {CGFloat w=self.view.bounds.size.width;SYLiveActionButton*b=[self button:title action:action payload:data];b.frame=CGRectMake(16,y,w-32,height);[self.content addSubview:b];return b;}
@@ -567,7 +627,15 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  self.heroPoster.image=nil;self.heroPoster.accessibilityHint=movie[@"imageReferer"]?:@"";[self setPosterAssetKeys:self.heroPoster forMovie:movie];NSArray*urls=[movie[@"imageURLs"] isKindOfClass:NSArray.class]?movie[@"imageURLs"]:@[];[self loadPosters:urls into:self.heroPoster];for(NSUInteger index=0;index<picks.count;index++){NSDictionary*item=[picks[index] isKindOfClass:NSDictionary.class]?picks[index]:@{};SYLiveActionButton*button=self.heroPickerButtons[index];BOOL active=index==selected;[button setTitle:active?@"●":@"○" forState:UIControlStateNormal];button.titleLabel.font=[UIFont systemFontOfSize:active?13:11 weight:UIFontWeightSemibold];[button setTitleColor:active?[self accent]:[self muted] forState:UIControlStateNormal];button.accessibilityLabel=[NSString stringWithFormat:@"推荐%lu：%@",(unsigned long)index+1,item[@"title"]?:@"推荐"];button.accessibilityTraits=UIAccessibilityTraitButton|(active?UIAccessibilityTraitSelected:0);}
  return YES;
 }
-- (void)applyState:(NSDictionary*)state {NSDictionary*next=[state isKindOfClass:NSDictionary.class]?state:@{};if(self.state&&[self.state isEqual:next])return;if(self.state&&[self applyHeroCarouselState:next])return;if(self.state&&[self appendMoviePageFromState:self.state toState:next])return;if(self.state&&[self applyDetailFastState:next])return;CGPoint previousOffset=self.content.contentOffset;self.state=next;BOOL dark=[self isAppDarkTheme];UIColor*background=dark?[UIColor colorWithRed:.035 green:.055 blue:.08 alpha:1]:[UIColor colorWithRed:.953 green:.961 blue:.980 alpha:1];self.view.backgroundColor=background;self.content.backgroundColor=background;self.topBar.backgroundColor=[background colorWithAlphaComponent:.96];self.bottomBar.backgroundColor=dark?[UIColor colorWithRed:.07 green:.11 blue:.15 alpha:.96]:[UIColor colorWithRed:1 green:1 blue:1 alpha:.96];NSString*page=self.state[@"page"]?:@"home";NSString*pageKey=[self renderKeyForState:self.state];BOOL resetOffset=!self.renderedPageKey||![self.renderedPageKey isEqualToString:pageKey];self.renderedPageKey=pageKey;NSString*title=self.state[@"title"]?:self.state[@"siteName"]?:@"三源影视";NSDictionary*m=self.state[@"movie"];if([page isEqualToString:@"live"])title=@"直播";if([page isEqualToString:@"detail"])title=m[@"title"]?:@"影片详情";self.titleLabel.text=title;self.titleLabel.textColor=[self ink];self.heroCard=nil;self.heroPoster=nil;self.heroTitleLabel=nil;self.heroSubtitleLabel=nil;self.heroBadgeLabel=nil;self.heroPickerButtons=nil;self.progressScrubbing=NO;self.progressSlider=nil;self.progressCurrentLabel=nil;self.progressDurationLabel=nil;self.detailDiagLabel=nil;self.detailMuteButton=nil;self.detailSleepButton=nil;self.detailEpisodeButtons=[NSMutableArray array];self.detailRateButtons=[NSMutableArray array];for(UIView*v in self.content.subviews)[v removeFromSuperview];for(UIView*v in self.bottomBar.subviews)[v removeFromSuperview];for(UIView*v in self.topBar.subviews)if(v!=self.titleLabel)[v removeFromSuperview];if([page isEqualToString:@"detail"]||[page isEqualToString:@"collection"]||[page isEqualToString:@"diagnostics"]){NSString*backAction=[page isEqualToString:@"detail"]?@"back":([page isEqualToString:@"collection"]?@"collection-back":@"page");NSDictionary*backPayload=[page isEqualToString:@"diagnostics"]?@{@"id":@"me"}:@{};SYLiveActionButton*b=[self button:@"‹" action:backAction payload:backPayload];b.frame=CGRectMake(12,4,44,42);b.titleLabel.font=[UIFont systemFontOfSize:28];[self.topBar addSubview:b];self.titleLabel.frame=CGRectMake(62,5,self.view.bounds.size.width-124,36);self.titleLabel.textAlignment=NSTextAlignmentCenter;}else{self.titleLabel.frame=CGRectMake(18,5,self.view.bounds.size.width-124,36);self.titleLabel.textAlignment=NSTextAlignmentLeft;SYLiveActionButton*themeBtn=[self button:@"◐" action:@"theme" payload:@{@"id":dark?@"white":@"black"}];themeBtn.frame=CGRectMake(self.view.bounds.size.width-98,6,38,38);themeBtn.layer.cornerRadius=19;[self.topBar addSubview:themeBtn];SYLiveActionButton*refreshBtn=[self button:@"↻" action:@"refresh" payload:@{}];refreshBtn.frame=CGRectMake(self.view.bounds.size.width-54,6,38,38);refreshBtn.layer.cornerRadius=19;[self.topBar addSubview:refreshBtn];}CGFloat w=self.view.bounds.size.width,y=12;self.content.contentSize=CGSizeMake(w,0);if([self.state[@"loading"] boolValue]||[self.state[@"error"] length]){NSString*message=[self.state[@"error"] length]?self.state[@"error"]:@"正在加载内容…";[self addButton:message action:[self.state[@"error"] length]?@"refresh":@"" data:@{} y:y height:42];y+=50;}
+- (void)applyDetailPoster:(NSDictionary*)movie {
+ id rawID=movie[@"id"];NSString*movieID=(rawID==nil||rawID==NSNull.null)?@"" : [rawID description];
+ if(!movieID.length||[self.detailPosterMovieID isEqualToString:movieID])return;
+ self.detailPosterMovieID=movieID;self.detailPlayerContainer.posterImageView.image=nil;[self.detailPlayerContainer setPosterVisible:YES animated:NO];
+ self.detailPlayerContainer.posterImageView.accessibilityHint=movie[@"imageReferer"]?:@"";
+ [self setPosterAssetKeys:self.detailPlayerContainer.posterImageView forMovie:movie];
+ [self loadPosters:[movie[@"imageURLs"] isKindOfClass:NSArray.class]?movie[@"imageURLs"]:@[] into:self.detailPlayerContainer.posterImageView];
+}
+- (void)applyState:(NSDictionary*)state {NSDictionary*next=[state isKindOfClass:NSDictionary.class]?state:@{};if(self.state&&[self.state isEqual:next])return;if(self.state&&[self applyHeroCarouselState:next])return;if(self.state&&[self appendMoviePageFromState:self.state toState:next])return;if(self.state&&[self applyDetailFastState:next])return;CGPoint previousOffset=self.content.contentOffset;self.state=next;BOOL dark=[self isAppDarkTheme];UIColor*background=dark?[UIColor colorWithRed:.035 green:.055 blue:.08 alpha:1]:[UIColor colorWithRed:.953 green:.961 blue:.980 alpha:1];self.view.backgroundColor=background;self.content.backgroundColor=background;self.topBar.backgroundColor=[background colorWithAlphaComponent:.96];self.bottomBar.backgroundColor=dark?[UIColor colorWithRed:.07 green:.11 blue:.15 alpha:.96]:[UIColor colorWithRed:1 green:1 blue:1 alpha:.96];NSString*page=self.state[@"page"]?:@"home";if([page isEqualToString:@"detail"])[self applyDetailPoster:[self.state[@"movie"] isKindOfClass:NSDictionary.class]?self.state[@"movie"]:@{}];else self.detailPosterMovieID=nil;NSString*pageKey=[self renderKeyForState:self.state];BOOL resetOffset=!self.renderedPageKey||![self.renderedPageKey isEqualToString:pageKey];self.renderedPageKey=pageKey;NSString*title=self.state[@"title"]?:self.state[@"siteName"]?:@"三源影视";NSDictionary*m=self.state[@"movie"];if([page isEqualToString:@"live"])title=@"直播";if([page isEqualToString:@"detail"])title=m[@"title"]?:@"影片详情";self.titleLabel.text=title;self.titleLabel.textColor=[self ink];self.heroCard=nil;self.heroPoster=nil;self.heroTitleLabel=nil;self.heroSubtitleLabel=nil;self.heroBadgeLabel=nil;self.heroPickerButtons=nil;self.progressScrubbing=NO;self.progressSlider=nil;self.progressCurrentLabel=nil;self.progressDurationLabel=nil;self.detailDiagLabel=nil;self.detailMuteButton=nil;self.detailSleepButton=nil;self.detailEpisodeButtons=[NSMutableArray array];self.detailRateButtons=[NSMutableArray array];for(UIView*v in self.content.subviews)[v removeFromSuperview];for(UIView*v in self.bottomBar.subviews)[v removeFromSuperview];for(UIView*v in self.topBar.subviews)if(v!=self.titleLabel)[v removeFromSuperview];if([page isEqualToString:@"detail"]||[page isEqualToString:@"collection"]||[page isEqualToString:@"diagnostics"]){NSString*backAction=[page isEqualToString:@"detail"]?@"back":([page isEqualToString:@"collection"]?@"collection-back":@"page");NSDictionary*backPayload=[page isEqualToString:@"diagnostics"]?@{@"id":@"me"}:@{};SYLiveActionButton*b=[self button:@"‹" action:backAction payload:backPayload];b.frame=CGRectMake(12,4,44,42);b.titleLabel.font=[UIFont systemFontOfSize:28];[self.topBar addSubview:b];self.titleLabel.frame=CGRectMake(62,5,self.view.bounds.size.width-124,36);self.titleLabel.textAlignment=NSTextAlignmentCenter;}else{self.titleLabel.frame=CGRectMake(18,5,self.view.bounds.size.width-124,36);self.titleLabel.textAlignment=NSTextAlignmentLeft;SYLiveActionButton*themeBtn=[self button:@"◐" action:@"theme" payload:@{@"id":dark?@"white":@"black"}];themeBtn.frame=CGRectMake(self.view.bounds.size.width-98,6,38,38);themeBtn.layer.cornerRadius=19;[self.topBar addSubview:themeBtn];SYLiveActionButton*refreshBtn=[self button:@"↻" action:@"refresh" payload:@{}];refreshBtn.frame=CGRectMake(self.view.bounds.size.width-54,6,38,38);refreshBtn.layer.cornerRadius=19;[self.topBar addSubview:refreshBtn];}CGFloat w=self.view.bounds.size.width,y=12;self.content.contentSize=CGSizeMake(w,0);if([self.state[@"loading"] boolValue]||[self.state[@"error"] length]){NSString*message=[self.state[@"error"] length]?self.state[@"error"]:@"正在加载内容…";[self addButton:message action:[self.state[@"error"] length]?@"refresh":@"" data:@{} y:y height:42];y+=50;}
  if([page isEqualToString:@"home"]){[self addChips:self.state[@"sites"] action:@"source" key:@"id" selected:self.state[@"site"] y:y];y+=48;NSDictionary*h=self.state[@"hero"];if([h isKindOfClass:NSDictionary.class]){[self addHeroCard:h y:y];y+=216;y+=[self addHeroPickerAtY:y];}[self addChips:self.state[@"categories"] action:@"category" key:@"id" selected:@"" y:y];y+=48;NSArray*recent=[self.state[@"recent"] isKindOfClass:NSArray.class]?self.state[@"recent"]:@[];if(recent.count)y+=MAX(242,[self addShelf:recent title:@"继续观看" y:y]);NSArray*sections=[self.state[@"sections"] isKindOfClass:NSArray.class]?self.state[@"sections"]:@[];NSUInteger visibleSections=0;for(NSDictionary*s in sections){NSArray*items=[s[@"items"] isKindOfClass:NSArray.class]?s[@"items"]:@[];if(!items.count)continue;visibleSections++;CGFloat shelfHeight=[self addShelf:items title:s[@"title"]?:@"精选" y:y];[self addMoreRoute:s[@"route"] title:s[@"title"] y:y];y+=MAX(242,shelfHeight);}if(!h&&!recent.count&&!visibleSections&&!([self.state[@"loading"] boolValue])&&!([self.state[@"error"] length])){[self addButton:@"首页暂时没有影片，点击重新加载" action:@"refresh" data:@{} y:y height:52];y+=60;}}
  else if([page isEqualToString:@"browse"]||[page isEqualToString:@"search"]){[self addChips:self.state[@"sites"] action:@"source" key:@"id" selected:self.state[@"site"] y:y];y+=48;self.searchField=[[UITextField alloc]initWithFrame:CGRectMake(16,y,w-102,42)];self.searchField.text=self.state[@"query"]?:@"";self.searchField.placeholder=@"搜索影片、演员、导演";self.searchField.backgroundColor=[self surface];self.searchField.textColor=[self ink];self.searchField.borderStyle=UITextBorderStyleRoundedRect;self.searchField.clearButtonMode=1;[self.content addSubview:self.searchField];SYLiveActionButton*searchBtn=[self button:@"搜索" action:@"search-submit" payload:@{}];searchBtn.frame=CGRectMake(w-80,y,64,42);searchBtn.backgroundColor=[self accent];[searchBtn setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];[self.content addSubview:searchBtn];y+=50;[self addChips:self.state[@"categories"] action:@"category" key:@"id" selected:@"" y:y];y+=48;NSArray*allFilters=[self.state[@"filters"] isKindOfClass:NSArray.class]?self.state[@"filters"]:@[];BOOL filtersExpanded=[self.state[@"filtersExpanded"] boolValue];NSArray*shownFilters=(filtersExpanded||allFilters.count<=2)?allFilters:[allFilters subarrayWithRange:NSMakeRange(0,2)];for(NSDictionary*f in shownFilters){[self addHeading:f[@"name"]?:@"筛选" y:y];y+=30;NSMutableArray*opts=[NSMutableArray array];for(NSDictionary*o in f[@"options"])[opts addObject:@{@"id":o[@"id"]?:@"",@"name":o[@"name"]?:@"",@"key":f[@"query"]?:@""}];[self addChips:opts action:@"filter-option" key:@"key" selected:f[@"selected"] y:y];y+=46;}if(allFilters.count>2){[self addButton:filtersExpanded?@"收起更多筛选 ⌃":@"展开更多筛选条件 ＋" action:@"filters-expanded" data:@{} y:y height:38];y+=44;}CGFloat shelfHeight=[self addShelf:self.state[@"items"] title:self.state[@"title"]?:@"影片" y:y];if([self.state[@"items"] count])y+=MAX(240,shelfHeight);if([self.state[@"next"] isKindOfClass:NSString.class]&&[(NSString*)self.state[@"next"] length])[self addButton:@"加载更多" action:@"more" data:@{} y:y height:44];}
  else if([page isEqualToString:@"discover"]){[self addChips:self.state[@"sites"] action:@"source" key:@"id" selected:self.state[@"site"] y:y];y+=48;NSArray*tabs=[self.state[@"discoverTabs"] isKindOfClass:NSArray.class]?self.state[@"discoverTabs"]:@[@{@"id":@"0",@"name":@"上映表"},@{@"id":@"1",@"name":@"Netflix"},@{@"id":@"2",@"name":@"专题"},@{@"id":@"3",@"name":@"排行榜"}];[self addChips:tabs action:@"discover-tab" key:@"id" selected:[self.state[@"discoverTab"] stringValue] y:y];y+=48;if((!self.state[@"discoverTimeline"]||[self.state[@"discoverTimeline"] boolValue])&&[self.state[@"discoverTab"] integerValue]==0){[self addChips:self.state[@"years"] action:@"discover-year" key:@"id" selected:[self.state[@"discoverYear"] stringValue] y:y];y+=48;NSMutableArray*months=[NSMutableArray array];for(NSUInteger month=1;month<=12;month++)[months addObject:@{@"id":[NSString stringWithFormat:@"%lu",(unsigned long)month],@"name":[NSString stringWithFormat:@"%lu月",(unsigned long)month]}];[self addChips:months action:@"discover-month" key:@"id" selected:[self.state[@"discoverMonth"] stringValue] y:y];y+=48;}NSArray*items=[self.state[@"items"] isKindOfClass:NSArray.class]?self.state[@"items"]:@[];if(items.count)y+=[self addShelf:items title:@"发现" y:y]+14;for(NSDictionary*g in self.state[@"groups"]){NSArray*groupItems=[g[@"items"] isKindOfClass:NSArray.class]?g[@"items"]:@[];if(groupItems.count)y+=[self addShelf:groupItems title:g[@"title"]?:@"近期更新" y:y]+14;}for(NSDictionary*s in self.state[@"sections"]){NSArray*sectionItems=[s[@"items"] isKindOfClass:NSArray.class]?s[@"items"]:@[];if(!sectionItems.count)continue;CGFloat shelfHeight=[self addShelf:sectionItems title:s[@"title"]?:@"精选" y:y];[self addMoreRoute:s[@"route"] title:s[@"title"] y:y];y+=shelfHeight+14;}if([self.state[@"next"] isKindOfClass:NSString.class]&&[(NSString*)self.state[@"next"] length])[self addButton:@"加载更多" action:@"discover-more" data:@{} y:y height:44];}
@@ -591,8 +659,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
    NSArray*rateItems=@[@{@"name":@"0.75×",@"id":@"0.75"},@{@"name":@"1×",@"id":@"1"},@{@"name":@"1.25×",@"id":@"1.25"},@{@"name":@"1.5×",@"id":@"1.5"},@{@"name":@"2×",@"id":@"2"}];
    for(NSUInteger ri=0;ri<rateItems.count;ri++){NSDictionary*rateItem=rateItems[ri];SYLiveActionButton*rateBtn=[self button:rateItem[@"name"] action:@"playback-rate" payload:@{@"id":rateItem[@"id"]}];rateBtn.frame=CGRectMake(16+ri*(fifth+6),y,fifth,38);rateBtn.layer.cornerRadius=19;rateBtn.titleLabel.adjustsFontSizeToFitWidth=YES;rateBtn.titleLabel.minimumScaleFactor=0.8;if([rateItem[@"id"] isEqualToString:selectedRate]){rateBtn.backgroundColor=[[self accent] colorWithAlphaComponent:.15];[rateBtn setTitleColor:[self accent] forState:UIControlStateNormal];}[self.detailRateButtons addObject:rateBtn];[self.content addSubview:rateBtn];}
    y+=48;
-   // E1 进度条：滑块 + 两端时间。位置由 pageProgress 轻量消息更新，
-   // 拖动松手后直接定位（AVPlayer / Cicada 都支持绝对 seek）。
+   // 进度由当前原生内核确认后直接更新；拖动松手提交一次绝对 seek。
    double snapshotDuration=[self.state[@"playDuration"] respondsToSelector:@selector(doubleValue)]?[self.state[@"playDuration"] doubleValue]:0;
    double snapshotTime=[self.state[@"playTime"] respondsToSelector:@selector(doubleValue)]?[self.state[@"playTime"] doubleValue]:0;
    self.progressCurrentLabel=[self label:[self formatDuration:snapshotTime] size:12 bold:NO color:[self muted]];self.progressCurrentLabel.textAlignment=NSTextAlignmentCenter;self.progressCurrentLabel.frame=CGRectMake(16,y,44,30);[self.content addSubview:self.progressCurrentLabel];
@@ -639,7 +706,14 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   [super viewDidLoad];
   self.view.backgroundColor=[UIColor colorWithRed:.953 green:.961 blue:.980 alpha:1];
   self.preferredVideoGravity=AVLayerVideoGravityResizeAspect;
+  self.playbackGate=[SYPlaybackCommandGate new];
+  self.playbackRuntime=[SYPlaybackRuntimeBridge new];self.playbackRuntime.delegate=self;
   self.tasks=[NSMutableDictionary dictionary];self.hlsProxy=[SYHLSProxy new];
+#if defined(SY_SIMULATOR_SMOKE)
+  NSURLSessionConfiguration*smokeConfig=[NSURLSessionConfiguration ephemeralSessionConfiguration];
+  smokeConfig.protocolClasses=@[SYSmokeMediaProtocol.class];
+  [self.hlsProxy.session invalidateAndCancel];self.hlsProxy.session=[NSURLSession sessionWithConfiguration:smokeConfig];
+#endif
   NSURLSessionConfiguration*sessionConfig=[NSURLSessionConfiguration ephemeralSessionConfiguration];
   sessionConfig.timeoutIntervalForRequest=18;sessionConfig.HTTPMaximumConnectionsPerHost=6;
   self.session=[NSURLSession sessionWithConfiguration:sessionConfig];
@@ -663,7 +737,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationDidReceiveMemoryWarningNotification" object:nil];
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationDidEnterBackgroundNotification" object:nil];
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationWillEnterForegroundNotification" object:nil];
-  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAudioInterruption:) name:@"AVAudioSessionInterruptionNotification" object:nil];
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(handleAppLifecycle:) name:@"UIApplicationDidBecomeActiveNotification" object:nil];
 #if defined(SY_SIMULATOR_SMOKE)
   [self performSelector:@selector(runSmokeCheck) withObject:nil afterDelay:2];
 #endif
@@ -703,7 +777,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 }
 - (void)runPlaybackSmoke {
   if(!self.hlsProxy.port){if(self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:1];return;}
-  if(!self.smokePlaybackStarted){self.smokePlaybackStarted=YES;self.smokePlaybackDebug=[@{@"phase":@"evaluate-started",@"proxyPort":@(self.hlsProxy.port)} mutableCopy];[self writeSmokePlaybackDebug];[self.web evaluateJavaScript:@"(()=>{if(!window.NativeTransport)return {error:'NativeTransport missing'};window.NativeTransport.syncPage({page:'detail',theme:'white',site:'smoke',siteName:'模拟器检查',movie:{id:'1',title:'原生播放器检查',metadata:'本地测试媒体',actors:[],summary:'',imageURLs:[]},playSources:[],line:0,episode:{title:'静音测试',index:0},playURLs:[{url:'https://smoke.invalid/silence.m3u8'}],playIndex:0,loading:false});return window.NativeTransport.play('https://smoke.invalid/silence.m3u8',{}, {context:'smoke:playback',cleanHLS:true,frame:{visible:true,x:0,y:360,width:390,height:220,viewportWidth:390},title:'原生播放器检查'});})()" completionHandler:^(id result,NSError*error){self.smokePlaybackDebug[@"phase"]=@"evaluate-completed";if(result)self.smokePlaybackDebug[@"javascriptResult"]=[result description]?:@"";if(error)self.smokePlaybackDebug[@"javascriptError"]=error.localizedDescription?:@"unknown";[self writeSmokePlaybackDebug];}];}
+  if(!self.smokePlaybackStarted){self.smokePlaybackStarted=YES;self.smokePlaybackDebug=[@{@"phase":@"evaluate-started",@"proxyPort":@(self.hlsProxy.port)} mutableCopy];[self writeSmokePlaybackDebug];[self.web evaluateJavaScript:@"(()=>{if(!window.NativeTransport)return {error:'NativeTransport missing'};window.NativeTransport.syncPage({page:'detail',theme:'white',site:'smoke',siteName:'模拟器检查',movie:{id:'1',title:'原生播放器检查',metadata:'本地测试媒体',actors:[],summary:'',imageURLs:[]},playSources:[],line:0,episode:{title:'本地视频测试',index:0},playURLs:[{url:'https://smoke.invalid/video.m3u8'}],playIndex:0,loading:false});return window.NativeTransport.play('https://smoke.invalid/video.m3u8',{}, {context:'smoke:playback',cleanHLS:true,frame:{visible:true,x:0,y:360,width:390,height:220,viewportWidth:390},title:'原生播放器检查'});})()" completionHandler:^(id result,NSError*error){self.smokePlaybackDebug[@"phase"]=@"evaluate-completed";if(result)self.smokePlaybackDebug[@"javascriptResult"]=[result description]?:@"";if(error)self.smokePlaybackDebug[@"javascriptError"]=error.localizedDescription?:@"unknown";[self writeSmokePlaybackDebug];}];}
   if(!self.smokePlayerReady&&self.smokeAttempts++<70)[self performSelector:@selector(runPlaybackSmoke) withObject:nil afterDelay:2];
 }
 - (void)writeSmokePlaybackDebug {if(!self.smokePlaybackDebug)return;NSData*data=[NSJSONSerialization dataWithJSONObject:self.smokePlaybackDebug options:NSJSONWritingPrettyPrinted error:NULL];if(data)[data writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke-debug.json"] atomically:YES];}
@@ -723,31 +797,56 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   if(self.hlsProxy&&self.hlsProxy.playlistCache)[self.hlsProxy.playlistCache removeAllObjects];
   [self.web evaluateJavaScript:@"window.NativePageAction?.('clear-runtime-cache')" completionHandler:nil];
 }
-- (void)handleAudioInterruption:(NSNotification*)note {
-  NSDictionary*info=note.userInfo;
-  NSUInteger type=[info[@"AVAudioSessionInterruptionTypeKey"] unsignedIntegerValue];
-  if(type==1){
-    if(self.nativePlayer.player&&self.nativePlayer.player.timeControlStatus==AVPlayerTimeControlStatusPlaying)[self.nativePlayer.player pause];
-    // I2：打断只管 AVPlayer 时，Cicada 回退中的声音会继续播；来电时
-    // 也暂停 Cicada，并记下是谁暂停的，结束时只恢复被打断的那一路。
-    if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused){[self.cicadaLivePlayer pause];self.cicadaPausedForInterruption=YES;}
-  }else if(type==0){
-    NSUInteger options=[info[@"AVAudioSessionInterruptionOptionKey"] unsignedIntegerValue];
-    if((options&1)&&self.nativePlayer.player)[self.nativePlayer.player play];
-    if((options&1)&&self.cicadaPausedForInterruption&&self.cicadaLivePlayer){self.cicadaPausedForInterruption=NO;[self.cicadaLivePlayer resume];}
+- (void)playbackRuntimeRequestPlay:(SYPlaybackRuntimeBridge*)runtime {
+  if(runtime!=self.playbackRuntime||![self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])return;
+  self.nativePausedForInterruption=NO;self.cicadaPausedForInterruption=NO;
+  if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&(self.cicadaPausedForBackground||UIApplication.sharedApplication.applicationState==UIApplicationStateBackground)){
+    self.cicadaPausedForBackground=YES;
+    return;
   }
+  if(self.cicadaFallbackActive&&self.cicadaLivePlayer){[self.cicadaLivePlayer resume];if(!self.cicadaLivePlayer.paused)[runtime receivePlaybackEventForContext:self.playContext status:@"playing" currentTime:[self.cicadaLivePlayer currentPosition] duration:[self.cicadaLivePlayer duration] playing:YES wantsToPlay:YES errorMessage:@""];return;}
+  if(self.nativePlayer.player){[self.nativePlayer.player play];self.nativePlayer.player.rate=self.currentVODRate>=0.5?self.currentVODRate:1;}
+}
+- (void)playbackRuntime:(SYPlaybackRuntimeBridge*)runtime requestPauseManually:(BOOL)manual {
+  if(runtime!=self.playbackRuntime)return;
+  if(manual){[self.playbackGate setWantsToPlayWithContext:self.playContext?:@"" wantsToPlay:NO];self.nativePausedForInterruption=NO;self.cicadaPausedForInterruption=NO;}
+  else{self.nativePausedForInterruption=!self.cicadaFallbackActive&&self.nativePlayer.player!=nil;self.cicadaPausedForInterruption=self.cicadaFallbackActive&&self.cicadaLivePlayer!=nil;}
+  if(self.cicadaFallbackActive&&self.cicadaLivePlayer){
+    // Also cancel a start requested while Cicada is still preparing.
+    [self.cicadaLivePlayer pause];
+  }else if(self.nativePlayer.player){
+    // Waiting players have a pending play intent even before their first frame.
+    [self.nativePlayer.player pause];
+  }
+  double position=self.cicadaFallbackActive?[self.cicadaLivePlayer currentPosition]:CMTimeGetSeconds(self.nativePlayer.player.currentTime);
+  double duration=self.cicadaFallbackActive?[self.cicadaLivePlayer duration]:CMTimeGetSeconds(self.nativeItem.duration);
+  [runtime receivePlaybackEventForContext:self.playContext?:@"" status:@"paused" currentTime:position duration:duration playing:NO wantsToPlay:[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""] errorMessage:@""];
+}
+- (void)playbackRuntime:(SYPlaybackRuntimeBridge*)runtime requestSeekTo:(double)seconds sessionIdentifier:(uint64_t)sessionIdentifier {
+  if(runtime!=self.playbackRuntime)return;
+  [self performNativeSeekToTime:seconds sessionIdentifier:sessionIdentifier];
+}
+- (void)playbackRuntimeRequestPrefetchEpisode:(SYPlaybackRuntimeBridge*)runtime episodeIdentifier:(NSString*)episodeIdentifier {
+  if(runtime!=self.playbackRuntime)return;
+  [self sendPageAction:@"prefetch-next-episode" payload:@{ @"id":episodeIdentifier?:@"" }];
+}
+- (void)playbackRuntime:(SYPlaybackRuntimeBridge*)runtime loadingChanged:(BOOL)visible {
+  if(runtime!=self.playbackRuntime)return;
+  [self.appScreen layoutPlayerLoadingIndicator];
 }
 - (void)handleAppLifecycle:(NSNotification*)note {
   if([note.name isEqualToString:@"UIApplicationDidReceiveMemoryWarningNotification"]){
     [self didReceiveMemoryWarning];
   }else if([note.name isEqualToString:@"UIApplicationDidEnterBackgroundNotification"]){
-    if(self.nativePlayer.player&&![self.playContext hasPrefix:@"live:"]){
-      double cur=CMTimeGetSeconds(self.nativePlayer.player.currentTime),dur=self.nativeItem?CMTimeGetSeconds(self.nativeItem.duration):0;
+    if(![self.playContext hasPrefix:@"live:"]){
+      double cur=self.cicadaFallbackActive&&self.cicadaLivePlayer?[self.cicadaLivePlayer currentPosition]:CMTimeGetSeconds(self.nativePlayer.player.currentTime);
+      double dur=self.cicadaFallbackActive&&self.cicadaLivePlayer?[self.cicadaLivePlayer duration]:(self.nativeItem?CMTimeGetSeconds(self.nativeItem.duration):0);
       if(__builtin_isfinite(cur)&&cur>0)[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"progress",@"time":@(cur),@"duration":@(__builtin_isfinite(dur)&&dur>0?dur:0)}];
     }
     // I1：Cicada 回退时没有画中画、锁屏也停不掉，后台会一直出声。
     // 画中画未激活时先暂停 Cicada，回前台再恢复（用户自己暂停过的不动）。
-    if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused){
+    BOOL wants=![self.playContext hasPrefix:@"live:"]?[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""]:YES;
+    if(wants&&self.cicadaFallbackActive&&self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused){
       BOOL pipActive=self.nativePlayer.pictureInPicture;
       if(!pipActive){[self.cicadaLivePlayer pause];self.cicadaPausedForBackground=YES;}
     }
@@ -755,14 +854,18 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     if(self.liveScreen&&self.liveScreen.liveRendererLayer&&self.nativePlayer.player){
       self.liveScreen.liveRendererLayer.player=self.nativePlayer.player;
     }
-    if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){self.cicadaPausedForBackground=NO;[self.cicadaLivePlayer resume];}
+  }else if([note.name isEqualToString:@"UIApplicationDidBecomeActiveNotification"]){
+    if(self.cicadaPausedForBackground&&self.cicadaLivePlayer){
+      self.cicadaPausedForBackground=NO;
+      if(!self.cicadaPausedForInterruption&&[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""])[self playbackRuntimeRequestPlay:self.playbackRuntime];
+    }
   }
 }
 
 - (void)layoutPlayer:(NSDictionary*)frame {
   if(!self.nativePlayer||self.nativePlayer.fullScreen)return;
   if([self.playContext hasPrefix:@"live:"]&&self.liveScreen){[self.liveScreen.view setNeedsLayout];[self.liveScreen.view layoutIfNeeded];[self.liveScreen layoutEmbeddedPlayer];return;}
-  if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){[self.appScreen.view setNeedsLayout];[self.appScreen.view layoutIfNeeded];self.nativePlayer.view.frame=self.appScreen.playerHost.bounds;[self.appScreen.playerHost addSubview:self.nativePlayer.view];if(self.cicadaFallbackActive&&self.cicadaLivePlayer){UIView*cicadaView=self.cicadaLivePlayer.playerView;cicadaView.frame=self.appScreen.playerHost.bounds;cicadaView.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;[self.appScreen.playerHost addSubview:cicadaView];[self.appScreen.playerHost bringSubviewToFront:cicadaView];}if(self.appScreen.routePicker)[self.appScreen.playerHost bringSubviewToFront:self.appScreen.routePicker];[self.appScreen layoutPlayerLoadingIndicator];return;}
+  if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){[self.appScreen.view setNeedsLayout];[self.appScreen.view layoutIfNeeded];[self.appScreen.detailPlayerContainer setNeedsLayout];[self.appScreen.detailPlayerContainer layoutIfNeeded];if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.appScreen.detailPlayerContainer mountRenderView:self.cicadaLivePlayer.playerView];else [self.appScreen.detailPlayerContainer mountRenderView:self.nativePlayer.view];if(self.appScreen.routePicker)[self.appScreen.playerHost bringSubviewToFront:self.appScreen.routePicker];[self.appScreen layoutPlayerLoadingIndicator];return;}
   if(![frame[@"visible"] boolValue]){
     if(!self.nativePlayer.pictureInPicture)[self stopNativePlayback];
     return;
@@ -790,14 +893,6 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  if(screen){[screen willMoveToParentViewController:nil];[screen.view removeFromSuperview];[screen removeFromParentViewController];}self.appScreen.content.hidden=NO;self.appScreen.view.hidden=NO;[self.appScreen.view setNeedsLayout];[self setNeedsStatusBarAppearanceUpdate];
 }
 - (UIStatusBarStyle)preferredStatusBarStyle {if(self.liveScreen)return [self.liveSnapshot[@"theme"] isEqualToString:@"black"]?1:0;return self.detailStatusStyle||[self.pageSnapshot[@"theme"] isEqualToString:@"black"]?1:0;}
-#if defined(SY_SIMULATOR_SMOKE)
-- (NSURL*)smokeAudioFixtureURL {
-  const uint32_t sampleRate=8000,seconds=12,channels=1,bitsPerSample=16,dataBytes=sampleRate*seconds*channels*(bitsPerSample/8);
-  NSMutableData*wav=[NSMutableData data];uint32_t riffSize=CFSwapInt32HostToLittle(36+dataBytes),rate=CFSwapInt32HostToLittle(sampleRate),byteRate=CFSwapInt32HostToLittle(sampleRate*channels*(bitsPerSample/8)),payloadSize=CFSwapInt32HostToLittle(dataBytes);uint16_t format=CFSwapInt16HostToLittle(1),channelCount=CFSwapInt16HostToLittle(channels),alignment=CFSwapInt16HostToLittle(channels*(bitsPerSample/8)),sampleBits=CFSwapInt16HostToLittle(bitsPerSample);
-  [wav appendBytes:"RIFF" length:4];[wav appendBytes:&riffSize length:4];[wav appendBytes:"WAVEfmt " length:8];uint32_t formatSize=CFSwapInt32HostToLittle(16);[wav appendBytes:&formatSize length:4];[wav appendBytes:&format length:2];[wav appendBytes:&channelCount length:2];[wav appendBytes:&rate length:4];[wav appendBytes:&byteRate length:4];[wav appendBytes:&alignment length:2];[wav appendBytes:&sampleBits length:2];[wav appendBytes:"data" length:4];[wav appendBytes:&payloadSize length:4];[wav appendData:[NSMutableData dataWithLength:dataBytes]];
-  NSString*path=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-smoke-silence.wav"];if(![wav writeToFile:path atomically:YES])return nil;return [NSURL fileURLWithPath:path];
-}
-#endif
 - (void)deliver:(NSDictionary*)result {
   NSData*data=[NSJSONSerialization dataWithJSONObject:result options:0 error:NULL];
   if(!data)return;
@@ -805,13 +900,47 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   dispatch_async(SYMainQueue(),^{[self.web evaluateJavaScript:[NSString stringWithFormat:@"window.NativeTransport&&window.NativeTransport.deliver(%@)",json] completionHandler:nil];});
 }
 - (void)sendPlayback:(NSDictionary*)event {
+  NSDictionary*taggedEvent=event;
+  NSString*eventContext=[event[@"context"] isKindOfClass:NSString.class]?event[@"context"]:@"";
+  if(eventContext.length&&![eventContext hasPrefix:@"live:"]){
+    if(!self.playbackAttemptID)return;
+    if(![self.playbackGate acceptsIdentityWithContext:eventContext attempt:self.playbackAttemptID])return;
+    uint64_t sequence=++self.playbackEventSequence;
+    BOOL accepted=[event[@"status"] isEqualToString:@"progress"]?
+      [self.playbackGate acceptsProgressWithContext:eventContext attempt:self.playbackAttemptID sequence:sequence position:[event[@"time"] doubleValue] duration:[event[@"duration"] doubleValue]]:
+      [self.playbackGate acceptsEventWithContext:eventContext attempt:self.playbackAttemptID sequence:sequence];
+    if(!accepted)return;
+    NSMutableDictionary*mutableEvent=[event mutableCopy];mutableEvent[@"attemptID"]=@(self.playbackAttemptID);mutableEvent[@"eventSequence"]=@(sequence);taggedEvent=mutableEvent;
+    if([event[@"status"] isEqualToString:@"progress"]){
+      [self.appScreen applyProgressTime:[event[@"time"] doubleValue] duration:[event[@"duration"] doubleValue]];
+    }else if([event[@"status"] isEqualToString:@"ended"]){
+      if(self.pendingSeekID)[self.playbackGate cancelSeekWithContext:eventContext attempt:self.playbackAttemptID seekID:self.pendingSeekID];
+      self.pendingSeekID=0;self.pendingSliderSeekID=0;self.appScreen.progressSeeking=NO;self.appScreen.progressScrubbing=NO;
+      [self.appScreen applyProgressTime:0 duration:[event[@"duration"] doubleValue]];
+      [self.playbackGate setWantsToPlayWithContext:eventContext wantsToPlay:NO];
+    }
+  }
+  if(eventContext.length&&![eventContext hasPrefix:@"live:"]&&self.playbackRuntime.hasActiveSession){
+    NSString*status=[event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"";
+    double position=[event[@"time"] doubleValue],duration=[event[@"duration"] doubleValue];
+    BOOL actuallyPlaying=self.cicadaFallbackActive?(self.cicadaLivePlayer&&!self.cicadaLivePlayer.paused):(self.nativePlayer.player.rate>0&&self.nativePlayer.player.timeControlStatus==AVPlayerTimeControlStatusPlaying);
+    if([status isEqualToString:@"seekCompleted"])[self.playbackRuntime nativeSeekCompletedAtPosition:position sessionIdentifier:self.playbackRuntime.activeSessionIdentifier];
+    [self.playbackRuntime receivePlaybackEventForContext:eventContext
+                                                    status:status
+                                               currentTime:position
+                                                 duration:duration
+                                                   playing:actuallyPlaying
+                                              wantsToPlay:[self.playbackGate desiredPlaybackWithContext:eventContext]
+                                              errorMessage:[event[@"error"] isKindOfClass:NSString.class]?event[@"error"]:@""];
+    [self.appScreen layoutPlayerLoadingIndicator];
+  }
 #if defined(SY_SIMULATOR_SMOKE)
   if([event[@"context"] isEqualToString:@"smoke:playback"]){self.smokePlaybackDebug[@"phase"]=[event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"playback-event";if(event[@"error"])self.smokePlaybackDebug[@"playbackError"]=event[@"error"];if(event[@"time"])self.smokePlaybackDebug[@"playbackTime"]=event[@"time"];[self writeSmokePlaybackDebug];}
   if([event[@"context"] isEqualToString:@"live:smoke-cctv2"]){NSString*livePath=[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-live-video-smoke.json"];NSDictionary*old=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfFile:livePath]?:[NSData data] options:0 error:NULL];if(![old[@"status"] isEqualToString:@"videoReady"]){NSString*status=(self.nativeVideoReady||[event[@"status"] isEqualToString:@"videoReady"])?@"videoReady":([event[@"status"] isKindOfClass:NSString.class]?event[@"status"]:@"unknown");NSMutableDictionary*liveResult=[@{@"context":event[@"context"],@"status":status,@"proxyEnabled":@(self.liveScreen!=nil),@"rendererAttached":@(self.liveRendererAttached),@"rendererReady":@(self.liveScreen.liveRendererLayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"playURLIsLoopback":@([self.nativeItem.asset isKindOfClass:AVURLAsset.class]&&[((AVURLAsset*)self.nativeItem.asset).URL.host isEqualToString:@"127.0.0.1"]),@"proxyHTTPStatus":@(self.hlsProxy.lastHTTPStatus),@"proxyError":self.hlsProxy.lastTransportError?:@""} mutableCopy];if(event[@"error"])liveResult[@"error"]=event[@"error"];NSData*liveData=[NSJSONSerialization dataWithJSONObject:liveResult options:NSJSONWritingPrettyPrinted error:NULL];if(liveData)[liveData writeToFile:livePath atomically:YES];}}
-  if([event[@"status"] isEqualToString:@"ready"])self.smokePlayerReady=YES;
-  if([event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&[event[@"time"] doubleValue]>1&&!self.smokeLiveStarted){
+  if([eventContext isEqualToString:@"smoke:playback"]&&[event[@"status"] isEqualToString:@"firstFrame"]&&self.nativeVideoReady)self.smokePlayerReady=YES;
+  if([eventContext isEqualToString:@"smoke:playback"]&&[event[@"status"] isEqualToString:@"progress"]&&self.smokePlayerReady&&self.vodRendererLayer.readyForDisplay&&self.nativeItem.presentationSize.width>0&&self.nativeItem.presentationSize.height>0&&[event[@"time"] doubleValue]>1&&!self.smokeLiveStarted){
     self.smokeLiveStarted=YES;
-    NSDictionary*result=@{@"nativePlayerReady":@YES,@"hlsProxyActive":@(self.smokeProxyActive),@"removedAdSegments":@(self.hlsProxy.removed),@"inlinePlayback":@(self.nativePlayer.parentViewController==self.appScreen&&self.presentedViewController==nil&&self.nativePlayer.view.superview==self.appScreen.playerHost&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"nativePageController":@(self.appScreen.view.superview==self.view),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
+    NSDictionary*result=@{@"nativePlayerReady":@YES,@"firstFrameReady":@(self.nativeVideoReady),@"rendererReady":@(self.vodRendererLayer.readyForDisplay),@"presentationWidth":@(self.nativeItem.presentationSize.width),@"presentationHeight":@(self.nativeItem.presentationSize.height),@"hlsProxyActive":@(self.smokeProxyActive),@"removedAdSegments":@(self.hlsProxy.removed),@"inlinePlayback":@(self.nativePlayer.parentViewController==self.appScreen&&self.presentedViewController==nil&&self.nativePlayer.view.superview==self.appScreen.detailPlayerContainer.stageView&&self.nativePlayer.view.frame.size.height>0&&self.nativePlayer.view.frame.size.height<self.view.bounds.size.height*0.8),@"nativePageController":@(self.appScreen.view.superview==self.view),@"playbackTime":event[@"time"],@"devicePlaybackTested":@NO};
     NSData*report=[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:NULL];
     [report writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/sanyuan-playback-smoke.json"] atomically:YES];
     [self.nativePlayer.player pause];
@@ -824,7 +953,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   }
 
 #endif
-  NSData*data=[NSJSONSerialization dataWithJSONObject:event options:0 error:NULL];if(!data)return;
+  NSData*data=[NSJSONSerialization dataWithJSONObject:taggedEvent options:0 error:NULL];if(!data)return;
   NSString*json=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
   dispatch_async(SYMainQueue(),^{[self.web evaluateJavaScript:[NSString stringWithFormat:@"window.NativeTransport&&window.NativeTransport.onPlaybackEvent&&window.NativeTransport.onPlaybackEvent(%@)",json] completionHandler:nil];});
 }
@@ -891,7 +1020,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
 // Cicada is unavailable or already tried does the line fail to JS.
 - (void)checkVODStallForItem:(AVPlayerItem*)item context:(NSString*)context {
  __weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;
- dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(5*NSEC_PER_SEC)),dispatch_get_main_queue(),^{SYController*owner=weakSelf;if(!owner||owner.nativeItem!=weakItem||![context isEqualToString:owner.playContext?:@""]||!owner.vodStallWatchdogActive)return;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(5*NSEC_PER_SEC)),dispatch_get_main_queue(),^{SYController*owner=weakSelf;if(!owner||owner.nativeItem!=weakItem||owner.cicadaFallbackActive||![context isEqualToString:owner.playContext?:@""]||!owner.vodStallWatchdogActive)return;
   AVPlayer*player=owner.nativePlayer.player;if(!player||player.rate<=0){owner.vodStallWatchdogActive=NO;return;}
   double now=CMTimeGetSeconds(player.currentTime);
   if(__builtin_isfinite(now)&&__builtin_isfinite(owner.vodStallTime)&&(now>owner.vodStallTime+0.5||now<owner.vodStallTime-0.5)){owner.vodStallWatchdogActive=NO;return;}
@@ -917,38 +1046,80 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  self.cicadaPausedForBackground=NO;
  // 与 JS 的 controlPlayer('pause') 等价：点播 Cicada 只暂停不断流，
  // 直播 Cicada 沿用 stop；其余走 AVPlayer pause。
- if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&![self.playContext hasPrefix:@"live:"])[self.cicadaLivePlayer pause];
- else{if(self.nativePlayer.player)[self.nativePlayer.player pause];if(self.cicadaLivePlayer)[self.cicadaLivePlayer stop];}
+ if(![self.playContext hasPrefix:@"live:"]&&self.playbackRuntime.hasActiveSession)[self.playbackRuntime pauseManually];
+ else{if(![self.playContext hasPrefix:@"live:"])[self.playbackGate setWantsToPlayWithContext:self.playContext?:@"" wantsToPlay:NO];if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&![self.playContext hasPrefix:@"live:"])[self.cicadaLivePlayer pause];else{if(self.nativePlayer.player)[self.nativePlayer.player pause];if(self.cicadaLivePlayer)[self.cicadaLivePlayer stop];}}
  // 通知 JS 清掉定时器状态（WebView 后台挂起时这条会排队，回前台才执行，
  // 暂停本身已在原生侧完成，不依赖它）。
  [self sendPageAction:@"sleep-timer-fired" payload:@{}];
 }
 - (void)seekNativePlayerToTime:(NSTimeInterval)seconds {
- // E1：进度条松手后的绝对定位。Cicada 回退中走 Cicada 的精确 seek，
- // 其余走 AVPlayer；与 playerControl 的 seekTo 分支保持一致。
  if(!__builtin_isfinite(seconds)||seconds<0)return;
+ if(![self.playContext hasPrefix:@"live:"]&&self.playbackRuntime.hasActiveSession){[self.playbackRuntime seekToTime:seconds];return;}
+ [self performNativeSeekToTime:seconds sessionIdentifier:0];
+}
+- (void)performNativeSeekToTime:(NSTimeInterval)seconds sessionIdentifier:(uint64_t)sessionIdentifier {
+ // Every detail seek enters this method once. The Swift gate keeps the latest
+ // target visible until the active engine confirms its actual landing position.
+ if(!__builtin_isfinite(seconds)||seconds<0)return;
+ if(sessionIdentifier&&sessionIdentifier!=self.playbackRuntime.activeSessionIdentifier)return;
+ BOOL vod=![self.playContext hasPrefix:@"live:"];
  double dur=self.cicadaFallbackActive&&self.cicadaLivePlayer?[self.cicadaLivePlayer duration]:(self.nativeItem?CMTimeGetSeconds(self.nativeItem.duration):0);
  if(__builtin_isfinite(dur)&&dur>2&&seconds>dur-1)seconds=dur-1;
+ uint64_t attempt=self.playbackAttemptID;
+ uint64_t seekID=vod?[self.playbackGate beginSeekWithContext:self.playContext?:@"" target:seconds duration:__builtin_isfinite(dur)&&dur>0?dur:0]:0;
+ if(vod&&!seekID){
+  self.appScreen.progressSeeking=NO;self.appScreen.progressScrubbing=NO;
+  [self.appScreen applyProgressTime:[self.playbackGate confirmedPositionWithContext:self.playContext?:@""] duration:__builtin_isfinite(dur)&&dur>0?dur:0];
+  return;
+ }
+ if(vod)seconds=[self.playbackGate confirmedPositionWithContext:self.playContext?:@""];
+ self.pendingSeekID=seekID;
+ if(self.appScreen&&vod){self.appScreen.progressSeeking=YES;self.pendingSliderSeekID=seekID;}
  self.vodStallWatchdogActive=NO;self.vodStallTime=0;self.vodStallChecks=0;self.lastVODProgressTime=-1;
  self.lastSeekTargetTime=seconds;self.lastSeekTimestamp=[[NSDate date] timeIntervalSince1970];self.pendingStartAt=0;
  if(!self.cicadaFallbackActive&&self.nativeItem&&![self.playContext hasPrefix:@"live:"])self.nativeItem.preferredForwardBufferDuration=2;
- if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer seekToTime:seconds];
- else if(self.nativePlayer.player){[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(seconds,600)];if(self.currentVODRate>=0.5&&self.currentVODRate<=2.0&&self.nativePlayer.player.rate<=0){[self.nativePlayer.player play];self.nativePlayer.player.rate=self.currentVODRate;}}
- if(self.appScreen&&![self.playContext hasPrefix:@"live:"]){
-  [self.appScreen applyProgressTime:seconds duration:__builtin_isfinite(dur)&&dur>0?dur:0];
-  [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"progress",@"time":@(seconds),@"duration":@(__builtin_isfinite(dur)&&dur>0?dur:0),@"removedAdSegments":@(self.hlsProxy.removed),@"removedAdSeconds":@(self.hlsProxy.removedSeconds)}];
+ if(self.cicadaFallbackActive&&self.cicadaLivePlayer){
+  [self.cicadaLivePlayer seekToTime:seconds seekID:seekID];
+ }else if(self.nativePlayer.player){
+  AVPlayer*player=self.nativePlayer.player;AVPlayerItem*item=self.nativeItem;[item cancelPendingSeeks];
+  [player seekToTime:CMTimeMakeWithSeconds(seconds,600) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:^(BOOL finished){
+   if(!finished)return;dispatch_async(SYMainQueue(),^{
+    if(self.nativePlayer.player!=player||self.nativeItem!=item)return;
+    double actual=CMTimeGetSeconds(player.currentTime);
+    if(vod&&![self.playbackGate finishSeekWithContext:self.playContext?:@"" attempt:attempt seekID:seekID actualPosition:actual])return;
+    if(self.pendingSeekID==seekID)self.pendingSeekID=0;
+    if(self.pendingSliderSeekID==seekID){self.pendingSliderSeekID=0;self.appScreen.progressSeeking=NO;}
+    [self.appScreen applyProgressTime:actual duration:__builtin_isfinite(dur)&&dur>0?dur:0];
+    if(vod)[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"seekCompleted",@"seekID":@(seekID),@"time":@(actual),@"duration":@(dur)}];
+   });
+  }];
+ }else if(!vod){return;}
+ if(vod){
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(8*NSEC_PER_SEC)),SYMainQueue(),^{
+   if(![self.playbackGate cancelSeekWithContext:self.playContext?:@"" attempt:attempt seekID:seekID])return;
+   if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer cancelSeekID:seekID];
+   if(self.pendingSeekID==seekID)self.pendingSeekID=0;
+   if(self.pendingSliderSeekID==seekID){self.pendingSliderSeekID=0;self.appScreen.progressSeeking=NO;}
+   [self.appScreen applyProgressTime:[self.playbackGate confirmedPositionWithContext:self.playContext?:@""] duration:dur];
+   [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"seekFailed",@"seekID":@(seekID),@"error":@"定位未完成，请重试"}];
+  });
  }
 }
 - (void)stopNativePlayback {
- self.vodStallWatchdogActive=NO;self.vodStallTime=0;self.vodStallChecks=0;self.lastVODProgressTime=-1;self.pendingStartAt=0;self.lastSeekTargetTime=-1;self.lastSeekTimestamp=0;self.cicadaPausedForBackground=NO;self.cicadaPausedForInterruption=NO;
+ [self.playbackRuntime stopSession];
+ if(self.pendingSeekID&&self.playbackAttemptID)[self.playbackGate cancelSeekWithContext:self.playContext?:@"" attempt:self.playbackAttemptID seekID:self.pendingSeekID];
+ self.pendingSeekID=0;self.pendingSliderSeekID=0;self.appScreen.progressSeeking=NO;self.appScreen.progressScrubbing=NO;
+ self.vodStallWatchdogActive=NO;self.vodStallTime=0;self.vodStallChecks=0;self.lastVODProgressTime=-1;self.pendingStartAt=0;self.lastSeekTargetTime=-1;self.lastSeekTimestamp=0;self.cicadaPausedForBackground=NO;self.cicadaPausedForInterruption=NO;self.nativePausedForInterruption=NO;
   [self destroyCicadaPlayer];
   if(self.nativeItem){@try{[self.nativeItem removeObserver:self forKeyPath:@"status" context:&SYPlaybackStatus];}@catch(NSException*exception){}@try{[self.nativeItem removeObserver:self forKeyPath:@"presentationSize" context:&SYVideoPresentationSize];}@catch(NSException*exception){}self.nativeItem=nil;}
+  if(self.vodRendererLayer){@try{[self.vodRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYVODRendererDisplayReady];}@catch(NSException*exception){}self.vodRendererLayer=nil;}
   if(self.liveScreen.liveRendererLayer){@try{[self.liveScreen.liveRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYLiveRendererDisplayReady];}@catch(NSException*exception){}self.liveScreen.liveRendererLayer=nil;}
   if(self.stalledObserver){[NSNotificationCenter.defaultCenter removeObserver:self.stalledObserver];self.stalledObserver=nil;}
   if(self.failedObserver){[NSNotificationCenter.defaultCenter removeObserver:self.failedObserver];self.failedObserver=nil;}
   if(self.timeObserver){[self.nativePlayer.player removeTimeObserver:self.timeObserver];self.timeObserver=nil;}
   if(self.endObserver){[NSNotificationCenter.defaultCenter removeObserver:self.endObserver];self.endObserver=nil;}
-  self.nativeVideoReady=NO;self.liveRendererAttached=NO;self.liveRendererAttachAttempts=0;self.liveTrackInspectionItem=nil;self.vodTrackInspectionItem=nil;[self.nativePlayer.player pause];self.nativePlayer.player=nil;[self.nativePlayer willMoveToParentViewController:nil];[self.nativePlayer.view removeFromSuperview];[self.nativePlayer removeFromParentViewController];self.nativePlayer=nil;
+  if(self.nativePlayer.player){@try{[self.nativePlayer.player removeObserver:self forKeyPath:@"timeControlStatus" context:&SYPlaybackIntent];}@catch(NSException*exception){}}
+  self.nativeVideoReady=NO;self.liveRendererAttached=NO;self.liveRendererAttachAttempts=0;self.vodRendererAttachAttempts=0;self.liveTrackInspectionItem=nil;self.vodTrackInspectionItem=nil;[self.nativePlayer.player pause];self.nativePlayer.player=nil;[self.nativePlayer willMoveToParentViewController:nil];[self.nativePlayer.view removeFromSuperview];[self.nativePlayer removeFromParentViewController];self.nativePlayer=nil;
   [AVAudioSession.sharedInstance setActive:NO withOptions:1 error:NULL];
 }
 - (void)inspectLiveVideoTracksForItem:(AVPlayerItem*)item {
@@ -974,7 +1145,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
  // 没有就先走同线同清晰度的 Cicada 回退（和直播的 audioOnly
  // 路径一致）；Cicada 也起不来才报 audioOnly，不自动换线。
  if(!item||item!=self.nativeItem||[self.playContext hasPrefix:@"live:"]||self.vodTrackInspectionItem==item)return;
- if(self.pendingStartAt>0&&self.nativePlayer.player){double cur=CMTimeGetSeconds(self.nativePlayer.player.currentTime);double target=self.pendingStartAt;self.pendingStartAt=0;if(!__builtin_isfinite(cur)||cur<1.0)[self seekNativePlayerToTime:target];}
+ if(self.pendingStartAt>0&&self.nativePlayer.player){double target=self.pendingStartAt;self.pendingStartAt=0;[self seekNativePlayerToTime:target];}
  self.vodTrackInspectionItem=item;AVAsset*asset=item.asset;__weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;
  [asset loadTracksWithMediaType:AVMediaTypeVideo completionHandler:^(NSArray<AVAssetTrack*>*tracks,NSError*error){
   dispatch_async(SYMainQueue(),^{SYController*owner=weakSelf;AVPlayerItem*current=weakItem;if(!owner||owner.nativeItem!=current||![context isEqualToString:owner.playContext?:@""]||[owner.playContext hasPrefix:@"live:"])return;
@@ -1001,6 +1172,7 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     cicada.delegate=self;
     self.cicadaLivePlayer=cicada;
     self.cicadaFallbackActive=YES;
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"cicadaFallback"}];
     UIView*view=cicada.playerView;
     view.frame=self.liveScreen.playerHost.bounds;
     view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
@@ -1012,41 +1184,51 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     [cicada applyVideoGravity:self.preferredVideoGravity.length?self.preferredVideoGravity:AVLayerVideoGravityResizeAspect];
     [cicada prepare];
     [cicada start];
-    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"cicadaFallback"}];
     return YES;
 }
 
 // ---------- Cicada 点播回退（AVPlayer 卡死/断流时，同线同清晰度换 Cicada 解） ----------
-// 与直播回退的区别：点播走原站直连地址（绕过本地 HLS 代理，用 Cicada 自己的
-// 网络栈 + 30 秒缓冲），不是代理地址；起播位置为卡死时的进度；倍速/静音沿用
-// 当前设置。Cicada 也失败时走原有 failed 通道切线。
+// 继续使用 AVPlayer 当前实际读取的 URL（包括本地清理后的 HLS 清单），保留
+// 时间轴与当前缓冲策略；从已确认的播放位置接手，并沿用倍速、静音和播放意图。
 - (BOOL)tryCicadaVODFallbackForItem:(AVPlayerItem*)item {
     if(!item||item!=self.nativeItem||[self.playContext hasPrefix:@"live:"])return NO;
     if(self.cicadaVODFallbackAttempted)return NO;
     if(![SYCicadaLivePlayer isAvailable])return NO;
-    NSURL*url=self.vodCicadaURL?:self.vodDirectURL;
-    if(!url&&[item.asset isKindOfClass:AVURLAsset.class])url=((AVURLAsset*)item.asset).URL;
+    // AVPlayer may be reading a sanitized local manifest while a direct Cicada
+    // URL uses the original timeline. Reuse the exact active media URL so a
+    // kernel switch cannot reinterpret seconds after removed HLS segments.
+    NSURL*url=[item.asset isKindOfClass:AVURLAsset.class]?((AVURLAsset*)item.asset).URL:nil;
     if(!url)return NO;
-    double startAt=CMTimeGetSeconds(self.nativePlayer.player.currentTime);
+    uint64_t oldAttempt=self.playbackAttemptID;
+    uint64_t handoffSeekID=self.pendingSeekID;
+    double handoffPosition=[self.playbackGate confirmedPositionWithContext:self.playContext?:@""];
+    if(handoffSeekID){
+      [self.playbackGate cancelSeekWithContext:self.playContext?:@"" attempt:oldAttempt seekID:handoffSeekID];
+      self.pendingSeekID=0;
+      if(self.pendingSliderSeekID==handoffSeekID){self.pendingSliderSeekID=0;self.appScreen.progressSeeking=NO;}
+    }
+    if(![self.playbackGate authorizeRecoveryWithContext:self.playContext?:@"" crossLine:NO])return NO;
+    self.playbackAttemptID=[self.playbackGate beginAttemptWithContext:self.playContext?:@"" kernel:@"CicadaPlayer"];
+    self.playbackEventSequence=0;
+    double startAt=handoffSeekID?handoffPosition:CMTimeGetSeconds(self.nativePlayer.player.currentTime);
     if(!__builtin_isfinite(startAt)||startAt<0)startAt=MAX(0,self.vodStallTime);
     if(startAt<1.0&&(self.pendingStartAt>0||self.lastSeekTargetTime>0))startAt=MAX(startAt,MAX(self.pendingStartAt,self.lastSeekTargetTime));
     self.cicadaVODFallbackAttempted=YES;
+    self.cicadaFallbackActive=YES;
+    [self.playbackRuntime switchKernelTo:@"CicadaPlayer" position:startAt wantsToPlay:[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""]];
     // 先停 AVPlayer，避免与 Cicada 的声音重叠；画面由 Cicada 接管。
     [self.nativePlayer.player pause];
     SYCicadaLivePlayer*cicada=[[SYCicadaLivePlayer alloc]initWithURL:url headers:self.vodCicadaHeaders networkTimeout:20];
-    cicada.delegate=self;cicada.vodMode=YES;cicada.startPosition=startAt;
+    cicada.delegate=self;cicada.vodMode=YES;cicada.externalRecoveryManaged=YES;cicada.startPosition=startAt;
     // A3：点播回退的首帧看门狗只等 10 秒（默认 20 秒）。进到这里时 AVPlayer
     // 已经卡了 15 秒，再等 20 秒首帧 + 一次软解重试要 60 秒以上才报错；
     // 直播保持默认 20 秒不动。
     cicada.firstFrameTimeout=10.0;
     self.cicadaLivePlayer=cicada;
-    self.cicadaFallbackActive=YES;
-    UIView*host=self.nativePlayer.view.superview?:self.appScreen.playerHost;
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"cicadaFallback",@"previousAttemptID":@(oldAttempt)}];
     UIView*view=cicada.playerView;
-    view.frame=host.bounds;
-    view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    [host addSubview:view];
-    [host bringSubviewToFront:view];
+    if(self.appScreen&&[self.appScreen.state[@"page"] isEqualToString:@"detail"]){[self.appScreen.detailPlayerContainer mountRenderView:view];}
+    else{UIView*host=self.nativePlayer.view.superview?:self.web.scrollView;view.frame=host.bounds;view.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;[host addSubview:view];[host bringSubviewToFront:view];}
     // 盖住 AVPlayer 的黑画面层，避免布局回调把它重新顶到前面。
     self.nativePlayer.view.hidden=YES;
     [cicada applyVideoGravity:self.preferredVideoGravity.length?self.preferredVideoGravity:AVLayerVideoGravityResizeAspect];
@@ -1054,8 +1236,9 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     if(rate>=0.5&&rate<=2.0)[cicada setRate:rate];
     if(self.nativePlayer.player.muted)[cicada setMuted:YES];
     [cicada prepare];
-    [cicada start];
-    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"cicadaFallback"}];
+    BOOL wanted=[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""];
+    if(wanted&&UIApplication.sharedApplication.applicationState!=UIApplicationStateBackground)[cicada start];
+    else if(wanted){[cicada pause];self.cicadaPausedForBackground=YES;}
     return YES;
 }
 
@@ -1105,6 +1288,23 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"progress",@"time":@(position),@"duration":@(duration),@"removedAdSegments":@0,@"removedAdSeconds":@0}];
 }
 
+- (void)cicadaLivePlayer:(id)player bufferingChanged:(BOOL)buffering {
+    if(player!=self.cicadaLivePlayer||!self.cicadaFallbackActive||[self.playContext hasPrefix:@"live:"])return;
+    BOOL wants=[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""];
+    BOOL paused=self.cicadaLivePlayer.paused||self.cicadaPausedForBackground||!wants;
+    NSString*status=paused?@"paused":(buffering?@"buffering":@"playing");
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":status}];
+}
+
+- (void)cicadaLivePlayer:(id)player didCompleteSeek:(uint64_t)seekID position:(NSTimeInterval)position {
+    if(player!=self.cicadaLivePlayer||![self.playbackGate finishSeekWithContext:self.playContext?:@"" attempt:self.playbackAttemptID seekID:seekID actualPosition:position])return;
+    if(self.pendingSeekID==seekID)self.pendingSeekID=0;
+    if(self.pendingSliderSeekID==seekID){self.pendingSliderSeekID=0;self.appScreen.progressSeeking=NO;}
+    double duration=[self.cicadaLivePlayer duration];
+    [self.appScreen applyProgressTime:position duration:duration];
+    [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"seekCompleted",@"seekID":@(seekID),@"time":@(position),@"duration":@(duration)}];
+}
+
 - (void)cicadaLivePlayerDidComplete:(id)player {
     if(player!=self.cicadaLivePlayer||[self.playContext hasPrefix:@"live:"])return;
     [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"ended"}];
@@ -1117,15 +1317,45 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   self.liveRendererAttached=YES;self.liveScreen.liveRendererLayer=layer;[layer addObserver:self forKeyPath:@"readyForDisplay" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:&SYLiveRendererDisplayReady];
   [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"rendererAttached"}];
 }
+- (void)attachVODRendererForItem:(AVPlayerItem*)item {
+  if(!item||item!=self.nativeItem||[self.playContext hasPrefix:@"live:"]||self.cicadaFallbackActive||!self.nativePlayer.player)return;
+  AVPlayerLayer*layer=SYFindPlayerLayer(self.nativePlayer.view.layer,self.nativePlayer.player);
+  if(!layer){
+    if(++self.vodRendererAttachAttempts>40){[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"failed",@"error":@"AVPlayer 未能建立画面层，请重试或切换线路"}];return;}
+    __weak SYController*weakSelf=self;__weak AVPlayerItem*weakItem=item;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.2*NSEC_PER_SEC)),SYMainQueue(),^{SYController*owner=weakSelf;if(owner&&owner.nativeItem==weakItem&&!owner.cicadaFallbackActive)[owner attachVODRendererForItem:weakItem];});return;
+  }
+  if(self.vodRendererLayer==layer)return;
+  if(self.vodRendererLayer){@try{[self.vodRendererLayer removeObserver:self forKeyPath:@"readyForDisplay" context:&SYVODRendererDisplayReady];}@catch(NSException*exception){}}
+  self.vodRendererLayer=layer;
+  [layer addObserver:self forKeyPath:@"readyForDisplay" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:&SYVODRendererDisplayReady];
+}
 - (void)observeValueForKeyPath:(NSString*)path ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
+  if(context==&SYPlaybackIntent){
+    dispatch_async(SYMainQueue(),^{
+      if(object!=self.nativePlayer.player||[self.playContext hasPrefix:@"live:"]||!self.playContext.length||self.cicadaFallbackActive||self.suppressPlaybackIntentUpdates||self.nativePausedForInterruption)return;
+      AVPlayer*player=(AVPlayer*)object;
+      if(player.timeControlStatus==AVPlayerTimeControlStatusPlaying){
+        [self.playbackGate setWantsToPlayWithContext:self.playContext wantsToPlay:YES];
+        [self.playbackRuntime receivePlaybackEventForContext:self.playContext status:@"playing" currentTime:CMTimeGetSeconds(player.currentTime) duration:self.nativeItem?CMTimeGetSeconds(self.nativeItem.duration):0 playing:YES wantsToPlay:YES errorMessage:@""];
+      }else if(player.timeControlStatus==AVPlayerTimeControlStatusPaused){
+        [self.playbackGate setWantsToPlayWithContext:self.playContext wantsToPlay:NO];
+        [self.playbackRuntime receivePlaybackEventForContext:self.playContext status:@"paused" currentTime:CMTimeGetSeconds(player.currentTime) duration:self.nativeItem?CMTimeGetSeconds(self.nativeItem.duration):0 playing:NO wantsToPlay:NO errorMessage:@""];
+      }else if(player.timeControlStatus==AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate){
+        [self sendPlayback:@{@"context":self.playContext,@"status":@"buffering"}];
+      }
+    });return;
+  }
+  if(context==&SYVODRendererDisplayReady){dispatch_async(SYMainQueue(),^{if(object!=self.vodRendererLayer||!self.vodRendererLayer.readyForDisplay||object==self.liveScreen.liveRendererLayer||self.nativeItem==nil||self.cicadaFallbackActive||self.nativeVideoReady||[self.playContext hasPrefix:@"live:"])return;self.nativeVideoReady=YES;[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"firstFrame"}];});return;}
   if(context==&SYLiveRendererDisplayReady){dispatch_async(SYMainQueue(),^{if(object!=self.liveScreen.liveRendererLayer||!self.liveScreen.liveRendererLayer.readyForDisplay||self.nativeVideoReady||![self.playContext hasPrefix:@"live:"])return;self.nativeVideoReady=YES;[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"videoReady"}];});return;}
   if(context==&SYVideoPresentationSize){dispatch_async(SYMainQueue(),^{if(object!=self.nativeItem)return;CGSize size=self.nativeItem.presentationSize;if(size.width<=0||size.height<=0||!self.liveScreen.liveRendererLayer.readyForDisplay||self.nativeVideoReady||![self.playContext hasPrefix:@"live:"])return;self.nativeVideoReady=YES;[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"videoReady"}];});return;}
   if(context!=&SYPlaybackStatus){[super observeValueForKeyPath:path ofObject:object change:change context:context];return;}
   dispatch_async(SYMainQueue(),^{
-    if(object!=self.nativeItem)return;
-    if(self.nativeItem.status==1){[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"ready"}];if([self.playContext hasPrefix:@"live:"])[self inspectLiveVideoTracksForItem:self.nativeItem];else [self inspectVODVideoTracksForItem:self.nativeItem context:self.playContext?:@""];}
+    if(object!=self.nativeItem|| (self.cicadaFallbackActive&&![self.playContext hasPrefix:@"live:"]))return;
+    if(self.nativeItem.status==1){[self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"prepared"}];if([self.playContext hasPrefix:@"live:"])[self inspectLiveVideoTracksForItem:self.nativeItem];else [self inspectVODVideoTracksForItem:self.nativeItem context:self.playContext?:@""];}
     else if(self.nativeItem.status==2){
       BOOL live=[self.playContext hasPrefix:@"live:"];
+      if(!live&&[self tryCicadaVODFallbackForItem:self.nativeItem])return;
       [self sendPlayback:@{@"context":self.playContext?:@"",@"status":@"failed",@"error":self.nativeItem.error.localizedDescription?:@"视频解码失败，请切换线路"}];
       if(!live)[self stopNativePlayback];
     }
@@ -1140,21 +1370,26 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
   if(![identifier isKindOfClass:NSString.class]||identifier.length>100)return;
   if([type isEqualToString:@"statusStyle"]){self.detailStatusStyle=[body[@"dark"] boolValue];[self setNeedsStatusBarAppearanceUpdate];return;}
   if([type isEqualToString:@"playerControl"]){
+    NSString*commandContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:@"";
+    uint64_t commandAttempt=[body[@"attemptID"] unsignedLongLongValue];
+    if(self.playContext.length&&![commandContext isEqualToString:self.playContext])return;
+    if(commandContext.length&&![commandContext isEqualToString:self.playContext])return;
+    if(self.playContext.length&&![self.playContext hasPrefix:@"live:"]&&(!commandAttempt||commandAttempt!=self.playbackAttemptID||![self.playbackGate acceptsIdentityWithContext:commandContext attempt:commandAttempt]))return;
     NSString*action=[body[@"action"] isKindOfClass:NSString.class]?body[@"action"]:@"";
     if([action isEqualToString:@"rate"]){
       double r=[body[@"rate"] doubleValue];
-      if(r>=0.5&&r<=2.0){self.currentVODRate=(float)r;if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer setRate:(float)r];else if(self.nativePlayer.player)self.nativePlayer.player.rate=(float)r;}
+      if(r>=0.5&&r<=2.0){self.currentVODRate=(float)r;if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer setRate:(float)r];else if(self.nativePlayer.player&&([self.playContext hasPrefix:@"live:"]||[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""]))self.nativePlayer.player.rate=(float)r;}
     }else if([action isEqualToString:@"seekDelta"]){
       double delta=[body[@"delta"] doubleValue];
       if(__builtin_isfinite(delta)){
         double nowTs=[[NSDate date] timeIntervalSince1970];
         BOOL rapidSeek=(nowTs-self.lastSeekTimestamp)<1.5&&self.lastSeekTargetTime>=0;
-        if(self.cicadaFallbackActive&&self.cicadaLivePlayer){double current=rapidSeek?self.lastSeekTargetTime:[self.cicadaLivePlayer currentPosition];if(__builtin_isfinite(current)){[self.cicadaLivePlayer seekToTime:MAX(0,current+delta)];[self seekNativePlayerToTime:MAX(0,current+delta)];}}
-        else if(self.nativePlayer.player){double current=rapidSeek?self.lastSeekTargetTime:CMTimeGetSeconds(self.nativePlayer.player.currentTime);if(__builtin_isfinite(current)){[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(MAX(0,current+delta),600)];[self seekNativePlayerToTime:MAX(0,current+delta)];}}
+        if(self.cicadaFallbackActive&&self.cicadaLivePlayer){double current=rapidSeek?self.lastSeekTargetTime:[self.cicadaLivePlayer currentPosition];if(__builtin_isfinite(current))[self seekNativePlayerToTime:MAX(0,current+delta)];}
+        else if(self.nativePlayer.player){double current=rapidSeek?self.lastSeekTargetTime:CMTimeGetSeconds(self.nativePlayer.player.currentTime);if(__builtin_isfinite(current))[self seekNativePlayerToTime:MAX(0,current+delta)];}
       }
     }else if([action isEqualToString:@"seekTo"]){
       double target=[body[@"time"] doubleValue];
-      if(__builtin_isfinite(target)&&target>=0){if(self.cicadaFallbackActive&&self.cicadaLivePlayer)[self.cicadaLivePlayer seekToTime:target];else if(self.nativePlayer.player)[self.nativePlayer.player seekToTime:CMTimeMakeWithSeconds(target,600)];[self seekNativePlayerToTime:target];}
+      if(__builtin_isfinite(target)&&target>=0)[self seekNativePlayerToTime:target];
     }else if([action isEqualToString:@"gravity"]){
       NSString*mode=[body[@"mode"] isKindOfClass:NSString.class]?body[@"mode"]:@"fit";
       NSString*gravity=[mode isEqualToString:@"fill"]?AVLayerVideoGravityResizeAspectFill:([mode isEqualToString:@"stretch"]?AVLayerVideoGravityResize:AVLayerVideoGravityResizeAspect);
@@ -1168,19 +1403,35 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
       if(self.cicadaLivePlayer)[self.cicadaLivePlayer setMuted:nextMuted];
     }else if([action isEqualToString:@"pause"]){
       // 点播 Cicada：pause 只暂停不断流（睡眠定时用）；直播 Cicada 沿用 stop。
-      if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&![self.playContext hasPrefix:@"live:"])[self.cicadaLivePlayer pause];
-      else{if(self.nativePlayer.player)[self.nativePlayer.player pause];if(self.cicadaLivePlayer)[self.cicadaLivePlayer stop];}
+      if(![self.playContext hasPrefix:@"live:"]&&self.playbackRuntime.hasActiveSession)[self.playbackRuntime pauseManually];
+      else{if(![self.playContext hasPrefix:@"live:"])[self.playbackGate setWantsToPlayWithContext:self.playContext?:@"" wantsToPlay:NO];if(self.cicadaFallbackActive&&self.cicadaLivePlayer&&![self.playContext hasPrefix:@"live:"])[self.cicadaLivePlayer pause];else{if(self.nativePlayer.player)[self.nativePlayer.player pause];if(self.cicadaLivePlayer)[self.cicadaLivePlayer stop];}}
     }else if([action isEqualToString:@"updateMeta"]){
-      NSString*cicadaURLText=[body[@"cicadaURL"] isKindOfClass:NSString.class]?body[@"cicadaURL"]:@"";
-      NSURL*cicadaURL=[NSURL URLWithString:cicadaURLText];
-      if(([cicadaURL.scheme.lowercaseString isEqualToString:@"https"]||[cicadaURL.scheme.lowercaseString isEqualToString:@"http"])&&cicadaURL.host.length)self.vodCicadaURL=cicadaURL;
       if([body[@"warmPlaylists"] isKindOfClass:NSArray.class])[self.hlsProxy seedPlaylists:body[@"warmPlaylists"]];
     }else if([action isEqualToString:@"stop"]){
-      if(![self.playContext hasPrefix:@"live:"])[self stopNativePlayback];
+      if(![self.playContext hasPrefix:@"live:"]){[self.playbackGate stopWithContext:self.playContext?:@""];self.playbackAttemptID=0;self.playContext=@"";[self stopNativePlayback];}
     }
     return;
   }
-  if([type isEqualToString:@"pageProgress"]){double progressTime=[body[@"time"] doubleValue],progressDuration=[body[@"duration"] doubleValue];dispatch_async(SYMainQueue(),^{[self.appScreen applyProgressTime:progressTime duration:progressDuration];});return;}
+  if([type isEqualToString:@"preloadEpisode"]){
+    NSString*episodeIdentifier=[body[@"episodeIdentifier"] isKindOfClass:NSString.class]?body[@"episodeIdentifier"]:@"";
+    NSURL*mediaURL=[NSURL URLWithString:[body[@"url"] isKindOfClass:NSString.class]?body[@"url"]:@""];
+    NSDictionary*headers=[body[@"headers"] isKindOfClass:NSDictionary.class]?body[@"headers"]:@{};
+    if(episodeIdentifier.length&&[mediaURL.scheme.lowercaseString isEqualToString:@"https"]&&mediaURL.host.length)[self.playbackRuntime preloadEpisodeWithIdentifier:episodeIdentifier mediaURL:mediaURL headers:headers];
+    return;
+  }
+  if([type isEqualToString:@"playbackRecovery"]){
+    NSString*context=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:@"";
+    uint64_t requestedAttempt=[body[@"attemptID"] unsignedLongLongValue];
+    BOOL current=requestedAttempt&&requestedAttempt==self.playbackAttemptID&&[self.playbackGate acceptsIdentityWithContext:context attempt:requestedAttempt];
+    BOOL allowed=current&&[self.playbackGate authorizeRecoveryWithContext:context crossLine:[body[@"crossLine"] boolValue]];
+    [self deliver:@{@"id":identifier,@"allowed":@(allowed),@"attemptID":@(self.playbackAttemptID)}];return;
+  }
+  if([type isEqualToString:@"playbackPosition"]){
+    NSString*context=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:@"";
+    uint64_t requestedAttempt=[body[@"attemptID"] unsignedLongLongValue];
+    BOOL current=requestedAttempt&&requestedAttempt==self.playbackAttemptID&&[self.playbackGate acceptsIdentityWithContext:context attempt:requestedAttempt];
+    [self deliver:@{@"id":identifier,@"ok":@(current),@"position":@(current?[self.playbackGate confirmedPositionWithContext:context]:0),@"attemptID":@(current?self.playbackAttemptID:0),@"wantsToPlay":@(current&&[self.playbackGate desiredPlaybackWithContext:context])}];return;
+  }
   if([type isEqualToString:@"pageState"]){if([body[@"state"] isKindOfClass:NSDictionary.class]){self.pageSnapshot=body[@"state"];
 #if defined(SY_SIMULATOR_SMOKE)
     NSString*page=[self.pageSnapshot[@"page"] isKindOfClass:NSString.class]?self.pageSnapshot[@"page"]:@"unknown";self.smokeNavigationDebug=self.smokeNavigationDebug?:[NSMutableDictionary dictionary];self.smokeNavigationDebug[@"phase"]=[NSString stringWithFormat:@"%@-state-received",page];self.smokeNavigationDebug[@"page"]=page;self.smokeNavigationDebug[@"items"]=@([self.pageSnapshot[@"items"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"items"] count]:0);self.smokeNavigationDebug[@"groups"]=@([self.pageSnapshot[@"groups"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"groups"] count]:0);self.smokeNavigationDebug[@"sections"]=@([self.pageSnapshot[@"sections"] isKindOfClass:NSArray.class]?[self.pageSnapshot[@"sections"] count]:0);[self writeSmokeNavigationDebug];
@@ -1275,11 +1526,10 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
     NSURL*playURL=livePlayback?[self.hlsProxy prepareLive:url headers:headers]:[self.hlsProxy prepare:url headers:headers enabled:body[@"cleanHLS"]==nil||[body[@"cleanHLS"] boolValue]];
     if(!livePlayback&&[body[@"warmPlaylists"] isKindOfClass:NSArray.class])[self.hlsProxy seedPlaylists:body[@"warmPlaylists"]];
     #if defined(SY_SIMULATOR_SMOKE)
-    self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"];
-    if([requestedContext isEqualToString:@"smoke:playback"]){NSURL*fixture=[self smokeAudioFixtureURL];if(!fixture){[self deliver:@{@"id":identifier,@"error":@"无法创建模拟器静音媒体"}];return;}playURL=fixture;}
+    if([requestedContext isEqualToString:@"smoke:playback"])self.smokeProxyActive=[playURL.scheme isEqualToString:@"http"]&&[playURL.host isEqualToString:@"127.0.0.1"];
 #endif
     [self destroyCicadaPlayer];self.cicadaFallbackAttempted=NO;self.cicadaVODFallbackAttempted=NO;if(livePlayback)self.livePlaybackHeaders=headers;
-    if(!livePlayback){self.vodDirectURL=url;self.vodCicadaHeaders=headers;NSString*cicadaURLText=[body[@"cicadaURL"] isKindOfClass:NSString.class]?body[@"cicadaURL"]:@"";NSURL*cicadaURL=[NSURL URLWithString:cicadaURLText];self.vodCicadaURL=([cicadaURL.scheme.lowercaseString isEqualToString:@"https"]||[cicadaURL.scheme.lowercaseString isEqualToString:@"http"])&&cicadaURL.host.length?cicadaURL:nil;}
+    if(!livePlayback)self.vodCicadaHeaders=headers;
     AVURLAsset*asset=[AVURLAsset URLAssetWithURL:playURL options:@{@"AVURLAssetHTTPHeaderFieldsKey":headers}];
     AVPlayerItem*item=[AVPlayerItem playerItemWithAsset:asset];
     // Live playlists must keep enough media queued to survive segment jitter.
@@ -1309,25 +1559,39 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
       [self.nativePlayer.player replaceCurrentItemWithPlayerItem:item];if(self.liveScreen.liveRendererLayer)self.liveScreen.liveRendererLayer.player=self.nativePlayer.player;[self layoutPlayer:body[@"frame"]?:@{}];[self.nativePlayer.player play];
       [self deliver:@{@"id":identifier,@"ok":@YES}];return;
     }
+    BOOL reuseSession=!livePlayback&&requestedContext.length&&[requestedContext isEqualToString:self.playContext]&&self.playbackAttemptID>0;
     [self stopNativePlayback];
+    self.playContext=requestedContext;
+    double start=[body[@"startAt"] doubleValue];
+    if(!livePlayback){
+      NSString*episodeKey=[body[@"episodeKey"] isKindOfClass:NSString.class]?body[@"episodeKey"]:requestedContext;
+      if(!reuseSession){
+        [self.playbackGate beginSessionWithContext:requestedContext episodeKey:episodeKey initialPosition:__builtin_isfinite(start)&&start>0?start:0];
+        if([body[@"wantsToPlay"] isKindOfClass:NSNumber.class])[self.playbackGate setWantsToPlayWithContext:requestedContext wantsToPlay:[body[@"wantsToPlay"] boolValue]];
+      }
+      self.playbackAttemptID=[self.playbackGate beginAttemptWithContext:requestedContext kernel:@"AVPlayer"];
+      self.playbackEventSequence=0;self.pendingSeekID=0;self.pendingSliderSeekID=0;
+      [self.playbackRuntime startSessionWithContext:requestedContext episodeIdentifier:episodeKey title:[body[@"title"] isKindOfClass:NSString.class]?body[@"title"]:@"" mediaURL:playURL startPosition:__builtin_isfinite(start)&&start>0?start:0 kernelName:@"AVPlayer" wantsToPlay:[self.playbackGate desiredPlaybackWithContext:requestedContext]];
+    }else{self.playbackAttemptID=0;self.playbackEventSequence=0;}
+    [self deliver:@{@"id":identifier,@"ok":@YES,@"attemptID":@(self.playbackAttemptID)}];
     [AVAudioSession.sharedInstance setCategory:AVAudioSessionCategoryPlayback error:NULL];
     [AVAudioSession.sharedInstance setActive:YES error:NULL];
     SYPlayerViewController*player=[SYPlayerViewController new];self.nativePlayer=player;
     player.entersFullScreenWhenPlaybackBegins=NO;player.exitsFullScreenWhenPlaybackEnds=NO;player.delegate=player;player.updatesNowPlayingInfoCenter=YES;player.allowsPictureInPicturePlayback=YES;player.canStartPictureInPictureAutomaticallyFromInline=YES;player.videoGravity=self.preferredVideoGravity.length?self.preferredVideoGravity:AVLayerVideoGravityResizeAspect;
     self.nativeItem=item;self.nativeVideoReady=NO;
     __weak SYController*weakOwner=self;__weak AVPlayerItem*weakItem=item;
-    self.stalledObserver=[NSNotificationCenter.defaultCenter addObserverForName:AVPlayerItemPlaybackStalledNotification object:item queue:nil usingBlock:^(NSNotification*note){dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(live){[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];return;}AVPlayer*player=owner.nativePlayer.player;owner.vodStallTime=player?CMTimeGetSeconds(player.currentTime):0;owner.vodStallChecks=0;if(owner.vodStallWatchdogActive)return;owner.vodStallWatchdogActive=YES;[owner checkVODStallForItem:weakItem context:owner.playContext?:@""];});}];
-    self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem)return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(!live&&[owner tryCicadaVODFallbackForItem:weakItem])return;[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
+    self.stalledObserver=[NSNotificationCenter.defaultCenter addObserverForName:AVPlayerItemPlaybackStalledNotification object:item queue:nil usingBlock:^(NSNotification*note){dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem||(owner.cicadaFallbackActive&&![owner.playContext hasPrefix:@"live:"]))return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(live){[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":@"视频数据读取中断，请切换备用线路"}];return;}AVPlayer*player=owner.nativePlayer.player;owner.vodStallTime=player?CMTimeGetSeconds(player.currentTime):0;owner.vodStallChecks=0;if(owner.vodStallWatchdogActive)return;owner.vodStallWatchdogActive=YES;[owner checkVODStallForItem:weakItem context:owner.playContext?:@""];});}];
+    self.failedObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemFailedToPlayToEndTimeNotification" object:item queue:nil usingBlock:^(NSNotification*note){NSError*error=note.userInfo[@"AVPlayerItemFailedToPlayToEndTimeErrorKey"];dispatch_async(SYMainQueue(),^{SYController*owner=weakOwner;if(!owner||owner.nativeItem!=weakItem||(owner.cicadaFallbackActive&&![owner.playContext hasPrefix:@"live:"]))return;BOOL live=[owner.playContext hasPrefix:@"live:"];if(!live&&[owner tryCicadaVODFallbackForItem:weakItem])return;[owner sendPlayback:@{@"context":owner.playContext?:@"",@"status":@"failed",@"error":error.localizedDescription?:@"视频播放中断，请切换备用线路"}];if(!live)[owner stopNativePlayback];});}];
     if([body[@"title"] isKindOfClass:NSString.class]){AVMutableMetadataItem*metadata=[AVMutableMetadataItem metadataItem];metadata.identifier=AVMetadataCommonIdentifierTitle;metadata.value=body[@"title"];item.externalMetadata=@[metadata];}
-    self.playContext=[body[@"context"] isKindOfClass:NSString.class]?body[@"context"]:identifier;
     player.player=[AVPlayer playerWithPlayerItem:item];player.player.automaticallyWaitsToMinimizeStalling=YES;if(livePlayback){[item addObserver:self forKeyPath:@"presentationSize" options:1 context:&SYVideoPresentationSize];}[item addObserver:self forKeyPath:@"status" options:5 context:&SYPlaybackStatus];
     __weak SYController*owner=self;__weak SYPlayerViewController*weakPlayer=player;
-    player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer)[strongOwner stopNativePlayback];};
+    player.onClose=^{SYController*strongOwner=owner;if(strongOwner.nativePlayer==weakPlayer){if(![strongOwner.playContext hasPrefix:@"live:"]){[strongOwner.playbackGate stopWithContext:strongOwner.playContext?:@""];strongOwner.playbackAttemptID=0;strongOwner.playContext=@"";}[strongOwner stopNativePlayback];}};
     player.onRestore=^(void(^handler)(BOOL)){SYController*strongOwner=owner;if(!strongOwner||!weakPlayer){handler(NO);return;}handler(weakPlayer.parentViewController==strongOwner||weakPlayer.parentViewController==strongOwner.appScreen||weakPlayer.parentViewController==strongOwner.liveScreen);};
     self.lastVODProgressTime=-1;
     self.timeObserver=[player.player addPeriodicTimeObserverForInterval:CMTimeMakeWithSeconds(livePlayback?3:5,600) queue:SYMainQueue() usingBlock:^(CMTime time){
       SYController*strongOwner=owner;if(!strongOwner||strongOwner.nativePlayer!=weakPlayer)return;
       if(strongOwner.cicadaFallbackActive)return;
+      if(!livePlayback&&(strongOwner.nativeItem.status!=AVPlayerItemStatusReadyToPlay||strongOwner.pendingStartAt>0||strongOwner.pendingSeekID))return;
       double seconds=CMTimeGetSeconds(time);if(!__builtin_isfinite(seconds)||seconds<0)return;
       // B2：通知不到的卡顿。AVPlayerItemPlaybackStalledNotification 不是
       // 每次卡住都会发（代理取分片挂起时画面直接定住）；用 5 秒轮询补一
@@ -1348,25 +1612,26 @@ static AVPlayerLayer *SYFindPlayerLayer(CALayer*root,AVPlayer*player){if([root i
       [strongOwner sendPlayback:@{@"context":strongOwner.playContext?:@"",@"status":@"progress",@"time":@(seconds),@"duration":@(__builtin_isfinite(totalDuration)&&totalDuration>0?totalDuration:0),@"removedAdSegments":@(strongOwner.hlsProxy.removed),@"removedAdSeconds":@(strongOwner.hlsProxy.removedSeconds)}];
     }];
     self.endObserver=[NSNotificationCenter.defaultCenter addObserverForName:@"AVPlayerItemDidPlayToEndTimeNotification" object:item queue:nil usingBlock:^(id notification){
-      dispatch_async(SYMainQueue(),^{SYController*strongOwner=owner;if(strongOwner.nativePlayer!=weakPlayer)return;[strongOwner sendPlayback:@{@"context":strongOwner.playContext?:@"",@"status":@"ended"}];});
+      dispatch_async(SYMainQueue(),^{SYController*strongOwner=owner;if(strongOwner.nativePlayer!=weakPlayer||(strongOwner.cicadaFallbackActive&&![strongOwner.playContext hasPrefix:@"live:"]))return;[strongOwner sendPlayback:@{@"context":strongOwner.playContext?:@"",@"status":@"ended"}];});
     }];
-    double start=[body[@"startAt"] doubleValue];self.pendingStartAt=(!livePlayback&&__builtin_isfinite(start)&&start>0)?start:0;self.lastSeekTargetTime=self.pendingStartAt>0?self.pendingStartAt:-1;self.lastSeekTimestamp=0;if(__builtin_isfinite(start)&&start>0)[player.player seekToTime:CMTimeMakeWithSeconds(start,600)];
+    self.pendingStartAt=(!livePlayback&&__builtin_isfinite(start)&&start>0)?start:0;self.lastSeekTargetTime=self.pendingStartAt>0?self.pendingStartAt:-1;self.lastSeekTimestamp=0;
     double requestedRate=[body[@"rate"] doubleValue];float rate=(requestedRate>=0.5&&requestedRate<=2)?(float)requestedRate:1;self.currentVODRate=rate;
     UIViewController*playerOwner=[self.playContext hasPrefix:@"live:"]&&self.liveScreen?self.liveScreen:([self.appScreen.state[@"page"] isEqualToString:@"detail"]?self.appScreen:self);
     [playerOwner addChildViewController:player];
     player.view.frame=(CGRect){{0,0},{0,0}};
     if([self.playContext hasPrefix:@"live:"]&&self.liveScreen) [self.liveScreen.playerHost addSubview:player.view];
-    else if(playerOwner==self.appScreen)[self.appScreen.playerHost addSubview:player.view];
+    else if(playerOwner==self.appScreen)[self.appScreen.detailPlayerContainer mountRenderView:player.view];
     else if([self.playContext hasPrefix:@"live:"]) [self.view addSubview:player.view];
     else [self.web.scrollView addSubview:player.view];
     [player didMoveToParentViewController:playerOwner];
-    if([body[@"frame"] isKindOfClass:NSDictionary.class])[self layoutPlayer:body[@"frame"]];if(livePlayback)[self attachLiveLayerRendererForItem:item];
+    if([body[@"frame"] isKindOfClass:NSDictionary.class])[self layoutPlayer:body[@"frame"]];if(livePlayback)[self attachLiveLayerRendererForItem:item];else [self attachVODRendererForItem:item];
     if(body[@"muted"]!=nil)player.player.muted=[body[@"muted"] boolValue];
-    [player.player play];player.player.rate=rate;
+    if(livePlayback||[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""]){[player.player play];player.player.rate=rate;}else [player.player pause];
+    if(!livePlayback)[player.player addObserver:self forKeyPath:@"timeControlStatus" options:NSKeyValueObservingOptionNew context:&SYPlaybackIntent];
 #if defined(SY_SIMULATOR_SMOKE)
     if([requestedContext isEqualToString:@"smoke:playback"]){self.smokePlaybackDebug[@"phase"]=@"player-created";self.smokePlaybackDebug[@"playURL"]=playURL.absoluteString?:@"";self.smokePlaybackDebug[@"playerOwner"]=playerOwner==self.appScreen?@"appScreen":@"controller";self.smokePlaybackDebug[@"playItemStatus"]=@(item.status);[self writeSmokePlaybackDebug];}
 #endif
-    [self deliver:@{@"id":identifier,@"ok":@YES}];return;
+    return;
   }
   if(![type isEqualToString:@"request"])return;
   NSString*method=body[@"method"]?:@"GET";

@@ -37,6 +37,10 @@ public final class PlaybackSessionCoordinator: PlayerEngineDelegate {
 
     public var bufferingDebounceInterval: TimeInterval = 0.30
     public var seekGuardTimeout: TimeInterval = 0.80
+    // The app may own a separate recovery gate. In that mode this coordinator
+    // still serializes state/progress/seek and hardware events, but never starts
+    // another retry or line switch on its own.
+    public var externallyManagedRecovery = false
 
     public init(engines: [PlayerKernelType: PlayerEngineProtocol]? = nil) {
         if let engines {
@@ -117,6 +121,11 @@ public final class PlaybackSessionCoordinator: PlayerEngineDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + seekGuardTimeout, execute: item)
     }
 
+    public func cancelSeek() {
+        seekGuardWorkItem?.cancel()
+        isSeeking = false
+    }
+
     public func commitSeek(to targetTime: TimeInterval) {
         let clamped = max(0, duration > 0 ? min(targetTime, duration) : targetTime)
         currentTime = clamped
@@ -130,6 +139,10 @@ public final class PlaybackSessionCoordinator: PlayerEngineDelegate {
         activeEngine?.stopAndRelease()
         activeEngine = nil
         currentState = .idle
+        isSeeking = false
+        setLoadingVisible(false, immediate: true)
+        setPosterVisible(true)
+        observer?.coordinatorDidUpdateState(.idle, episodeId: currentRequest?.episodeId ?? "", line: nil)
         onIdleTimerRequirementChanged?(false)
     }
 
@@ -156,7 +169,8 @@ public final class PlaybackSessionCoordinator: PlayerEngineDelegate {
         switch newState {
         case .playing:
             setLoadingVisible(false, immediate: true)
-            setPosterVisible(false)
+            // A running media clock does not guarantee a displayed video frame.
+            // Only engineDidRenderFirstFrame may remove the poster.
             retryCountForCurrentLine = 0
         case .buffering:
             scheduleDebouncedLoading()
@@ -165,6 +179,12 @@ public final class PlaybackSessionCoordinator: PlayerEngineDelegate {
         case .paused, .ended:
             setLoadingVisible(false, immediate: true)
         case .error(let code, let message):
+            if externallyManagedRecovery {
+                setLoadingVisible(false, immediate: true)
+                let activeLine = currentRequest?.lines[safe: currentLineIndex]
+                observer?.coordinatorDidUpdateState(newState, episodeId: currentRequest?.episodeId ?? "", line: activeLine)
+                return
+            }
             handlePlaybackError(code: code, message: message, sessionId: sessionId)
             return
         case .idle:

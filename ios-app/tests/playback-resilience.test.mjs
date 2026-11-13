@@ -6,7 +6,7 @@ const episode=(id,title,url,open=true)=>({id,title,open,playUrls:[{url}]});
 const site={id:'test',origin:'https://origin.example',appId:'public',version:'1',signKey:'test',responseKeys:[]};
 const storage={getItem(){return null},setItem(){}};
 test('A TLS failure switches to the same numbered episode and retains original request headers',async()=>{
- const first=episode(1,'第02集','https://broken.example/v.m3u8'),other=episode(2,'第2集','https://good.example/v.m3u8',false),d={id:9,playSources:[{siteId:1,name:'坏线路',list:[first]},{siteId:2,name:'好线路',list:[other]}]};let authorized=0;
+ const first=episode(1,'第02集','https://broken.example/v.m3u8'),other=episode(2,'第2集','https://good.example/v.m3u8',false);first.timelineId=other.timelineId='episode:2';const d={id:9,playSources:[{siteId:1,name:'坏线路',list:[first]},{siteId:2,name:'好线路',list:[other]}]};let authorized=0;
  const c={site,play:async p=>{authorized++;assert.equal(p.episodeId,2);return[{url:'https://good.example/v.m3u8'}]},transport:async r=>{assert.equal(r.headers.Referer,site.origin+'/');if(r.url.includes('broken')){const e=Error('bad certificate');e.code=-1202;throw e;}return hls;}};
  const r=await resolvePlayableEpisode(c,d,0,0);assert.equal(r.lineIndex,1);assert.equal(r.episode.id,2);assert.equal(authorized,1);assert.equal(r.switched,true);assert.ok(typeof r.latencyMs==='number');
 });
@@ -59,7 +59,7 @@ test('Complete playback never silently downgrades to a preview, while explicit p
  const result=await resolvePlayableEpisode(c,d,1,0);assert.equal(result.lineIndex,1);assert.equal(result.urls[0].preview,true);assert.equal(c.preferredPlaybackSiteId,'full');
 });
 test('Resolver retains no-referrer on a website MP4 and skips broken same-episode lines',async()=>{
- const d={id:'nrLxl',channelId:1,playSources:[{siteId:'broken',list:[{id:1,title:'正片'}]},{siteId:'working',list:[{id:2,title:'HD'}]}]},seen=[];
+ const first={id:1,title:'正片',timelineId:'movie:main'},second={id:2,title:'HD',timelineId:'movie:main'},d={id:'nrLxl',channelId:1,playSources:[{siteId:'broken',list:[first]},{siteId:'working',list:[second]}]},seen=[];
  const c={site,play:async p=>[{url:'https://cdn.example/'+p.siteId,referrerPolicy:'no-referrer',headers:{'User-Agent':'Mobile'}}],transport:async r=>{seen.push(r);assert.equal(r.headers.Referer,undefined);return {status:r.url.endsWith('broken')?404:200};}};
  const result=await resolvePlayableEpisode(c,d,0,0);assert.equal(result.lineIndex,1);assert.equal(result.urls[0].referrerPolicy,'no-referrer');assert.equal(seen.length,2);
 });

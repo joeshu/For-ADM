@@ -4,7 +4,10 @@ const read=rel=>fs.readFileSync(path.join(root,rel),'utf8');
 // Slice one else-if branch out of native.onPlaybackEvent in app.mjs: from the
 // status marker to the next else-if (or the end of the live branch).
 const liveBranch=(app,status)=>{
- const start=app.indexOf(`event.status==='${status}'`);assert.ok(start>=0,`app.mjs must handle ${status}`);
+ // The first fallback occurrence updates a native attempt identity before
+ // entering the live event branches. Anchor the assertion to the actual
+ // else-if branch so it checks the user-visible live state transition.
+ const start=app.indexOf(`else if(event.status==='${status}'`);assert.ok(start>=0,`app.mjs must handle ${status}`);
  const next=app.indexOf("else if(event.status===",start+1);
  return app.slice(start,next<0?app.indexOf("if(event.status==='progress'&&state.playURLs",start):next);
 };
@@ -93,10 +96,10 @@ test('Cicada frameworks are bundled for device builds and excluded from the simu
  assert.ok(fs.existsSync(path.join(root,'Frameworks/alivcffmpeg.framework/alivcffmpeg')),'alivcffmpeg binary must exist');
  const macos=read('tools/build-macos.sh');
  assert.ok(macos.includes('-framework CicadaPlayerSDK'),'device build must link CicadaPlayerSDK');
- assert.ok(macos.includes('-Wl,-rpath,@executable_path/Frameworks'),'device build must set the Frameworks rpath');
+ assert.ok(macos.includes('-Xlinker -rpath -Xlinker @executable_path/Frameworks'),'device build must set the Frameworks rpath');
  const cross=read('tools/cross-build.py');
- assert.ok(cross.includes("'-framework','CicadaPlayerSDK'"),'cross build must link CicadaPlayerSDK');
- assert.ok(cross.includes("app/'Frameworks'"),'cross build must embed frameworks into the .app bundle');
+ assert.ok(cross.includes("frameworks_dir.glob('*.framework')"),'cross build must embed available device frameworks without linking them into the prebuilt executable');
+ assert.ok(cross.includes("app_frameworks/framework.name"),'cross build must copy each device framework into the .app bundle');
  const smoke=read('tools/simulator-smoke.sh');
  assert.ok(smoke.includes('Sources/SYCicadaLivePlayer.m'),'simulator smoke must still compile SYCicadaLivePlayer.m');
  assert.ok(!smoke.includes('-framework CicadaPlayerSDK'),'simulator smoke must not link CicadaPlayerSDK');

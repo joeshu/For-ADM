@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys,zipfile,plistlib,json,hashlib
-from macho import inspect
+from macho import inspect, validate_swift_runtime
 path=sys.argv[1]
 with zipfile.ZipFile(path) as z:
     assert z.testzip() is None
@@ -15,4 +15,9 @@ with zipfile.ZipFile(path) as z:
     for resource in ['Web/index.html','Web/app.js','Web/app.css','Web/hls-cleaner.js','Web/vendor/crypto-js.js']:
         assert len(z.read(base+resource))>100
     assert b'<script type="module"' not in z.read(base+'Web/index.html')
-print(json.dumps({'validUnsignedIPA':True,'bundleId':info['CFBundleIdentifier'],'architecture':'arm64','minimumOS':info['MinimumOSVersion'],'deviceLaunchTested':False,'sha256':hashlib.sha256(open(path,'rb').read()).hexdigest()},indent=2))
+    bundled_binaries=[('Sanyuan',binary)]
+    bundled_binaries.extend((name[len(base):],z.read(name)) for name in names if name.startswith(base+'Frameworks/') and not name.endswith('/'))
+    swift_report=validate_swift_runtime(bundled_binaries,
+        {name.rsplit('/',1)[-1] for name in names if name.startswith(base+'Frameworks/libswift') and name.count('/')==3 and name.endswith('.dylib')},
+        {name.rsplit('/',1)[-1] for name in names if name.startswith('SwiftSupport/iphoneos/libswift') and name.count('/')==2 and name.endswith('.dylib')})
+print(json.dumps({'validUnsignedIPA':True,'bundleId':info['CFBundleIdentifier'],'architecture':'arm64','minimumOS':info['MinimumOSVersion'],'deviceLaunchTested':False,**swift_report,'sha256':hashlib.sha256(open(path,'rb').read()).hexdigest()},indent=2))

@@ -24,6 +24,7 @@
 
 构建号（CFBundleVersion）由 CI 工作流运行号派生，本地构建默认 61；`Web/app.js`、`Web/hls-cleaner.js`、`Web/sites-data.mjs` 是 `npm run build:web` 的生成物，不提交进仓库，构建前会自动生成。
 
+1.0.9 接通详情页 Swift 稳定性运行时：会话协调器代理现有 AVPlayer/Cicada、不创建第二个播放器；统一原生渲染容器与真实首帧海报；音频中断、耳机断开、seek 与有请求头的下一集预热接入硬件守护。自动恢复仍只有一套预算。全屏转场控制器暂未接入。
 1.0.8 修复播放器详情页增量刷新方法误放在直播控制器中的问题，恢复 iOS 原生编译与 CI 发布。
 1.0.7 播不动的片不再无限空转：后台验证换线前把被放弃的线路记死、不再两条线路之间对跳，每集最多后台换线 2 次；验证不再打断正在进行的 Cicada 软解回退；同一集恢复超过 90 秒无首帧就停手报错（可稍后重试或手动换线），首帧一出重新计时。
 1.0.6 播放全面优化：座舱文字不再截断（原生详情页按钮/倍速行重排）；0.5× 不再被误判卡顿；代理单分片上限 32MB→128MB；起播先播后验（首帧更快，失败才在后台并行验证并换线）；详情页有原生进度条/简介展开/下一集/换线按钮和加载指示；设置里新增播放诊断日志（最近 20 条事件，可复制）；点播无视频轨道先走 Cicada 软解；后台/来电会暂停 Cicada、回前台恢复；睡眠定时改由原生定时器驱动，后台也能按时暂停。
@@ -113,18 +114,9 @@ bash tools/build-macos.sh
 
 该脚本使用真实 iPhoneOS SDK 编译，无需开发者证书，生成 unsigned IPA，并校验文件结构、架构及签名缺失状态。
 
-### Linux 开发研究（不用于分发）
+### Linux 构建限制
 
-需要 LLVM 19 的 clang、ld64.lld 和其运行库：
-
-```sh
-npm ci
-npm run build:web
-python3 tools/cross-build.py --clang /path/to/clang-19 --linker /path/to/ld64.lld-19
-python3 tools/check-ipa.py "dist/Sanyuan-$(node -p "require('./package.json').version")-unsigned.ipa"
-```
-
-`Sources/RuntimeSDK.h` 在 Linux 下提供本应用所需的最小公开 Objective-C ABI 声明；链接时生成仅含系统库名称与符号的 TAPI 文件，运行时链接设备上的系统框架。没有捆绑 Apple SDK，也没有模拟或替代 UIKit。macOS 编译自动使用真实 SDK 头文件。Linux 交叉编译只用于开发研究，不作为分发包。请使用 Xcode iPhoneOS SDK 产物。此前的“备用 IPA”无法保证真机兼容性，不建议继续安装。
+详情页依赖 Swift `PlaybackCommandGate`、`PlaybackRuntimeBridge`、`PlaybackSessionCoordinator` 和 UIKit 容器，完整构建需要 Xcode 的 iPhoneOS SDK 和 Swift 工具链。Linux LLVM 路径不能生成 Swift Objective-C 桥接头，已停用；`tools/cross-build.py` 只负责打包 SDK 已编译的二进制和 `swift-stdlib-tool` 生成的运行时库。请在 macOS 执行 `bash tools/build-macos.sh`。
 
 ## 验证和预览
 

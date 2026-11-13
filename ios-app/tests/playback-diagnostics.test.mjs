@@ -61,7 +61,7 @@ test('diagnostics copy and clear actions exist',()=>{
 });
 
 test('playback events are recorded at the VOD event sites',()=>{
- assert.ok(app.includes("state.playLoading=false;recordDiag('ready','首帧已出')"),'VOD ready must be recorded and turn the loading indicator off');
+ assert.ok(app.includes("state.playLoading=false;recordDiag('ready','首帧已显示')"),'VOD first frame must be recorded and turn the loading indicator off');
  assert.ok(app.includes("state.diagEngine='Cicada';state.playLoading=true;state.playLoadingText='正在尝试软解播放…';state.playError='';"),'a Cicada fallback must flip the engine and keep the loading indicator on');
  assert.ok(app.includes("recordDiag('cicada','卡顿后改用软解，清晰度不变')"),'a VOD Cicada fallback must be recorded');
  assert.ok(app.includes("if(event.status==='failed'){state.playLoading=false;recordDiag('failed',event.error||'播放器无法读取当前线路')"),'a VOD failure must be recorded before recovery runs');
@@ -79,7 +79,7 @@ test('playback events are recorded at the live event sites',()=>{
 test('play starts and line switches are recorded',()=>{
  assert.ok(app.includes("state.diagEngine='AVPlayer';state.playLoading=true;state.playLoadingText='正在加载播放器…';recordDiag('play','开始播放');"),'each native play must reset the engine, turn the loading indicator on, and record the start');
  assert.ok(app.includes("recordDiag('switch','切换到'"),'a line switch during recovery must be recorded');
- assert.ok(app.includes("recordDiag('failed',lastError||'已尝试全部备用地址和线路')"),'giving up after all lines must be recorded');
+ assert.ok(app.includes("recordDiag('failed',lastError||'自动恢复完成')"),'finishing recovery after exhausting the candidates must be recorded');
 });
 
 test('native detail page shows the K1 diagnostic line under the cockpit',()=>{

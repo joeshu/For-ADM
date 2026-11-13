@@ -8,6 +8,7 @@ const numeric=value=>/^\d+$/.test(String(value||''));
 const firstCursor=value=>value==null||value===''||value==='page=1'?'':String(value);
 const nextCursor=data=>data?.hasNext&&data.nextVal!=null?String(data.nextVal):'';
 const pageIndex=value=>{const raw=String(value||'page=1');const n=Number(new URLSearchParams(raw).get('page')||raw);return Number.isSafeInteger(n)&&n>0?n:1;};
+const episodeTimelinePart=value=>{const title=String(value||'').normalize('NFKC').trim().toLowerCase().replace(/\s+/g,'');const number=title.match(/^(?:第|ep(?:isode)?[._-]?)?0*(\d+)(?:集|话|期|章|节)?$/i);return number?'episode:'+Number(number[1]):'';};
 const names=value=>(Array.isArray(value)?value:[]).map(x=>typeof x==='string'?x:x?.vodWorkerName||x?.name).filter(Boolean);
 const authDenial=(code,message)=>[10001,10006,10012].includes(Number(code))||/登录|注册|会员|付费|权限|下载\s*APP|客户端限制/i.test(message||'');
 
@@ -110,7 +111,7 @@ export class YqkClient extends SiteClient {
  async detail(id,signal){
   await this.ready(signal);if(!numeric(id))throw Error('无效影片');const d=await this.post('/v2/api/vodInfo/index',{vodId:Number(id)},signal);
   if(!numeric(d?.vodId)||!Array.isArray(d.playerList))throw Error('网站影片详情结构已变化');
-  const hint=this.movieHints.get(String(id)),playSources=d.playerList.map((line,index)=>({siteId:String(line.vodPlayerKind??'line')+':'+index,name:String(line.playerName||'线路 '+(index+1)),total:Number(line.totalEpCount)||line.epList?.length||0,list:(line.epList||[]).filter(e=>numeric(e.epId)).map(e=>({id:Number(e.epId),title:String(e.epName||'选集'),open:false}))}));
+  const hint=this.movieHints.get(String(id)),playSources=d.playerList.map((line,index)=>({siteId:String(line.vodPlayerKind??'line')+':'+index,name:String(line.playerName||'线路 '+(index+1)),total:Number(line.totalEpCount)||line.epList?.length||0,list:(line.epList||[]).filter(e=>numeric(e.epId)).map(e=>{const title=String(e.epName||'选集'),timelinePart=episodeTimelinePart(title);return {id:Number(e.epId),title,...(timelinePart?{timelineId:'yqk:'+d.vodId+':'+timelinePart}:{}),open:false};})}));
   const out={id:String(d.vodId),title:String(d.vodName||''),imageURL:safeImageURL(d.coverImg,this.site.origin),scoreText:d.score?String(d.score)+'分':'',bottomLabel:String(d.updateRemark||''),year:d.year,area:d.areaName?[{name:String(d.areaName)}]:[],language:[],channelId:hint?.channelId||0,channelName:hint?.channelId===1?'电影':'影片',isAdult:false,summary:String(d.intro||''),actors:names(d.actorList),directors:names(d.directorList),labels:names(d.tagList),playSources};
   this.details.set(String(id),out);while(this.details.size>12)this.details.delete(this.details.keys().next().value);return out;
  }

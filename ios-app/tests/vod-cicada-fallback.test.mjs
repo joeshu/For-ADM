@@ -6,11 +6,11 @@ const master=body('#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=854x48
 const site={id:'test',origin:'https://origin.example',appId:'public',version:'1',signKey:'test',responseKeys:[]};
 const episode=(id,title,url)=>({id,title,open:true,playUrls:[{url}]});
 
-test('resolvePlayableEpisode records the highest variant as the Cicada fallback URL',async()=>{
+test('resolvePlayableEpisode retains quality metadata without creating a separate Cicada timeline',async()=>{
  const d={id:9,playSources:[{siteId:1,list:[episode(1,'第1集','https://cdn.example/master.m3u8')]}]};
  const c={site,play:async()=>[{url:'https://cdn.example/master.m3u8'}],transport:async r=>r.url.includes('master.m3u8')?master:hls};
  const result=await resolvePlayableEpisode(c,d,0,0);
- assert.equal(result.urls[0].cicadaURL,'https://cdn.example/1080p.m3u8');
+ assert.ok(!result.urls[0].cicadaURL,'a separate variant URL must not be stored for recovery');
  assert.equal(result.qualityLabel,'1080p FHD');
  assert.equal(result.bandwidth,2500000);
 });
@@ -39,8 +39,9 @@ test('the quality downgrade is gone: no variant stepping, no effective URL helpe
 });
 
 test('launchNativePlayer passes the highest-variant URL for the Cicada fallback',()=>{
- const launch=fn(app,'async function launchNativePlayer(){','const authorizationFailure=');
- assert.ok(launch.includes("cicadaURL:entry?.cicadaURL||''"),'launchNativePlayer must pass cicadaURL to native.play');
+ const launch=fn(app,'async function launchNativePlayer({forceNewSession=false}={}){','const authorizationFailure=');
+ assert.ok(launch.includes('episodeKey:sessionKey(session)'),'launchNativePlayer must pass a stable episode identity to native.play');
+ assert.ok(launch.includes('playbackPosition(previousContext,nativeSession?.attemptID)'),'same-episode reopens must use the native confirmed position for the active attempt');
  assert.ok(launch.includes('const entry=state.playURLs[state.playIndex],url=entry?.url;'),'launchNativePlayer must play the original URL with AVPlayer');
 });
 
@@ -61,19 +62,24 @@ test('the VOD stall watchdog tries Cicada on the same line before failing the li
  assert.ok(fail>attempt,'the line must only fail after the Cicada attempt returns NO');
 });
 
-test('the VOD fallback plays the highest variant directly, from the stall position, keeping rate and mute',()=>{
+test('the VOD fallback reuses the active timeline and confirmed position, keeping rate, mute and external recovery control',()=>{
  const fallback=fn(main,'- (BOOL)tryCicadaVODFallbackForItem:(AVPlayerItem*)item {','- (void)destroyCicadaPlayer');
- assert.ok(fallback.includes('self.vodCicadaURL?:self.vodDirectURL'),'the fallback must prefer the highest-variant URL, then the direct URL');
+ assert.ok(fallback.includes('NSURL*url=[item.asset isKindOfClass:AVURLAsset.class]?((AVURLAsset*)item.asset).URL:nil;'),'the fallback must reuse the exact AVPlayer asset URL to preserve the HLS timeline');
+ assert.ok(fallback.includes('[self.playbackGate confirmedPositionWithContext:self.playContext?:@""]'),'the fallback must resume from the gate-confirmed position');
+ assert.ok(fallback.includes('authorizeRecoveryWithContext:self.playContext?:@"" crossLine:NO'),'the fallback must consume the shared recovery budget');
+ assert.ok(fallback.includes('cicada.externalRecoveryManaged=YES'),'the wrapper must not run an independent VOD retry');
  assert.ok(fallback.includes('cicada.vodMode=YES'),'the fallback must enable VOD mode');
  assert.ok(fallback.includes('cicada.startPosition=startAt'),'the fallback must resume from the stall position');
  assert.ok(fallback.includes('[cicada setRate:rate]'),'the fallback must keep the playback rate');
  assert.ok(fallback.includes('[cicada setMuted:YES]'),'the fallback must keep the muted state');
+ assert.ok(fallback.includes('BOOL wanted=[self.playbackGate desiredPlaybackWithContext:self.playContext?:@""];'),'the fallback must read the stored play/pause intent for the active context');
+ assert.ok(fallback.includes('if(wanted&&UIApplication.sharedApplication.applicationState!=UIApplicationStateBackground)[cicada start];'),'the fallback may start only when playback is wanted and the app is not backgrounded');
+ assert.ok(fallback.includes('else if(wanted){[cicada pause];self.cicadaPausedForBackground=YES;}'),'a wanted background fallback must cancel pending startup and record a foreground resume, while a manual pause must stay paused');
  assert.ok(fallback.includes('@"cicadaFallback"'),'the fallback must tell JS the engine switched');
 });
 
 test('the native play handler stores the direct and highest-variant URLs for a later fallback',()=>{
- assert.ok(main.includes('self.vodDirectURL=url;'),'the play handler must store the direct URL');
- assert.ok(main.includes('body[@"cicadaURL"]'),'the play handler must read cicadaURL from the JS play call');
+ assert.ok(main.includes('self.vodCicadaHeaders=headers;'),'the play handler must retain source headers for Cicada on the same active URL');
  assert.ok(main.includes('self.cicadaVODFallbackAttempted=NO;'),'a new play must reset the VOD fallback attempt');
 });
 
@@ -92,7 +98,9 @@ test('player controls route to Cicada while the fallback is active',()=>{
  for(const action of ['@"rate"','@"seekDelta"','@"seekTo"','@"pause"'])assert.ok(controls.includes(action),`playerControl must handle ${action}`);
  assert.ok(controls.includes('self.cicadaFallbackActive&&self.cicadaLivePlayer'),'controls must check for an active Cicada fallback');
  assert.ok(controls.includes('[self.cicadaLivePlayer setRate:'),'rate must reach Cicada');
- assert.ok(controls.includes('[self.cicadaLivePlayer seekToTime:'),'seek must reach Cicada');
+ assert.ok(controls.includes('[self seekNativePlayerToTime:'),'seek controls must enter the identity-checked native seek path');
+ const seek=fn(main,'- (void)performNativeSeekToTime:','- (void)stopNativePlayback');
+ assert.ok(seek.includes('[self.cicadaLivePlayer seekToTime:seconds seekID:seekID]'),'the native seek path must send the accepted seek identity to Cicada');
  assert.ok(controls.includes('[self.cicadaLivePlayer pause]'),'pause must reach Cicada without stopping it');
 });
 
