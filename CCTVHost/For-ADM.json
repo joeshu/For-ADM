@@ -164,12 +164,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.moliget",
-      "name": "茉莉Get",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/moliget.js?v=1",
-      "type": "script"
-    },
-    {
       "key": "joeshu.juquan99",
       "name": "剧圈99",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/juquan99.js?v=1",

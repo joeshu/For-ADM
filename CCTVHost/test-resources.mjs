@@ -29,7 +29,7 @@ const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
  * 飞娱只跑通 mock（host 本机不通），文件暂存工作区未入库；1905、
  * 厂长影视、果果短剧、橘汁 AppDrama、瓜子影视 native 未解出。
  * 2026-11-14 1905 应用户要求直接装入订阅（m1905.js），由用户 iPhone 实测播放。 */
-const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','piandi','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe','wangzi','moliget','juquan99','banri99','yiqi','hanquan','xiqu','weiguan','haokan','bashi','guluapp','hema','m1905'];
+const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','piandi','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe','wangzi','juquan99','banri99','yiqi','hanquan','xiqu','weiguan','haokan','bashi','guluapp','hema','m1905'];
 /* 2026-11-12 曾新增 7 组站的 10 个 18+ 成人适配器（黑桃/鬼片/野果/剧果/
  * 禁果/笔盒/黄果/红果黄剧/黄果剧场/帝果），2026-11-13 按用户要求全部从订阅
  * 移除；适配器文件已于同日从仓库删除，只能从 git 历史找回。 */
@@ -49,7 +49,7 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, thirty-one new SSR sources, no adult sources, twenty-nine verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, thirty new SSR sources, no adult sources, twenty-nine verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -318,7 +318,7 @@ for(const id of [...names,...newNames,...adultNames]){
     assert.equal(String(categoryArgs.parentChannelId),'2',id+' maps parent channel');
     assert.equal(String(categoryArgs.childChannelId),'9',id+' maps child category');
   }else if(id==='souju'||id==='kanju'||id==='piandi')assert.equal(categoryArgs.kind,'movie',id+' maps content kind');
-  else if(id==='hetun'||id==='xpg'||id==='huayi'||id==='bubu'||id==='fanshe'||id==='wangzi'||id==='moliget'||id==='juquan99'||id==='banri99'||id==='guluapp')assert.equal(categoryArgs.kind,typeId,id+' maps content kind');
+  else if(id==='hetun'||id==='xpg'||id==='huayi'||id==='bubu'||id==='fanshe'||id==='wangzi'||id==='juquan99'||id==='banri99'||id==='guluapp')assert.equal(categoryArgs.kind,typeId,id+' maps content kind');
   else if(id==='jili')assert.equal(String(categoryArgs.channelId),'20',id+' maps source channel');
   else assert.equal(String(categoryArgs.channelId),'1',id+' maps source channel');
 
@@ -341,4 +341,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 69 entries (including twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-nine JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 68 entries (including twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-eight JavaScript sources.');
