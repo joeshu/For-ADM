@@ -45,7 +45,7 @@ xcrun --sdk iphonesimulator swiftc -sdk "$sdk_path" -target "$sim_target" -modul
   -framework CoreMedia -framework CoreGraphics -framework Security -framework Network -framework JavaScriptCore \
   -lz -Xlinker -rpath -Xlinker @executable_path/Frameworks -o "$sim_app/Sanyuan"
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable "$sim_app/Sanyuan" \
-  --destination "$sim_app/Frameworks" --platform iphonesimulator --toolchain "$toolchain_path"
+  --destination "$sim_app/Frameworks" --platform iphonesimulator
 python3 - "$sim_app/Info.plist" <<'PY'
 import sys,plistlib
 p=sys.argv[1]

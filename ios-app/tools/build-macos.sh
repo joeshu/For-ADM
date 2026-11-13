@@ -31,7 +31,7 @@ xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module
   -o dist/sdk/Sanyuan
 echo "Linked the iOS app. Collecting the Swift runtime and packaging the IPA."
 "$toolchain_path/usr/bin/swift-stdlib-tool" --copy --scan-executable dist/sdk/Sanyuan \
-  --destination dist/swift-runtime --platform iphoneos --toolchain "$toolchain_path"
+  --destination dist/swift-runtime --platform iphoneos
 python3 tools/cross-build.py --binary dist/sdk/Sanyuan --swift-support dist/swift-runtime
 version="$(node -p "require('./package.json').version")"
 python3 tools/check-ipa.py "dist/Sanyuan-${version}-unsigned.ipa"
