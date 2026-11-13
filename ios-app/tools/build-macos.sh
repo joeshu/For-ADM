@@ -31,8 +31,8 @@ xcrun --sdk iphoneos swiftc -sdk "$sdk_path" -target arm64-apple-ios15.0 -module
   -o dist/sdk/Sanyuan
 echo "Linked the iOS app. Collecting the Swift runtime and packaging the IPA."
 swift_libraries="$toolchain_path/usr/lib/swift/iphoneos"
-if [[ ! -d "$swift_libraries" ]]; then swift_libraries="$toolchain_path/usr/lib/swift-5.0/iphoneos"; fi
-if [[ ! -d "$swift_libraries" ]]; then
+if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then swift_libraries="$toolchain_path/usr/lib/swift-5.0/iphoneos"; fi
+if [[ ! -f "$swift_libraries/libswiftCore.dylib" ]]; then
   echo "Could not find the iPhoneOS Swift standard libraries in $toolchain_path/usr/lib" >&2
   exit 1
 fi
