@@ -36,7 +36,7 @@ const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k
 const adultNames=[];
 const pythonSources=[
   ['duoduo','多多影视'],['fengshang','风尚影视'],['junnian','君念影院'],
-  ['haokankan','好好看'],['chabeihu','茶杯狐'],['dida','嘀嗒影视'],
+  ['chabeihu','茶杯狐'],['dida','嘀嗒影视'],
   ['douhua','豆花影视'],['qilin','麒麟影视'],['nunu','努努影院'],
   ['ystj','影视追剧'],['dsxys8','大师兄影音'],
   ['aigua','爱瓜TV'],['bubuzhuiju','布布追剧'],['shortfilm','短剧'],
@@ -49,7 +49,7 @@ const pythonSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, twenty-nine verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, twenty-eight verified Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -341,4 +341,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 67 entries (including twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 66 entries (including twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
