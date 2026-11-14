@@ -812,12 +812,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.pengranxindong",
-      "name": "[通过]怦然心动（18+）（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/pengranxindong.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.pianba",
       "name": "[通过]片吧（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/pianba.py",
@@ -977,12 +971,6 @@
       "key": "joeshu.hawk.yiqishua",
       "name": "[通过]一起刷（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/yiqishua.py",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.hawk.youtube",
-      "name": "[通过]YouTube（18+）（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youtube.py",
       "type": "script"
     },
     {
