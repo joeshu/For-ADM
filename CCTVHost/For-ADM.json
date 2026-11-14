@@ -764,12 +764,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.mangguotv",
-      "name": "[需手机测]芒果TV（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/mangguotv.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.meibushengshoumianfan",
       "name": "[通过]美不胜收（免翻）（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/meibushengshoumianfan.py",
