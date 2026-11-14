@@ -580,7 +580,7 @@ class YstjSpider(Spider):
 
     注册方式（For-ADM.json）：
       {"key": "joeshu.hawk.ystj", "name": "影视追剧（PY）",
-       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/ystj.py",
+       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/ystj.py",
        "type": "script"}
     切换源：init(extend) 传源名（dytt/wujin/lziapi/ffzy/app），或 JSON {"src": "dytt"}。
     """

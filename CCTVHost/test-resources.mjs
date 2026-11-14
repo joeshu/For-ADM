@@ -101,21 +101,21 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=3',id+' points to its current standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v=3',id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of newNames){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of adultNames){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const [id,title] of pythonSources){
@@ -123,7 +123,7 @@ for(const [id,title] of pythonSources){
   assert.ok(entry,title+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',title+' is marked as an importable script');
   assert.equal(entry.name,title+'（PY）',title+' is labeled as a Python Spider source');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/'+id+'.py',title+' points to its standalone Python source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/'+id+'.py',title+' points to its standalone Python source');
   const source=fs.readFileSync(path.join(here,'python-spiders',id+'.py'),'utf8');
   assert.match(source,/class \w*Spider\s*\(/,title+' declares a Python Spider');
   for(const method of ['homeContent','categoryContent','searchContent','detailContent','playerContent'])
@@ -153,7 +153,7 @@ for(const id of names){
   assert.equal(context.WidgetMetadata.id,'joeshu.'+id,id+' has a source-scoped identity');
   assert.ok(subscriptionEntry,id+' is present in the importable subscription');
   assert.equal(subscriptionEntry.version,context.WidgetMetadata.version,id+' subscription version matches its script');
-  assert.equal(subscriptionEntry.url,'https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/'+id+'.js',id+' uses a direct raw GitHub URL');
+  assert.equal(subscriptionEntry.url,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/'+id+'.js',id+' uses a direct raw GitHub URL');
   assert.equal(typeof context.loadDetail,'function',id+' exposes detail lookup');
   assert.equal(typeof context.loadResource,'function',id+' exposes CCTVHost loadResource');
   assert.ok(context.WidgetMetadata.modules.some(module=>module.type==='stream'&&module.functionName==='loadResource'),id+' registers a playback resource module');

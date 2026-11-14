@@ -9,7 +9,7 @@
       "author": "joeshu",
       "version": "0.1.1",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/kkapp.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/kkapp.js"
     },
     {
       "id": "joeshu.ncat",
@@ -18,7 +18,7 @@
       "author": "joeshu",
       "version": "0.1.1",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/ncat.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/ncat.js"
     },
     {
       "id": "joeshu.happ",
@@ -27,7 +27,7 @@
       "author": "joeshu",
       "version": "0.1.1",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/happ.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/happ.js"
     },
     {
       "id": "joeshu.yqk",
@@ -36,7 +36,7 @@
       "author": "joeshu",
       "version": "0.9.3",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/yqk.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/yqk.js"
     },
     {
       "id": "joeshu.qntv",
@@ -45,7 +45,7 @@
       "author": "joeshu",
       "version": "0.1.0",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/qntv.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/qntv.js"
     },
     {
       "id": "joeshu.dyls",
@@ -54,7 +54,7 @@
       "author": "joeshu",
       "version": "0.1.1",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/dyls.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/dyls.js"
     },
     {
       "id": "joeshu.souju",
@@ -63,7 +63,7 @@
       "author": "joeshu",
       "version": "0.6.2",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/souju.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/souju.js"
     },
     {
       "id": "joeshu.kanju",
@@ -72,7 +72,7 @@
       "author": "joeshu",
       "version": "0.1.2",
       "requiredVersion": "0.0.1",
-      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/widget/kanju.js"
+      "url": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/widget/kanju.js"
     }
   ]
 }
