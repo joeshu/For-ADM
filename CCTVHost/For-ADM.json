@@ -393,7 +393,7 @@
     },
     {
       "key": "joeshu.hawk.1234yingshi",
-      "name": "[需手机测]1234影视（PY）",
+      "name": "[通过]1234影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/1234yingshi.py",
       "type": "script"
     },
@@ -417,13 +417,13 @@
     },
     {
       "key": "joeshu.hawk.618",
-      "name": "[通过]618（PY）",
+      "name": "[通过]618（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/618.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.99yingshitv261030",
-      "name": "[需手机测]99影視TV261030（PY）",
+      "name": "[通过]99影視TV261030（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/99yingshitv261030.py",
       "type": "script"
     },
@@ -435,37 +435,37 @@
     },
     {
       "key": "joeshu.hawk.animesex",
-      "name": "[通过]AnimeSex（PY）",
+      "name": "[通过]AnimeSex（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/animesex.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.av123",
-      "name": "[需手机测]av123（PY）",
+      "name": "[需手机测]av123（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/av123.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.avgc9",
-      "name": "[通过]AVGC9（PY）",
+      "name": "[通过]AVGC9（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/avgc9.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.avjoy",
-      "name": "[通过]avjoy（PY）",
+      "name": "[通过]avjoy（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/avjoy.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.baipiaozhiwang",
-      "name": "[通过]白嫖之王（PY）",
+      "name": "[通过]白嫖之王（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/baipiaozhiwang.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.bajieyingshi",
-      "name": "[需手机测]八戒影视（PY）",
+      "name": "[通过]八戒影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/bajieyingshi.py",
       "type": "script"
     },
@@ -483,7 +483,7 @@
     },
     {
       "key": "joeshu.hawk.blibli",
-      "name": "[通过]B里B里（PY）",
+      "name": "[通过]B里B里（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/blibli.py",
       "type": "script"
     },
@@ -507,7 +507,7 @@
     },
     {
       "key": "joeshu.hawk.chiguawang",
-      "name": "[需手机测]吃瓜网（PY）",
+      "name": "[通过]吃瓜网（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/chiguawang.py",
       "type": "script"
     },
@@ -537,7 +537,7 @@
     },
     {
       "key": "joeshu.hawk.duanjudaquan",
-      "name": "[需手机测]短剧大全（PY）",
+      "name": "[通过]短剧大全（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duanjudaquan.py",
       "type": "script"
     },
@@ -579,19 +579,19 @@
     },
     {
       "key": "joeshu.hawk.epornerdazhan",
-      "name": "[通过]eporner大站（PY）",
+      "name": "[通过]eporner大站（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/epornerdazhan.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.fandaziyingshi",
-      "name": "[需手机测]饭搭子影视（PY）",
+      "name": "[通过]饭搭子影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/fandaziyingshi.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.fantuanyingshi",
-      "name": "[需手机测]饭团影视（PY）",
+      "name": "[通过]饭团影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/fantuanyingshi.py",
       "type": "script"
     },
@@ -603,13 +603,13 @@
     },
     {
       "key": "joeshu.hawk.feikuaitv",
-      "name": "[需手机测]飞快TV（PY）",
+      "name": "[通过]飞快TV（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/feikuaitv.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.getav",
-      "name": "[通过]getav（PY）",
+      "name": "[通过]getav（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/getav.py",
       "type": "script"
     },
@@ -639,13 +639,13 @@
     },
     {
       "key": "joeshu.hawk.hanime",
-      "name": "[通过]hanime（PY）",
+      "name": "[通过]hanime（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/hanime.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.hemaduanju",
-      "name": "[需手机测]河马短剧（PY）",
+      "name": "[通过]河马短剧（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/hemaduanju.py",
       "type": "script"
     },
@@ -663,7 +663,7 @@
     },
     {
       "key": "joeshu.hawk.huangdouduanju",
-      "name": "[通过]黄豆短剧（PY）",
+      "name": "[通过]黄豆短剧（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/huangdouduanju.py",
       "type": "script"
     },
@@ -687,19 +687,19 @@
     },
     {
       "key": "joeshu.hawk.javday",
-      "name": "[通过]JavDay（PY）",
+      "name": "[通过]JavDay（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/javday.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.javheo",
-      "name": "[通过]javheo（PY）",
+      "name": "[通过]javheo（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/javheo.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.jingdianlaopian",
-      "name": "[需手机测]经典老片（PY）",
+      "name": "[通过]经典老片（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/jingdianlaopian.py",
       "type": "script"
     },
@@ -723,13 +723,13 @@
     },
     {
       "key": "joeshu.hawk.jiuheyi",
-      "name": "[通过]九合一（PY）",
+      "name": "[通过]九合一（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/jiuheyi.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.juyingyunbo",
-      "name": "[通过]巨婴云播（PY）",
+      "name": "[通过]巨婴云播（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/juyingyunbo.py",
       "type": "script"
     },
@@ -777,43 +777,43 @@
     },
     {
       "key": "joeshu.hawk.kanxiyingshi",
-      "name": "[需手机测]看戏影视（PY）",
+      "name": "[通过]看戏影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/kanxiyingshi.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.keke",
-      "name": "[需手机测]可可（PY）",
+      "name": "[通过]可可（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/keke.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.kekeyingshi",
-      "name": "[需手机测]可可影视（PY）",
+      "name": "[通过]可可影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/kekeyingshi.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.krx18",
-      "name": "[需手机测]krx18（PY）",
+      "name": "[需手机测]krx18（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/krx18.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.liuzhouzhangmu",
-      "name": "[需手机测]柳州丈母（PY）",
+      "name": "[需手机测]柳州丈母（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/liuzhouzhangmu.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.madouai",
-      "name": "[通过]麻豆AI（PY）",
+      "name": "[通过]麻豆AI（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/madouai.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.maiduidui",
-      "name": "[需手机测]埋堆堆（PY）",
+      "name": "[通过]埋堆堆（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/maiduidui.py",
       "type": "script"
     },
@@ -825,7 +825,7 @@
     },
     {
       "key": "joeshu.hawk.meibushengshoumianfan",
-      "name": "[需手机测]美不胜收（免翻）（PY）",
+      "name": "[通过]美不胜收（免翻）（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/meibushengshoumianfan.py",
       "type": "script"
     },
@@ -837,13 +837,13 @@
     },
     {
       "key": "joeshu.hawk.missavmianfan",
-      "name": "[需手机测]Missav（免翻）（PY）",
+      "name": "[通过]Missav（免翻）（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/missavmianfan.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.missavquanfenleiban",
-      "name": "[通过]missav全分类版（PY）",
+      "name": "[通过]missav全分类版（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/missavquanfenleiban.py",
       "type": "script"
     },
@@ -873,7 +873,7 @@
     },
     {
       "key": "joeshu.hawk.pengranxindong",
-      "name": "[通过]怦然心动（PY）",
+      "name": "[通过]怦然心动（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/pengranxindong.py",
       "type": "script"
     },
@@ -885,13 +885,13 @@
     },
     {
       "key": "joeshu.hawk.pinpornxuboliu",
-      "name": "[通过]pinporn续播流（PY）",
+      "name": "[通过]pinporn续播流（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/pinpornxuboliu.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.pornav",
-      "name": "[通过]pornav（PY）",
+      "name": "[通过]pornav（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/pornav.py",
       "type": "script"
     },
@@ -915,7 +915,7 @@
     },
     {
       "key": "joeshu.hawk.qingniuyingshi",
-      "name": "[需手机测]青牛影视（PY）",
+      "name": "[通过]青牛影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/qingniuyingshi.py",
       "type": "script"
     },
@@ -933,13 +933,13 @@
     },
     {
       "key": "joeshu.hawk.shaonvpochu",
-      "name": "[通过]少女破处（PY）",
+      "name": "[通过]少女破处（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/shaonvpochu.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.shenmidianying",
-      "name": "[通过]神秘电影（PY）",
+      "name": "[通过]神秘电影（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/shenmidianying.py",
       "type": "script"
     },
@@ -951,7 +951,7 @@
     },
     {
       "key": "joeshu.hawk.shequ",
-      "name": "[需手机测]社区（PY）",
+      "name": "[需手机测]社区（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/shequ.py",
       "type": "script"
     },
@@ -963,19 +963,19 @@
     },
     {
       "key": "joeshu.hawk.shoujizhushou",
-      "name": "[通过]手鸡助手（PY）",
+      "name": "[通过]手鸡助手（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/shoujizhushou.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.sweetpornos",
-      "name": "[通过]sweetpornos（PY）",
+      "name": "[通过]sweetpornos（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/sweetpornos.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.taohuashipin",
-      "name": "[需手机测]桃花视频（PY）",
+      "name": "[需手机测]桃花视频（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/taohuashipin.py",
       "type": "script"
     },
@@ -987,31 +987,31 @@
     },
     {
       "key": "joeshu.hawk.tmdbduoxianyingshi",
-      "name": "[需手机测]TMDB多线影视（PY）",
+      "name": "[通过]TMDB多线影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/tmdbduoxianyingshi.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.trendypornus",
-      "name": "[通过]trendypornUS（PY）",
+      "name": "[通过]trendypornUS（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/trendypornus.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.vporn",
-      "name": "[需手机测]VPorn（PY）",
+      "name": "[需手机测]VPorn（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/vporn.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.wanwushequ",
-      "name": "[通过]玩物社区（PY）",
+      "name": "[通过]玩物社区（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/wanwushequ.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.wanwushequt3v15",
-      "name": "[通过]玩物社区_T3v1.5（PY）",
+      "name": "[通过]玩物社区_T3v1.5（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/wanwushequt3v15.py",
       "type": "script"
     },
@@ -1041,25 +1041,25 @@
     },
     {
       "key": "joeshu.hawk.xingmengasmr",
-      "name": "[通过]星梦Asmr（PY）",
+      "name": "[通过]星梦Asmr（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/xingmengasmr.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.xinxinyingshi",
-      "name": "[需手机测]欣欣影视（PY）",
+      "name": "[通过]欣欣影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/xinxinyingshi.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.xx9yiguoyanzheng",
-      "name": "[通过]xx9已过验证（PY）",
+      "name": "[通过]xx9已过验证（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/xx9yiguoyanzheng.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.yegouxinshi",
-      "name": "[通过]夜勾心事（PY）",
+      "name": "[通过]夜勾心事（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/yegouxinshi.py",
       "type": "script"
     },
@@ -1083,7 +1083,7 @@
     },
     {
       "key": "joeshu.hawk.youtube",
-      "name": "[通过]YouTube（PY）",
+      "name": "[通过]YouTube（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/youtube.py",
       "type": "script"
     },
@@ -1101,7 +1101,7 @@
     },
     {
       "key": "joeshu.hawk.zip0yingshi",
-      "name": "[需手机测]ZIP0影视（PY）",
+      "name": "[通过]ZIP0影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/zip0yingshi.py",
       "type": "script"
     },
