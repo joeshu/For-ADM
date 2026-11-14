@@ -398,12 +398,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.275tingshu",
-      "name": "[需手机测]275听书（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/275tingshu.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.28duanju",
       "name": "[通过]28短剧（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/28duanju.py",
@@ -543,7 +537,7 @@
     },
     {
       "key": "joeshu.hawk.duonaoyingyuan",
-      "name": "[需手机测]多瑙影院（PY）",
+      "name": "[通过]多瑙影院（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/duonaoyingyuan.py",
       "type": "script"
     },
@@ -905,12 +899,6 @@
       "key": "joeshu.hawk.sweetpornos",
       "name": "[通过]sweetpornos（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/sweetpornos.py",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.hawk.taohuashipin",
-      "name": "[需手机测]桃花视频（18+）（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/master/CCTVHost/python-spiders/taohuashipin.py",
       "type": "script"
     },
     {
