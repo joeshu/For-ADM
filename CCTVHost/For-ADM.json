@@ -992,6 +992,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.youkutengxun",
+      "name": "[需手机测]优酷·腾讯双擎聚合 (CCTVHost)（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youkutengxun.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",

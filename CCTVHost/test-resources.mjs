@@ -90,12 +90,12 @@ const pythonSources=[
   ['xifuduanju','[通过]喜福短剧'],['xingmengasmr','[通过]星梦Asmr（18+）'],['xinxinyingshi','[通过]欣欣影视'],
   ['xx9yiguoyanzheng','[通过]xx9已过验证（18+）'],['yegouxinshi','[通过]夜勾心事（18+）'],['yeguoduanju','[通过]野果短剧'],
   ['yiqishua','[通过]一起刷'],
-  ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视']
+  ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视'],['youkutengxun','[需手机测]优酷·腾讯双擎聚合 (CCTVHost)']
 ];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, one hundred and twenty-eight verified Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, one hundred and twenty-nine Python sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -387,4 +387,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 166 entries (including one hundred and twenty-eight Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 167 entries (including one hundred and twenty-nine Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
