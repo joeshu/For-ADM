@@ -313,7 +313,7 @@ class Spider(BaseSpider):
             pass
 
     def getName(self):
-        return "优酷·腾讯·芒果三擎聚合 (CCTVHost)"
+        return "优酷·腾讯·芒果三擎聚合"
 
     def isVideoFormat(self, url):
         return bool(re.search(r'\.(m3u8|mp4|flv|m4a)(\?|$)', str(url), re.I))

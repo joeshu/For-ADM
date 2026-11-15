@@ -90,7 +90,7 @@ const pythonSources=[
   ['xifuduanju','[通过]喜福短剧'],['xingmengasmr','[通过]星梦Asmr（18+）'],['xinxinyingshi','[通过]欣欣影视'],
   ['xx9yiguoyanzheng','[通过]xx9已过验证（18+）'],['yegouxinshi','[通过]夜勾心事（18+）'],['yeguoduanju','[通过]野果短剧'],
   ['yiqishua','[通过]一起刷'],
-  ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视'],['youkutengxun','[需手机测]优酷·腾讯·芒果三擎聚合 (CCTVHost)']
+  ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视'],['youkutengxunmangguo','[需手机测]优酷·腾讯·芒果三擎聚合']
 ];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
@@ -123,7 +123,7 @@ for(const [id,title] of pythonSources){
   assert.ok(entry,title+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',title+' is marked as an importable script');
   assert.equal(entry.name,title+'（PY）',title+' is labeled as a Python Spider source');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/'+id+'.py'+(id==='youkutengxun'?'?v=3':''),title+' points to its standalone Python source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/'+id+'.py',title+' points to its standalone Python source');
   const source=fs.readFileSync(path.join(here,'python-spiders',id+'.py'),'utf8');
   assert.match(source,/class \w*Spider\s*\(/,title+' declares a Python Spider');
   for(const method of ['homeContent','categoryContent','searchContent','detailContent','playerContent'])

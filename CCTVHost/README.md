@@ -188,7 +188,7 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]直播 | `python-spiders/zhibo.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]追剧达人 | `python-spiders/zhuijudaren.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]ZIP0影视 | `python-spiders/zip0yingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [需手机测]优酷·腾讯·芒果三擎聚合 (CCTVHost) | `python-spiders/youkutengxun.py` | 2026-11-15 用户上传的三合一（优酷+腾讯+芒果）；2026-11-15 修复腾讯跳网页：新增官方 getinfo 直链（parse=0，MP4 直链本机验证通过），VIP/地区受限仍走网页兜底；优酷 UPS 直出 m3u8 本机验证通过；芒果官方 tk2 直链（parse=0）+ 分集只留正片（isIntact=1，过滤第 N 集看点/预告，防播错片）；2026-11-15 再加 MacCMS 同名片源兜底（官源播不了时按片名严格匹配+集号/区间搜豪华/金鹰/光速/极速，校验 #EXTM3U 后才返回，整次解析预算 25 秒；以家人之名 VIP 第 3 集本机验证通过），详情有串剧问题待复核，需 iPhone 实测 |
+| [需手机测]优酷·腾讯·芒果三擎聚合 | `python-spiders/youkutengxunmangguo.py` | 2026-11-15 用户上传的三合一（优酷+腾讯+芒果）；2026-11-15 修复腾讯跳网页：新增官方 getinfo 直链（parse=0，MP4 直链本机验证通过），VIP/地区受限仍走网页兜底；优酷 UPS 直出 m3u8 本机验证通过；芒果官方 tk2 直链（parse=0）+ 分集只留正片（isIntact=1，过滤第 N 集看点/预告，防播错片）；2026-11-15 再加 MacCMS 同名片源兜底（官源播不了时按片名严格匹配+集号/区间搜豪华/金鹰/光速/极速，校验 #EXTM3U 后才返回，整次解析预算 25 秒；以家人之名 VIP 第 3 集本机验证通过），详情有串剧问题待复核，需 iPhone 实测；2026-11-15 串剧已修（优酷详情不再用 v_getvideo_info，云端线季号感知）；因 App 按 key 缓存旧文件不重新下载，改名重建为 youkutengxunmangguo，旧 youkutengxun 已删 |
 
 详细范围、未收录脚本和限制见 [Hawk PY 验证记录](Hawk-PY-VALIDATION.md)。
 
