@@ -1127,7 +1127,12 @@ class Spider(BaseSpider):
         return {'list': merged, 'page': int(pg_str)}
 
     def _search_mg(self, key, pg):
-        """芒果搜索：mobileso 小程序搜索接口。"""
+        """芒果搜索：mobileso 小程序搜索接口。
+
+        过滤“速看版/速享版”等衍生短版条目：它们是独立视频，点进去只有 1 集
+        （速看版本身），tk2 直链的 pm 令牌有效期极短，手机端常报 ffmpeg
+        无法播放；用户要找的是正片，搜出来只会点错。
+        """
         data = self.fetch(
             f'{self.mg_shost}/applet/search/v1?channelCode=mobile-wxap'
             f'&q={quote(key)}&pn={pg}&pc=10&_support=10000000',
@@ -1138,9 +1143,12 @@ class Spider(BaseSpider):
                 k = i['data'][0]
                 if k.get('vid') and k.get('img'):
                     try:
+                        title = k['title'] or ''
+                        if any(s in title for s in ('速看版', '速享版')):
+                            continue
                         videoList.append({
                             'vod_id': f"mg:{k['vid']}",
-                            'vod_name': k['title'],
+                            'vod_name': title,
                             'vod_pic': k['img'],
                             'vod_year': (i.get('rightTopCorner', {}) or {}).get('text') or i.get('year'),
                             'vod_remarks': f"[芒果] {'/'.join(i.get('desc', []))}".strip(),
@@ -1269,8 +1277,9 @@ class Spider(BaseSpider):
                 if cloud_url:
                     return {'jx': 0, 'parse': 0, 'url': cloud_url, 'header': json.dumps(play_headers)}
 
-            # 4) 兜底返回官源网页地址
-            return {'jx': 1, 'parse': 1, 'url': raw_url, 'header': json.dumps(play_headers)}
+            # 4) 全部解析失败：不再返回官源网页（用户明确不要网页播放），
+            # 返回空直链，App 会报无法播放而不是弹出网页。
+            return {'jx': 0, 'parse': 0, 'url': '', 'header': json.dumps(play_headers)}
 
         # 分支 D：芒果 TV (mg:{vid}@{ep}@{page}@{title}，旧格式 mgtv:{vid}@... 或 /b/... 路径)
         if play_id.startswith('mg:') or play_id.startswith('mgtv:'):
@@ -1308,10 +1317,9 @@ class Spider(BaseSpider):
                 if cloud_url:
                     return {'jx': 0, 'parse': 0, 'url': cloud_url, 'header': json.dumps(mg_headers)}
 
-            # 2) 兜底：仍返回官源网页
-            page = page_path or play_id
-            url = page if page.startswith('http') else f'{self.mg_rhost}{page}'
-            return {'jx': 1, 'parse': 1, 'url': url, 'header': ''}
+            # 2) 全部解析失败：不再返回官源网页（用户明确不要网页播放），
+            # 返回空直链，App 会报无法播放而不是弹出网页。
+            return {'jx': 0, 'parse': 0, 'url': '', 'header': ''}
 
         # 分支 C：腾讯视频 (tx:{cid}@{vid}@{ep}@{title}，旧格式 tx:{cid}@{vid}@{title} 或 {cid}@{vid})
         if play_id.startswith('tx:'):
@@ -1355,11 +1363,12 @@ class Spider(BaseSpider):
             if cloud_url:
                 return {'jx': 0, 'parse': 0, 'url': cloud_url, 'header': json.dumps(play_headers)}
 
-        # 3) 兜底返回带解析网关或标准官源地址
+        # 3) 全部解析失败：不再返回官源网页（用户明确不要网页播放），
+        # 返回空直链，App 会报无法播放而不是弹出网页。
         return {
-            'jx': 1,
-            'parse': 1,
-            'url': raw_url,
+            'jx': 0,
+            'parse': 0,
+            'url': '',
             'header': json.dumps(play_headers)
         }
 
