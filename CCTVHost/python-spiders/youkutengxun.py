@@ -11,7 +11,8 @@ Youku_Tencent_CCTVHost.py
 4. iOS 原生播放三级引擎 (playerContent + localProxy)：
    - 级联 1：云端同源 M3U8 直连匹配 + 官方优酷 UPS (mtop.youku.play.ups.appinfo.get) 原生流提取 + 腾讯官方 getinfo (vv.video.qq.com) MP4 直链 (parse=0 免嗅探秒播)。
    - 级联 2：多路 JSON 解析池并发提取真实 .m3u8/.mp4 直链 (parse=0)。
-   - 级联 3：移植 drpy2 fixAdM3u8Ai 公共前缀比对算法至 localProxy，自动剥离 M3U8 插播广告切片；兜底返回标准官源地址。
+   - 级联 3：MacCMS 同名片源兜底（GreasyFork 全网 VIP 破解脚本的方法，量子/暴风/非凡按片名搜同名资源，取对应集数，返回前 GET 校验 #EXTM3U 才返回；整次播放解析预算 25 秒）。
+   - 级联 4：移植 drpy2 fixAdM3u8Ai 公共前缀比对算法至 localProxy，自动剥离 M3U8 插播广告切片；兜底返回标准官源地址。
 """
 
 import argparse
@@ -704,7 +705,12 @@ class Spider(BaseSpider):
             vid = k.get('item_id')
             if vid:
                 ep_title = k.get('item_params', {}).get('union_title') or k.get('item_params', {}).get('play_title') or vid
-                play_token = f"{ep_title}$tx:{cid}@{vid}@{quote(title)}"
+                if '预告' in ep_title:
+                    ep_num = 0
+                else:
+                    m = re.search(r'第(\d+)[集期]', str(ep_title))
+                    ep_num = int(m.group(1)) if m else len(plist) + 1
+                play_token = f"{ep_title}$tx:{cid}@{vid}@{ep_num}@{quote(title)}"
                 if '预告' in ep_title:
                     ylist.append(play_token)
                 else:
@@ -799,14 +805,16 @@ class Spider(BaseSpider):
                             continue
 
             ep_items = []
-            for item in pdata:
+            for idx, item in enumerate(pdata):
                 d = item.get('data') or {}
                 ep_title = d.get('title') or d.get('stage') or '正片'
                 vid = (d.get('action') or {}).get('value')
                 if vid:
                     if not vod['vod_name'] and d.get('subtitle'):
                         vod['vod_name'] = d.get('subtitle')
-                    ep_items.append(f"{ep_title}$yk:{vid}@{quote(vod['vod_name'])}")
+                    m = re.search(r'第(\d+)[集期]', str(ep_title))
+                    ep_num = int(m.group(1)) if m else idx + 1
+                    ep_items.append(f"{ep_title}$yk:{vid}@{ep_num}@{quote(vod['vod_name'])}")
             vod['vod_play_url'] = '#'.join(ep_items)
             return vod
         except Exception as e:
@@ -918,6 +926,9 @@ class Spider(BaseSpider):
     # =========================================================================
     def playerContent(self, flag, id, vipFlags):
         play_id = str(id or '')
+        # 整次播放解析预算 25 秒：官方直链优先，播不了的再走 MacCMS 同名片源兜底，
+        # 避免在弱网下把播放拖垮（本机出口慢，手机端通常 1-2 秒就回）。
+        budget_end = time.time() + 25
 
         # 分支 A：已经是云端 M3U8 / MP4 直链
         if play_id.startswith('http') and self.isVideoFormat(play_id):
@@ -928,11 +939,18 @@ class Spider(BaseSpider):
                 'header': json.dumps({'User-Agent': self.tx_headers['User-Agent']})
             }
 
-        # 分支 B：优酷视频 (yk:{vid}@{title})
+        # 分支 B：优酷视频 (yk:{vid}@{ep}@{title}，旧格式 yk:{vid}@{title})
         if play_id.startswith('yk:'):
             body = play_id.split(':', 1)[1]
             parts = body.split('@')
             vid = parts[0]
+            ep_num = 0
+            show_title = ''
+            if len(parts) >= 3 and parts[1].isdigit():
+                ep_num = int(parts[1])
+                show_title = unquote('@'.join(parts[2:]))
+            elif len(parts) >= 2:
+                show_title = unquote('@'.join(parts[1:]))
             raw_url = f"https://v.youku.com/v_show/id_{vid}.html"
             play_headers = {
                 'User-Agent': self.yk_headers['User-Agent'],
@@ -949,10 +967,16 @@ class Spider(BaseSpider):
             if direct_url:
                 return {'jx': 0, 'parse': 0, 'url': direct_url, 'header': json.dumps(play_headers)}
 
-            # 3) 兜底返回官源网页地址
+            # 3) MacCMS 同名片源兜底（芒果同款办法，校验后才返回）
+            if show_title and ep_num and time.time() < budget_end:
+                cloud_url = self._get_cloud_fallback_url(show_title, ep_num, budget_end)
+                if cloud_url:
+                    return {'jx': 0, 'parse': 0, 'url': cloud_url, 'header': json.dumps(play_headers)}
+
+            # 4) 兜底返回官源网页地址
             return {'jx': 1, 'parse': 1, 'url': raw_url, 'header': json.dumps(play_headers)}
 
-        # 分支 C：腾讯视频 (tx:{cid}@{vid}@{title} 或 {cid}@{vid})
+        # 分支 C：腾讯视频 (tx:{cid}@{vid}@{ep}@{title}，旧格式 tx:{cid}@{vid}@{title} 或 {cid}@{vid})
         if play_id.startswith('tx:'):
             body = play_id.split(':', 1)[1]
         else:
@@ -981,7 +1005,20 @@ class Spider(BaseSpider):
         if direct_url:
             return {'jx': 0, 'parse': 0, 'url': direct_url, 'header': json.dumps(play_headers)}
 
-        # 2) 兜底返回带解析网关或标准官源地址
+        # 2) MacCMS 同名片源兜底（芒果同款办法，校验后才返回）
+        ep_num = 0
+        show_title = ''
+        if len(parts) >= 4 and parts[2].isdigit():
+            ep_num = int(parts[2])
+            show_title = unquote('@'.join(parts[3:]))
+        elif len(parts) >= 3:
+            show_title = unquote('@'.join(parts[2:]))
+        if show_title and ep_num and time.time() < budget_end:
+            cloud_url = self._get_cloud_fallback_url(show_title, ep_num, budget_end)
+            if cloud_url:
+                return {'jx': 0, 'parse': 0, 'url': cloud_url, 'header': json.dumps(play_headers)}
+
+        # 3) 兜底返回带解析网关或标准官源地址
         return {
             'jx': 1,
             'parse': 1,
@@ -1082,6 +1119,69 @@ class Spider(BaseSpider):
                         return real_url
                 except Exception:
                     continue
+        return None
+
+    def _pick_cloud_episode(self, play_url, ep_num):
+        """从 MacCMS vod_play_url（$$$ 分源，# 分集，名$url）里按集号取 m3u8。
+        集号匹配 '第N集'/'第N期'/'E0N'，无匹配返回 None（不猜）。"""
+        for group in (play_url or '').split('$$$'):
+            for item in group.split('#'):
+                if '$' in item:
+                    name, url = item.split('$', 1)
+                else:
+                    name, url = '', item
+                url = (url or '').strip()
+                if not url.startswith('http') or '.m3u8' not in url:
+                    continue
+                name = (name or '').strip()
+                if (f'第{ep_num}集' in name or f'第{ep_num}期' in name
+                        or f'第{ep_num:02d}集' in name
+                        or f'E{ep_num:02d}' in name
+                        or f'E{ep_num}' in name):
+                    return url
+        return None
+
+    def _verify_m3u8(self, url, timeout=6):
+        """GET 校验是真实 m3u8 清单（以 #EXTM3U 开头）才算可用，死链直接淘汰。"""
+        try:
+            rsp = self.fetch(url, headers=self.tx_headers, timeout=timeout)
+            text = getattr(rsp, 'text', '') or ''
+            return text.lstrip().startswith('#EXTM3U')
+        except Exception:
+            return False
+
+    def _get_cloud_fallback_url(self, title, ep_num, deadline=None):
+        """MacCMS 同名片源兜底（GreasyFork 全网 VIP 破解脚本的方法，芒果同款）：
+        按片名在量子/暴风/非凡搜同名资源，取对应集数的 m3u8；返回前先 GET
+        校验是真实 #EXTM3U 才返回。本机实测这些副本多为 404 死链，校验会
+        直接淘汰，手机端（国内 IP）若文件存活即可直连。全部失败返回 None。
+        deadline：最晚返回时间，超时直接返回 None。"""
+        title = (title or '').strip()
+        if not title or not ep_num:
+            return None
+        if deadline is None:
+            deadline = time.time() + 12
+        clean_name = re.sub(r'[（(].*?[)）]', '', title).strip()
+        if not clean_name:
+            return None
+        for label, api_url in self.cloud_m3u8_apis:
+            if time.time() > deadline:
+                return None
+            try:
+                rsp = self.fetch(
+                    api_url, params={'ac': 'detail', 'wd': clean_name},
+                    headers=self.tx_headers, timeout=6).json()
+            except Exception:
+                continue
+            for item in rsp.get('list') or []:
+                if time.time() > deadline:
+                    return None
+                vname = item.get('vod_name') or ''
+                if clean_name in vname or vname in clean_name:
+                    url = self._pick_cloud_episode(
+                        item.get('vod_play_url') or '', ep_num)
+                    if url and self._verify_m3u8(url):
+                        return url
         return None
 
     def _fetch_cloud_m3u8_lines(self, title):
