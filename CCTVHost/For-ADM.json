@@ -1004,6 +1004,24 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.hongguo",
+      "name": "[需手机测]红果短剧（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/hongguo.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.dsxyuansheng",
+      "name": "[需手机测]大师兄原生（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/dsxyuansheng.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.bocaiyuan",
+      "name": "[需手机测]菠菜园（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/bocaiyuan.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
