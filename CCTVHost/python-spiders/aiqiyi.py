@@ -1,12 +1,15 @@
 # coding=utf-8
 # !/usr/bin/python
 # by嗷呜
+import json
 import random
+import re
 import sys
+import time
 from base64 import b64encode, b64decode
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pprint import pprint
-from urllib.parse import urlencode
+from urllib.parse import quote, unquote, urlencode
 
 sys.path.append('..')
 from base.spider import Spider
@@ -41,6 +44,128 @@ class Spider(Spider):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
         'Referer': f'{rhost}/',
     }
+
+    # 云端直连兜底（MacCMS 同名片源）：jx.xmflv.com 已停服（返回告别页），
+    # 爱奇艺官方直链接口又不开放，播放改走云端已校验的 m3u8 直链（parse=0），
+    # 不再返回任何网页地址（用户明确不要网页播放）。
+    # 顺序即优先级：豪华/金鹰/光速/极速本机实测有真 m3u8，其余仅作备用。
+    cloud_m3u8_apis = [
+        ("豪华直连", "https://hhzyapi.com/api.php/provide/vod/"),
+        ("金鹰直连", "https://jyzyapi.com/api.php/provide/vod/"),
+        ("光速直连", "https://api.guangsuapi.com/api.php/provide/vod/"),
+        ("极速直连", "https://jszyapi.com/api.php/provide/vod/"),
+        ("量子直连", "https://cj.lziapi.com/api.php/provide/vod/"),
+        ("暴风直连", "https://bfzyapi.com/api.php/provide/vod/"),
+        ("非凡直连", "https://api.ffzy5.tv/api.php/provide/vod/")
+    ]
+
+    @staticmethod
+    def _cloud_match(vname, title):
+        """片名严格匹配（防播错剧）：2=精确相等，1=前缀+短后缀，0=不匹配。"""
+        def norm(s):
+            s = re.sub(r'[^\w\u4e00-\u9fff]', '', s or '')
+            s = re.sub(r'第[一二三四五六七八九十\d]+季', '', s)
+            s = re.sub(r'(DVD版|高清版|未删减版|完整版|抢先版|剧场版)$', '', s)
+            return s
+        a, b = norm(vname), norm(title)
+        if not a or not b:
+            return 0
+        if a == b:
+            return 2
+        if (a.startswith(b) and len(a) - len(b) <= 3) or (b.startswith(a) and len(b) - len(a) <= 3):
+            return 1
+        return 0
+
+    @staticmethod
+    def _cloud_pick_eps(play_url, ep_num):
+        """从 MacCMS vod_play_url 里按集号取候选 m3u8（精确集号 > 区间 > 全集/正片）。"""
+        def _match(name):
+            name = (name or '').strip()
+            if (f'第{ep_num}集' in name or f'第{ep_num}期' in name
+                    or f'第{ep_num:02d}集' in name
+                    or f'E{ep_num:02d}' in name or f'E{ep_num}' in name):
+                return 2
+            m = re.search(r'第(\d+)-(\d+)[集期]', name)
+            if m and int(m.group(1)) <= ep_num <= int(m.group(2)):
+                return 1
+            if name in ('全集', '正片', '全集完结', '全集高清'):
+                return 1
+            return 0
+        cands = []
+        for group in (play_url or '').split('$$$'):
+            for item in group.split('#'):
+                if '$' in item:
+                    name, url = item.split('$', 1)
+                else:
+                    name, url = '', item
+                url = (url or '').strip()
+                if not url.startswith('http'):
+                    continue
+                score = _match(name)
+                if not score:
+                    continue
+                pref = 1 if '.m3u8' in url else 0
+                cands.append((score, pref, url))
+        cands.sort(key=lambda c: (c[0], c[1]), reverse=True)
+        seen, out = set(), []
+        for _, _, url in cands:
+            if url not in seen:
+                seen.add(url)
+                out.append(url)
+        return out
+
+    def _cloud_verify_m3u8(self, url, timeout=6):
+        """GET 校验是真实 m3u8 清单（以 #EXTM3U 开头）才算可用。只带 UA，不带 Referer。"""
+        try:
+            rsp = self.fetch(url, headers={'User-Agent': self.headers['User-Agent']}, timeout=timeout)
+            text = getattr(rsp, 'text', '') or ''
+            return text.lstrip().startswith('#EXTM3U')
+        except Exception:
+            return False
+
+    def _cloud_fallback_url(self, title, ep_num, deadline=None):
+        """按片名+集号在云端 MacCMS 搜同名资源，取对应集数的 m3u8（校验后才返回）。"""
+        title = (title or '').strip()
+        if not title or not ep_num:
+            return None
+        if deadline is None:
+            deadline = time.time() + 15
+        for _label, api_url in self.cloud_m3u8_apis:
+            if time.time() > deadline:
+                return None
+            try:
+                rsp = self.fetch(api_url, params={'ac': 'videolist', 'wd': title},
+                                 headers=self.headers, timeout=6).json()
+            except Exception:
+                continue
+            best_item, best_score = None, 0
+            for item in rsp.get('list') or []:
+                score = self._cloud_match(item.get('vod_name') or '', title)
+                if score > best_score:
+                    best_item, best_score = item, score
+                    if score == 2:
+                        break
+            if not best_item:
+                continue
+            for url in self._cloud_pick_eps(best_item.get('vod_play_url') or '', ep_num):
+                if time.time() > deadline:
+                    return None
+                if url and self._cloud_verify_m3u8(url):
+                    return url
+        return None
+
+    @staticmethod
+    def _ep_num_from_title(short_title, fallback=1):
+        """从“折月亮第12集 / 第3期”里取集号；取不到用列表序号兜底。"""
+        m = re.search(r'第(\d+)[集期]', short_title or '')
+        if m:
+            return int(m.group(1))
+        cn = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+              '六': 6, '七': 7, '八': 8, '九': 9, '十': 10}
+        m = re.search(r'第([一二三四五六七八九十]+)[集期]', short_title or '')
+        if m and m.group(1) in cn:
+            return cn[m.group(1)]
+        return fallback
 
     def homeContent(self, filter):
         result = {}
@@ -155,7 +280,12 @@ class Spider(Spider):
             'vod_play_url': ''
         }
         if data.get('data') and data['data'].get('videoList') and data['data']['videoList'].get('videos'):
-            purl=[f'{i["shortTitle"]}${i["pageUrl"]}' for i in data['data']['videoList']['videos']]
+            show_title = (v.get('albumName') or '').strip()
+            purl = []
+            for idx, i in enumerate(data['data']['videoList']['videos']):
+                st = i.get('shortTitle') or ''
+                ep = self._ep_num_from_title(st, idx + 1)
+                purl.append(f'{st}$iqiyi:{ep}@{quote(show_title)}@{i["pageUrl"]}')
             pg=data['data']['videoList'].get('totalPages')
             if pg and pg > 1:
                 id = v['albumId']
@@ -163,7 +293,7 @@ class Spider(Spider):
                 page_results = {}
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     future_to_page = {
-                        executor.submit(self.fetch_page_data, page, id): page
+                        executor.submit(self.fetch_page_data, page, id, show_title): page
                         for page in pages
                     }
                     for future in as_completed(future_to_page):
@@ -191,7 +321,7 @@ class Spider(Spider):
                 'vod_director': v.get('directors'),
                 'vod_content': v.get('desc'),
                 'vod_play_from': '爱奇艺',
-                'vod_play_url': f'{v.get("shortTitle")}${ids[-1]}'
+                'vod_play_url': f'{v.get("shortTitle")}$iqiyi:1@{quote(v.get("shortTitle") or "")}@{ids[-1]}'
             }
         return {'list':[vod]}
 
@@ -217,17 +347,43 @@ class Spider(Spider):
         return {'list':videos,'page':pg}
 
     def playerContent(self, flag, id, vipFlags):
-        video_url = f'https://jx.xmflv.com/?url={id}'
-        return {'parse': 1, 'url': video_url, 'header': ''}
+        # 已经是直链 m3u8/MP4：直接播
+        if isinstance(id, str) and id.startswith('http') and ('.m3u8' in id or '.mp4' in id):
+            return {'jx': 0, 'parse': 0, 'url': id, 'header': ''}
+        # iqiyi:{ep}@{title}@{pageUrl}：云端同名片源兜底（parse=0 直链）。
+        # jx.xmflv.com 已停服（返回告别页），不再返回任何网页地址。
+        budget_end = time.time() + 25
+        if isinstance(id, str) and id.startswith('iqiyi:'):
+            token = id.split(':', 1)[1]
+            parts = token.split('@', 2)
+            ep_num, show_title = 0, ''
+            if len(parts) >= 2:
+                try:
+                    ep_num = int(parts[0])
+                except Exception:
+                    ep_num = 0
+                show_title = unquote(parts[1])
+            if show_title and ep_num and time.time() < budget_end:
+                cloud_url = self._cloud_fallback_url(show_title, ep_num, budget_end)
+                if cloud_url:
+                    return {'jx': 0, 'parse': 0, 'url': cloud_url,
+                            'header': json.dumps({'User-Agent': self.headers['User-Agent']})}
+        # 全部失败：返回空直链，App 报无法播放，不弹网页。
+        return {'jx': 0, 'parse': 0, 'url': '', 'header': ''}
 
     def localProxy(self, param):
         pass
 
-    def fetch_page_data(self, page, id):
+    def fetch_page_data(self, page, id, show_title=''):
         try:
             url = f'{self.dhost}/h5/mina/avlist/{page}/{id}/'
             data = self.fetch(url, headers=self.headers).json()
-            return [f'{i["shortTitle"]}${i["pageUrl"]}' for i in data['data']['videoList']['videos']]
+            out = []
+            for idx, i in enumerate(data['data']['videoList']['videos']):
+                st = i.get('shortTitle') or ''
+                ep = self._ep_num_from_title(st, idx + 1)
+                out.append(f'{st}$iqiyi:{ep}@{quote(show_title)}@{i["pageUrl"]}')
+            return out
         except:
             return []
 
