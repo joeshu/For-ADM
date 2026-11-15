@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 167 个条目：37 个 CatVod / TVBox JavaScript 源、129 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 168 个条目：37 个 CatVod / TVBox JavaScript 源、130 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -189,6 +189,7 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]追剧达人 | `python-spiders/zhuijudaren.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]ZIP0影视 | `python-spiders/zip0yingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [需手机测]优酷·腾讯双擎聚合 (CCTVHost) | `python-spiders/youkutengxun.py` | 2026-11-15 用户上传；2026-11-15 修复腾讯跳网页：新增官方 getinfo 直链（parse=0，MP4 直链本机验证通过），VIP/地区受限仍走网页兜底；优酷 UPS 直出 m3u8 本机验证通过；详情有串剧问题待复核，需 iPhone 实测 |
+| [通过]芒果TV | `python-spiders/mangguotv.py` | 2026-11-15 旧站加回并修复：原版 playerContent 只返回网页（parse=1）；新增芒果官方 tk2 直链（parse=0，m3u8 本机验证通过）+ GreasyFork 脚本的 MacCMS 同名片源兜底（校验 #EXTM3U 后才返回）；详情分集上限 10 页 |
 
 详细范围、未收录脚本和限制见 [Hawk PY 验证记录](Hawk-PY-VALIDATION.md)。
 
