@@ -9,7 +9,7 @@ Youku_Tencent_CCTVHost.py
 2. 双平台全量整合：融合腾讯视频 (trpc 协议) 与优酷视频 (MTOP H5 令牌签名 + IKU 网关 + category/data)，统一支持分类、动态筛选、分页选集与双源并发搜索。
 3. 历史 Bug 修复：修复腾讯浅拷贝 page_context 跨分类污染问题；补齐优酷详情页缺失的 vod_name 与 vod_pic 字段。
 4. iOS 原生播放三级引擎 (playerContent + localProxy)：
-   - 级联 1：云端同源 M3U8 直连匹配 + 官方优酷 UPS (mtop.youku.play.ups.appinfo.get) 原生流提取 (parse=0 免嗅探秒播)。
+   - 级联 1：云端同源 M3U8 直连匹配 + 官方优酷 UPS (mtop.youku.play.ups.appinfo.get) 原生流提取 + 腾讯官方 getinfo (vv.video.qq.com) MP4 直链 (parse=0 免嗅探秒播)。
    - 级联 2：多路 JSON 解析池并发提取真实 .m3u8/.mp4 直链 (parse=0)。
    - 级联 3：移植 drpy2 fixAdM3u8Ai 公共前缀比对算法至 localProxy，自动剥离 M3U8 插播广告切片；兜底返回标准官源地址。
 """
@@ -970,6 +970,12 @@ class Spider(BaseSpider):
             'Origin': 'https://v.qq.com'
         }
 
+        # 0) 腾讯官方 getinfo 直链（免嗅探秒播）
+        tx_vid = parts[1] if len(parts) >= 2 else ''
+        direct_url = self._get_tx_direct_url(tx_vid)
+        if direct_url:
+            return {'jx': 0, 'parse': 0, 'url': direct_url, 'header': json.dumps(play_headers)}
+
         # 1) 尝试多路 JSON 解析池并发提取免嗅直链
         direct_url = self._resolve_via_json_jx(raw_url)
         if direct_url:
@@ -982,6 +988,47 @@ class Spider(BaseSpider):
             'url': raw_url,
             'header': json.dumps(play_headers)
         }
+
+    def _get_tx_direct_url(self, vid):
+        """腾讯官方 getinfo 直链：platform 101001，免嗅探返回 MP4 直链。
+
+        请求 vv.video.qq.com/getinfo（defn 先 fhd 再 shd，服务端自动按
+        账号权限封顶），取 vi.fn + vi.fvkey + vi.ul.ui[0].url 拼出
+        url/fn?vkey=fvkey。无 fn/fvkey（如 VIP/地区限制，em=61）返回 None，
+        由调用方继续走解析池或网页兜底。注意直链是 http（IP 域名），
+        改 https 会断连，保持原样返回。
+        """
+        vid = (vid or '').strip()
+        if not vid:
+            return None
+        for defn in ('fhd', 'shd'):
+            try:
+                url = ('https://vv.video.qq.com/getinfo?vids=' + quote(vid) +
+                       '&platform=101001&charge=0&otype=json&defn=' + defn +
+                       '&sdtfrom=v1010&defaultfmt=auto')
+                rsp = self.fetch(url, headers=self.tx_headers, timeout=8)
+                text = getattr(rsp, 'text', '') or ''
+                if text.startswith('QZOutputJson='):
+                    text = text[len('QZOutputJson='):]
+                if text.endswith(';'):
+                    text = text[:-1]
+                data = json.loads(text)
+                vi_list = (data.get('vl') or {}).get('vi') or []
+                if not vi_list:
+                    continue
+                vi = vi_list[0]
+                fn = vi.get('fn')
+                fvkey = vi.get('fvkey')
+                ui_list = (vi.get('ul') or {}).get('ui') or []
+                if not (fn and fvkey and ui_list):
+                    continue
+                base = (ui_list[0].get('url') or '').rstrip('/')
+                if not base.startswith('http'):
+                    continue
+                return base + '/' + fn + '?vkey=' + fvkey
+            except Exception:
+                continue
+        return None
 
     def _get_youku_ups_m3u8(self, vid):
         """通过优酷 MTOP UPS 1.1 签名接口提取原生 HLS 播放流"""
