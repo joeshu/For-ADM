@@ -123,7 +123,7 @@ for(const [id,title] of pythonSources){
   assert.ok(entry,title+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',title+' is marked as an importable script');
   assert.equal(entry.name,title+'（PY）',title+' is labeled as a Python Spider source');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/'+id+'.py'+(id==='youkutengxun'?'?v=2':''),title+' points to its standalone Python source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/'+id+'.py'+(id==='youkutengxun'?'?v=3':''),title+' points to its standalone Python source');
   const source=fs.readFileSync(path.join(here,'python-spiders',id+'.py'),'utf8');
   assert.match(source,/class \w*Spider\s*\(/,title+' declares a Python Spider');
   for(const method of ['homeContent','categoryContent','searchContent','detailContent','playerContent'])

@@ -994,7 +994,7 @@
     {
       "key": "joeshu.hawk.youkutengxun",
       "name": "[需手机测]优酷·腾讯·芒果三擎聚合 (CCTVHost)（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youkutengxun.py?v=2",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youkutengxun.py?v=3",
       "type": "script"
     },
     {

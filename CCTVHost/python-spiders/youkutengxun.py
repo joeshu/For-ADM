@@ -853,35 +853,38 @@ class Spider(BaseSpider):
             'vod_play_url': '$$$'.join(urls)
         }
 
-    def _detail_yk(self, show_id):
-        try:
-            info_resp = self.yk_session.get(
-                f'{self.yk_ihost}/v_getvideo_info/?showId={show_id}', timeout=8
-            ).json()
-            v = info_resp.get('data') or {}
-            title = v.get('title') or v.get('showName') or ''
-            pic = v.get('thumburl') or v.get('show_vthumburl') or ''
-            if pic.startswith('//'):
-                pic = 'https:' + pic
+    @staticmethod
+    def _is_yk_vid(vid):
+        """优酷视频 vid 是否真实（base64 令牌）：拒收 youku:// 深链、http 链接等导航值。
+        介绍组件里演员的 action.value 是 youku://page/node?...，不是视频 vid。"""
+        v = str(vid or '')
+        if not v or '://' in v or len(v) < 8 or len(v) > 40:
+            return False
+        return bool(re.fullmatch(r'[A-Za-z0-9+/=]+', v))
 
-            vod = {
-                'vod_id': f"yk:{show_id}",
-                'vod_name': title,
-                'vod_pic': pic,
-                'type_name': v.get('showVideotype') or '优酷视频',
-                'vod_year': v.get('lastUpdate') or '',
-                'vod_remarks': v.get('rc_title') or '',
-                'vod_actor': v.get('_personNameStr') or '',
-                'vod_content': v.get('showdesc') or '',
-                'vod_play_from': '优酷视频',
-                'vod_play_url': ''
-            }
+    def _detail_yk(self, show_id):
+        """优酷详情：片名/海报/简介/集数以 MTOP new_detail_web2 的 extra + 介绍组件为准。
+        v_getvideo_info 会串剧（2026-11-15 诊断：庆余年 showId 返回知否，返回的 showid
+        也不匹配），仅当 MTOP 无片名时才用它，且返回的 showid 必须等于请求的 showId 才采信。
+        分集只采信真正像正片的节点（标题含 第N集 且带 vid）；花絮/预告节点直接丢弃。
+        官源无有效分集时返回空线路（vod_play_from=''），由 detailContent 的云端线承载播放，
+        绝不把花絮当正片、绝不拿 subtitle 覆盖片名。"""
+        title = ''
+        pic = ''
+        category = '优酷视频'
+        ep_total = 0
+        desc = ''
+        year = ''
+        area = ''
+        actors = []
+        director = ''
+        ep_items = []
+        try:
             params = {
                 "biz": "new_detail_web2",
-                "videoId": v.get('vid') or '',
+                "videoId": "",
                 "scene": "web_page",
                 "componentVersion": "3",
-                "ip": info_resp.get('ip') or '',
                 "debug": 0,
                 "utdid": "ZYmGMAAAACkDAMU8hbiMmYdd",
                 "userId": 0,
@@ -891,53 +894,102 @@ class Spider(BaseSpider):
                 "source": "pcNoPrev",
                 "showId": show_id
             }
-            sdata, total_eps = self._yk_getinfo(params)
-            pdata = list(sdata.get('nodes') or [])
-            if total_eps and total_eps > len(pdata) and len(pdata) > 0:
-                batch_size = len(pdata)
-                total_batches = ((total_eps + batch_size - 1) // batch_size) - 1
-                ssj = json.loads(sdata['data']['session'])
-                with ThreadPoolExecutor(max_workers=min(total_batches, 8)) as executor:
-                    futures = []
-                    for batch in range(total_batches):
-                        start = batch_size + 1 + (batch * batch_size)
-                        end = start + batch_size - 1
-                        next_session = ssj.copy()
-                        next_session.update({
-                            "itemStartStage": start,
-                            "itemEndStage": min(end, total_eps)
-                        })
-                        current_params = params.copy()
-                        current_params['nextSession'] = json.dumps(next_session)
-                        futures.append((start, executor.submit(self._yk_getvinfo, current_params)))
-                    futures.sort(key=lambda x: x[0])
-                    for _, future in futures:
-                        try:
-                            res_node = future.result()
-                            pdata.extend(res_node.get('nodes') or [])
-                        except Exception:
+            info = self._yk_getvinfo(params)
+            extra = (info.get('data') or {}).get('extra') or {}
+            title = extra.get('showName') or ''
+            pic = extra.get('showImg') or extra.get('showImgV') or ''
+            if pic.startswith('//'):
+                pic = 'https:' + pic
+            category = extra.get('showCategory') or category
+            try:
+                ep_total = int(extra.get('episodeTotal') or 0)
+            except Exception:
+                ep_total = 0
+            subs = (info.get('nodes') or [{}])[0].get('nodes') or []
+            # 介绍组件（type 20009）：简介 + 导演 + 演员
+            for sub in subs:
+                if sub.get('type') == 20009:
+                    items = sub.get('nodes') or []
+                    if items:
+                        d0 = (items[0].get('data') or {})
+                        desc = d0.get('desc') or ''
+                        sub_t = d0.get('introSubTitle') or ''
+                        m = re.search(r'(\d{4})', sub_t)
+                        if m:
+                            year = m.group(1)
+                        if '·' in sub_t:
+                            area = sub_t.split('·')[0]
+                    for it in items[1:]:
+                        d = it.get('data') or {}
+                        name = d.get('title') or ''
+                        if not name:
                             continue
-
-            ep_items = []
-            for idx, item in enumerate(pdata):
-                d = item.get('data') or {}
-                ep_title = d.get('title') or d.get('stage') or '正片'
-                vid = (d.get('action') or {}).get('value')
-                if vid:
-                    if not vod['vod_name'] and d.get('subtitle'):
-                        vod['vod_name'] = d.get('subtitle')
-                    m = re.search(r'第(\d+)[集期]', str(ep_title))
-                    ep_num = int(m.group(1)) if m else idx + 1
-                    ep_items.append(f"{ep_title}$yk:{vid}@{ep_num}@{quote(vod['vod_name'])}")
-            vod['vod_play_url'] = '#'.join(ep_items)
-            return vod
-        except Exception as e:
-            return {
-                'vod_id': f"yk:{show_id}",
-                'vod_name': f"优酷剧集 ({show_id})",
-                'vod_play_from': '优酷视频',
-                'vod_play_url': f"第1集$yk:{show_id}@"
-            }
+                        if (d.get('subtitle') or '') == '导演':
+                            director = name
+                        else:
+                            actors.append(name)
+                    break
+            # 分集：扫描全部子节点，只取像正片的那一个。
+            # 剧集：标题含 第N集 且 vid 真实；电影/游戏：只认单条正片（多条必是花絮/预告）。
+            is_movie = category in ('电影', '游戏')
+            for sub in subs:
+                items = sub.get('nodes') or []
+                if not items:
+                    continue
+                good = []
+                for it in items:
+                    d = it.get('data') or {}
+                    t = str(d.get('title') or d.get('stage') or '')
+                    vid = (d.get('action') or {}).get('value')
+                    if not vid or not self._is_yk_vid(vid):
+                        continue
+                    if is_movie or re.search(r'第\d+[集期]', t):
+                        good.append((t, vid))
+                if is_movie:
+                    if len(good) == 1:
+                        t, vid = good[0]
+                        ep_items.append(
+                            f"{t or '正片'}$yk:{vid}@1@{quote(title)}")
+                        break
+                    continue
+                if good and len(good) * 2 >= len(items):
+                    for idx, (t, vid) in enumerate(good):
+                        m = re.search(r'第(\d+)[集期]', t)
+                        ep_num = int(m.group(1)) if m else idx + 1
+                        ep_items.append(
+                            f"{t}$yk:{vid}@{ep_num}@{quote(title)}")
+                    break
+        except Exception:
+            pass
+        # MTOP 没给片名时，降级到 v_getvideo_info（带身份校验：返回 showid 必须等于请求值）
+        if not title:
+            try:
+                v = (self.yk_session.get(
+                    f'{self.yk_ihost}/v_getvideo_info/?showId={show_id}',
+                    timeout=8).json().get('data') or {})
+                if str(v.get('showid') or '') == str(show_id):
+                    title = v.get('title') or v.get('showName') or ''
+                    pic = pic or v.get('thumburl') or v.get('show_vthumburl') or ''
+                    if pic.startswith('//'):
+                        pic = 'https:' + pic
+                    desc = desc or v.get('showdesc') or ''
+                    category = v.get('showVideotype') or category
+            except Exception:
+                pass
+        content = f"导演：{director}\n{desc}" if director and desc else desc
+        return {
+            'vod_id': f"yk:{show_id}",
+            'vod_name': title or f"优酷剧集 ({show_id})",
+            'vod_pic': pic,
+            'type_name': category,
+            'vod_year': year,
+            'vod_area': area,
+            'vod_remarks': f"共{ep_total}集" if ep_total else '',
+            'vod_actor': ','.join(actors),
+            'vod_content': content,
+            'vod_play_from': '优酷视频' if ep_items else '',
+            'vod_play_url': '#'.join(ep_items)
+        }
 
     def _is_mgtv_main_episode(self, item):
         """芒果分集是否正片：正片是长视频，预告/看点是 1 分钟左右的短片。
@@ -1483,10 +1535,36 @@ class Spider(BaseSpider):
         m = re.search(r'(\d{5,})', text)
         return m.group(1) if m else ''
 
+    @staticmethod
+    def _season_of(s):
+        """片名里的季号（第N季）：无季号视为第 1 季。中文数字一～二十一都认。"""
+        m = re.search(r'第([一二三四五六七八九十\d]+)季', s or '')
+        if not m:
+            return 1
+        tok = m.group(1)
+        if tok.isdigit():
+            return int(tok)
+        cn = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+              '六': 6, '七': 7, '八': 8, '九': 9, '十': 10}
+        if tok in cn:
+            return cn[tok]
+        # 十一/十二/二十/二十一 等复合
+        val = 0
+        if tok.startswith('十'):
+            val = 10 + (cn.get(tok[1:], 0) if len(tok) > 1 else 0)
+        elif '十' in tok:
+            a, _, b = tok.partition('十')
+            val = cn.get(a, 0) * 10 + (cn.get(b, 0) if b else 0)
+        return val or 1
+
     def _title_match_score(self, vname, clean_title):
         """MacCMS 片名匹配打分（防播错剧）：2=精确相等，1=前缀+短后缀（DVD版/季），0=不匹配。
         '少年派' 不会匹配 '夏日少年派'（前缀不对），也不会匹配 '少年派的奇幻漂流'
-        （后缀太长）；'向往的生活 第七季' 能匹配 '向往的生活第七季'。"""
+        （后缀太长）；'向往的生活 第七季' 能匹配 '向往的生活第七季'。
+        季号不同直接 0 分（防串季：'庆余年' 不会匹配 '庆余年第二季'）。"""
+        if self._season_of(vname) != self._season_of(clean_title):
+            return 0
+
         def norm(s):
             s = re.sub(r'[^\w\u4e00-\u9fff]', '', s or '')
             s = re.sub(r'第[一二三四五六七八九十\d]+季', '', s)
@@ -1594,12 +1672,14 @@ class Spider(BaseSpider):
                         headers=self.tx_headers, timeout=6).json()
                 except Exception:
                     continue
-                # 同一接口内先找精确匹配（2 分），再找前缀匹配（1 分），不取错剧
+                # 同一接口内先找精确匹配（2 分），再找前缀匹配（1 分），不取错剧。
+                # 打分始终用完整片名（含季号），由 _title_match_score 做季号校验；
+                # t 只是搜 CMS 用的去季词（CMS 的 wd 是子串匹配，带季号搜不到）。
                 best_item = None
                 best_score = 0
                 for item in rsp.get('list') or []:
                     score = self._title_match_score(
-                        item.get('vod_name') or '', t)
+                        item.get('vod_name') or '', title)
                     if score > best_score:
                         best_item, best_score = item, score
                         if score == 2:
@@ -1617,14 +1697,17 @@ class Spider(BaseSpider):
         return None
 
     def _fetch_cloud_m3u8_lines(self, title):
-        """按剧名从云端同源采集接口匹配 1080P .m3u8 直连线路 (适配 iOS AVPlayer 直连秒开)"""
+        """按剧名从云端同源采集接口匹配 1080P .m3u8 直连线路 (适配 iOS AVPlayer 直连秒开)
+        搜 CMS 时用去季后缀的片名（CMS 的 wd 是子串匹配，"庆余年 第二季" 带空格搜不到），
+        但打分仍用完整片名（含季号），由 _title_match_score 做季号校验，防串季。"""
         clean_name = re.sub(r'[（(].*?[)）]', '', str(title or '')).strip()
         if not clean_name:
             return [], []
+        search_name = self._clean_title_for_cloud(clean_name) or clean_name
 
         def _query_cms(source_tuple):
             label, api_url = source_tuple
-            rsp = self.fetch(api_url, params={'ac': 'videolist', 'wd': clean_name}, headers=self.tx_headers, timeout=8).json()
+            rsp = self.fetch(api_url, params={'ac': 'videolist', 'wd': search_name}, headers=self.tx_headers, timeout=8).json()
             best_item = None
             best_score = 0
             for item in rsp.get('list') or []:
@@ -1874,9 +1957,9 @@ def _run_selftest():
     sp = Spider()
     sp.init()
 
-    # 1. 验证分类结构
+    # 1. 验证分类结构（三合一：优酷 7 + 腾讯 7 + 芒果 7 = 21）
     home_res = sp.homeContent(filter=False)
-    assert 'class' in home_res and len(home_res['class']) == 14, "分类数量校验失败"
+    assert 'class' in home_res and len(home_res['class']) == 21, "分类数量校验失败"
 
     # 2. 验证 M3U8 去广告引擎 (移植自 drpy2 fixAdM3u8Ai)
     sample_m3u8 = "\n".join([
