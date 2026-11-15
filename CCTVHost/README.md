@@ -126,7 +126,7 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]哈密瓜 | `python-spiders/hamigua.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]hanime（18+） | `python-spiders/hanime.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]河马短剧 | `python-spiders/hemaduanju.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]河马剧场 | `python-spiders/hemajuchang.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
+| [需手机测]河马剧场 | `python-spiders/hemajuchang.py` | 2026-11-15 用户上传版替换 py400 版：首页/分类本机通，搜索空（后端 kuaikaw/kydco 本机连不上），需 iPhone 实测；旧 py400 版已验证通过，如新版手机上不通可换回 |
 | [需手机测]红果短剧 | `python-spiders/hongguo.py` | 2026-11-15 用户上传的优化版（r6，1.0.5-cctvhost-r6，与仓库内置版字节一致；2026-11-12 本机实测第 28 集 5 档、MP4 200；本次因本机出口连不上红果 API 而未复测，需 iPhone 实测） |
 | [需手机测]大师兄原生 | `python-spiders/dsxyuansheng.py` | 2026-11-15 用户上传的大师兄原生 App 版：首页/分类/搜索/详情本机通（5 条线），播放因本机连不上播放代理而超时，需 iPhone 实测 |
 | [需手机测]菠菜园 | `python-spiders/bocaiyuan.py` | 2026-11-15 用户上传：首页通，分类/搜索因本机连不上 MacCMS 源而超时，需 iPhone 实测；注意文件内含写死的测试流兜底数据，源站不通时会播出测试片 |

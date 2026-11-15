@@ -65,7 +65,7 @@ const pythonSources=[
   ['fandaziyingshi','[通过]饭搭子影视'],['fantuanyingshi','[通过]饭团影视'],
   ['feikuaitv','[通过]飞快TV'],['getav','[通过]getav（18+）'],['guazi2','[通过]瓜子'],
   ['guaziapp','[通过]瓜子APP'],['guazi3','[通过]瓜子原生'],['guoguoduanju','[通过]果果短剧'],['hamigua','[通过]哈密瓜'],
-  ['hanime','[通过]hanime（18+）'],['hemaduanju','[通过]河马短剧'],['hemajuchang','[通过]河马剧场'],['hongguo','[需手机测]红果短剧'],['dsxyuansheng','[需手机测]大师兄原生'],['bocaiyuan','[需手机测]菠菜园'],
+  ['hanime','[通过]hanime（18+）'],['hemaduanju','[通过]河马短剧'],['hemajuchang','[需手机测]河马剧场'],['hongguo','[需手机测]红果短剧'],['dsxyuansheng','[需手机测]大师兄原生'],['bocaiyuan','[需手机测]菠菜园'],
   ['huangdouduanju','[通过]黄豆短剧（18+）'],['huayiyingshi','[通过]华谊影视'],
   ['hudieyingyuan','[通过]蝴蝶影院'],['hudieyingyuanneizhiquguanggaoanzhuobanben','[通过]蝴蝶影院（内置去广告）安卓版本'],['javday','[通过]JavDay（18+）'],
   ['javheo','[通过]javheo（18+）'],['jingdianlaopian','[通过]经典老片（18+）'],['jinpaiapp','[通过]金牌APP'],

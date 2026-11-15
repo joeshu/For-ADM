@@ -615,7 +615,7 @@
     },
     {
       "key": "joeshu.hawk.hemajuchang",
-      "name": "[通过]河马剧场（PY）",
+      "name": "[需手机测]河马剧场（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/hemajuchang.py",
       "type": "script"
     },
