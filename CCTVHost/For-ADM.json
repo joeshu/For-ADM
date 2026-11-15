@@ -1028,6 +1028,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.aiqiyi",
+      "name": "[需手机测]爱奇艺（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/aiqiyi.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
