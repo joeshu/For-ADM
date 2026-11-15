@@ -221,6 +221,15 @@ class Spider(BaseSpider):
         "教育": "115"
     }
 
+    # 详情页可见的云端直连线路（只挂实测能播的 4 个；并发数要小，
+    # 否则出口拥塞会把全部请求拖超时，线路一条都出不来）
+    cloud_tab_apis = [
+        ("豪华直连", "https://hhzyapi.com/api.php/provide/vod/"),
+        ("金鹰直连", "https://jyzyapi.com/api.php/provide/vod/"),
+        ("光速直连", "https://api.guangsuapi.com/api.php/provide/vod/"),
+        ("极速直连", "https://jszyapi.com/api.php/provide/vod/")
+    ]
+
     # 同源云端直连 M3U8 聚合采集池（用于为 iOS AVPlayer 提供免解析 1080P .m3u8 备用直连流）
     # 顺序即优先级：豪华/金鹰/光速/极速本机实测有真 m3u8（以家人之名 VIP 第 3 集 200），
     # 量子/暴风/非凡的副本多为 404 死链，仅作备用。
@@ -1615,7 +1624,7 @@ class Spider(BaseSpider):
 
         def _query_cms(source_tuple):
             label, api_url = source_tuple
-            rsp = self.fetch(api_url, params={'ac': 'videolist', 'wd': clean_name}, headers=self.tx_headers, timeout=4).json()
+            rsp = self.fetch(api_url, params={'ac': 'videolist', 'wd': clean_name}, headers=self.tx_headers, timeout=8).json()
             best_item = None
             best_score = 0
             for item in rsp.get('list') or []:
@@ -1635,8 +1644,8 @@ class Spider(BaseSpider):
             return None, None
 
         tabs, urls = [], []
-        with ThreadPoolExecutor(max_workers=len(self.cloud_m3u8_apis)) as executor:
-            futures = [executor.submit(_query_cms, st) for st in self.cloud_m3u8_apis]
+        with ThreadPoolExecutor(max_workers=len(self.cloud_tab_apis)) as executor:
+            futures = [executor.submit(_query_cms, st) for st in self.cloud_tab_apis]
             for future in as_completed(futures):
                 try:
                     label, pu = future.result()
