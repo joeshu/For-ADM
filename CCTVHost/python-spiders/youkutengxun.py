@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 Youku_Tencent_CCTVHost.py
-适配 iOS CCTVHost (python-spider) 与 TVBox 的优酷 + 腾讯视频双平台单文件整合插件。
+适配 iOS CCTVHost (python-spider) 与 TVBox 的优酷 + 腾讯 + 芒果三平台单文件整合插件。
 
 核心特性：
 1. 零外部私有依赖：内置 Spider 基类回退，使用标准库 hashlib / re / urllib 替代 pyquery 与 pycryptodome，单文件直接导入 iOS CCTVHost 即可运行。
-2. 双平台全量整合：融合腾讯视频 (trpc 协议) 与优酷视频 (MTOP H5 令牌签名 + IKU 网关 + category/data)，统一支持分类、动态筛选、分页选集与双源并发搜索。
-3. 历史 Bug 修复：修复腾讯浅拷贝 page_context 跨分类污染问题；补齐优酷详情页缺失的 vod_name 与 vod_pic 字段。
+2. 三平台全量整合：融合腾讯视频 (trpc 协议)、优酷视频 (MTOP H5 令牌签名 + IKU 网关 + category/data) 与芒果 TV (tk2 签名流)，统一支持分类、动态筛选、分页选集与三源并发搜索。
+3. 历史 Bug 修复：修复腾讯浅拷贝 page_context 跨分类污染问题；补齐优酷详情页缺失的 vod_name 与 vod_pic 字段；芒果分集只保留正片（isIntact=1，时长区分，过滤第 N 集看点/预告短片，防播错片）。
 4. iOS 原生播放三级引擎 (playerContent + localProxy)：
-   - 级联 1：云端同源 M3U8 直连匹配 + 官方优酷 UPS (mtop.youku.play.ups.appinfo.get) 原生流提取 + 腾讯官方 getinfo (vv.video.qq.com) MP4 直链 (parse=0 免嗅探秒播)。
+   - 级联 1：云端同源 M3U8 直连匹配 + 官方优酷 UPS (mtop.youku.play.ups.appinfo.get) 原生流提取 + 腾讯官方 getinfo (vv.video.qq.com) MP4 直链 + 芒果官方 tk2 签名流 (parse=0 免嗅探秒播)。
    - 级联 2：多路 JSON 解析池并发提取真实 .m3u8/.mp4 直链 (parse=0)。
-   - 级联 3：MacCMS 同名片源兜底（GreasyFork 全网 VIP 破解脚本的方法，量子/暴风/非凡按片名搜同名资源，取对应集数，返回前 GET 校验 #EXTM3U 才返回；整次播放解析预算 25 秒）。
+   - 级联 3：MacCMS 同名片源兜底（GreasyFork 全网 VIP 破解脚本的方法，豪华/金鹰/光速/极速优先，量子/暴风/非凡备用；按片名严格匹配 + 集号/区间匹配，返回前 GET 校验 #EXTM3U 才返回；整次播放解析预算 25 秒）。
    - 级联 4：移植 drpy2 fixAdM3u8Ai 公共前缀比对算法至 localProxy，自动剥离 M3U8 插播广告切片；兜底返回标准官源地址。
 """
 
@@ -158,7 +158,7 @@ class _UrllibSession(object):
 
 
 class Spider(BaseSpider):
-    """优酷 + 腾讯视频 iOS CCTVHost 单文件整合插件"""
+    """优酷 + 腾讯 + 芒果 TV iOS CCTVHost 单文件整合插件"""
 
     # 腾讯配置
     tx_host = 'https://v.qq.com'
@@ -200,11 +200,38 @@ class Spider(BaseSpider):
         "__ayspstp": "3"
     }
 
+    # 芒果配置
+    mg_rhost = 'https://www.mgtv.com'
+    mg_host = 'https://pianku.api.mgtv.com'
+    mg_vhost = 'https://pcweb.api.mgtv.com'
+    mg_mhost = 'https://dc.bz.mgtv.com'
+    mg_shost = 'https://mobileso.bz.mgtv.com'
+    mg_headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; ) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.61 Chrome/126.0.6478.61 Not/A)Brand/8  Safari/537.36',
+        'origin': 'https://www.mgtv.com',
+        'referer': 'https://www.mgtv.com/'
+    }
+    mg_cate = {
+        "电影": "3",
+        "电视剧": "2",
+        "综艺": "1",
+        "动画": "50",
+        "少儿": "10",
+        "纪录片": "51",
+        "教育": "115"
+    }
+
     # 同源云端直连 M3U8 聚合采集池（用于为 iOS AVPlayer 提供免解析 1080P .m3u8 备用直连流）
+    # 顺序即优先级：豪华/金鹰/光速/极速本机实测有真 m3u8（以家人之名 VIP 第 3 集 200），
+    # 量子/暴风/非凡的副本多为 404 死链，仅作备用。
     cloud_m3u8_apis = [
+        ("豪华直连", "https://hhzyapi.com/api.php/provide/vod/"),
+        ("金鹰直连", "https://jyzyapi.com/api.php/provide/vod/"),
+        ("光速直连", "https://api.guangsuapi.com/api.php/provide/vod/"),
+        ("极速直连", "https://jszyapi.com/api.php/provide/vod/"),
         ("量子直连", "https://cj.lziapi.com/api.php/provide/vod/"),
-        ("非凡直连", "http://ffzy5.tv/api.php/provide/vod/"),
-        ("暴风直连", "https://bfzyapi.com/api.php/provide/vod/")
+        ("暴风直连", "https://bfzyapi.com/api.php/provide/vod/"),
+        ("非凡直连", "https://api.ffzy5.tv/api.php/provide/vod/")
     ]
 
     # 多路 JSON 直链解析池
@@ -277,7 +304,7 @@ class Spider(BaseSpider):
             pass
 
     def getName(self):
-        return "优酷·腾讯双擎聚合 (CCTVHost)"
+        return "优酷·腾讯·芒果三擎聚合 (CCTVHost)"
 
     def isVideoFormat(self, url):
         return bool(re.search(r'\.(m3u8|mp4|flv|m4a)(\?|$)', str(url), re.I))
@@ -295,18 +322,25 @@ class Spider(BaseSpider):
         categories = [
             ("腾讯·电视剧", "tx:100113"),
             ("优酷·电视剧", "yk:电视剧"),
+            ("芒果·电视剧", "mg:2"),
             ("腾讯·电影", "tx:100173"),
             ("优酷·电影", "yk:电影"),
+            ("芒果·电影", "mg:3"),
             ("腾讯·综艺", "tx:100109"),
             ("优酷·综艺", "yk:综艺"),
+            ("芒果·综艺", "mg:1"),
             ("腾讯·动漫", "tx:100119"),
             ("优酷·动漫", "yk:动漫"),
+            ("芒果·动画", "mg:50"),
             ("腾讯·短剧", "tx:110755"),
             ("优酷·少儿", "yk:少儿"),
+            ("芒果·少儿", "mg:10"),
             ("腾讯·少儿", "tx:100150"),
             ("腾讯·纪录片", "tx:100105"),
             ("优酷·纪录片", "yk:纪录片"),
-            ("优酷·文化", "yk:文化")
+            ("芒果·纪录片", "mg:51"),
+            ("优酷·文化", "yk:文化"),
+            ("芒果·教育", "mg:115")
         ]
         classes = [{'type_name': name, 'type_id': tid} for name, tid in categories]
         filters = {}
@@ -373,14 +407,16 @@ class Spider(BaseSpider):
         return ft_list
 
     # =========================================================================
-    # 2. 首页推荐双平台并发聚合 (homeVideoContent)
+    # 2. 首页推荐三平台并发聚合 (homeVideoContent)
     # =========================================================================
     def homeVideoContent(self):
         tx_list = []
         yk_list = []
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        mg_list = []
+        with ThreadPoolExecutor(max_workers=3) as executor:
             f_tx = executor.submit(self._home_tx_videos)
             f_yk = executor.submit(self._home_yk_videos)
+            f_mg = executor.submit(self._home_mg_videos)
             try:
                 tx_list = f_tx.result()
             except Exception:
@@ -389,19 +425,50 @@ class Spider(BaseSpider):
                 yk_list = f_yk.result()
             except Exception:
                 yk_list = []
+            try:
+                mg_list = f_mg.result()
+            except Exception:
+                mg_list = []
 
-        # 交错混排双平台推荐卡片
+        # 交错混排三平台推荐卡片
         merged = []
-        max_len = max(len(tx_list), len(yk_list))
+        max_len = max(len(tx_list), len(yk_list), len(mg_list))
         for idx in range(max_len):
             if idx < len(tx_list):
                 merged.append(tx_list[idx])
             if idx < len(yk_list):
                 merged.append(yk_list[idx])
+            if idx < len(mg_list):
+                merged.append(mg_list[idx])
 
         if not merged:
             merged = copy.deepcopy(self.FALLBACK_VIDEOS)
         return {'list': merged}
+
+    def _home_mg_videos(self):
+        """芒果首页推荐：dc.bz 动态频道索引。"""
+        try:
+            data = self.fetch(
+                f'{self.mg_mhost}/dynamic/v1/channel/index/0/0/0/1000000/0/0/17/1354'
+                f'?type=17&version=5.0&t={str(int(time.time() * 1000))}'
+                '&_support=10000000',
+                headers=self.mg_headers, timeout=8).json()
+        except Exception:
+            return []
+        videoList = []
+        for i in data.get('data') or []:
+            if i.get('DSLList') and len(i['DSLList']):
+                for j in i['DSLList']:
+                    if j.get('data') and j['data'].get('items') and len(j['data']['items']):
+                        for k in j['data']['items']:
+                            videoList.append({
+                                'vod_id': f"mg:{k['videoId']}",
+                                'vod_name': k['videoName'],
+                                'vod_pic': k['img'],
+                                'vod_year': k.get('cornerTitle'),
+                                'vod_remarks': f"[芒果] {k.get('time') or k.get('desc') or ''}".strip(),
+                            })
+        return videoList
 
     def _home_tx_videos(self):
         vlist = []
@@ -499,8 +566,43 @@ class Spider(BaseSpider):
         if str(tid).startswith("yk:"):
             raw_cat = str(tid).split(":", 1)[1]
             return self._category_yk(raw_cat, pg_str, extend)
+        if str(tid).startswith("mg:"):
+            raw_tid = str(tid).split(":", 1)[1]
+            return self._category_mg(raw_tid, pg_str, extend)
         raw_cid = str(tid).split(":", 1)[1] if ":" in str(tid) else str(tid)
         return self._category_tx(raw_cid, pg_str, extend)
+
+    def _category_mg(self, tid, pg, extend):
+        """芒果分类：pianku rider/list，按频道取片单。"""
+        body = {
+            'allowedRC': '1',
+            'platform': 'pcweb',
+            'channelId': tid,
+            'pn': pg,
+            'pc': '80',
+            'hudong': '1',
+            '_support': '10000000'
+        }
+        body.update(extend or {})
+        data = self.fetch(
+            f'{self.mg_host}/rider/list/pcweb/v3',
+            params=body, headers=self.mg_headers, timeout=8).json()
+        videoList = []
+        for i in (data.get('data') or {}).get('hitDocs') or []:
+            videoList.append({
+                'vod_id': f"mg:{i['playPartId']}",
+                'vod_name': i['title'],
+                'vod_pic': i['img'],
+                'vod_year': (i.get('rightCorner', {}) or {}).get('text') or i.get('year'),
+                'vod_remarks': f"[芒果] {i.get('updateInfo') or ''}".strip()
+            })
+        return {
+            'list': videoList,
+            'page': int(pg),
+            'pagecount': 9999,
+            'limit': 90,
+            'total': 999999
+        }
 
     def _category_tx(self, cid, pg, extend):
         result = {}
@@ -623,6 +725,9 @@ class Spider(BaseSpider):
         elif raw_id.startswith("tx:"):
             cid = raw_id.split(":", 1)[1]
             vod = self._detail_tx(cid)
+        elif raw_id.startswith("mg:"):
+            vid = raw_id.split(":", 1)[1]
+            vod = self._detail_mg(vid)
         else:
             # 自动探测无前缀 ID
             if len(raw_id) == 15 and raw_id.startswith("mzc"):
@@ -825,16 +930,117 @@ class Spider(BaseSpider):
                 'vod_play_url': f"第1集$yk:{show_id}@"
             }
 
+    def _is_mgtv_main_episode(self, item):
+        """芒果分集是否正片：正片是长视频，预告/看点是 1 分钟左右的短片。
+        以 isIntact 为准（1=正片完整版，3=看点/预告）；缺失时按时长判断（>=5 分钟算正片）。"""
+        intact = str(item.get('isIntact') or '')
+        if intact == '1':
+            return True
+        if intact == '3':
+            return False
+        t = str(item.get('time') or '')
+        try:
+            parts = t.split(':')
+            secs = int(parts[0]) * 60 + int(parts[1]) if len(parts) == 2 else 0
+        except Exception:
+            secs = 0
+        return secs >= 300
+
+    def _detail_mg(self, vid):
+        """芒果详情：video/info + episode/list，分集只保留正片。"""
+        try:
+            vbody = {'allowedRC': '1', 'vid': vid, 'type': 'b', '_support': '10000000'}
+            vdata = self.fetch(
+                f'{self.mg_vhost}/video/info',
+                params=vbody, headers=self.mg_headers, timeout=8).json()
+            d = vdata['data']['info']['detail']
+            show_title = vdata['data']['info']['title'] or ''
+            vod = {
+                'vod_id': f"mg:{vid}",
+                'vod_name': show_title,
+                'type_name': d.get('kind'),
+                'vod_year': d.get('releaseTime'),
+                'vod_area': d.get('area'),
+                'vod_lang': d.get('language'),
+                'vod_remarks': d.get('updateInfo'),
+                'vod_actor': d.get('leader'),
+                'vod_director': d.get('director'),
+                'vod_content': d.get('story'),
+                'vod_play_from': '芒果TV',
+                'vod_play_url': ''
+            }
+            data, pdata = self._fetch_mg_page_data('1', vid, True, show_title)
+            pagecount = (data.get('data') or {}).get('total_page') or 1
+            # 有的剧分集极多（如 2000 条），全量拉取会拖垮详情；只取前 10 页（300 集）。
+            pagecount = min(int(pagecount), 10)
+            if int(pagecount) > 1:
+                pages = list(range(2, pagecount + 1))
+                page_results = {}
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    future_to_page = {
+                        executor.submit(self._fetch_mg_page_data, page, vid, False, show_title): page
+                        for page in pages
+                    }
+                    for future in as_completed(future_to_page):
+                        page = future_to_page[future]
+                        try:
+                            page_results[page] = future.result()
+                        except Exception:
+                            continue
+                for page in sorted(page_results.keys()):
+                    pdata.extend(page_results[page])
+            vod['vod_play_url'] = '#'.join(pdata)
+            return vod
+        except Exception:
+            return {
+                'vod_id': f"mg:{vid}",
+                'vod_name': f"芒果剧集 ({vid})",
+                'vod_play_from': '芒果TV',
+                'vod_play_url': f"第1集$mg:{vid}@1@"
+            }
+
+    def _fetch_mg_page_data(self, page, vid, b=False, title=''):
+        """芒果分集列表：只保留正片（isIntact=1），过滤第 N 集看点/预告短片。
+        播放 token：mg:<vid>@<集号>@<页面路径>@<片名>（片名在最后，可含 @）。"""
+        body = {'version': '5.5.35', 'video_id': vid, 'page': page, 'size': '30',
+                'platform': '4', 'src': 'mgtv', 'allowedRC': '1', '_support': '10000000'}
+        data = self.fetch(
+            f'{self.mg_vhost}/episode/list',
+            params=body, headers=self.mg_headers, timeout=8).json()
+        safe_title = (title or '').replace('#', '').replace('$', '').replace('@', '')
+        ldata = []
+        base_index = (int(page) - 1) * 30
+        kept = 0
+        for i, item in enumerate((data.get('data') or {}).get('list') or []):
+            if not self._is_mgtv_main_episode(item):
+                continue
+            t3 = item.get('t3') or ''
+            m = re.search(r'第(\d+)[集期]', t3)
+            ep_num = int(m.group(1)) if m else base_index + kept + 1
+            kept += 1
+            ep_vid = str(item.get('video_id') or '')
+            path = item.get('url') or ''
+            if ep_vid and safe_title:
+                ldata.append(f'{t3}$mg:{ep_vid}@{ep_num}@{path}@{safe_title}')
+            else:
+                ldata.append(f'{t3}${path}')
+        if b:
+            return data, ldata
+        else:
+            return ldata
+
     # =========================================================================
-    # 5. 双平台并发搜索 (searchContent)
+    # 5. 三平台并发搜索 (searchContent)
     # =========================================================================
     def searchContent(self, key, quick, pg="1"):
         pg_str = str(pg or '1')
         tx_res = []
         yk_res = []
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        mg_res = []
+        with ThreadPoolExecutor(max_workers=3) as executor:
             f_tx = executor.submit(self._search_tx, key, pg_str)
             f_yk = executor.submit(self._search_yk, key, pg_str)
+            f_mg = executor.submit(self._search_mg, key, pg_str)
             try:
                 tx_res = f_tx.result()
             except Exception:
@@ -843,15 +1049,44 @@ class Spider(BaseSpider):
                 yk_res = f_yk.result()
             except Exception:
                 yk_res = []
+            try:
+                mg_res = f_mg.result()
+            except Exception:
+                mg_res = []
 
         merged = []
-        max_len = max(len(tx_res), len(yk_res))
+        max_len = max(len(tx_res), len(yk_res), len(mg_res))
         for i in range(max_len):
             if i < len(tx_res):
                 merged.append(tx_res[i])
             if i < len(yk_res):
                 merged.append(yk_res[i])
+            if i < len(mg_res):
+                merged.append(mg_res[i])
         return {'list': merged, 'page': int(pg_str)}
+
+    def _search_mg(self, key, pg):
+        """芒果搜索：mobileso 小程序搜索接口。"""
+        data = self.fetch(
+            f'{self.mg_shost}/applet/search/v1?channelCode=mobile-wxap'
+            f'&q={quote(key)}&pn={pg}&pc=10&_support=10000000',
+            headers=self.mg_headers, timeout=8).json()
+        videoList = []
+        for i in (data.get('data') or {}).get('contents') or []:
+            if i.get('data') and len(i['data']):
+                k = i['data'][0]
+                if k.get('vid') and k.get('img'):
+                    try:
+                        videoList.append({
+                            'vod_id': f"mg:{k['vid']}",
+                            'vod_name': k['title'],
+                            'vod_pic': k['img'],
+                            'vod_year': (i.get('rightTopCorner', {}) or {}).get('text') or i.get('year'),
+                            'vod_remarks': f"[芒果] {'/'.join(i.get('desc', []))}".strip(),
+                        })
+                    except Exception:
+                        continue
+        return videoList
 
     def _search_tx(self, key, pg):
         body = {
@@ -976,6 +1211,47 @@ class Spider(BaseSpider):
             # 4) 兜底返回官源网页地址
             return {'jx': 1, 'parse': 1, 'url': raw_url, 'header': json.dumps(play_headers)}
 
+        # 分支 D：芒果 TV (mg:{vid}@{ep}@{page}@{title}，旧格式 mgtv:{vid}@... 或 /b/... 路径)
+        if play_id.startswith('mg:') or play_id.startswith('mgtv:'):
+            token = play_id.split(':', 1)[1] if ':' in play_id else play_id
+            parts = token.split('@')
+            vid = ''
+            ep_num = 0
+            page_path = ''
+            show_title = ''
+            if len(parts) >= 4:
+                vid = parts[0]
+                try:
+                    ep_num = int(parts[1])
+                except Exception:
+                    ep_num = 0
+                page_path = parts[2]
+                show_title = '@'.join(parts[3:])
+            else:
+                vid = self._extract_mgtv_vid(token)
+                page_path = token if token.startswith('/') else ''
+            mg_headers = {
+                'User-Agent': self.mg_headers['User-Agent'],
+                'Referer': 'https://www.mgtv.com/'
+            }
+
+            # 0) 芒果官方 tk2 直链
+            if vid:
+                direct_url = self._get_mgtv_direct_url(vid, budget_end)
+                if direct_url:
+                    return {'jx': 0, 'parse': 0, 'url': direct_url, 'header': json.dumps(mg_headers)}
+
+            # 1) MacCMS 同名片源兜底（校验后才返回）
+            if show_title and ep_num and time.time() < budget_end:
+                cloud_url = self._get_cloud_fallback_url(show_title, ep_num, budget_end)
+                if cloud_url:
+                    return {'jx': 0, 'parse': 0, 'url': cloud_url, 'header': json.dumps(mg_headers)}
+
+            # 2) 兜底：仍返回官源网页
+            page = page_path or play_id
+            url = page if page.startswith('http') else f'{self.mg_rhost}{page}'
+            return {'jx': 1, 'parse': 1, 'url': url, 'header': ''}
+
         # 分支 C：腾讯视频 (tx:{cid}@{vid}@{ep}@{title}，旧格式 tx:{cid}@{vid}@{title} 或 {cid}@{vid})
         if play_id.startswith('tx:'):
             body = play_id.split(':', 1)[1]
@@ -1025,6 +1301,71 @@ class Spider(BaseSpider):
             'url': raw_url,
             'header': json.dumps(play_headers)
         }
+
+    def _get_mgtv_direct_url(self, vid, deadline=None):
+        """芒果官方直链（tk2 签名流，免嗅探返回 m3u8），参考 yt-dlp mgtv 流程。
+
+        1) tk2 = urlsafe_b64('did=<uuid>|pno=1030|ver=0.3.0301|clit=<ts>') 再整体反转
+        2) GET pcweb.api.mgtv.com/player/video?tk2&video_id&type=pch5 -> data.atc.pm2
+        3) GET tinker.glb.mgtv.com/player/getSource?tk2&pm2&video_id&type=pch5...
+           -> data.stream_domain + data.stream[]（各清晰度，filebitrate 排序）
+        4) 按清晰度从高到低，逐个 GET stream_domain + stream.url -> info 即最终 m3u8
+        1080P 的 url 可能为空（需 VIP），跳过；全部失败返回 None。
+        deadline：整次调用的最晚返回时间，超时直接返回 None。
+        """
+        vid = (vid or '').strip()
+        if not vid:
+            return None
+        if deadline is None:
+            deadline = time.time() + 15
+        try:
+            tk2 = base64.urlsafe_b64encode(
+                ('did=%s|pno=1030|ver=0.3.0301|clit=%d'
+                 % (uuid.uuid4(), int(time.time()))).encode()).decode()[::-1]
+            data1 = self.fetch(
+                'https://pcweb.api.mgtv.com/player/video',
+                params={'tk2': tk2, 'video_id': vid, 'type': 'pch5'},
+                headers=self.mg_headers, timeout=6).json()
+            pm2 = ((data1.get('data') or {}).get('atc') or {}).get('pm2')
+            if not pm2 or time.time() > deadline:
+                return None
+            data2 = self.fetch(
+                'https://tinker.glb.mgtv.com/player/getSource',
+                params={'_support': '10000000', 'tk2': tk2, 'pm2': pm2,
+                        'video_id': vid, 'type': 'pch5', 'auth_mode': '1',
+                        'cxid': '', 'supportMse': '1', 'src': 'intelmgtv',
+                        'abroad': '10', 'allowedRC': '1'},
+                headers=self.mg_headers, timeout=6).json()
+            data2 = data2.get('data') or {}
+            domains = data2.get('stream_domain') or []
+            streams = data2.get('stream') or []
+            if not domains or not streams:
+                return None
+            domain = (domains[0] or '').rstrip('/')
+
+            def _bitrate(s):
+                try:
+                    return int(float(s.get('filebitrate') or 0))
+                except Exception:
+                    return 0
+
+            for s in sorted(streams, key=_bitrate, reverse=True):
+                if time.time() > deadline:
+                    return None
+                rel = s.get('url') or ''
+                if not rel:
+                    continue
+                full = rel if rel.startswith('http') else domain + rel
+                try:
+                    info = self.fetch(full, headers=self.mg_headers, timeout=6).json()
+                except Exception:
+                    continue
+                final = info.get('info') if isinstance(info, dict) else None
+                if final and isinstance(final, str) and final.startswith('http'):
+                    return final
+            return None
+        except Exception:
+            return None
 
     def _get_tx_direct_url(self, vid):
         """腾讯官方 getinfo 直链：platform 101001，免嗅探返回 MP4 直链。
@@ -1121,9 +1462,67 @@ class Spider(BaseSpider):
                     continue
         return None
 
-    def _pick_cloud_episode(self, play_url, ep_num):
-        """从 MacCMS vod_play_url（$$$ 分源，# 分集，名$url）里按集号取 m3u8。
-        集号匹配 '第N集'/'第N期'/'E0N'，无匹配返回 None（不猜）。"""
+    def _extract_mgtv_vid(self, play_id):
+        """从芒果播放 token 取 numeric video_id：分集 url 是 /b/<clip>/<vid>.html；
+        传入纯数字时直接用。取不到返回 ''。"""
+        text = (play_id or '').strip()
+        if text.isdigit():
+            return text
+        m = re.search(r'/(\d+)\.html', text)
+        if m:
+            return m.group(1)
+        m = re.search(r'(\d{5,})', text)
+        return m.group(1) if m else ''
+
+    def _title_match_score(self, vname, clean_title):
+        """MacCMS 片名匹配打分（防播错剧）：2=精确相等，1=前缀+短后缀（DVD版/季），0=不匹配。
+        '少年派' 不会匹配 '夏日少年派'（前缀不对），也不会匹配 '少年派的奇幻漂流'
+        （后缀太长）；'向往的生活 第七季' 能匹配 '向往的生活第七季'。"""
+        def norm(s):
+            s = re.sub(r'[^\w\u4e00-\u9fff]', '', s or '')
+            s = re.sub(r'第[一二三四五六七八九十\d]+季', '', s)
+            s = re.sub(r'(DVD版|高清版|未删减版|完整版|抢先版|剧场版)$', '', s)
+            return s
+
+        a, b = norm(vname), norm(clean_title)
+        if not a or not b:
+            return 0
+        if a == b:
+            return 2
+        if a.startswith(b) and len(a) - len(b) <= 3:
+            return 1
+        if b.startswith(a) and len(b) - len(a) <= 3:
+            return 1
+        return 0
+
+    def _clean_title_for_cloud(self, title):
+        """去括号、去季后缀：'向往的生活 第七季' -> '向往的生活'，供同名搜索第二轮用。"""
+        t = re.sub(r'[（(].*?[)）]', '', str(title or '')).strip()
+        t = re.sub(r'\s*第[一二三四五六七八九十\d]+季\s*$', '', t)
+        return t
+
+    def _pick_cloud_episodes(self, play_url, ep_num):
+        """从 MacCMS vod_play_url（$$$ 分源，# 分集，名$url）里按集号取候选 m3u8，
+        按匹配度排序返回（调用方逐个 GET 校验 #EXTM3U）。
+        匹配：精确集号（'第N集'/'第N期'/'E0N'）> 区间（'第A-B集' 含 N，
+        聚合站常把多集打成一个包，如 '第1-20集'）> '全集'/'正片'（整部合集）。
+        链接优先取 .m3u8 直链；聚合站的播放页 URL（如 /play/xxx，不带 .m3u8）
+        有的直接返回 m3u8 内容，也作为候选（由校验把关），无匹配返回 []。"""
+        def _match(name):
+            name = (name or '').strip()
+            if (f'第{ep_num}集' in name or f'第{ep_num}期' in name
+                    or f'第{ep_num:02d}集' in name
+                    or f'E{ep_num:02d}' in name
+                    or f'E{ep_num}' in name):
+                return 2
+            m = re.search(r'第(\d+)-(\d+)[集期]', name)
+            if m and int(m.group(1)) <= ep_num <= int(m.group(2)):
+                return 1
+            if name in ('全集', '正片', '全集完结', '全集高清'):
+                return 1
+            return 0
+
+        cands = []
         for group in (play_url or '').split('$$$'):
             for item in group.split('#'):
                 if '$' in item:
@@ -1131,55 +1530,79 @@ class Spider(BaseSpider):
                 else:
                     name, url = '', item
                 url = (url or '').strip()
-                if not url.startswith('http') or '.m3u8' not in url:
+                if not url.startswith('http'):
                     continue
-                name = (name or '').strip()
-                if (f'第{ep_num}集' in name or f'第{ep_num}期' in name
-                        or f'第{ep_num:02d}集' in name
-                        or f'E{ep_num:02d}' in name
-                        or f'E{ep_num}' in name):
-                    return url
-        return None
+                score = _match(name)
+                if not score:
+                    continue
+                pref = 1 if '.m3u8' in url else 0
+                cands.append((score, pref, url))
+        cands.sort(key=lambda c: (c[0], c[1]), reverse=True)
+        seen = set()
+        out = []
+        for _, _, url in cands:
+            if url not in seen:
+                seen.add(url)
+                out.append(url)
+        return out
 
     def _verify_m3u8(self, url, timeout=6):
-        """GET 校验是真实 m3u8 清单（以 #EXTM3U 开头）才算可用，死链直接淘汰。"""
+        """GET 校验是真实 m3u8 清单（以 #EXTM3U 开头）才算可用，死链直接淘汰。
+        只带 UA，不带 Referer/Origin（第三方 CDN 可能拒收不匹配的 Referer）。"""
         try:
-            rsp = self.fetch(url, headers=self.tx_headers, timeout=timeout)
+            rsp = self.fetch(
+                url,
+                headers={'User-Agent': self.tx_headers['User-Agent']},
+                timeout=timeout)
             text = getattr(rsp, 'text', '') or ''
             return text.lstrip().startswith('#EXTM3U')
         except Exception:
             return False
 
     def _get_cloud_fallback_url(self, title, ep_num, deadline=None):
-        """MacCMS 同名片源兜底（GreasyFork 全网 VIP 破解脚本的方法，芒果同款）：
-        按片名在量子/暴风/非凡搜同名资源，取对应集数的 m3u8；返回前先 GET
-        校验是真实 #EXTM3U 才返回。本机实测这些副本多为 404 死链，校验会
-        直接淘汰，手机端（国内 IP）若文件存活即可直连。全部失败返回 None。
+        """MacCMS 同名片源兜底（GreasyFork 全网 VIP 破解脚本的方法）：
+        按片名在豪华/金鹰/光速/极速（实测有真 m3u8）及量子/暴风/非凡搜同名资源，
+        取对应集数的 m3u8；返回前先 GET 校验是真实 #EXTM3U 才返回。
+        片名用严格打分匹配（防播错剧：'少年派' 不会匹配 '夏日少年派'），
+        先试全名，再试去季后缀的片名。全部失败返回 None。
         deadline：最晚返回时间，超时直接返回 None。"""
         title = (title or '').strip()
         if not title or not ep_num:
             return None
         if deadline is None:
             deadline = time.time() + 12
-        clean_name = re.sub(r'[（(].*?[)）]', '', title).strip()
-        if not clean_name:
-            return None
-        for label, api_url in self.cloud_m3u8_apis:
-            if time.time() > deadline:
-                return None
-            try:
-                rsp = self.fetch(
-                    api_url, params={'ac': 'detail', 'wd': clean_name},
-                    headers=self.tx_headers, timeout=6).json()
-            except Exception:
-                continue
-            for item in rsp.get('list') or []:
+        titles = [title]
+        base = self._clean_title_for_cloud(title)
+        if base and base != title:
+            titles.append(base)
+        for api_label, api_url in self.cloud_m3u8_apis:
+            for t in titles:
                 if time.time() > deadline:
                     return None
-                vname = item.get('vod_name') or ''
-                if clean_name in vname or vname in clean_name:
-                    url = self._pick_cloud_episode(
-                        item.get('vod_play_url') or '', ep_num)
+                try:
+                    rsp = self.fetch(
+                        api_url, params={'ac': 'videolist', 'wd': t},
+                        headers=self.tx_headers, timeout=6).json()
+                except Exception:
+                    continue
+                # 同一接口内先找精确匹配（2 分），再找前缀匹配（1 分），不取错剧
+                best_item = None
+                best_score = 0
+                for item in rsp.get('list') or []:
+                    score = self._title_match_score(
+                        item.get('vod_name') or '', t)
+                    if score > best_score:
+                        best_item, best_score = item, score
+                        if score == 2:
+                            break
+                if not best_item:
+                    continue
+                if time.time() > deadline:
+                    return None
+                for url in self._pick_cloud_episodes(
+                        best_item.get('vod_play_url') or '', ep_num):
+                    if time.time() > deadline:
+                        return None
                     if url and self._verify_m3u8(url):
                         return url
         return None
@@ -1192,17 +1615,23 @@ class Spider(BaseSpider):
 
         def _query_cms(source_tuple):
             label, api_url = source_tuple
-            rsp = self.fetch(api_url, params={'ac': 'detail', 'wd': clean_name}, headers=self.tx_headers, timeout=4).json()
+            rsp = self.fetch(api_url, params={'ac': 'videolist', 'wd': clean_name}, headers=self.tx_headers, timeout=4).json()
+            best_item = None
+            best_score = 0
             for item in rsp.get('list') or []:
-                vname = item.get('vod_name') or ''
-                if clean_name in vname or vname in clean_name:
-                    play_from = (item.get('vod_play_from') or '').split('$$$')
-                    play_url = (item.get('vod_play_url') or '').split('$$$')
-                    for pf, pu in zip(play_from, play_url):
-                        if 'm3u8' in pf.lower() or '.m3u8' in pu.lower():
-                            return label, pu
-                    if play_url:
-                        return label, play_url[0]
+                score = self._title_match_score(item.get('vod_name') or '', clean_name)
+                if score > best_score:
+                    best_item, best_score = item, score
+                    if score == 2:
+                        break
+            if best_item:
+                play_from = (best_item.get('vod_play_from') or '').split('$$$')
+                play_url = (best_item.get('vod_play_url') or '').split('$$$')
+                for pf, pu in zip(play_from, play_url):
+                    if 'm3u8' in pf.lower() or '.m3u8' in pu.lower():
+                        return label, pu
+                if play_url:
+                    return label, play_url[0]
             return None, None
 
         tabs, urls = [], []

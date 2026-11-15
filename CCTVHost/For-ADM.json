@@ -993,14 +993,8 @@
     },
     {
       "key": "joeshu.hawk.youkutengxun",
-      "name": "[需手机测]优酷·腾讯双擎聚合 (CCTVHost)（PY）",
+      "name": "[需手机测]优酷·腾讯·芒果三擎聚合 (CCTVHost)（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youkutengxun.py",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.hawk.mangguotv",
-      "name": "[通过]芒果TV（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/mangguotv.py",
       "type": "script"
     },
     {
