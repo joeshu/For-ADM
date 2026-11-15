@@ -92,10 +92,30 @@ const pythonSources=[
   ['yiqishua','[通过]一起刷'],
   ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视'],['youkutengxunmangguo','[需手机测]优酷·腾讯·芒果三擎聚合']
 ];
+const jarSources=[
+  ['ningmeng','[需手机测]💡柠檬｜影视'],
+  ['yunyun','[需手机测]💡云云｜影视'],
+  ['tiantian','[需手机测]天天影视'],
+  ['xiuluo','[需手机测]修罗┃无搜索'],
+  ['zhuiju','[需手机测]追剧┃App'],
+  ['juping','[需手机测]剧评┃App'],
+  ['yunyun2','[需手机测]云云┃无搜索'],
+  ['huomao','[需手机测]火猫┃App'],
+  ['yizhan','[需手机测]驿站┃无搜索'],
+  ['zhujue','[需手机测]主角┃APP'],
+  ['yongye','[需手机测]永夜┃App'],
+  ['qiaoji3','[需手机测]巧技三┃QD4K'],
+  ['youzhi','[需手机测]优质┃App'],
+  ['kexing','[需手机测]客星┃App'],
+  ['dianyinggang','[需手机测]电影港[边下边播]'],
+  ['lib','[需手机测]Lib┃直连'],
+  ['zaixian','[需手机测]在线┃直连'],
+  ['bilibili','[需手机测]哔哩哔哩'],
+];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, one hundred and thirty-five Python sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, one hundred and thirty-five Python sources, eighteen JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -128,6 +148,15 @@ for(const [id,title] of pythonSources){
   assert.match(source,/class \w*Spider\s*\(/,title+' declares a Python Spider');
   for(const method of ['homeContent','categoryContent','searchContent','detailContent','playerContent'])
     assert.match(source,new RegExp('def\\s+'+method+'\\s*\\('),title+' implements '+method);
+}
+for(const [id,title] of jarSources){
+  const entry=catalog.sites.find(site=>site.key==='joeshu.jar.'+id);
+  assert.ok(entry,title+' is present in the CCTVHost catalog');
+  assert.equal(entry.type,3,title+' is a TVBox type 3 JAR-bridge source');
+  assert.match(entry.api,/^csp_[A-Za-z0-9_]+$/,title+' uses a csp_* JAR spider class');
+  assert.equal(entry.name,title+'（JAR）',title+' is labeled as a JAR source');
+  assert.equal(entry.jar,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01',title+' points to the hosted JAR with matching md5');
+  assert.equal(typeof entry.ext,'string',title+' carries its site ext string');
 }
 const douban=catalog.sites.find(site=>site.key==='joeshu.douban-index');
 assert.ok(douban,'the source JSON native Douban index is present');
@@ -387,4 +416,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 173 entries (including one hundred and thirty-five Python Spiders and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 191 entries (including one hundred and thirty-five Python Spiders, eighteen JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');

@@ -1,6 +1,6 @@
 # CCTVHost 独立影视源合集
 
-主合集现在包含 37 个 CatVod / TVBox JavaScript 影视源、137 个 Python Spider（其中 9 个 Hawk 源已做运行与取流验证，影视追剧于 2026-11-06 加入并通过本地接口验证，2026-11-13 又加入 17 个经五道者聚合实测可用的 PY 源，同日又加入 8 个经初忆 TVBox 配置实测可用的 JS 源和 1 个签名已还原的片帝源，晚间又加入 2 个 HyProto 签名源（河豚/小苹果，协议已还原、加密自检全过，本机 POST 被挡待 iPhone 实测），同日晚间又加入橘汁（PY，蝴蝶 juziapp，登录/搜索/详情/解析实测通，4/5 线本机可播）），以及 1 个由 iOS 原生实现的豆瓣片名索引。每个独立影视源都使用单独的适配文件；电视盒子 Python/Java 插件包中的 Android JAR 不会被当成 iOS 脚本执行。
+主合集现在包含 37 个 CatVod / TVBox JavaScript 影视源、135 个 Python Spider、18 个 Android JAR（csp_*）影视源（2026-11-15 由用户上传的 3.3.8 TVBox 配置加入：fix250711.jar，jar-bridge 在应用内跑 JVM 执行，ext 由应用内 TVBoxDecodeQiaojiExt 解码；三六零 2 站按用户 2026-11-13 的下架决定未加入，零度 lingdu.py 因 401 拿不到未加入），以及 1 个由 iOS 原生实现的豆瓣片名索引。JS/PY 源使用单独的适配文件；JAR 源共用一个 fix250711.jar（`CCTVHost/jar/fix250711.jar`，md5 54418536dc2a40da4e94437397895d01，应用会校验 md5，不符会报“JAR 的 MD5 与订阅不符”），由应用的 jar-bridge 执行，不当成 iOS 脚本。
 
 ## CCTVHost 统一合集导入
 
@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 173 个条目：37 个 CatVod / TVBox JavaScript 源、135 个 Python Spider 和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 191 个条目：37 个 CatVod / TVBox JavaScript 源、135 个 Python Spider、18 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -54,6 +54,30 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `hema.js` | 河马短剧 | host 藏在 helper 类里（freevideo.zqqds.cn），AES-CBC 协议已还原；全链实测通，播两集 mp4（206 + ftyp 校验） |
 | `m1905.js` | 1905 | 1905电影网官方 JSON 接口 + play-info SHA-1 签名；列表/搜索/详情本机实测通，播放接口本机出口 IP 403（边缘访问控制），签名正确性待用户 iPhone 实测 |
 
+### JAR（Android csp_*）源
+
+2026-11-15 由用户上传的 3.3.8 TVBox 配置加入（fix250711.jar，jar-bridge 执行，ext 应用内解码）。全部标 [需手机测]，待 iPhone 实测。
+
+| JAR 源 | 后端类 | ext |
+| --- | --- | --- |
+| [需手机测]💡柠檬｜影视（JAR） | `csp_Nmvod` | 92 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]💡云云｜影视（JAR） | `csp_Qiji` | 200 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]天天影视（JAR） | `csp_TTian` | 34 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]修罗┃无搜索（JAR） | `csp_Bdys01` | 42 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]追剧┃App（JAR） | `csp_TTian` | 34 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]剧评┃App（JAR） | `csp_Jpys` | 50 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]云云┃无搜索（JAR） | `csp_Qiji` | 200 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]火猫┃App（JAR） | `csp_Xdai` | 124 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]驿站┃无搜索（JAR） | `csp_Qiji` | 208 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]主角┃APP（JAR） | `csp_Muou` | 82 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]永夜┃App（JAR） | `csp_Xdai` | 188 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]巧技三┃QD4K（JAR） | `csp_Qiji` | 126 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]优质┃App（JAR） | `csp_Xdai` | 140 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]客星┃App（JAR） | `csp_Xdai` | 128 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]电影港[边下边播]（JAR） | `csp_Dygang` | 0 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]Lib┃直连（JAR） | `csp_Lib` | 94 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]在线┃直连（JAR） | `csp_Zxzj` | 46 字符（`7lj763gg…`，应用内解码） |
+| [需手机测]哔哩哔哩（JAR） | `csp_Bili` | 78 字符（`7lj763gg…`，应用内解码） |
 ### Hawk Python Spider 源
 
 从提供的 Hawk iOS 内部影视与 PY 聚合包中逐个检查了 46 个 Python 文件。下面 9 个在 CCTVHost PythonSpider 兼容运行环境里有可用的首页/详情/分集数据，并至少有一条媒体路线通过清单或媒体探测、分片读取及 FFmpeg 首帧解码。另有影视追剧（`python-spiders/ystj.py`，2026-11-06 加入）通过本地 Spider 接口验证（32/32），直链 m3u8 需用户网络验证。其它脚本的单项运行情况和未收录原因列在验证记录中。单次可播样本不代表该站每个剧集、线路或网络环境都可用；上游域名、签名地址和访问策略会变化。2026-11-13 又从五道者海量 py 聚合接口实测加入 17 个 PY 源（下表新增行；本机只验播放地址可达，最终播放需 iPhone 确认；哔哩直播的两个来源文件内容相同，只收了一个）。2026-11-14 又从 py400.zip 加入 119 个 PY 源（下表新增行；其中 100 个验证通过（71 个本地整条链路验证通过 + 29 个 iPhone 实测通过），名前缀[通过]；17 个 iPhone 实测不通过的已从订阅删除；YouTube、怦然心动 2 站按用户要求剔除；大马猴、野果短剧、可可、可可影视经用户明确解禁加回）。
