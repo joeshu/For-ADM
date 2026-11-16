@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 190 个条目：37 个 CatVod / TVBox JavaScript 源、135 个 Python Spider、17 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 188 个条目：37 个 CatVod / TVBox JavaScript 源、135 个 Python Spider、15 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -67,14 +67,12 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [需手机测]追剧┃App（JAR） | `csp_TTian` | 34 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]剧评┃App（JAR） | `csp_Jpys` | 50 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]云云┃无搜索（JAR） | `csp_Qiji` | 200 字符（`7lj763gg…`，应用内解码） |
-| [需手机测]火猫┃App（JAR） | `csp_Xdai` | 124 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]驿站┃无搜索（JAR） | `csp_Qiji` | 208 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]永夜┃App（JAR） | `csp_Xdai` | 188 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]巧技三┃QD4K（JAR） | `csp_Qiji` | 126 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]优质┃App（JAR） | `csp_Xdai` | 140 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]客星┃App（JAR） | `csp_Xdai` | 128 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]电影港[边下边播]（JAR） | `csp_Dygang` | 0 字符（`7lj763gg…`，应用内解码） |
-| [需手机测]Lib┃直连（JAR） | `csp_Lib` | 94 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]在线┃直连（JAR） | `csp_Zxzj` | 46 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]哔哩哔哩（JAR） | `csp_Bili` | 78 字符（`7lj763gg…`，应用内解码） |
 ### Hawk Python Spider 源

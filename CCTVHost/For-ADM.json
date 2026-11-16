@@ -1090,14 +1090,6 @@
       "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
     },
     {
-      "key": "joeshu.jar.huomao",
-      "name": "[需手机测]火猫┃App（JAR）",
-      "api": "csp_Xdai",
-      "type": 3,
-      "ext": "7lj763gg402i79424930jkj8lk488382hjhjj851829j24354k104ighgi16580i4j9504k1ih03ihj03901kij4gkg919k4l2367707h2k19gg4728721g03ll9",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
       "key": "joeshu.jar.yizhan",
       "name": "[需手机测]驿站┃无搜索（JAR）",
       "api": "csp_Qiji",
@@ -1143,14 +1135,6 @@
       "api": "csp_Dygang",
       "type": 3,
       "ext": "",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
-      "key": "joeshu.jar.lib",
-      "name": "[需手机测]Lib┃直连（JAR）",
-      "api": "csp_Lib",
-      "type": 3,
-      "ext": "7lj763gg402i7942463j9j9jhi558k84lhg7845kili62l35535512l0h61j48410h9g5igk9j40908h351hh484h8l60h",
       "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
     },
     {
