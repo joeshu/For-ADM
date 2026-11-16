@@ -1,6 +1,6 @@
 # CCTVHost 独立影视源合集
 
-主合集现在包含 37 个 CatVod / TVBox JavaScript 影视源、135 个 Python Spider、18 个 Android JAR（csp_*）影视源（2026-11-15 由用户上传的 3.3.8 TVBox 配置加入：fix250711.jar，jar-bridge 在应用内跑 JVM 执行，ext 由应用内 TVBoxDecodeQiaojiExt 解码；三六零 2 站按用户 2026-11-13 的下架决定未加入，零度 lingdu.py 因 401 拿不到未加入），以及 1 个由 iOS 原生实现的豆瓣片名索引。JS/PY 源使用单独的适配文件；JAR 源共用一个 fix250711.jar（`CCTVHost/jar/fix250711.jar`，md5 54418536dc2a40da4e94437397895d01，应用会校验 md5，不符会报“JAR 的 MD5 与订阅不符”），由应用的 jar-bridge 执行，不当成 iOS 脚本。
+主合集现在包含 37 个 CatVod / TVBox JavaScript 影视源、138 个 Python Spider、4 个 Android JAR（csp_*）影视源（2026-11-15 由用户上传的 3.3.8 TVBox 配置加入：fix250711.jar，jar-bridge 在应用内跑 JVM 执行，ext 由应用内 TVBoxDecodeQiaojiExt 解码；三六零 2 站按用户 2026-11-13 的下架决定未加入，零度 lingdu.py 因 401 拿不到未加入），以及 1 个由 iOS 原生实现的豆瓣片名索引。JS/PY 源使用单独的适配文件；JAR 源共用一个 fix250711.jar（`CCTVHost/jar/fix250711.jar`，md5 54418536dc2a40da4e94437397895d01，应用会校验 md5，不符会报“JAR 的 MD5 与订阅不符”），由应用的 jar-bridge 执行，不当成 iOS 脚本。
 
 ## CCTVHost 统一合集导入
 
@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 180 个条目：37 个 CatVod / TVBox JavaScript 源、135 个 Python Spider、7 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 180 个条目：37 个 CatVod / TVBox JavaScript 源、138 个 Python Spider、4 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -61,11 +61,8 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | JAR 源 | 后端类 | ext |
 | --- | --- | --- |
 | [需手机测]💡柠檬｜影视（JAR） | `csp_Nmvod` | 92 字符（`7lj763gg…`，应用内解码） |
-| [需手机测]剧评┃App（JAR） | `csp_Jpys` | 50 字符（`7lj763gg…`，应用内解码） |
-| [需手机测]永夜┃App（JAR） | `csp_Xdai` | 188 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]客星┃App（JAR） | `csp_Xdai` | 128 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]电影港[边下边播]（JAR） | `csp_Dygang` | 0 字符（`7lj763gg…`，应用内解码） |
-| [需手机测]在线┃直连（JAR） | `csp_Zxzj` | 46 字符（`7lj763gg…`，应用内解码） |
 | [需手机测]哔哩哔哩（JAR） | `csp_Bili` | 78 字符（`7lj763gg…`，应用内解码） |
 ### Hawk Python Spider 源
 
@@ -208,6 +205,9 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]追剧达人 | `python-spiders/zhuijudaren.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]ZIP0影视 | `python-spiders/zip0yingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [需手机测]优酷·腾讯·芒果三擎聚合 | `python-spiders/youkutengxunmangguo.py` | 2026-11-15 用户上传的三合一（优酷+腾讯+芒果）；2026-11-15 修复腾讯跳网页：新增官方 getinfo 直链（parse=0，MP4 直链本机验证通过），VIP/地区受限仍走网页兜底；优酷 UPS 直出 m3u8 本机验证通过；芒果官方 tk2 直链（parse=0）+ 分集只留正片（isIntact=1，过滤第 N 集看点/预告，防播错片）；2026-11-15 再加 MacCMS 同名片源兜底（官源播不了时按片名严格匹配+集号/区间搜豪华/金鹰/光速/极速，校验 #EXTM3U 后才返回，整次解析预算 25 秒；以家人之名 VIP 第 3 集本机验证通过），详情有串剧问题待复核，需 iPhone 实测；2026-11-15 串剧已修（优酷详情不再用 v_getvideo_info，云端线季号感知）；因 App 按 key 缓存旧文件不重新下载，改名重建为 youkutengxunmangguo，旧 youkutengxun 已删 |
+| [需手机测]剧评 | `python-spiders/juping.py` | 2026-11-16 JAR 转 PY（csp_Jpys）：直连后端 m.wxojcopfw.com/mw-movie，无需签名；首页/分类/搜索/详情/播放本机全通（WORKING），m3u8 HTTP 200，仙逆第 1 集可播，需 iPhone 实测 |
+| [需手机测]在线 | `python-spiders/zaixian.py` | 2026-11-16 JAR 转 PY（csp_Zxzj）：MacCMS 站 www.zxzj.run，首页/分类/搜索/详情/播放本机全通，播放走 ex.zxzja.com:9876 播放服务，本机连不上，需 iPhone 实测播放 |
+| [需手机测]永夜 | `python-spiders/yongye.py` | 2026-11-16 JAR 转 PY（csp_Xdai）：AES 签名+响应解密已还原（http://app1.ystva.com/api.php）；首页/分类/详情/播放本机通，搜索服务端 500（按字节码实现，待服务端恢复），直链 play.phimgood.com 本机 403（Cloudflare 地域屏蔽），需 iPhone 实测播放 |
 
 详细范围、未收录脚本和限制见 [Hawk PY 验证记录](Hawk-PY-VALIDATION.md)。
 

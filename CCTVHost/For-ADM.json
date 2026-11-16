@@ -1042,22 +1042,6 @@
       "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
     },
     {
-      "key": "joeshu.jar.juping",
-      "name": "[需手机测]剧评┃App（JAR）",
-      "api": "csp_Jpys",
-      "type": 3,
-      "ext": "7lj763gg402i7942463j9j9jh8579590k3hjii5gi4i73l2k5l",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
-      "key": "joeshu.jar.yongye",
-      "name": "[需手机测]永夜┃App（JAR）",
-      "api": "csp_Xdai",
-      "type": 3,
-      "ext": "7lj763gg402i794248398hi3g05j9i9hhig7j94k818g326i41491kljk31l5k00559751hk81479j872853hk8ilhh31lk2k4616457ggg6j3k83gg46il2649h7j71l7l9ii87g2513821g55k1j0493li7k5643hil46002h2k8h6jih135l2384h",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
       "key": "joeshu.jar.kexing",
       "name": "[需手机测]客星┃App（JAR）",
       "api": "csp_Xdai",
@@ -1074,20 +1058,30 @@
       "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
     },
     {
-      "key": "joeshu.jar.zaixian",
-      "name": "[需手机测]在线┃直连（JAR）",
-      "api": "csp_Zxzj",
-      "type": 3,
-      "ext": "7lj763gg402i7942463j9j9jgg449698khhh845ki38473",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
       "key": "joeshu.jar.bilibili",
       "name": "[需手机测]哔哩哔哩（JAR）",
       "api": "csp_Bili",
       "type": 3,
       "ext": "7lj763gg402i7942463j9j9jg1558j9jl8g19213il86316k465719lik1585907179l13hj8h5j9j",
       "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
+    },
+    {
+      "key": "joeshu.hawk.juping",
+      "name": "[需手机测]剧评（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/juping.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.zaixian",
+      "name": "[需手机测]在线（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/zaixian.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.yongye",
+      "name": "[需手机测]永夜（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/yongye.py",
+      "type": "script"
     },
     {
       "key": "joeshu.douban-index",
