@@ -1028,12 +1028,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.aiqiyi",
-      "name": "[需手机测]爱奇艺（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/aiqiyi.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.jar.ningmeng",
       "name": "[需手机测]💡柠檬｜影视（JAR）",
       "api": "csp_Nmvod",
