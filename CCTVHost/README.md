@@ -99,20 +99,13 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]1234影视 | `python-spiders/1234yingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]28短剧 | `python-spiders/28duanju.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]57短剧 | `python-spiders/57duanju.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]618（18+） | `python-spiders/618.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]99影視TV261030 | `python-spiders/99yingshitv261030.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]爱看机器人 | `python-spiders/aikanjiqiren.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]AnimeSex（18+） | `python-spiders/animesex.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]AVGC9（18+） | `python-spiders/avgc9.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]avjoy（18+） | `python-spiders/avjoy.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]白嫖之王（18+） | `python-spiders/baipiaozhiwang.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]八戒影视 | `python-spiders/bajieyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]哔哩直播 | `python-spiders/bilizhibo2.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]B里B里（18+） | `python-spiders/blibli.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]Cam4直播 | `python-spiders/cam4zhibo.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]cat3movie | `python-spiders/cat3movie.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]茶杯狐 | `python-spiders/chabeihu2.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]吃瓜网（18+） | `python-spiders/chiguawang.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]袋鼠影视 | `python-spiders/daishuyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]大马猴 | `python-spiders/damahou.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]电影天堂 | `python-spiders/dianyingtiantang.py` | 2026-11-14 py400深挖：修复版，播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
@@ -122,35 +115,26 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]多多影视 | `python-spiders/duoduoyingshi.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]多瑙影院 | `python-spiders/duonaoyingyuan.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]E佬苹果 | `python-spiders/elaopingguo.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]eporner大站（18+） | `python-spiders/epornerdazhan.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]饭搭子影视 | `python-spiders/fandaziyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]饭团影视 | `python-spiders/fantuanyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]飞快TV | `python-spiders/feikuaitv.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]getav（18+） | `python-spiders/getav.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]瓜子 | `python-spiders/guazi2.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]瓜子APP | `python-spiders/guaziapp.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]瓜子原生 | `python-spiders/guazi3.py` | 2026-11-15 用户上传的瓜子原生 App 版（RSA PKCS#1 v1.5 解密，需 CCTVHost 1.36+）：整条链路本机验证通过，播放 m3u8 HTTP 200（1080p），5 条线（瓜子专线/蓝光/极速/备线/云播） |
 | [通过]果果短剧 | `python-spiders/guoguoduanju.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]哈密瓜 | `python-spiders/hamigua.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]hanime（18+） | `python-spiders/hanime.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]河马短剧 | `python-spiders/hemaduanju.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]河马剧场1 | `python-spiders/hemajuchang.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]河马剧场2 | `python-spiders/hemajuchang2.py` | 2026-11-15 用户上传版：首页/分类本机通，搜索空（后端 kuaikaw/kydco 本机连不上），需 iPhone 实测；2026-11-16 iPhone 实测通过 |
 | [通过]红果短剧 | `python-spiders/hongguo.py` | 2026-11-15 用户上传的优化版（r6，1.0.5-cctvhost-r6，与仓库内置版字节一致；2026-11-12 本机实测第 28 集 5 档、MP4 200；本次因本机出口连不上红果 API 而未复测，需 iPhone 实测）；2026-11-16 iPhone 实测通过 |
 | [通过]大师兄原生 | `python-spiders/dsxyuansheng.py` | 2026-11-15 用户上传的大师兄原生 App 版：首页/分类/搜索/详情本机通（5 条线），播放因本机连不上播放代理而超时，需 iPhone 实测；2026-11-16 iPhone 实测通过 |
 | [通过]菠菜园 | `python-spiders/bocaiyuan.py` | 2026-11-15 用户上传：首页通，分类/搜索因本机连不上 MacCMS 源而超时，需 iPhone 实测；注意文件内含写死的测试流兜底数据，源站不通时会播出测试片；2026-11-16 iPhone 实测通过 |
-| [通过]黄豆短剧（18+） | `python-spiders/huangdouduanju.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]华谊影视 | `python-spiders/huayiyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]蝴蝶影院 | `python-spiders/hudieyingyuan.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]蝴蝶影院（内置去广告）安卓版本 | `python-spiders/hudieyingyuanneizhiquguanggaoanzhuobanben.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]JavDay（18+） | `python-spiders/javday.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]javheo（18+） | `python-spiders/javheo.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]经典老片（18+） | `python-spiders/jingdianlaopian.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]金牌APP | `python-spiders/jinpaiapp.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]金牌APP-华视影院 | `python-spiders/jinpaiapphuashiyingyuan.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]金牌影院 | `python-spiders/jinpaiyingyuan.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]九合一（18+） | `python-spiders/jiuheyi.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
-| [通过]巨婴云播（18+） | `python-spiders/juyingyunbo.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]橘汁视频 | `python-spiders/juzhishipin.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]咖啡直播 | `python-spiders/kafeizhibo.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]开端影视 | `python-spiders/kaiduanyingshi.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
@@ -160,42 +144,24 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]看戏影视 | `python-spiders/kanxiyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]可可 | `python-spiders/keke.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]可可影视 | `python-spiders/kekeyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]krx18（18+） | `python-spiders/krx18.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]麻豆AI（18+） | `python-spiders/madouai.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]埋堆堆 | `python-spiders/maiduidui.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]美不胜收（免翻）（18+） | `python-spiders/meibushengshoumianfan.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]米饭 | `python-spiders/mifan.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
-| [通过]Missav（免翻）（18+） | `python-spiders/missavmianfan.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]missav全分类版（18+） | `python-spiders/missavquanfenleiban.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]魔法影视 | `python-spiders/mofayingshi.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]泥视频 | `python-spiders/nishipin.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]牛牛短剧 | `python-spiders/niuniuduanju.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]农民影视 | `python-spiders/nongminyingshi.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]片吧 | `python-spiders/pianba.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]pinporn续播流（18+） | `python-spiders/pinpornxuboliu.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]pornav（18+） | `python-spiders/pornav.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]麒麟影视 | `python-spiders/qilinyingshi.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]七貓短劇VIP二破解 | `python-spiders/qimaoduanjuviperpojie.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]青牛影视 | `python-spiders/qingniuyingshi.py` | 2026-11-14 py400深挖：修复版，播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]蜻蜓 FM | `python-spiders/qingtingfm.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]少女破处（18+） | `python-spiders/shaonvpochu.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]神秘电影（18+） | `python-spiders/shenmidianying.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]社区（18+） | `python-spiders/shequ.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
 | [通过]视觉影院 | `python-spiders/shijueyingyuan.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
-| [通过]手鸡助手（18+） | `python-spiders/shoujizhushou.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
-| [通过]sweetpornos（18+） | `python-spiders/sweetpornos.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
 | [通过]TMDB多线影视 | `python-spiders/tmdbduoxianyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]trendypornUS（18+） | `python-spiders/trendypornus.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]玩物社区（18+） | `python-spiders/wanwushequ.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
-| [通过]玩物社区_T3v1.5（18+） | `python-spiders/wanwushequt3v15.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
 | [通过]悟圣短剧 | `python-spiders/wushengduanju.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]咸鱼影视 | `python-spiders/xianyuyingshi.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]小苹果 | `python-spiders/xiaopingguo.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]喜福短剧 | `python-spiders/xifuduanju.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
-| [通过]星梦Asmr（18+） | `python-spiders/xingmengasmr.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]欣欣影视 | `python-spiders/xinxinyingshi.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
-| [通过]xx9已过验证（18+） | `python-spiders/xx9yiguoyanzheng.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
-| [通过]夜勾心事（18+） | `python-spiders/yegouxinshi.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]野果短剧 | `python-spiders/yeguoduanju.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]一起刷 | `python-spiders/yiqishua.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
 | [通过]直播 | `python-spiders/zhibo.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
@@ -204,6 +170,41 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]优酷·腾讯·芒果三擎聚合 | `python-spiders/youkutengxunmangguo.py` | 2026-11-15 用户上传的三合一（优酷+腾讯+芒果）；2026-11-15 修复腾讯跳网页：新增官方 getinfo 直链（parse=0，MP4 直链本机验证通过），VIP/地区受限仍走网页兜底；优酷 UPS 直出 m3u8 本机验证通过；芒果官方 tk2 直链（parse=0）+ 分集只留正片（isIntact=1，过滤第 N 集看点/预告，防播错片）；2026-11-15 再加 MacCMS 同名片源兜底（官源播不了时按片名严格匹配+集号/区间搜豪华/金鹰/光速/极速，校验 #EXTM3U 后才返回，整次解析预算 25 秒；以家人之名 VIP 第 3 集本机验证通过），详情有串剧问题待复核，需 iPhone 实测；2026-11-15 串剧已修（优酷详情不再用 v_getvideo_info，云端线季号感知）；因 App 按 key 缓存旧文件不重新下载，改名重建为 youkutengxunmangguo，旧 youkutengxun 已删；2026-11-16 iPhone 实测通过 |
 | [通过]剧评 | `python-spiders/juping.py` | 2026-11-16 JAR 转 PY（csp_Jpys）：直连后端 m.wxojcopfw.com/mw-movie，无需签名；首页/分类/搜索/详情/播放本机全通（WORKING），m3u8 HTTP 200，仙逆第 1 集可播，需 iPhone 实测；2026-11-16 iPhone 实测通过 |
 | [通过]永夜 | `python-spiders/yongye.py` | 2026-11-16 JAR 转 PY（csp_Xdai）：AES 签名+响应解密已还原（http://app1.ystva.com/api.php）；首页/分类/详情/播放本机通，搜索服务端 500（按字节码实现，待服务端恢复），直链 play.phimgood.com 本机 403（Cloudflare 地域屏蔽），需 iPhone 实测播放；2026-11-16 iPhone 实测通过（搜索服务端 500 未验证、播放走直链） |
+| [通过]多多影视2 | `python-spiders/duoduo2.py` | 2026-11-16 moyi_plugins.zip 重试 WORKING：分类/搜索/详情/播放本机全通，直链 HTTP 200（网盘线路 PO蓝光/ZJ4K/CO4K/NB蓝光/青山蓝光）；id 因与已有 py400 多多影视冲突改用 duoduo2；内容为普通影视（电影/剧集/动漫/综艺） |
+| [通过]618（18+） | `python-spiders/618.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]AnimeSex（18+） | `python-spiders/animesex.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]AVGC9（18+） | `python-spiders/avgc9.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]avjoy（18+） | `python-spiders/avjoy.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]白嫖之王（18+） | `python-spiders/baipiaozhiwang.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
+| [通过]B里B里（18+） | `python-spiders/blibli.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
+| [通过]吃瓜网（18+） | `python-spiders/chiguawang.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
+| [通过]eporner大站（18+） | `python-spiders/epornerdazhan.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]getav（18+） | `python-spiders/getav.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]hanime（18+） | `python-spiders/hanime.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]黄豆短剧（18+） | `python-spiders/huangdouduanju.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]JavDay（18+） | `python-spiders/javday.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]javheo（18+） | `python-spiders/javheo.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]经典老片（18+） | `python-spiders/jingdianlaopian.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
+| [通过]九合一（18+） | `python-spiders/jiuheyi.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
+| [通过]巨婴云播（18+） | `python-spiders/juyingyunbo.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]krx18（18+） | `python-spiders/krx18.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
+| [通过]麻豆AI（18+） | `python-spiders/madouai.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
+| [通过]美不胜收（免翻）（18+） | `python-spiders/meibushengshoumianfan.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
+| [通过]Missav（免翻）（18+） | `python-spiders/missavmianfan.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
+| [通过]missav全分类版（18+） | `python-spiders/missavquanfenleiban.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]pinporn续播流（18+） | `python-spiders/pinpornxuboliu.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]pornav（18+） | `python-spiders/pornav.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]少女破处（18+） | `python-spiders/shaonvpochu.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]神秘电影（18+） | `python-spiders/shenmidianying.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]社区（18+） | `python-spiders/shequ.py` | 2026-11-14 py400深挖：播放地址真实，本机 CDN 被挡，需 iPhone 实测 |
+| [通过]手鸡助手（18+） | `python-spiders/shoujizhushou.py` | 2026-11-14 py400深挖：整条链路验证通过，播放地址本机探通 |
+| [通过]sweetpornos（18+） | `python-spiders/sweetpornos.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]trendypornUS（18+） | `python-spiders/trendypornus.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]玩物社区（18+） | `python-spiders/wanwushequ.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
+| [通过]玩物社区_T3v1.5（18+） | `python-spiders/wanwushequt3v15.py` | 2026-11-14 py400深挖：修复版，整条链路验证通过，播放地址本机探通 |
+| [通过]星梦Asmr（18+） | `python-spiders/xingmengasmr.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
+| [通过]xx9已过验证（18+） | `python-spiders/xx9yiguoyanzheng.py` | 2026-11-14 py400重测：整条链路验证通过，播放地址本机探通 |
+| [通过]夜勾心事（18+） | `python-spiders/yegouxinshi.py` | 2026-11-14 py400首轮：整条链路验证通过，播放地址本机探通 |
 | [通过]51X（18+） | `python-spiders/51xz.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（51xz.vip） |
 | [通过]4K.AI短剧（18+） | `python-spiders/ai4k.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（wyswspqjtr.click） |
 | [通过]AI短剧AV（18+） | `python-spiders/aidj.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（aisee10w29.buzz） |
@@ -230,7 +231,6 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [通过]探花AV（18+） | `python-spiders/tanhuavip14.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（tanhuavip14.xyz） |
 | [通过]X红颜（18+） | `python-spiders/xhongyan.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（xhongyan.com） |
 | [通过]金果短剧（18+） | `python-spiders/jinguo.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（play.jinguoduanju.app）；内容核实为成人站（分类含 NTR/绿帽/后宫），用户确认加入 |
-| [通过]多多影视2 | `python-spiders/duoduo2.py` | 2026-11-16 moyi_plugins.zip 重试 WORKING：分类/搜索/详情/播放本机全通，直链 HTTP 200（网盘线路 PO蓝光/ZJ4K/CO4K/NB蓝光/青山蓝光）；id 因与已有 py400 多多影视冲突改用 duoduo2；内容为普通影视（电影/剧集/动漫/综艺） |
 | [通过]Porn吃瓜网（18+） | `python-spiders/porncgw.py` | 2026-11-16 moyi_plugins.zip 重试 WORKING：首页/分类/搜索/详情/播放本机全通，直链 HTTP 200（91porn CDN，auth_key 限时） |
 
 详细范围、未收录脚本和限制见 [Hawk PY 验证记录](Hawk-PY-VALIDATION.md)。
