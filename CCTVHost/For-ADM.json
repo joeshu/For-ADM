@@ -1050,22 +1050,6 @@
       "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
     },
     {
-      "key": "joeshu.jar.dianyinggang",
-      "name": "[需手机测]电影港[边下边播]（JAR）",
-      "api": "csp_Dygang",
-      "type": 3,
-      "ext": "",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
-      "key": "joeshu.jar.bilibili",
-      "name": "[需手机测]哔哩哔哩（JAR）",
-      "api": "csp_Bili",
-      "type": 3,
-      "ext": "7lj763gg402i7942463j9j9jg1558j9jl8g19213il86316k465719lik1585907179l13hj8h5j9j",
-      "jar": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/jar/fix250711.jar;md5;54418536dc2a40da4e94437397895d01"
-    },
-    {
       "key": "joeshu.hawk.juping",
       "name": "[通过]剧评（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/juping.py",
