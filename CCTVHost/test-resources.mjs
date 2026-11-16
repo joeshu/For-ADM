@@ -94,7 +94,7 @@ const pythonSources=[
   ['juping','[通过]剧评'],['yongye','[通过]永夜'],['51xz','[通过]51X（18+）'],['ai4k','[通过]4K.AI短剧（18+）'],['aidj','[通过]AI短剧AV（18+）'],['aiduanju','[通过]AI短剧网（18+）'],['aihi','[通过]AIHI（18+）'],['aimove','[通过]新黄果短剧（18+）'],['aipornx','[通过]AiPorn（18+）'],['aiwu','[通过]AI污短剧（18+）'],['avdb','[需手机测]AVDB（18+）'],['avhwa','[通过]AVHWA（18+）'],['avtoday','[通过]AV Today（18+）'],['avyanjiuyuan','[通过]AV研究院（18+）'],['chinax','[通过]中国X站（18+）'],['chinaxselecla08','[通过]中国X站精选（18+）'],['danai','[通过]大奶Ai短剧（18+）'],['dingjiaseku','[通过]顶级AI色库（18+）'],['dj69','[通过]69短剧（18+）'],['dj91','[通过]91短剧（18+）'],['djwo','[通过]短剧窝（18+）'],['ficeforand','[通过]AI小视频（18+）'],['fuchou','[通过]妇愁者联盟（18+）'],['kankux','[通过]看裤X（18+）'],['memojav','[通过]MemoJav（18+）'],['sexaix','[通过]幻影AI（18+）'],['tanhuavip14','[通过]探花AV（18+）'],['xhongyan','[通过]X红颜（18+）'],['jinguo','[通过]金果短剧（18+）'],['duoduo2','[通过]多多影视2'],['porncgw','[通过]Porn吃瓜网（18+）']
 ];
 const jarSources=[
-  ['ningmeng','[需手机测]💡柠檬｜影视'],
+  ['ningmeng','[通过]💡柠檬｜影视'],
   ['kexing','[通过]客星┃App'],
 ];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));

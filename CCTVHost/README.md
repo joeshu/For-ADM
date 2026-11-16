@@ -60,7 +60,7 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 
 | JAR 源 | 后端类 | ext |
 | --- | --- | --- |
-| [需手机测]💡柠檬｜影视（JAR） | `csp_Nmvod` | 92 字符（`7lj763gg…`，应用内解码） |
+| [通过]💡柠檬｜影视（JAR） | `csp_Nmvod` | 92 字符（`7lj763gg…`，应用内解码）；2026-11-16 iPhone 实测通过 |
 | [通过]客星┃App（JAR） | `csp_Xdai` | 128 字符（`7lj763gg…`，应用内解码）；2026-11-16 iPhone 实测通过 |
 ### Hawk Python Spider 源
 
