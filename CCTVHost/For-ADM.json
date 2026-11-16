@@ -1224,6 +1224,24 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.duoduo2",
+      "name": "[通过]多多影视2（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/duoduo2.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.porncgw",
+      "name": "[通过]Porn吃瓜网（18+）（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/porncgw.py",
+      "type": "script"
+    },
+    {
+      "key": "joeshu.hawk.youzidj",
+      "name": "[需手机测]柚子短剧（18+）（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youzidj.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.douban-index",
       "name": "豆瓣片名索引（跨源搜索）",
       "api": "csp_DouDou",
