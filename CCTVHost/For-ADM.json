@@ -621,7 +621,7 @@
     },
     {
       "key": "joeshu.hawk.hemajuchang2",
-      "name": "[需手机测]河马剧场2（PY）",
+      "name": "[通过]河马剧场2（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/hemajuchang2.py",
       "type": "script"
     },
@@ -999,7 +999,7 @@
     },
     {
       "key": "joeshu.hawk.youkutengxunmangguo",
-      "name": "[需手机测]优酷·腾讯·芒果三擎聚合（PY）",
+      "name": "[通过]优酷·腾讯·芒果三擎聚合（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/youkutengxunmangguo.py",
       "type": "script"
     },
@@ -1011,19 +1011,19 @@
     },
     {
       "key": "joeshu.hawk.hongguo",
-      "name": "[需手机测]红果短剧（PY）",
+      "name": "[通过]红果短剧（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/hongguo.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.dsxyuansheng",
-      "name": "[需手机测]大师兄原生（PY）",
+      "name": "[通过]大师兄原生（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/dsxyuansheng.py",
       "type": "script"
     },
     {
       "key": "joeshu.hawk.bocaiyuan",
-      "name": "[需手机测]菠菜园（PY）",
+      "name": "[通过]菠菜园（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/bocaiyuan.py",
       "type": "script"
     },
@@ -1101,12 +1101,6 @@
       "key": "joeshu.hawk.aiwu",
       "name": "[通过]AI污短剧（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/aiwu.py",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.hawk.avdb",
-      "name": "[需手机测]AVDB（18+）（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/avdb.py",
       "type": "script"
     },
     {
