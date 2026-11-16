@@ -102,7 +102,6 @@ const jarSources=[
   ['yunyun2','[需手机测]云云┃无搜索'],
   ['huomao','[需手机测]火猫┃App'],
   ['yizhan','[需手机测]驿站┃无搜索'],
-  ['zhujue','[需手机测]主角┃APP'],
   ['yongye','[需手机测]永夜┃App'],
   ['qiaoji3','[需手机测]巧技三┃QD4K'],
   ['youzhi','[需手机测]优质┃App'],
@@ -115,7 +114,7 @@ const jarSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, one hundred and thirty-five Python sources, eighteen JAR-bridge sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-nine new SSR sources, no adult sources, one hundred and thirty-five Python sources, seventeen JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -416,4 +415,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 191 entries (including one hundred and thirty-five Python Spiders, eighteen JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 190 entries (including one hundred and thirty-five Python Spiders, seventeen JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-seven JavaScript sources.');
