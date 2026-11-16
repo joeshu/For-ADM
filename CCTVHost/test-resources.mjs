@@ -95,7 +95,7 @@ const pythonSources=[
 ];
 const jarSources=[
   ['ningmeng','[需手机测]💡柠檬｜影视'],
-  ['kexing','[需手机测]客星┃App'],
+  ['kexing','[通过]客星┃App'],
 ];
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
