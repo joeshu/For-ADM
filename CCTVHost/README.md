@@ -1,6 +1,6 @@
 # CCTVHost 独立影视源合集
 
-主合集现在包含 37 个 CatVod / TVBox JavaScript 影视源、137 个 Python Spider、2 个 Android JAR（csp_*）影视源（2026-11-15 由用户上传的 3.3.8 TVBox 配置加入：fix250711.jar，jar-bridge 在应用内跑 JVM 执行，ext 由应用内 TVBoxDecodeQiaojiExt 解码；三六零 2 站按用户 2026-11-13 的下架决定未加入，零度 lingdu.py 因 401 拿不到未加入），以及 1 个由 iOS 原生实现的豆瓣片名索引。JS/PY 源使用单独的适配文件；JAR 源共用一个 fix250711.jar（`CCTVHost/jar/fix250711.jar`，md5 54418536dc2a40da4e94437397895d01，应用会校验 md5，不符会报“JAR 的 MD5 与订阅不符”），由应用的 jar-bridge 执行，不当成 iOS 脚本。
+主合集现在包含 37 个 CatVod / TVBox JavaScript 影视源、163 个 Python Spider、2 个 Android JAR（csp_*）影视源（2026-11-15 由用户上传的 3.3.8 TVBox 配置加入：fix250711.jar，jar-bridge 在应用内跑 JVM 执行，ext 由应用内 TVBoxDecodeQiaojiExt 解码；三六零 2 站按用户 2026-11-13 的下架决定未加入，零度 lingdu.py 因 401 拿不到未加入），以及 1 个由 iOS 原生实现的豆瓣片名索引。JS/PY 源使用单独的适配文件；JAR 源共用一个 fix250711.jar（`CCTVHost/jar/fix250711.jar`，md5 54418536dc2a40da4e94437397895d01，应用会校验 md5，不符会报“JAR 的 MD5 与订阅不符”），由应用的 jar-bridge 执行，不当成 iOS 脚本。
 
 ## CCTVHost 统一合集导入
 
@@ -10,7 +10,7 @@
 https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/For-ADM.json
 ```
 
-导入后 CCTVHost 会显示 177 个条目：37 个 CatVod / TVBox JavaScript 源、137 个 Python Spider、2 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
+导入后 CCTVHost 会显示 203 个条目：37 个 CatVod / TVBox JavaScript 源、163 个 Python Spider、2 个 JAR（csp_*）源和豆瓣片名索引。合集只保存索引，不会批量执行脚本；选择一个站点后才下载和检查对应文件。新增 PY 文件放在 `python-spiders/`，需由支持 Python Spider 的 CCTVHost 版本运行。豆瓣索引映射到应用内置的 `csp_DouDou`，负责跨源找片名，本身不提供视频流。iOS 修复版 JS 入口带 `v=3`，会触发八站点脚本更新，并避免将加密 WebP 封面送入图片解码器；优酷·腾讯·芒果三擎聚合已改名重建为 youkutengxunmangguo（新 key 强制 App 重新下载，否则会一直用旧缓存，看不到芒果）；一起看按请求预算终止超时请求，电影猎手会校验 HLS 清单。升级时先移除本地旧合集，再导入同一地址；选择站点后点“导入并打开资源”。文件是 CCTVHost 的 TVBox `sites` 清单格式，不是 Forward/Rex 的 `.fwd` 格式。
 
 Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的旧版 Widget 资源解析器。它们与 TVBox JSON 里的完整影视源脚本分开，避免 CCTVHost 将完整站点错误识别成只支持搜索的资源解析器。
 
@@ -205,6 +205,32 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | [需手机测]优酷·腾讯·芒果三擎聚合 | `python-spiders/youkutengxunmangguo.py` | 2026-11-15 用户上传的三合一（优酷+腾讯+芒果）；2026-11-15 修复腾讯跳网页：新增官方 getinfo 直链（parse=0，MP4 直链本机验证通过），VIP/地区受限仍走网页兜底；优酷 UPS 直出 m3u8 本机验证通过；芒果官方 tk2 直链（parse=0）+ 分集只留正片（isIntact=1，过滤第 N 集看点/预告，防播错片）；2026-11-15 再加 MacCMS 同名片源兜底（官源播不了时按片名严格匹配+集号/区间搜豪华/金鹰/光速/极速，校验 #EXTM3U 后才返回，整次解析预算 25 秒；以家人之名 VIP 第 3 集本机验证通过），详情有串剧问题待复核，需 iPhone 实测；2026-11-15 串剧已修（优酷详情不再用 v_getvideo_info，云端线季号感知）；因 App 按 key 缓存旧文件不重新下载，改名重建为 youkutengxunmangguo，旧 youkutengxun 已删 |
 | [通过]剧评 | `python-spiders/juping.py` | 2026-11-16 JAR 转 PY（csp_Jpys）：直连后端 m.wxojcopfw.com/mw-movie，无需签名；首页/分类/搜索/详情/播放本机全通（WORKING），m3u8 HTTP 200，仙逆第 1 集可播，需 iPhone 实测；2026-11-16 iPhone 实测通过 |
 | [通过]永夜 | `python-spiders/yongye.py` | 2026-11-16 JAR 转 PY（csp_Xdai）：AES 签名+响应解密已还原（http://app1.ystva.com/api.php）；首页/分类/详情/播放本机通，搜索服务端 500（按字节码实现，待服务端恢复），直链 play.phimgood.com 本机 403（Cloudflare 地域屏蔽），需 iPhone 实测播放；2026-11-16 iPhone 实测通过（搜索服务端 500 未验证、播放走直链） |
+| [通过]51X（18+） | `python-spiders/51xz.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（51xz.vip） |
+| [通过]4K.AI短剧（18+） | `python-spiders/ai4k.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（wyswspqjtr.click） |
+| [通过]AI短剧AV（18+） | `python-spiders/aidj.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（aisee10w29.buzz） |
+| [通过]AI短剧网（18+） | `python-spiders/aiduanju.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（ai.aiduanjuwang8.cc） |
+| [通过]AIHI（18+） | `python-spiders/aihi.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（aihi.cc） |
+| [通过]新黄果短剧（18+） | `python-spiders/aimove.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（aimove.click） |
+| [通过]AiPorn（18+） | `python-spiders/aipornx.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（aipornx.cc） |
+| [通过]AI污短剧（18+） | `python-spiders/aiwu.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（aiwu.ai-wu.cc） |
+| [需手机测]AVDB（18+） | `python-spiders/avdb.py` | 2026-11-16 moyi_plugins.zip 实测 PARTIAL：首页/分类/详情/播放本机通，解出带签名直链；探测 403（Cloudflare 校验页，本机出口被拦），需 iPhone 实测（avdbapi.com） |
+| [通过]AVHWA（18+） | `python-spiders/avhwa.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（avhwa.com） |
+| [通过]AV Today（18+） | `python-spiders/avtoday.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（avtoday.io） |
+| [通过]AV研究院（18+） | `python-spiders/avyanjiuyuan.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（avyan2026.lol） |
+| [通过]中国X站（18+） | `python-spiders/chinax.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（chinaxmovie.com） |
+| [通过]中国X站精选（18+） | `python-spiders/chinaxselecla08.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（chinaxselecla08.xyz） |
+| [通过]大奶Ai短剧（18+） | `python-spiders/danai.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（danai88.cc） |
+| [通过]顶级AI色库（18+） | `python-spiders/dingjiaseku.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（taoquan26s111.cc） |
+| [通过]69短剧（18+） | `python-spiders/dj69.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（69dj05.vip） |
+| [通过]91短剧（18+） | `python-spiders/dj91.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（app.91dju.cyou） |
+| [通过]短剧窝（18+） | `python-spiders/djwo.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（langwonqyl.forum） |
+| [通过]AI小视频（18+） | `python-spiders/ficeforand.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（ficeforand.aicjjc.cc） |
+| [通过]妇愁者联盟（18+） | `python-spiders/fuchou.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（kkb1.sixnicefczlm.cc） |
+| [通过]看裤X（18+） | `python-spiders/kankux.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（kankux.com） |
+| [通过]MemoJav（18+） | `python-spiders/memojav.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（memojav.org） |
+| [通过]幻影AI（18+） | `python-spiders/sexaix.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（sexaix.top） |
+| [通过]探花AV（18+） | `python-spiders/tanhuavip14.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（tanhuavip14.xyz） |
+| [通过]X红颜（18+） | `python-spiders/xhongyan.py` | 2026-11-16 moyi_plugins.zip 实测 WORKING：首页/分类/详情/播放本机全通，直链 HTTP 200（xhongyan.com） |
 
 详细范围、未收录脚本和限制见 [Hawk PY 验证记录](Hawk-PY-VALIDATION.md)。
 
