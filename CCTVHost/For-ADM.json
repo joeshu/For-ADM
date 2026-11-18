@@ -858,6 +858,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.kxyy",
+      "name": "[需手机测]开心影院（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/kxyy.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.618",
       "name": "[通过]618（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/618.py",
