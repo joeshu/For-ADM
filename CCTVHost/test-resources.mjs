@@ -106,7 +106,7 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v=3',id+' points to its current standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+(['kkapp','ncat','happ'].includes(id)?'4':'3'),id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of newNames){
