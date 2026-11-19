@@ -1,5 +1,11 @@
 export class ServiceError extends Error {constructor(message,code){super(message);this.code=code;}}
 export const canonicalQuery = params => Object.keys(params).sort().map(key=>key+'='+params[key]).join('&');
+function validAPIOrigin(value){
+  try{
+    const url=new URL(value),host=url.hostname.replace(/^\[|\]$/g,'');
+    return url.protocol==='https:'&&!url.username&&!url.password&&!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)&&!host.includes(':');
+  }catch{return false;}
+}
 export function failureLabel(error){
   const code=error?.code;
   if(typeof code==='number'&&code>=100&&code<600)return 'HTTP '+code;
@@ -35,7 +41,7 @@ export function unwrap(data){
 }
 export class SiteClient {
   constructor(site,transport,storage=globalThis.localStorage){
-    this.site=site;this.transport=transport;this.storage=storage;this.key='sanyuan:'+site.id+':';
+    this.site=site;this.transport=transport;this.storage=storage;this.key='sanyuan:'+site.id+':';this.bootstrapOriginKey=this.key+'bootstrapOrigin';
     this.device=read(storage,this.key+'device',null)||{id:globalThis.crypto?.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const n=Math.random()*16|0;return(c==='x'?n:(n&3|8)).toString(16);}),created:Date.now()};
     storage.setItem(this.key+'device',JSON.stringify(this.device));this.user=null;this.sessionLoaded=false;this.sessionKind="none";this.guestPending=null;this.vault=globalThis.NativeTransport?.vault;this.config=null;this.health=[];this.preferred={};
   }
@@ -59,22 +65,36 @@ export class SiteClient {
   }
   bootstrapOrigins(){
     const list=[this.site.origin,...(this.site.bootstrapOrigins||[])];
-    return [...new Set(list.filter(x=>{try{return new URL(x).protocol==='https:';}catch{return false;}}))];
+    return [...new Set(list.filter(origin=>{
+      try{
+        const url=new URL(origin),allowed=url.protocol==='https:'||(this.site.allowInsecureOrigin===true&&url.protocol==='http:');
+        return allowed&&url.origin===origin&&url.pathname==='/'&&!url.search&&!url.hash;
+      }catch{return false;}
+    }))];
   }
+  apiOrigins(kind){return [...new Set((this.config?.urls?.[kind]||[]).filter(validAPIOrigin))];}
   async bootstrap(signal){
     await this.restoreSession();
+    const origins=this.bootstrapOrigins(),preferred=this.storage.getItem(this.bootstrapOriginKey);
+    const candidates=preferred&&origins.includes(preferred)?[preferred,...origins.filter(origin=>origin!==preferred)]:origins;
     let last;
-    for(const origin of this.bootstrapOrigins()){
+    for(const origin of candidates){
       if(signal?.aborted)throw new DOMException('请求取消','AbortError');
-      const start=Date.now();
+      const start=Date.now(),controller=new AbortController();let timedOut=false,timer,removeAbort=()=>{};
+      const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{timedOut=true;controller.abort();reject(new Error('站点启动配置请求超时'));},7000);});
+      const aborted=signal?new Promise((_,reject)=>{
+        const abort=()=>{controller.abort();reject(new DOMException('请求取消','AbortError'));};
+        if(signal.aborted)abort();else{signal.addEventListener('abort',abort,{once:true});removeAbort=()=>signal.removeEventListener('abort',abort);}
+      }):new Promise(()=>{});
       try{
-        const config=await this.requestAt(origin,'/config/prod/appInit.html',{},'GET',signal);
+        const config=await Promise.race([this.requestAt(origin,'/config/prod/appInit.html',{},'GET',controller.signal),timeout,aborted]);
         if(!Array.isArray(config?.urls?.cache)||!Array.isArray(config?.urls?.logic))throw new ServiceError('站点初始化数据格式已变化');
-        this.config=config;this.recordHealth(origin,'bootstrap',Date.now()-start,true);return config;
+        this.config=config;this.storage.setItem(this.bootstrapOriginKey,origin);this.recordHealth(origin,'bootstrap',Date.now()-start,true);return config;
       }catch(error){
-        if(error.name==='AbortError')throw error;
+        if(signal?.aborted||(error.name==='AbortError'&&!timedOut))throw error;
+        if(error instanceof ServiceError&&error.code&&!(typeof error.code==='number'&&error.code>=500&&error.code<=599))throw error;
         this.recordHealth(origin,'bootstrap',Date.now()-start,false,error);last=error;
-      }
+      }finally{clearTimeout(timer);removeAbort();}
     }
     throw last||new ServiceError('没有可用启动入口');
   }
@@ -107,12 +127,13 @@ export class SiteClient {
   }
   async request(path,params={},kind='cache',signal,method='get'){
     if(!this.config)await this.bootstrap(signal);
-    const bases=[...new Set([this.preferred[kind],...(this.config.urls[kind]||[])].filter(Boolean))].filter(x=>{try{return new URL(x).protocol==='https:';}catch{return false;}});
+    const configured=this.apiOrigins(kind),persisted=this.storage.getItem(this.key+'apiOrigin:'+kind);
+    const bases=[...new Set([this.preferred[kind],persisted,...configured].filter(base=>configured.includes(base)))];
     let last;
     for(const base of bases){
       if(signal?.aborted)throw new DOMException('请求取消','AbortError');
       const start=Date.now();
-      try{const result=await this.requestAt(base,path,params,method,signal);this.preferred[kind]=base;this.recordHealth(base,kind,Date.now()-start,true);return result;}
+      try{const result=await this.requestAt(base,path,params,method,signal);this.preferred[kind]=base;this.storage.setItem(this.key+'apiOrigin:'+kind,base);this.recordHealth(base,kind,Date.now()-start,true);return result;}
       catch(error){if(error.name==='AbortError')throw error;this.recordHealth(base,kind,Date.now()-start,false,error);last=error;
         // Authentication, payment and other business denials are not line failures.
         if(error instanceof ServiceError&&error.code&&!(typeof error.code==='number'&&error.code>=500&&error.code<=599))throw error;

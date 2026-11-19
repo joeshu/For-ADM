@@ -63,6 +63,14 @@ export function validateSiteManifest(sites) {
     if (!validOrigin(site.origin, allowHTTP)) {
       errors.push(`${label}.origin 必须是无路径的 HTTPS 源站地址；HTTP 源站需显式设置 allowInsecureOrigin`);
     }
+    if (site.bootstrapOrigins !== undefined && (
+      !Array.isArray(site.bootstrapOrigins) ||
+      site.bootstrapOrigins.length > 8 ||
+      new Set(site.bootstrapOrigins).size !== site.bootstrapOrigins.length ||
+      site.bootstrapOrigins.some(origin => !validOrigin(origin, allowHTTP))
+    )) {
+      errors.push(`${label}.bootstrapOrigins 必须是最多 8 个不重复的无路径源站地址；HTTP 需显式设置 allowInsecureOrigin`);
+    }
     if (site.provider && !SOURCE_ADAPTER_PROVIDERS.includes(site.provider)) {
       errors.push(`${label}.provider 未注册：${String(site.provider)}`);
     }

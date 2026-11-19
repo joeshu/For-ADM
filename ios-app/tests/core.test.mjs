@@ -56,30 +56,44 @@ test('Network failures retry a backup, business denials never retry',async()=>{
  calls=0;c.transport=async()=>{calls++;return response({code:40401,message:'请登录'});};
  await assert.rejects(c.request('/test'),{code:40401});assert.equal(calls,1);
 });
-test('API retries cover every listed address, including the last backup',async()=>{
- let calls=0;const c=new SiteClient(site,async()=>{calls++;if(calls<6)throw Object.assign(Error('offline'),{code:-1003});return response({data:{ok:true},code:200});},storage());
- c.config={urls:{cache:['https://a1.example','https://a2.example','https://a3.example','https://a4.example','https://a5.example','https://a6.example']}};
- assert.deepEqual(await c.request('/test'),{ok:true});assert.equal(calls,6);
- const failed=c.health.find(h=>h.url==='https://a1.example');
- assert.equal(failed.ok,false);assert.equal(failed.code,-1003);assert.equal(failed.error,'DNS 失败');
- assert.equal(c.health.find(h=>h.url==='https://a6.example').ok,true);
+test('API retries configured hostnames, skips the certificate-mismatched IP, and labels failures',async()=>{
+ const calls=[],urls=['https://a1.example','https://a2.example','https://a3.example','https://a4.example','https://a5.example','https://43.248.103.33:51010'];
+ const c=new SiteClient(site,async request=>{const host=new URL(request.url).host;calls.push(host);if(host!=='a5.example')throw Object.assign(Error('offline'),{code:-1003});return response({data:{ok:true},code:200});},storage());
+ c.config={urls:{cache:urls}};assert.deepEqual(await c.request('/test'),{ok:true});assert.deepEqual(calls,['a1.example','a2.example','a3.example','a4.example','a5.example']);
+ const failed=c.health.find(h=>h.url===urls[0]);assert.equal(failed.ok,false);assert.equal(failed.code,-1003);assert.equal(failed.error,'DNS 失败');
+ assert.equal(c.health.find(h=>h.url===urls[4]).ok,true);assert.equal(failureLabel({code:-1001}),'超时');assert.equal(failureLabel({code:-1009}),'无网络');assert.equal(failureLabel({code:403}),'HTTP 403');
 });
-test('Bootstrap falls back to a sibling origin and records the failed entry',async()=>{
- const fallbackSite={...site,origin:'https://bad.example',bootstrapOrigins:['https://good.example']};
- const c=new SiteClient(fallbackSite,async r=>{if(r.url.startsWith('https://bad.example'))throw Object.assign(Error('bad gateway'),{code:502});return response({urls:{cache:['https://c.example'],logic:['https://l.example']}});},storage());
- const config=await c.bootstrap();
- assert.equal(config.urls.cache[0],'https://c.example');
- const bad=c.health.find(h=>h.kind==='bootstrap'&&h.url==='https://bad.example');
- assert.equal(bad.ok,false);assert.equal(bad.error,'HTTP 502');
+test('Bootstrap falls back to a sibling origin and records failures',async()=>{
+ const fallbackSite={...site,origin:'https://bad.example',bootstrapOrigins:['https://good.example']},store=storage();
+ const c=new SiteClient(fallbackSite,async request=>{if(request.url.startsWith('https://bad.example'))throw Object.assign(Error('bad gateway'),{code:502});return response({urls:{cache:['https://c.example'],logic:['https://l.example']}});},store);
+ const config=await c.bootstrap();assert.equal(config.urls.cache[0],'https://c.example');
+ assert.equal(c.health.find(h=>h.kind==='bootstrap'&&h.url==='https://bad.example').error,'HTTP 502');
  assert.equal(c.health.find(h=>h.kind==='bootstrap'&&h.url==='https://good.example').ok,true);
+ assert.equal(store.getItem('sanyuan:test:bootstrapOrigin'),'https://good.example');
 });
-test('Failure labels name the network cause',()=>{
- assert.equal(failureLabel({code:-1001}),'超时');
- assert.equal(failureLabel({code:-1003}),'DNS 失败');
- assert.equal(failureLabel({code:-1009}),'无网络');
- assert.equal(failureLabel({code:403}),'HTTP 403');
- assert.equal(failureLabel(Error('请求超时，请切换线路重试')),'超时');
- assert.equal(failureLabel(Error('boom')),'boom');
+test('Official bootstrap mirrors recover network failures and persist only allowlisted origins',async()=>{
+ const mirrors={...site,bootstrapOrigins:['https://mirror.example','https://second.example']},store=storage(),calls=[];
+ const transport=async request=>{const host=new URL(request.url).host;calls.push(host);if(host==='origin.example')throw Error('offline');return response({code:200,data:{urls:{cache:['https://cache.example'],logic:['https://logic.example']}}});};
+ const first=new SiteClient(mirrors,transport,store);await first.bootstrap();assert.deepEqual(calls,['origin.example','mirror.example']);
+ assert.equal(store.getItem('sanyuan:test:bootstrapOrigin'),'https://mirror.example');
+ calls.length=0;await new SiteClient(mirrors,transport,store).bootstrap();assert.deepEqual(calls,['mirror.example']);
+ store.setItem('sanyuan:test:bootstrapOrigin','https://attacker.example');calls.length=0;await new SiteClient(mirrors,transport,store).bootstrap();assert.equal(calls[0],'origin.example');
+ calls.length=0;const denied=new SiteClient(mirrors,async request=>{calls.push(new URL(request.url).host);return response({code:403,message:'客户端不可用'});},storage());
+ await assert.rejects(denied.bootstrap(),{code:403});assert.deepEqual(calls,['origin.example']);
+});
+test('A working configured API route is persisted and reused only while it remains configured',async()=>{
+ const store=storage(),config={urls:{cache:['https://primary.example','https://backup.example']}},calls=[];
+ const transport=async request=>{const host=new URL(request.url).host;calls.push(host);if(host==='primary.example')throw Error('unreachable');return response({code:200,data:{ok:true}});};
+ const first=new SiteClient(site,transport,store);first.config=config;assert.deepEqual(await first.request('/test'),{ok:true});
+ assert.equal(store.getItem('sanyuan:test:apiOrigin:cache'),'https://backup.example');
+ calls.length=0;const next=new SiteClient(site,transport,store);next.config=config;await next.request('/test');assert.deepEqual(calls,['backup.example']);
+ calls.length=0;const rotated=new SiteClient(site,transport,store);rotated.config={urls:{cache:['https://new.example']}};await rotated.request('/test');assert.deepEqual(calls,['new.example']);
+});
+test('Bootstrap abort stops immediately instead of retrying another mirror',async()=>{
+ const calls=[],mirrors={...site,bootstrapOrigins:['https://mirror.example']},controller=new AbortController();
+ const client=new SiteClient(mirrors,request=>new Promise((_,reject)=>{calls.push(new URL(request.url).host);request.signal.addEventListener('abort',()=>reject(new DOMException('cancelled','AbortError')),{once:true});}),storage());
+ const pending=client.bootstrap(controller.signal);await new Promise(resolve=>setTimeout(resolve,0));controller.abort();
+ await assert.rejects(pending,{name:'AbortError'});assert.deepEqual(calls,['origin.example']);
 });
 test('Episode API retains source identifiers; abort prevents network requests',async()=>{
  let request;const c=new SiteClient(site,async r=>{request=r;return response([]);},storage());c.config={urls:{cache:['https://api.example']}};

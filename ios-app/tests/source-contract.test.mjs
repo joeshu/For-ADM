@@ -39,6 +39,8 @@ test('manifest validation catches duplicates, malformed origins, and unknown pro
  assert.throws(()=>validateSiteManifest([{...sites.at(-1),provider:'unknown'}]),/provider 未注册/);
  assert.throws(()=>validateSiteManifest([{...sites[0],origin:'http://example.test'}]),/allowInsecureOrigin/);
  assert.throws(()=>validateSiteManifest([{...sites[0],origin:'https://user:pass@example.test'}]),/origin 必须/);
+ assert.throws(()=>validateSiteManifest([{...sites[0],bootstrapOrigins:['https://ok.example','https://ok.example']}]),/bootstrapOrigins/);
+ assert.throws(()=>validateSiteManifest([{...sites[0],bootstrapOrigins:['http://insecure.example']}]),/bootstrapOrigins/);
  assert.throws(()=>validateSiteManifest([{...sites.at(-1),protocol:{...sites.at(-1).protocol,apiOrigins:['https://ok.example','https://ok.example']} }]),/apiOrigins/);
 });
 
