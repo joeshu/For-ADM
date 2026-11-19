@@ -89,6 +89,20 @@ test('A working configured API route is persisted and reused only while it remai
  calls.length=0;const next=new SiteClient(site,transport,store);next.config=config;await next.request('/test');assert.deepEqual(calls,['backup.example']);
  calls.length=0;const rotated=new SiteClient(site,transport,store);rotated.config={urls:{cache:['https://new.example']}};await rotated.request('/test');assert.deepEqual(calls,['new.example']);
 });
+test('Manual API node choice is allowlisted, persisted, and becomes the first request route',async()=>{
+ const store=storage(),config={urls:{cache:['https://near.example','https://far.example'],logic:['https://logic.example']}},calls=[];
+ const transport=async request=>{calls.push(new URL(request.url).host);return response({data:{ok:true},code:200});};
+ const first=new SiteClient(site,transport,store);first.config=config;assert.equal(first.setPreferredAPIOrigin('cache','https://far.example'),'https://far.example');
+ assert.throws(()=>first.setPreferredAPIOrigin('cache','https://attacker.example'),ServiceError);
+ const next=new SiteClient(site,transport,store);next.config=config;await next.request('/test');assert.deepEqual(calls,['far.example']);
+});
+test('Manual startup entry choice probes and loads that allowlisted entry first',async()=>{
+ const store=storage(),mirrors={...site,bootstrapOrigins:['https://mirror.example']},calls=[];
+ const transport=async request=>{calls.push(new URL(request.url).origin);return response({code:200,data:{urls:{cache:['https://cache.example'],logic:['https://logic.example']}}});};
+ const c=new SiteClient(mirrors,transport,store);await c.bootstrap();calls.length=0;
+ await c.useBootstrapOrigin('https://mirror.example');assert.equal(calls[0],'https://mirror.example');assert.equal(store.getItem('sanyuan:test:bootstrapOrigin'),'https://mirror.example');
+ await assert.rejects(c.useBootstrapOrigin('https://other.example'),ServiceError);
+});
 test('Bootstrap abort stops immediately instead of retrying another mirror',async()=>{
  const calls=[],mirrors={...site,bootstrapOrigins:['https://mirror.example']},controller=new AbortController();
  const client=new SiteClient(mirrors,request=>new Promise((_,reject)=>{calls.push(new URL(request.url).host);request.signal.addEventListener('abort',()=>reject(new DOMException('cancelled','AbortError')),{once:true});}),storage());

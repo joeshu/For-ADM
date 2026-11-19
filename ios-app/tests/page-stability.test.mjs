@@ -53,7 +53,13 @@ test('app.mjs includes page-level stability guards, smart resume, concurrent lin
   assert.ok(app.includes('function liveFilteredChannels('), 'app.mjs must share liveFilteredChannels for channel list and live-step');
   assert.ok(app.includes('function liveNextProgram('), 'app.mjs must compute upcoming EPG program via liveNextProgram');
   assert.ok(app.includes("if(state.page==='detail'&&!native.native()&&$('#video'))"), 'cycleAspectMode must update aspect ratio in-place without destroying active web video');
-  assert.ok(app.includes('Promise.all(urls.map(async url=>'), 'probe-lines must probe candidate nodes concurrently with timeout protection');
+  assert.ok(app.includes('async function probeConfiguredLines(c)'), 'probe-lines must use the shared configured-route monitor');
+  assert.ok(app.includes("Promise.all(apiOriginOptions(c,kind).map(async url=>"), 'probe-lines must probe configured API nodes concurrently');
+  assert.ok(app.includes('setTimeout(()=>ctrl.abort(),6000)'), 'probe-lines must bound each API node probe');
+  assert.ok(app.includes('data-act="fastest-line"') && app.includes('data-act="prefer-bootstrap"'), 'settings must expose measured and manual route selection');
+  assert.ok(app.includes('setPreferredAPIOrigin(c,kind,choice.url)'), 'manual API selection must call the persistent route setter');
+  const nativeSource=read('Sources/main.m');
+  assert.ok(nativeSource.includes('切到最近片源') && nativeSource.includes('fastest-bootstrap'), 'Native settings must offer the fastest site and startup route');
   assert.ok(app.includes("window.addEventListener('online'"), 'app.mjs must auto-recover errored page on network reconnect');
 });
 

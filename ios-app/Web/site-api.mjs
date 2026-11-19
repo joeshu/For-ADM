@@ -44,6 +44,7 @@ export class SiteClient {
     this.site=site;this.transport=transport;this.storage=storage;this.key='sanyuan:'+site.id+':';this.bootstrapOriginKey=this.key+'bootstrapOrigin';
     this.device=read(storage,this.key+'device',null)||{id:globalThis.crypto?.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const n=Math.random()*16|0;return(c==='x'?n:(n&3|8)).toString(16);}),created:Date.now()};
     storage.setItem(this.key+'device',JSON.stringify(this.device));this.user=null;this.sessionLoaded=false;this.sessionKind="none";this.guestPending=null;this.vault=globalThis.NativeTransport?.vault;this.config=null;this.health=[];this.preferred={};
+    for(const kind of ['cache','logic']){const saved=storage.getItem(this.key+'apiOrigin:'+kind);if(saved)this.preferred[kind]=saved;}
   }
   buildRequest(base,path,params={},method='get'){
     const site=this.site,user=this.user,timestamp=Date.now(),get=method.toLowerCase()==='get';
@@ -73,6 +74,28 @@ export class SiteClient {
     }))];
   }
   apiOrigins(kind){return [...new Set((this.config?.urls?.[kind]||[]).filter(validAPIOrigin))];}
+  setPreferredAPIOrigin(kind,origin){
+    if(!['cache','logic'].includes(kind)||!this.apiOrigins(kind).includes(origin))throw new ServiceError('此数据线路不属于当前片源');
+    this.preferred[kind]=origin;this.storage.setItem(this.key+'apiOrigin:'+kind,origin);return origin;
+  }
+  preferredAPIOrigin(kind){
+    const configured=this.apiOrigins(kind),saved=this.storage.getItem(this.key+'apiOrigin:'+kind);
+    return [this.preferred[kind],saved].find(origin=>configured.includes(origin))||'';
+  }
+  setBootstrapOrigin(origin){
+    if(!this.bootstrapOrigins().includes(origin))throw new ServiceError('此启动入口不属于当前片源');
+    this.storage.setItem(this.bootstrapOriginKey,origin);return origin;
+  }
+  async useBootstrapOrigin(origin,signal){
+    this.setBootstrapOrigin(origin);const previous=this.config;this.config=null;
+    try{return await this.bootstrap(signal);}catch(error){this.config=previous;throw error;}
+  }
+  async probeBootstrapOrigin(origin,signal){
+    if(!this.bootstrapOrigins().includes(origin))throw new ServiceError('此启动入口不属于当前片源');
+    const start=Date.now(),config=await this.requestAt(origin,'/config/prod/appInit.html',{},'GET',signal);
+    if(!Array.isArray(config?.urls?.cache)||!Array.isArray(config?.urls?.logic))throw new ServiceError('站点初始化数据格式已变化');
+    const ms=Date.now()-start;this.recordHealth(origin,'bootstrap',ms,true);return {ms,config};
+  }
   async bootstrap(signal){
     await this.restoreSession();
     const origins=this.bootstrapOrigins(),preferred=this.storage.getItem(this.bootstrapOriginKey);

@@ -19,6 +19,11 @@ export class YqkClient extends SiteClient {
   this.apiOrigins=[...new Set([...stored,...(this.protocol.apiOrigins||[])].map(origin).filter(Boolean))];
   try{const preferred=origin(storage.getItem(this.key+'preferredApiOrigin'));if(preferred&&this.apiOrigins.includes(preferred))this.preferred.cache=preferred;}catch{}
  }
+ setPreferredAPIOrigin(kind,base){
+  if(!['cache','logic'].includes(kind)||!this.apiOrigins.includes(base))throw new ServiceError('此数据线路不属于当前片源');
+  this.preferred.cache=base;this.preferred.logic=base;this.storage.setItem(this.key+'preferredApiOrigin',base);return base;
+ }
+ preferredAPIOrigin(kind){return ['cache','logic'].includes(kind)&&this.apiOrigins.includes(this.preferred.cache)?this.preferred.cache:'';}
  discoveryProfile(){return {timeline:false,timelineTab:null,sectionTab:'2',tabs:[{id:'0',name:'片库',mode:'catalog'},{id:'1',name:'Netflix',mode:'netflix'},{id:'2',name:'专题',mode:'topics'}]};}
  buildRequest(base,path,params={}){
   const p={...params,appId:this.protocol.appId,reqDomain:new URL(this.site.origin).host,deviceInfo:'iPhone',version:this.protocol.version||this.site.version,requestId:globalThis.crypto?.randomUUID?.()||crypto().lib.WordArray.random(16).toString(),cus1tom:'aabbcc',udid:this.device.id};

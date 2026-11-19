@@ -346,6 +346,42 @@ async function probeAllSites(){
  toast(fastName?`全网测速完成 · 最快片源：${fastName} (${fastMs} ms)`:'全网测速完成');
 }
 
+function apiOriginOptions(c,kind){
+ const value=typeof c.apiOrigins==='function'?c.apiOrigins(kind):Array.isArray(c.apiOrigins)?c.apiOrigins:Array.isArray(c.origins)?c.origins:c.config?.urls?.[kind];
+ return [...new Set((Array.isArray(value)?value:[]).filter(url=>{try{return new URL(url).protocol==='https:';}catch{return false;}}))];
+}
+function preferredAPIOrigin(c,kind){
+ if(typeof c.preferredAPIOrigin==='function'){const value=c.preferredAPIOrigin(kind);if(value)return value;}
+ return c.preferred?.[kind]||c.preferredOrigin||c.storage?.getItem?.(c.key+'apiOrigin:'+kind)||c.storage?.getItem?.(c.key+'preferredApiOrigin')||'';
+}
+function fastestAPIOrigin(c,kind){return c.health.filter(h=>h.kind===kind&&h.ok&&apiOriginOptions(c,kind).includes(h.url)).sort((a,b)=>a.ms-b.ms)[0]||null;}
+function canChooseAPIOrigin(c,kind){return apiOriginOptions(c,kind).length>1&&typeof c.setPreferredAPIOrigin==='function';}
+function setPreferredAPIOrigin(c,kind,url){
+ if(typeof c.setPreferredAPIOrigin==='function')return c.setPreferredAPIOrigin(kind,url);
+ throw Error('当前片源不支持手动选择数据线路');
+}
+async function probeConfiguredLines(c){
+ if(!c.config)await c.bootstrap();
+ for(const kind of ['cache','logic']){
+  await Promise.all(apiOriginOptions(c,kind).map(async url=>{
+   const start=Date.now(),ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6000);
+   try{
+    const response=await native.request({url:url.replace(/\/$/,'')+'/heartbeat.check',method:'GET',headers:{},signal:ctrl.signal});
+    const status=Number(response?.status),reachable=status>=100&&status<=599;c.recordHealth(url,kind,Date.now()-start,reachable,reachable?null:Object.assign(Error('未收到 HTTP 响应'),{code:status||-1004}));
+   }catch(error){c.recordHealth(url,kind,Date.now()-start,false,error);}
+   finally{clearTimeout(timer);}
+  }));
+ }
+ if(!site().provider&&typeof c.probeBootstrapOrigin==='function'){
+  await Promise.all(c.bootstrapOrigins().map(async url=>{
+   const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7000);
+   try{await c.probeBootstrapOrigin(url,ctrl.signal);}
+   catch(error){if(error.name!=='AbortError'||!ctrl.signal.aborted)c.recordHealth(url,'bootstrap',7000,false,error);else c.recordHealth(url,'bootstrap',7000,false,Object.assign(Error('启动入口测速超时'),{code:-1001}));}
+   finally{clearTimeout(timer);}
+  }));
+ }
+}
+
 function settings(){
  const c=client(),user=c.user,supportsAcc=c.config?.supportsAccount!==false;
  const accountTitle=!supportsAcc?'公开直连片库':user?(c.sessionKind==='guest'?'访客会话已连接':'个人账号已登录'):'未建立会话';
@@ -510,10 +546,10 @@ function settings(){
   <section class="settings-card" aria-labelledby="settings-network-title" ${showSec('network')}>
    <div class="settings-card-heading">
     <span class="settings-icon">⌁</span>
-    <div><h2 id="settings-network-title">当前片源节点监测</h2><p>当前片源：${e(site().name)} · 点击节点可手动锁定优先线路</p></div>
+    <div><h2 id="settings-network-title">当前片源节点监测</h2><p>当前片源：${e(site().name)} · 测速后可按延迟一键选择，也可手动指定节点</p></div>
     <button type="button" class="settings-action" data-act="probe-lines">⚡ 节点测速</button>
    </div>
-   <div class="settings-lines">${lineKinds.map(([kind,label])=>`<div class="settings-line-group"><h3>${label}</h3>${c.apiOrigins(kind).map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),preferred=c.preferred[kind]===url;return `<button type="button" class="settings-line ${preferred?'is-preferred':''}" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${preferred?'preferred':health?.ok?'available':health?'unavailable':''}">${preferred?'★ 优先':health?health.ok?`● ${health.ms} ms`:'✕ '+(health.error||'暂不可用'):'○ 未检测'}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${preferred?'✓':'›'}</span></button>`;}).join('')||'<p class="settings-empty">暂无可用线路</p>'}</div>`).join('')}${(()=>{const origins=c.bootstrapOrigins();return `<div class="settings-line-group"><h3>启动入口</h3>${origins.map(url=>{const health=c.health.find(item=>item.url===url&&item.kind==='bootstrap');return `<div class="settings-line"><span class="settings-line-state ${health?.ok?'available':health?'unavailable':''}">${health?health.ok?`● ${health.ms} ms`:'✕ '+(health.error||'暂不可用'):'○ 未检测'}</span><strong>${e(new URL(url).host)}</strong></div>`;}).join('')}</div>`;})()}</div>
+   <div class="settings-lines">${lineKinds.map(([kind,label])=>{const origins=apiOriginOptions(c,kind),fastest=fastestAPIOrigin(c,kind),preferred=preferredAPIOrigin(c,kind),selectable=canChooseAPIOrigin(c,kind);return `<div class="settings-line-group"><div class="settings-line-group-heading"><h3>${label}</h3><button type="button" class="settings-action quiet" data-act="fastest-line" data-kind="${kind}" ${fastest&&selectable?'':'disabled'}>${fastest&&selectable?`切到最快 · ${new URL(fastest.url).host} · ${fastest.ms} ms`:'测速后可切到最快'}</button></div>${origins.map(url=>{const health=c.health.find(item=>item.url===url&&item.kind===kind),selected=preferred===url,stateText=selected?'★ 当前优先':health?health.ok?`● ${health.ms} ms`:'✕ '+(health.error||'不可达'):'○ 未检测';return selectable?`<button type="button" class="settings-line ${selected?'is-preferred':''}" data-act="prefer-line" data-kind="${kind}" data-url="${e(url)}"><span class="settings-line-state ${selected?'preferred':health?.ok?'available':health?'unavailable':''}">${stateText}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${selected?'✓':'选择'}</span></button>`:`<div class="settings-line"><span class="settings-line-state ${health?.ok?'available':health?'unavailable':''}">${stateText}</span><strong>${e(new URL(url).host)}</strong></div>`;}).join('')||'<p class="settings-empty">暂无可选线路</p>'}</div>`;}).join('')}${(()=>{const origins=!site().provider&&typeof c.bootstrapOrigins==='function'?c.bootstrapOrigins():[],selected=c.storage?.getItem?.(c.bootstrapOriginKey)||'';if(!origins.length)return '';const fastest=c.health.filter(item=>item.kind==='bootstrap'&&item.ok&&origins.includes(item.url)).sort((a,b)=>a.ms-b.ms)[0];return `<div class="settings-line-group"><div class="settings-line-group-heading"><h3>启动入口</h3><button type="button" class="settings-action quiet" data-act="fastest-bootstrap" ${fastest&&origins.length>1?'':'disabled'}>${fastest&&origins.length>1?`切到最快 · ${new URL(fastest.url).host} · ${fastest.ms} ms`:'测速后可切到最快'}</button></div>${origins.map(url=>{const health=c.health.find(item=>item.url===url&&item.kind==='bootstrap'),active=selected===url,lineText=active?'★ 当前入口':health?health.ok?`● ${health.ms} ms`:'✕ '+(health.error||'不可达'):'○ 未检测';return origins.length>1?`<button type="button" class="settings-line ${active?'is-preferred':''}" data-act="prefer-bootstrap" data-origin="${e(url)}"><span class="settings-line-state ${active?'preferred':health?.ok?'available':health?'unavailable':''}">${lineText}</span><strong>${e(new URL(url).host)}</strong><span class="settings-line-mark">${active?'✓':'选择'}</span></button>`:`<div class="settings-line"><span class="settings-line-state ${health?.ok?'available':health?'unavailable':''}">${lineText}</span><strong>${e(new URL(url).host)}</strong></div>`;}).join('')}</div>`;})()}</div>
   </section>
 
   <section class="settings-card" aria-labelledby="settings-account-title" ${showSec('network')}>
@@ -754,7 +790,7 @@ function nativePageSnapshot(){
   const filteredRows=state.savedSourceFilter==='all'?allRows:allRows.filter(r=>r.siteId===state.savedSourceFilter);
   const sourceFilters=sourceIds.length>1?[{id:'all',name:`全部 (${allRows.length})`},...sourceIds.map(sid=>({id:sid,name:`${sites.find(s=>s.id===sid)?.name||sid} (${allRows.filter(r=>r.siteId===sid).length})`}))]:[];
   const list=filteredRows.map(row=>nativeMovieCard(row.movie,row.siteId,tab==='history'?row.episodeTitle:undefined)),c=client();
-  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,savedSourceFilter:state.savedSourceFilter,sourceFilters,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},health:c.health||[],preferred:c.preferred||{},cleanHLS:state.cleanHLS,autoNext:state.autoNext,skipIntroSeconds:state.skipIntroSeconds,skipOutroSeconds:state.skipOutroSeconds,aspectMode:state.aspectMode,playbackRate:state.playbackRate,version:__SANYUAN_VERSION__};
+  return {...base,meTab:state.page==='saved'?'saved':state.meTab,savedTab:tab,savedSourceFilter:state.savedSourceFilter,sourceFilters,items:list,columns:state.columns,showAgeGate:state.showAgeGate,authError:state.authError||'',user:c.user?{nickname:c.user.nickname||c.user.account||'',sessionKind:c.sessionKind}:null,config:c.config&&typeof c.config==='object'?c.config:{},health:c.health||[],preferred:c.preferred||{},bootstrapOrigins:!site().provider&&typeof c.bootstrapOrigins==='function'?c.bootstrapOrigins():[],bootstrapPreferred:c.bootstrapOriginKey?c.storage?.getItem?.(c.bootstrapOriginKey)||'':'',cleanHLS:state.cleanHLS,autoNext:state.autoNext,skipIntroSeconds:state.skipIntroSeconds,skipOutroSeconds:state.skipOutroSeconds,aspectMode:state.aspectMode,playbackRate:state.playbackRate,version:__SANYUAN_VERSION__};
  }
  if(state.page==='diagnostics'){
   return {...base,title:'播放诊断',diagnostics:state.diagnostics||[]};
@@ -831,7 +867,7 @@ window.NativePageAction=(action,payload={})=>{
   return;
  }
  if(action==='episode-page'){state.episodePage=Math.max(0,Number(payload.id)||0);render();return;}
- const identityKeys=action==='collection-link'?['route','title']:action==='detail'?['id','source']:['id','key','kind','url','route','title'];
+ const identityKeys=action==='collection-link'?['route','title']:action==='detail'?['id','source']:['id','key','kind','url','origin','route','title'];
  const actualControl=[...navRoot.querySelectorAll('[data-act]'),...pageRoot.querySelectorAll('[data-act]')].find(button=>button.dataset.act===action&&identityKeys.every(key=>payload[key]===undefined||button.dataset[key]===String(payload[key])));
  if(actualControl){actualControl.click();return;}
  if(action==='clear-saved'){const confirmed=nativeClearConfirm;nativeClearConfirm=!nativeClearConfirm;const button=document.createElement('button');button.dataset.act='clear-saved';if(confirmed)button.dataset.confirm='yes';button.hidden=true;root.append(button);button.click();button.remove();native.syncPage(nativePageSnapshot());return;}
@@ -1292,7 +1328,19 @@ else if(act==='native-player'){if(!native.native()){$('#video')?.webkitEnterFull
 else if(act==='retry-play')await playEpisode(state.pendingEpisodeIndex);
 else if(act==='anonymous'){state.authError='';button.disabled=true;try{await client().anonymous();toast('访客模式已启用');}catch(error){state.authError=error.message;}render();}
 else if(act==='logout'){await client().logout();toast('已退出本站会话');render();}
-else if(act==='prefer-line'){client().preferred[button.dataset.kind]=button.dataset.url;toast('优先线路已更新');render();}
+else if(act==='prefer-line'||act==='fastest-line'){
+ const c=client(),kind=button.dataset.kind,choice=act==='prefer-line'?{url:button.dataset.url}:fastestAPIOrigin(c,kind);
+ if(!choice?.url){toast('请先测速，当前没有可用线路');return;}
+ setPreferredAPIOrigin(c,kind,choice.url);render();if(native.native())native.syncPage(nativePageSnapshot());
+ toast(`已切换优先节点：${new URL(choice.url).host}${choice.ms?` · ${choice.ms} ms`:''}`);
+ if(state.page==='discover')await loadDiscovery({refresh:true});else if(['home','browse','search','collection'].includes(state.page))await load();
+}
+else if(act==='prefer-bootstrap'||act==='fastest-bootstrap'){
+ const c=client(),choice=act==='prefer-bootstrap'?button.dataset.origin:c.health.filter(item=>item.kind==='bootstrap'&&item.ok&&c.bootstrapOrigins().includes(item.url)).sort((a,b)=>a.ms-b.ms)[0]?.url;
+ if(!choice){toast('请先测速，当前没有可用启动入口');return;}
+ button.disabled=true;await c.useBootstrapOrigin(choice);render();if(native.native())native.syncPage(nativePageSnapshot());toast(`已切换启动入口：${new URL(choice).host}`);
+ if(state.page==='discover')await loadDiscovery({refresh:true});else if(['home','browse','search','collection'].includes(state.page))await load();
+}
 else if(act==='probe-all-sites'){await probeAllSites();}
 else if(act==='probe-site'){
  const target=sites.find(s=>s.id===id);
@@ -1310,8 +1358,11 @@ else if(act==='clear-site-health'){
  if(native.native())native.syncPage(nativePageSnapshot());
  toast('已清空全网片源连通性记录');
 }
-else if(act==='probe-lines'){button.disabled=true;const c=client();if(site().provider){await c.home();render();toast('当前片库线路检测完成');return;}if(!c.config)await c.bootstrap();let bestMs=Infinity;for(const kind of ['cache','logic']){const urls=c.apiOrigins(kind);await Promise.all(urls.map(async url=>{const start=Date.now(),ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6000);try{const r=await native.request({url:url.replace(/\/$/,'')+'/heartbeat.check',method:'GET',headers:{},signal:ctrl.signal});const ms=Date.now()-start,ok=r.status>=200&&r.status<300;c.recordHealth(url,kind,ms,ok);if(ok&&ms<bestMs)bestMs=ms;}catch(error){c.recordHealth(url,kind,Date.now()-start,false,error);}finally{clearTimeout(timer);}}));const fastest=c.health.filter(h=>h.kind===kind&&h.ok).sort((a,b)=>a.ms-b.ms)[0];if(fastest&&(!c.preferred[kind]||!c.health.some(h=>h.kind===kind&&h.url===c.preferred[kind]&&h.ok)))c.preferred[kind]=fastest.url;}
-   const origins=c.bootstrapOrigins?c.bootstrapOrigins():[site().origin];await Promise.all(origins.map(async url=>{const start=Date.now(),ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),6000);try{const r=await native.request({url,method:'GET',headers:{},signal:ctrl.signal});c.recordHealth(url,'bootstrap',Date.now()-start,r.status>=200&&r.status<300);}catch(error){c.recordHealth(url,'bootstrap',Date.now()-start,false,error);}finally{clearTimeout(timer);}}));render();toast(Number.isFinite(bestMs)?`线路检测完成 · 最快 ${bestMs} ms`:'线路检测完成');}
+else if(act==='probe-lines'){
+ button.disabled=true;const c=client();await probeConfiguredLines(c);render();if(native.native())native.syncPage(nativePageSnapshot());
+ const fastest=['cache','logic'].map(kind=>fastestAPIOrigin(c,kind)).filter(Boolean).sort((a,b)=>a.ms-b.ms)[0],fastestBootstrap=c.health.filter(item=>item.kind==='bootstrap'&&item.ok).sort((a,b)=>a.ms-b.ms)[0];
+ toast(fastest||fastestBootstrap?`测速完成 · 最近节点 ${new URL((fastest||fastestBootstrap).url).host} · ${(fastest||fastestBootstrap).ms} ms，可手动切换`:'没有测到可用节点，请检查网络或切换上方片源');
+}
 }catch(error){toast(error.message);}});
 root.addEventListener('input',event=>{if(event.target.id==='search-query'){const clear=$('.search-clear');if(clear)clear.hidden=!event.target.value;}else if(event.target.closest('#live-search-form')){const clear=$('.live-search-clear');if(clear)clear.hidden=!event.target.value;}});
 root.addEventListener('submit',async event=>{event.preventDefault();if(event.target.id==='live-import-form'){await loadLivePlaylist(event.target.elements.url.value);}

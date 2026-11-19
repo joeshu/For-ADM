@@ -30,6 +30,13 @@ test('YQK and QNTV sign their own public parameters, isolate storage, and renew 
  assert.notEqual(body.requestId,JSON.parse(a.buildRequest('https://api.example','/test').body).requestId);
  assert.notEqual(a.device.id,b.device.id);assert.ok(store.map.has('sanyuan:yqk:device'));assert.ok(store.map.has('sanyuan:qntv:device'));
 });
+test('YQK exposes manual API route selection and persists it per site',()=>{
+ const store=storage(),client=new YqkClient(source(),()=>{},store);
+ assert.equal(client.setPreferredAPIOrigin('cache','https://backup.example'),'https://backup.example');
+ assert.equal(client.preferredAPIOrigin('logic'),'https://backup.example');
+ assert.equal(store.getItem('sanyuan:yqk:preferredApiOrigin'),'https://backup.example');
+ assert.throws(()=>client.setPreferredAPIOrigin('cache','https://outside.example'),ServiceError);
+});
 test('Bootstrap uses configured API origins directly and keeps sports category 5 non-adult',async()=>{
  const {client,calls}=harness();const cfg=await client.bootstrap();assert.equal(cfg.supportsAccount,false);assert.deepEqual(cfg.adultChannelIds,[]);
  assert.deepEqual(cfg.vodTabs.map(x=>[x.channelId,x.isAdult]),[[2,false],[5,false]]);

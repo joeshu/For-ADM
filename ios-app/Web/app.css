@@ -368,7 +368,12 @@ html[data-theme="black"][data-page="live"] .live-import-form,html[data-theme="bl
 .settings-card-heading>.settings-action{margin-left:auto}
 .settings-lines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .settings-line-group{min-width:0;padding:10px;border:1px solid #edf0f4;border-radius:13px;background:#fafbfc}
+.settings-line-group-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;margin:0 0 7px}
+.settings-line-group-heading h3{flex:1;min-width:0;margin:0}
+.settings-line-group-heading .settings-action{min-height:30px;max-width:68%;overflow:hidden;padding:0 8px;font-size:9px;text-overflow:ellipsis}
+.settings-line-group-heading .settings-action:disabled{opacity:.62}
 .settings-line-group h3{margin:0 0 7px;color:#747c8a;font-size:10px;font-weight:650}
+.settings-line-group-heading h3{margin:0}
 .settings-line{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 8px;width:100%;min-height:44px;padding:7px 2px;border-top:1px solid #e9ecf1;text-align:left}
 .settings-line-state{grid-column:1;color:#8b929e;font-size:9px}
 .settings-line-state.preferred{color:#1768df;font-weight:700}
@@ -393,6 +398,7 @@ html[data-theme="black"] .settings-action{background:#20374a;border-color:#8bcaf
 html[data-theme="black"] .settings-action.quiet{background:#202a36;border-color:#ffffff12;color:#d1d9e1}
 html[data-theme="black"] .settings-login-form input{background:#0f1721;border-color:#ffffff18;color:#edf2f5}
 html[data-theme="black"] .settings-line{border-color:#ffffff12}
+html[data-theme="black"] .settings-line-group-heading .settings-action:disabled{opacity:.5}
 html[data-theme="black"] .settings-line-state.preferred,html[data-theme="black"] .settings-about-action{color:#9bd0ff}
 @media(max-width:370px){.settings-card{padding:13px}.settings-option{grid-template-columns:minmax(0,1fr) minmax(116px,44%);gap:8px}.settings-segmented button{font-size:10px;padding:0 3px}.settings-lines{grid-template-columns:1fr}}
 @media(min-width:650px){.settings-intro{padding-left:3px}.settings-card{padding:20px;margin:17px 0}.settings-lines{gap:14px}.settings-login-form{grid-template-columns:1fr 1fr}.settings-login-form>div{grid-column:1 / -1}}

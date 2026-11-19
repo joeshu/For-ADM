@@ -35,8 +35,14 @@ export class KanjuClient extends SiteClient {
  constructor(site,transport,storage=globalThis.localStorage){
   super(site,transport,storage);this.protocol=site.protocol||{};this.origins=[...new Set([site.origin,...(this.protocol.apiOrigins||[])])].filter(value=>{try{return new URL(value).protocol==='https:';}catch{return false;}});
   this.details=new Map();this.registry=new Map();this.collections=new Map();this.filterOptions=new Map();this.badOrigins=new Map();this.cooldownUntil=0;this.bootstrapPending=null;
+  const stored=storage.getItem(this.key+'preferredOrigin');if(this.origins.includes(stored)){this.preferredOrigin=stored;this.preferred.cache=stored;this.preferred.logic=stored;}
   try{for(const [key,value]of JSON.parse(storage.getItem(this.key+'ids')||'[]'))if(/^kj_[a-f0-9]{32}$/.test(key)&&safeID(value))this.registry.set(key,value);}catch{}
  }
+ setPreferredAPIOrigin(kind,origin){
+  if(!['cache','logic'].includes(kind)||!this.origins.includes(origin))throw new ServiceError('此数据线路不属于当前片源');
+  this.preferredOrigin=origin;this.preferred.cache=origin;this.preferred.logic=origin;this.storage.setItem(this.key+'preferredOrigin',origin);return origin;
+ }
+ preferredAPIOrigin(kind){return ['cache','logic'].includes(kind)&&this.origins.includes(this.preferredOrigin)?this.preferredOrigin:'';}
  discoveryProfile(){return {timeline:false,timelineTab:null,sectionTab:'2',tabs:[{id:'0',name:'最新更新',mode:'latest'},{id:'1',name:'今日热播',mode:'trending'},{id:'2',name:'首页推荐',mode:'home'}]};}
  id(raw){
   if(!safeID(raw))throw Error('看剧AI影片标识无效');
