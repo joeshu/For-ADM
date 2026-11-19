@@ -4,19 +4,19 @@
     {
       "key": "joeshu.kkapp",
       "name": "可可影视",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/kkapp.js?v=4",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/kkapp.js?v=5",
       "type": "script"
     },
     {
       "key": "joeshu.ncat",
       "name": "网飞猫",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/ncat.js?v=4",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/ncat.js?v=5",
       "type": "script"
     },
     {
       "key": "joeshu.happ",
       "name": "好好看",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/happ.js?v=4",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/happ.js?v=5",
       "type": "script"
     },
     {

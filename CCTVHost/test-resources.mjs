@@ -106,7 +106,7 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+(['kkapp','ncat','happ'].includes(id)?'4':'3'),id+' points to its current standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+(['kkapp','ncat','happ'].includes(id)?'5':'3'),id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of newNames){
@@ -208,7 +208,7 @@ for(const id of ['kkapp','ncat','happ']){
   const detail=await context.loadDetail(site.origin+'/__cctvhost__/'+id+'/vod?id=movie-1');
   assert.equal(detail.episodeItems.length,1,id+' exposes the selected episode in its detail view');
   assert.equal(detail.coverUrl,'https://img-clear.example/vod1/poster.webp',id+' skips the encrypted mirror and selects the clear image mirror');
-  const probes=calls.filter(call=>call.options&&call.options.buffer===1);
+  const probes=calls.filter(call=>call.options&&call.options.buffer===1&&call.url.startsWith('https://img-'));
   assert.equal(probes.length,2,id+' probes each image mirror once');
   assert.ok(probes.every(call=>call.options.timeout===3000),id+' bounds image mirror probes');
   assert.match(detail.episodeItems[0].link,/siteId=line-a/,id+' keeps the selected source route in the episode link');
@@ -260,6 +260,41 @@ for(const id of ['kkapp','ncat','happ']){
     throw Error('locked route must fail closed');
   });
   await assert.rejects(context.loadResource({link:site.origin+'/episode?vodId=movie-1&siteId=locked&episodeId=ep-1'}),/所选线路|访客可用|失败/);
+}
+
+{
+  const calls=[];
+  const context=makeWidgetContext('ncat',async(method,url)=>{
+    calls.push(url);
+    if(url.startsWith('https://a.napp03.com:51111/config/prod/appInit.html'))throw Error('NSURLErrorDomain -1003');
+    if(url.includes('/config/prod/appInit.html'))return {statusCode:200,data:{data:{urls:{cache:['https://a.kkapp06.com'],logic:['https://a.kkapp06.com']}}}};
+    throw Error('unexpected endpoint '+url);
+  });
+  const config=await context.adapter.bootstrap();
+  assert.equal(config.urls.cache[0],'https://a.kkapp06.com','ncat bootstraps through the sibling origin when its own origin is blocked');
+  assert.ok(calls.some(url=>url.startsWith('https://a.napp03.com:51111/config')),'ncat tries its own origin first');
+  assert.ok(calls.some(url=>url.startsWith('https://a.kkapp06.com/config')),'ncat falls back to the sibling origin');
+  assert.equal(await context.adapter.storageGet('bootstrapOrigin'),'https://a.kkapp06.com','ncat remembers the working bootstrap origin');
+}
+
+{
+  const calls=[];
+  const context=makeWidgetContext('happ',async(method,url)=>{
+    calls.push(url);
+    if(url.includes('/config/prod/appInit.html'))return {statusCode:200,data:{data:{urls:{cache:['https://bad1.example','https://bad2.example','https://bad3.example','https://bad4.example','https://bad5.example','https://43.248.103.33:51020'],logic:['https://bad1.example']}}}};
+    if(url.startsWith('https://a.happ3.com:51111/v5/vod/home.capi'))return {statusCode:200,data:{data:{blocks:[]}}};
+    throw Error('blocked '+url);
+  });
+  const home=await context.adapter.home();
+  assert.deepEqual(home,{blocks:[]},'happ reaches its own origin after every listed domain line fails');
+  for(const host of ['bad1.example','bad2.example','bad3.example','bad4.example','bad5.example'])
+    assert.ok(calls.some(url=>url.includes(host)),'happ tries '+host);
+  assert.equal(calls.filter(url=>url.includes('43.248.103.33')).length,0,'happ never requests the bare-IP line that cannot pass certificate checks');
+}
+
+{
+  const context=makeWidgetContext('kkapp',async()=>{throw Error('NSURLErrorDomain -1009');});
+  await assert.rejects(context.adapter.bootstrap(),/启动失败（a\.kkapp06\.com：无网络；a\.napp03\.com:51111：无网络；a\.happ3\.com:51111：无网络）/,'kkapp names every failed bootstrap origin and its cause');
 }
 
 {

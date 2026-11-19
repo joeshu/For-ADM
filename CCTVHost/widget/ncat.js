@@ -1,5 +1,5 @@
 /* Standalone CCTVHost WidgetAdapter for the three signed-app sources. */
-var Source={"id":"ncat","name":"网飞猫","origin":"https://a.napp03.com:51111","version":"2.5.31","appId":"ncat","signKey":"a1id2db7ced05pwnc323gezxyb","responseKeys":[{"index":1,"key":"ayt5wy5afwmwrpb19k9s3psx3dymyd0n","iv":"b3t069ijy7pirw0j"}]};
+var Source={"id":"ncat","name":"网飞猫","origin":"https://a.napp03.com:51111","bootstrapOrigins":["https://a.napp03.com:51111","https://a.kkapp06.com","https://a.happ3.com:51111"],"version":"2.5.31","appId":"ncat","signKey":"a1id2db7ced05pwnc323gezxyb","responseKeys":[{"index":1,"key":"ayt5wy5afwmwrpb19k9s3psx3dymyd0n","iv":"b3t069ijy7pirw0j"}]};
 var WidgetMetadata={id:'joeshu.'+Source.id,title:Source.name,author:'joeshu',site:Source.origin,version:'0.1.1',requiredVersion:'0.0.1',description:'独立站点适配：原站首页、分类、搜索、详情、分集与公开播放地址。',detailCacheDuration:0,
  modules:[
   {id:'home',title:'首页推荐',functionName:'loadHome',cacheDuration:60,params:[]},
@@ -18,6 +18,21 @@ var siteRandom=function(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
 var siteSafeURL=function(v){var s=String(v==null?'':v);return s.length<=8192&&/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?(?:[/?#]|$)/i.test(s)&&!/[\s\\\x00-\x1f]/.test(s)?s:'';};
 var siteGet=function(o,keys){for(var i=0;i<keys.length;i++)if(o&&o[keys[i]]!=null&&o[keys[i]]!=='')return o[keys[i]];return undefined;};
 var siteQueryValue=function(link,key){var re=new RegExp('[?&]'+key+'=([^&#]*)');var m=String(link||'').match(re);if(!m)return '';try{return decodeURIComponent(m[1].replace(/\+/g,' '));}catch(_){return '';}};
+var siteHostOf=function(url){var m=String(url||'').match(/^https:\/\/([A-Za-z0-9.-]+(?::\d+)?)/);return m?m[1]:String(url||'');};
+var siteFailureLabel=function(error){
+ var code=error&&error.code;
+ if(typeof code==='number'&&code>=100&&code<600)return 'HTTP '+code;
+ if(typeof code==='string'&&/^\d{3}$/.test(code))return 'HTTP '+code;
+ if(error&&error.name==='AbortError')return '已取消';
+ if(typeof code==='number'){switch(code){case -1001:return '超时';case -1003:return 'DNS 失败';case -1004:return '无法连接服务器';case -1005:return '连接中断';case -1009:return '无网络';case -1200:case -1202:return '证书错误';default:return '网络错误 '+code;}}
+ var message=String((error&&error.message)||error||'');
+ var found=message.match(/-(1001|1003|1004|1005|1009|1200|1202)\b/);
+ if(found){var labels={'1001':'超时','1003':'DNS 失败','1004':'无法连接服务器','1005':'连接中断','1009':'无网络','1200':'证书错误','1202':'证书错误'};return labels[found[1]];}
+ if(/超时|timeout/i.test(message))return '超时';
+ if(/DNS|域名解析/.test(message))return 'DNS 失败';
+ var clean=message.replace(/[\r\n\t]+/g,' ').trim();
+ return clean?clean.slice(0,24):'连接失败';
+};
 var siteLink=function(kind,values){var q=Object.keys(values).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(String(values[k]));}).join('&');return Source.origin+'/__cctvhost__/'+Source.id+'/'+kind+'?'+q;};
 var siteCard=function(row){
  if(!row||typeof row!=='object'||row.isAd===true||row.type==='ad'||String(row._vod||'').indexOf('ad_')===0)return null;
@@ -76,7 +91,17 @@ SiteAdapter.prototype.decode=function(response){
  var raw;try{raw=C.enc.Utf8.stringify(C.enc.Base64.parse(text));}catch(_){raw=text;}
  try{return JSON.parse(raw);}catch(_){}
  var entry=Source.responseKeys&&Source.responseKeys[0];if(!entry)throw Error(Source.name+'返回数据无法识别');
- try{var cipher=C.enc.Base64.parse(text);var clear=C.AES.decrypt({ciphertext:cipher},C.enc.Utf8.parse(entry.key),{iv:C.enc.Utf8.parse(entry.iv),mode:C.mode.CBC,padding:C.pad.Pkcs7}).toString(C.enc.Utf8);return JSON.parse(clear);}catch(_){throw Error(Source.name+'加密响应格式已变化');}
+ var key=C.enc.Utf8.parse(entry.key),opts={iv:C.enc.Utf8.parse(entry.iv),mode:C.mode.CBC,padding:C.pad.Pkcs7};
+ function decB64(t){try{var clear=C.AES.decrypt({ciphertext:C.enc.Base64.parse(t)},key,opts).toString(C.enc.Utf8);return JSON.parse(clear);}catch(_){return null;}}
+ var out=decB64(text);
+ if(!out){try{var inner=C.enc.Utf8.stringify(C.enc.Base64.parse(text));out=decB64(inner);}catch(_){}}
+ if(!out){try{var latin=C.enc.Latin1.parse(text);var clear2=C.AES.decrypt({ciphertext:latin},key,opts).toString(C.enc.Utf8);out=JSON.parse(clear2);}catch(_){}}
+ function scanBytes(words){var hex;try{hex=C.enc.Hex.stringify(words);}catch(_){return null;}for(var off=0;off<32;off++){var cut=hex.slice(off*2);cut=cut.slice(0,Math.floor(cut.length/32)*32);if(cut.length<32)break;try{var clr=C.AES.decrypt({ciphertext:C.enc.Hex.parse(cut)},key,opts).toString(C.enc.Utf8);return JSON.parse(clr);}catch(_){}}return null;}
+ if(!out){try{out=scanBytes(C.enc.Base64.parse(text));}catch(_){}}
+ if(!out){try{out=scanBytes(C.enc.Latin1.parse(text));}catch(_){}}
+ if(out)return out;
+ function diagRecv(){try{var h='';for(var i=0;i<12&&i<text.length;i++){h+=('000'+text.charCodeAt(i).toString(16)).slice(-4);}return 'recv='+(text?text.length:0)+'B head='+h;}catch(_){return 'recv=?';}}
+ throw Error(Source.name+'加密响应格式已变化['+diagRecv()+']');
 };
 SiteAdapter.prototype.build=async function(base,path,params,method){
  var C=SiteCrypto(),dev=await this.deviceInfo(),get=method==='GET',user=siteUser;
@@ -90,22 +115,45 @@ SiteAdapter.prototype.build=async function(base,path,params,method){
  if(path==='/user/anonymous'||path==='/user/loginAccount')headers.apiVer='v2';
  return {url:url,method:method,headers:headers,body:get?undefined:JSON.stringify(data)};
 };
-SiteAdapter.prototype.requestAt=async function(base,path,params,kind,method){
- var req=await this.build(base,path,params,method||'GET'),res=method==='POST'?await Widget.http.post(req.url,req.body,{headers:req.headers}):await Widget.http.get(req.url,{headers:req.headers});
+SiteAdapter.prototype.requestAt=async function(base,path,params,kind,method,timeoutMs){
+ var req=await this.build(base,path,params,method||'GET'),options={headers:req.headers,buffer:1};
+ if(timeoutMs)options.timeout=timeoutMs;
+ var res=method==='POST'?await Widget.http.post(req.url,req.body,options):await Widget.http.get(req.url,options);
  var status=Number(res.statusCode||res.status||200),data=this.decode(res);
  if(status<200||status>=300)throw Object.assign(Error(data&&data.message||Source.name+'请求失败（HTTP '+status+'）'),{code:Number(data&&data.code)||status});
  if(data&&data.code!=null&&Number(data.code)!==200&&String(data.code)!=='200')throw Object.assign(Error(data.message||Source.name+'拒绝了请求'),{code:data.code});
  return data&&Object.prototype.hasOwnProperty.call(data,'data')?data.data:data;
 };
+SiteAdapter.prototype.bootstrapOrigins=function(){
+ var list=[Source.origin].concat(Source.bootstrapOrigins||[]),seen={},out=[];
+ list.forEach(function(x){var s=String(x||'');if(/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?\/?$/.test(s)&&!seen[s]){seen[s]=true;out.push(s.replace(/\/$/,''));}});
+ return out;
+};
 SiteAdapter.prototype.bootstrap=async function(){
  if(siteConfig)return siteConfig;if(siteBootstrap)return siteBootstrap;
- var self=this;siteBootstrap=(async function(){var d=await self.requestAt(Source.origin,'/config/prod/appInit.html',{},'cache','GET');if(!Array.isArray(d&&d.urls&&d.urls.cache)||!Array.isArray(d&&d.urls&&d.urls.logic))throw Error(Source.name+'初始化数据结构已变化');siteConfig=d;return d;})();
+ var self=this;siteBootstrap=(async function(){
+  var origins=self.bootstrapOrigins(),preferred=await self.storageGet('bootstrapOrigin');
+  if(preferred&&origins.indexOf(preferred)>=0)origins=[preferred].concat(origins.filter(function(x){return x!==preferred;}));
+  var failures=[];
+  for(var i=0;i<origins.length;i++){
+   var d;
+   try{d=await self.requestAt(origins[i],'/config/prod/appInit.html',{},'cache','GET',7000);}
+   catch(e){
+    if(e&&typeof e.code==='number'&&e.code>=100&&e.code<600&&!(e.code>=500&&e.code<=599))throw e;
+    failures.push(siteHostOf(origins[i])+'：'+siteFailureLabel(e));continue;
+   }
+   if(!Array.isArray(d&&d.urls&&d.urls.cache)||!Array.isArray(d&&d.urls&&d.urls.logic))throw Error(Source.name+'初始化数据结构已变化');
+   siteConfig=d;await self.storageSet('bootstrapOrigin',origins[i]);return d;
+  }
+  throw Error(Source.name+'启动失败（'+failures.join('；')+'）');
+ })();
  try{return await siteBootstrap;}finally{siteBootstrap=null;}
 };
 SiteAdapter.prototype.api=async function(path,params,kind,method){
- var config=await this.bootstrap(),bases=[].concat(config.urls[kind||'cache']||[],[Source.origin]).filter(function(x,i,a){return /^https:\/\//.test(x)&&a.indexOf(x)===i;});if(!bases.length)throw Error(Source.name+'没有可用接口');var last;
- for(var i=0;i<Math.min(5,bases.length);i++){try{return await this.requestAt(bases[i],path,params,kind,method||'GET');}catch(e){last=e;if(Number(e.code)===429||[401,403,40401].includes(Number(e.code)))throw e;}}
- throw last||Error(Source.name+'接口暂时不可用');
+ var config=await this.bootstrap(),bases=[].concat(config.urls[kind||'cache']||[],[Source.origin]).filter(function(x,i,a){return /^https:\/\//.test(x)&&!/^https:\/\/\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?(?:\/|$)/.test(x)&&a.indexOf(x)===i;});if(!bases.length)throw Error(Source.name+'没有可用接口');
+ var failures=[];
+ for(var i=0;i<bases.length;i++){try{return await this.requestAt(bases[i],path,params,kind,method||'GET');}catch(e){if(Number(e.code)===429||[401,403,40401].includes(Number(e.code)))throw e;failures.push(siteHostOf(bases[i])+'：'+siteFailureLabel(e));}}
+ throw Error(Source.name+'接口暂时不可用（'+failures.join('；')+'）');
 };
 SiteAdapter.prototype.ensureGuest=async function(){if(siteUser&&siteUser.id&&siteUser.token)return siteUser;if(siteGuest)return siteGuest;var self=this;siteGuest=(async function(){var old=await self.storageGet('guest');if(old&&old.id&&old.token){siteUser=old;return old;}var data=await self.api('/user/anonymous',{},'logic','POST'),user=data&&data.user||data;if(!user||!user.id||!user.token)throw Error(Source.name+'没有返回公开访客会话');siteUser=user;await self.storageSet('guest',user);return user;})();try{return await siteGuest;}finally{siteGuest=null;}};
 SiteAdapter.prototype.sessionApi=async function(path,params){await this.ensureGuest();return this.api(path,params,'logic','GET');};
