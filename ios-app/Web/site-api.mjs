@@ -1,5 +1,25 @@
 export class ServiceError extends Error {constructor(message,code){super(message);this.code=code;}}
 export const canonicalQuery = params => Object.keys(params).sort().map(key=>key+'='+params[key]).join('&');
+export function failureLabel(error){
+  const code=error?.code;
+  if(typeof code==='number'&&code>=100&&code<600)return 'HTTP '+code;
+  if(error?.name==='AbortError')return '已取消';
+  if(typeof code==='number'){
+    switch(code){
+      case -1001:return '超时';
+      case -1003:return 'DNS 失败';
+      case -1004:return '无法连接服务器';
+      case -1005:return '连接中断';
+      case -1009:return '无网络';
+      case -1200:case -1202:return '证书错误';
+      default:return '网络错误 '+code;
+    }
+  }
+  if(typeof code==='string'&&code)return code;
+  const message=String(error?.message||'').trim();
+  if(/超时|timeout/i.test(message))return '超时';
+  return message?message.slice(0,24):'连接失败';
+}
 const C=()=>{if(!globalThis.CryptoJS)throw Error('加密组件未加载');return globalThis.CryptoJS;};
 const read=(storage,key,fallback)=>{try{return JSON.parse(storage.getItem(key))??fallback;}catch{return fallback;}};
 export function decodeResponse(response,site){
@@ -37,11 +57,26 @@ export class SiteClient {
     if(response.status<200||response.status>=300)throw new ServiceError(data.message||'请求失败：HTTP '+response.status,data.code||response.status);
     return unwrap(data);
   }
+  bootstrapOrigins(){
+    const list=[this.site.origin,...(this.site.bootstrapOrigins||[])];
+    return [...new Set(list.filter(x=>{try{return new URL(x).protocol==='https:';}catch{return false;}}))];
+  }
   async bootstrap(signal){
     await this.restoreSession();
-    const config=await this.requestAt(this.site.origin,'/config/prod/appInit.html',{},'GET',signal);
-    if(!Array.isArray(config?.urls?.cache)||!Array.isArray(config?.urls?.logic))throw new ServiceError('站点初始化数据格式已变化');
-    this.config=config;return config;
+    let last;
+    for(const origin of this.bootstrapOrigins()){
+      if(signal?.aborted)throw new DOMException('请求取消','AbortError');
+      const start=Date.now();
+      try{
+        const config=await this.requestAt(origin,'/config/prod/appInit.html',{},'GET',signal);
+        if(!Array.isArray(config?.urls?.cache)||!Array.isArray(config?.urls?.logic))throw new ServiceError('站点初始化数据格式已变化');
+        this.config=config;this.recordHealth(origin,'bootstrap',Date.now()-start,true);return config;
+      }catch(error){
+        if(error.name==='AbortError')throw error;
+        this.recordHealth(origin,'bootstrap',Date.now()-start,false,error);last=error;
+      }
+    }
+    throw last||new ServiceError('没有可用启动入口');
   }
   async restoreSession(){
     if(!this.sessionLoad)this.sessionLoad=(async()=>{try{if(this.vault){const saved=await this.vault.get(this.site.id);this.user=saved?.schema===1?saved.user:saved;this.sessionKind=saved?.schema===1?saved.kind:this.user&&['bindLogin','bindPhone','bindEmail','bindAccount'].every(k=>this.user[k]===false||this.user[k]===0)?'guest':this.user?'account':'none';}}catch{this.sessionWarning='会话仅在本次使用期间有效';}this.sessionLoaded=true;})();
@@ -74,18 +109,18 @@ export class SiteClient {
     if(!this.config)await this.bootstrap(signal);
     const bases=[...new Set([this.preferred[kind],...(this.config.urls[kind]||[])].filter(Boolean))].filter(x=>{try{return new URL(x).protocol==='https:';}catch{return false;}});
     let last;
-    for(const base of bases.slice(0,5)){
+    for(const base of bases){
       if(signal?.aborted)throw new DOMException('请求取消','AbortError');
       const start=Date.now();
       try{const result=await this.requestAt(base,path,params,method,signal);this.preferred[kind]=base;this.recordHealth(base,kind,Date.now()-start,true);return result;}
-      catch(error){if(error.name==='AbortError')throw error;this.recordHealth(base,kind,Date.now()-start,false);last=error;
+      catch(error){if(error.name==='AbortError')throw error;this.recordHealth(base,kind,Date.now()-start,false,error);last=error;
         // Authentication, payment and other business denials are not line failures.
         if(error instanceof ServiceError&&error.code&&!(typeof error.code==='number'&&error.code>=500&&error.code<=599))throw error;
       }
     }
     throw last||new ServiceError('没有可用数据线路');
   }
-  recordHealth(url,kind,ms,ok){this.health=this.health.filter(x=>!(x.url===url&&x.kind===kind));this.health.push({url,kind,ms,ok});}
+  recordHealth(url,kind,ms,ok,error){this.health=this.health.filter(x=>!(x.url===url&&x.kind===kind));const entry={url,kind,ms,ok};if(!ok){entry.code=error?.code??null;entry.error=failureLabel(error);}this.health.push(entry);}
   home(signal){return this.request('/v5/vod/home.capi',{},'cache',signal);}
   channel(channelId,filters={},next='page=1',signal){return this.request('/vod/channel/list.capi',{channelId,category:'',sort:'3',area:'',year:'',language:'',...filters,next},'cache',signal);}
   collection(route,next='page=1',signal){

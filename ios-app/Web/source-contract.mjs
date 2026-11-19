@@ -89,6 +89,16 @@ export function validateSiteManifest(sites) {
       errors.push(`${label}.protocol.apiOrigins 必须是最多 32 个不重复的无路径源站地址；HTTP 需显式设置 allowInsecureOrigin`);
     }
 
+    const bootstrapOrigins = site.bootstrapOrigins;
+    if (bootstrapOrigins !== undefined && (
+      !Array.isArray(bootstrapOrigins) ||
+      !bootstrapOrigins.length ||
+      new Set(bootstrapOrigins).size !== bootstrapOrigins.length ||
+      bootstrapOrigins.some(origin => !validOrigin(origin, allowHTTP))
+    )) {
+      errors.push(`${label}.bootstrapOrigins 必须是不重复的无路径源站地址；HTTP 需显式设置 allowInsecureOrigin`);
+    }
+
     if (!site.provider && (!Array.isArray(site.responseKeys) || !site.responseKeys.length)) {
       errors.push(`${label}.responseKeys 必须包含解码配置`);
     }

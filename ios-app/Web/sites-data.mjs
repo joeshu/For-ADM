@@ -4,6 +4,11 @@ export default [
     "name": "可可影视",
     "version": "2.5.16",
     "origin": "https://a.kkapp06.com",
+    "bootstrapOrigins": [
+      "https://a.kkapp06.com",
+      "https://a.napp03.com:51111",
+      "https://a.happ3.com:51111"
+    ],
     "appId": "kkdy",
     "signKey": "a1id2db7ced05pwnc323gezxyb",
     "initKey": "f0c9bb729c939a350b5e56049fd562fc",
@@ -74,6 +79,11 @@ export default [
     "name": "网飞猫",
     "version": "2.5.31",
     "origin": "https://a.napp03.com:51111",
+    "bootstrapOrigins": [
+      "https://a.napp03.com:51111",
+      "https://a.kkapp06.com",
+      "https://a.happ3.com:51111"
+    ],
     "appId": "ncat",
     "signKey": "a1id2db7ced05pwnc323gezxyb",
     "initKey": "f0c9bb729c939a350b5e56049fd562fc",
@@ -144,6 +154,11 @@ export default [
     "name": "好好看",
     "version": "2.5.24",
     "origin": "https://a.happ3.com:51111",
+    "bootstrapOrigins": [
+      "https://a.happ3.com:51111",
+      "https://a.kkapp06.com",
+      "https://a.napp03.com:51111"
+    ],
     "appId": "hkan",
     "signKey": "a1id2db7ced05pwnc323gezxyb",
     "initKey": "f0c9bb729c939a350b5e56049fd562fc",

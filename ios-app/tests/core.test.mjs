@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {createHmac} from 'node:crypto';
 import {collectMovies,homeSections,categories,imageURLs,imageURLsForSource,playbackURLs,escapeHTML,safeImageURL} from '../Web/model.mjs';
-import {SiteClient,ServiceError,canonicalQuery,decodeResponse} from '../Web/site-api.mjs';
+import {SiteClient,ServiceError,canonicalQuery,decodeResponse,failureLabel} from '../Web/site-api.mjs';
 globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
 const site={id:'test',appId:'public-app',origin:'https://origin.example',version:'1',signKey:'test-key',responseKeys:[{index:1,key:'12345678901234567890123456789012',iv:'1234567890123456'}]};
 const storage=()=>{const map=new Map();return {getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),map};};
@@ -55,6 +55,31 @@ test('Network failures retry a backup, business denials never retry',async()=>{
  assert.deepEqual(await c.request('/test'),{ok:true});assert.equal(calls,2);
  calls=0;c.transport=async()=>{calls++;return response({code:40401,message:'请登录'});};
  await assert.rejects(c.request('/test'),{code:40401});assert.equal(calls,1);
+});
+test('API retries cover every listed address, including the last backup',async()=>{
+ let calls=0;const c=new SiteClient(site,async()=>{calls++;if(calls<6)throw Object.assign(Error('offline'),{code:-1003});return response({data:{ok:true},code:200});},storage());
+ c.config={urls:{cache:['https://a1.example','https://a2.example','https://a3.example','https://a4.example','https://a5.example','https://a6.example']}};
+ assert.deepEqual(await c.request('/test'),{ok:true});assert.equal(calls,6);
+ const failed=c.health.find(h=>h.url==='https://a1.example');
+ assert.equal(failed.ok,false);assert.equal(failed.code,-1003);assert.equal(failed.error,'DNS 失败');
+ assert.equal(c.health.find(h=>h.url==='https://a6.example').ok,true);
+});
+test('Bootstrap falls back to a sibling origin and records the failed entry',async()=>{
+ const fallbackSite={...site,origin:'https://bad.example',bootstrapOrigins:['https://good.example']};
+ const c=new SiteClient(fallbackSite,async r=>{if(r.url.startsWith('https://bad.example'))throw Object.assign(Error('bad gateway'),{code:502});return response({urls:{cache:['https://c.example'],logic:['https://l.example']}});},storage());
+ const config=await c.bootstrap();
+ assert.equal(config.urls.cache[0],'https://c.example');
+ const bad=c.health.find(h=>h.kind==='bootstrap'&&h.url==='https://bad.example');
+ assert.equal(bad.ok,false);assert.equal(bad.error,'HTTP 502');
+ assert.equal(c.health.find(h=>h.kind==='bootstrap'&&h.url==='https://good.example').ok,true);
+});
+test('Failure labels name the network cause',()=>{
+ assert.equal(failureLabel({code:-1001}),'超时');
+ assert.equal(failureLabel({code:-1003}),'DNS 失败');
+ assert.equal(failureLabel({code:-1009}),'无网络');
+ assert.equal(failureLabel({code:403}),'HTTP 403');
+ assert.equal(failureLabel(Error('请求超时，请切换线路重试')),'超时');
+ assert.equal(failureLabel(Error('boom')),'boom');
 });
 test('Episode API retains source identifiers; abort prevents network requests',async()=>{
  let request;const c=new SiteClient(site,async r=>{request=r;return response([]);},storage());c.config={urls:{cache:['https://api.example']}};
