@@ -32,7 +32,7 @@ Forward/Rex 用户可使用 [For-ADM.fwd](For-ADM.fwd) 订阅 `widget/` 中的�
 | `jianpian.js` | 荐片 | JSON API；首页/分类/搜索/详情实测通，播放 m3u8 本机连不上，需 iPhone 实测 |
 | `sikv4k.js` | 4K影视 | 浏览型；播放地址由站内 WASM 签名生成，未复现，适配器不提供播放地址 |
 | `luoxue.js` | 洛雪TV | TMDB 推荐浏览型；播放需原站解析流程，适配器不提供播放地址 |
-| `piandi.js` | 懂片帝 | HMAC-SHA256 签名（与看剧 AI 同族）；首页/分类/搜索/详情/解析全链实测通，官方线路 m3u8 本机 200 |
+| `python-spiders/dongpian.py` | 懂片帝（PY） | HMAC-SHA256 签名（与看剧 AI 同族，2026-11-18 构建）；首页/分类/搜索/详情/分集全链实测通，红牛资源 m3u8 本机 200（取代旧 JS 适配器 piandi.js，2026-11-19） |
 | `hetun.js` | 河豚4K | HyProto protobuf + RSA/AES 签名；协议已还原，AES/RSA/请求体与 Python 逐字节对过，模拟链路全通；2026-11-13 本机实测配置 + zone 已通（之前裸 IP POST 被挡是暂时的） |
 | `xpg.js` | 小苹果 | HyProto protobuf + RSA/AES 签名；与河豚同族，独立公钥/密钥/列表端点；2026-11-13 本机实测：zone 已能到达服务端，但字符串时间戳被拒（1008），改数字时间戳后 RSA 解密失败（100002）——服务端 RSA 公钥已轮换，需新版客户端里的当前公钥才能恢复 |
 | `huayi.js` | 华谊 | HyProto（与河豚同族：同密钥、同后端 43.240.158.154:18004）；配置 + zone 本机实测通，模拟链路全通 |

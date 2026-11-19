@@ -98,9 +98,9 @@
       "type": "script"
     },
     {
-      "key": "joeshu.piandi",
-      "name": "懂片帝",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/piandi.js?v=1",
+      "key": "joeshu.hawk.dongpian",
+      "name": "[通过]懂片帝（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/dongpian.py",
       "type": "script"
     },
     {
