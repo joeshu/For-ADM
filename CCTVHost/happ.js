@@ -81,6 +81,9 @@ SiteAdapter.prototype.decode=function(response){
  var out=decB64(text);
  if(!out){try{var inner=C.enc.Utf8.stringify(C.enc.Base64.parse(text));out=decB64(inner);}catch(_){}}
  if(!out){try{var latin=C.enc.Latin1.parse(text);var clear2=C.AES.decrypt({ciphertext:latin},key,opts).toString(C.enc.Utf8);out=JSON.parse(clear2);}catch(_){}}
+ function scanBytes(words){var hex;try{hex=C.enc.Hex.stringify(words);}catch(_){return null;}for(var off=0;off<16;off++){var cut=hex.slice(off*2);cut=cut.slice(0,Math.floor(cut.length/32)*32);if(cut.length<32)break;try{var clr=C.AES.decrypt({ciphertext:C.enc.Hex.parse(cut)},key,opts).toString(C.enc.Utf8);return JSON.parse(clr);}catch(_){}}return null;}
+ if(!out){try{out=scanBytes(C.enc.Base64.parse(text));}catch(_){}}
+ if(!out){try{out=scanBytes(C.enc.Latin1.parse(text));}catch(_){}}
  if(out)return out;
  throw Error(Source.name+'加密响应格式已变化');
 };
