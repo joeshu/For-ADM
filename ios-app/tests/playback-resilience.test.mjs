@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import{createRequire}from'node:module';
-import {resolvePlayableEpisode,matchingEpisode,verifyMedia,prioritizeMediaCandidates,selectBestMasterVariant,parseMasterVariants}from'../Web/playback.mjs';import {SiteClient,ServiceError}from'../Web/site-api.mjs';
+import {resolvePlayableEpisode,matchingEpisode,samePlaybackTimeline,verifyMedia,prioritizeMediaCandidates,selectBestMasterVariant,parseMasterVariants}from'../Web/playback.mjs';import {SiteClient,ServiceError}from'../Web/site-api.mjs';
 globalThis.CryptoJS=createRequire(import.meta.url)('../Web/vendor/crypto-js.js');
 const body=s=>({status:200,bodyBase64:Buffer.from(s).toString('base64')}),json=x=>body(JSON.stringify(x));const hls=body('#EXTM3U\n#EXTINF:5,\nsegment.ts\n');
 const episode=(id,title,url,open=true)=>({id,title,open,playUrls:[{url}]});
@@ -9,6 +9,17 @@ test('A TLS failure switches to the same numbered episode and retains original r
  const first=episode(1,'第02集','https://broken.example/v.m3u8'),other=episode(2,'第2集','https://good.example/v.m3u8',false);first.timelineId=other.timelineId='episode:2';const d={id:9,playSources:[{siteId:1,name:'坏线路',list:[first]},{siteId:2,name:'好线路',list:[other]}]};let authorized=0;
  const c={site,play:async p=>{authorized++;assert.equal(p.episodeId,2);return[{url:'https://good.example/v.m3u8'}]},transport:async r=>{assert.equal(r.headers.Referer,site.origin+'/');if(r.url.includes('broken')){const e=Error('bad certificate');e.code=-1202;throw e;}return hls;}};
  const r=await resolvePlayableEpisode(c,d,0,0);assert.equal(r.lineIndex,1);assert.equal(r.episode.id,2);assert.equal(authorized,1);assert.equal(r.switched,true);assert.ok(typeof r.latencyMs==='number');
+});
+test('Legacy source lines with independent episode IDs still match by episode number',async()=>{
+ const first=episode(6947422,'第1集','https://broken.example/v.m3u8',false),other=episode(838888,'第01集','https://good.example/v.m3u8',false);
+ const d={id:9,playSources:[{siteId:1,name:'过期线路',list:[first]},{siteId:2,name:'可用线路',list:[other]}]};let playRequests=0;
+ const c={site,play:async({siteId})=>{playRequests++;return[{url:siteId===1?first.playUrls[0].url:other.playUrls[0].url}]},transport:async r=>{if(r.url.includes('broken')){const e=Error('certificate mismatch');e.code=-1202;throw e;}return hls;}};
+ assert.equal(samePlaybackTimeline(first,other),true);
+ const result=await resolvePlayableEpisode(c,d,0,0);assert.equal(result.lineIndex,1);assert.equal(result.episode.id,other.id);assert.equal(playRequests,2);
+});
+test('Explicitly different timeline IDs and episode numbers never cross-match',()=>{
+ assert.equal(samePlaybackTimeline({title:'第1集',timelineId:'asset-a'},{title:'第01集',timelineId:'asset-b'}),false);
+ assert.equal(samePlaybackTimeline({title:'第1集',index:0},{title:'第2集',index:0}),false);
 });
 test('Unmatched episode titles are skipped instead of using an unrelated array index',async()=>{
  assert.equal(matchingEpisode({id:3,title:'第03集'},[{id:4,title:'第04集'}]),-1);

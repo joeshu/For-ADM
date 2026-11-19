@@ -80,6 +80,28 @@ export function samePlaybackTimeline(left,right){
   if(!assetMatch)return false;
   return true;
  }
+ // The first three legacy catalogs issue a different episode ID and URL for
+ // every playback line, without publishing any cross-line media identity.
+ // Their lines are already scoped to the same movie detail; episode labels
+ // are the only stable key. Normalize 第01集 / 第1集 while still honoring
+ // explicit timeline or asset IDs above when the service provides them.
+ const hasExplicitIdentity=[...primaryTimelineFields,...assetIdentityFields].some(field=>
+  [left[field],right[field]].some(value=>value!=null&&String(value).trim())
+ );
+ if(!hasExplicitIdentity){
+  const number=item=>{
+   const match=String(item?.title||'').trim().toLowerCase().replace(/\s+/g,'').match(/^(?:第|ep(?:isode)?[._-]?)?0*(\d+)(?:集|话|期)?$/);
+   return match?Number(match[1]):null;
+  };
+  const leftNumber=number(left),rightNumber=number(right);
+  if(leftNumber!==null&&rightNumber!==null)return leftNumber===rightNumber;
+  const leftTitle=String(left.title||'').trim().toLowerCase().replace(/\s+/g,'');
+  const rightTitle=String(right.title||'').trim().toLowerCase().replace(/\s+/g,'');
+  if(leftTitle&&leftTitle===rightTitle)return true;
+  const leftIndex=Number(left.index),rightIndex=Number(right.index);
+  if(left.index!=null&&right.index!=null&&leftTitle&&rightTitle&&leftNumber===null&&rightNumber===null&&
+    Number.isInteger(leftIndex)&&leftIndex>=0&&leftIndex===rightIndex)return true;
+ }
  const leftURLs=new Set(playbackURLs(left).map(item=>item.url));
  return playbackURLs(right).some(item=>leftURLs.has(item.url));
 }
