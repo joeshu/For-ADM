@@ -76,7 +76,13 @@ SiteAdapter.prototype.decode=function(response){
  var raw;try{raw=C.enc.Utf8.stringify(C.enc.Base64.parse(text));}catch(_){raw=text;}
  try{return JSON.parse(raw);}catch(_){}
  var entry=Source.responseKeys&&Source.responseKeys[0];if(!entry)throw Error(Source.name+'返回数据无法识别');
- try{var cipher=C.enc.Base64.parse(text);var clear=C.AES.decrypt({ciphertext:cipher},C.enc.Utf8.parse(entry.key),{iv:C.enc.Utf8.parse(entry.iv),mode:C.mode.CBC,padding:C.pad.Pkcs7}).toString(C.enc.Utf8);return JSON.parse(clear);}catch(_){throw Error(Source.name+'加密响应格式已变化');}
+ var key=C.enc.Utf8.parse(entry.key),opts={iv:C.enc.Utf8.parse(entry.iv),mode:C.mode.CBC,padding:C.pad.Pkcs7};
+ function decB64(t){try{var clear=C.AES.decrypt({ciphertext:C.enc.Base64.parse(t)},key,opts).toString(C.enc.Utf8);return JSON.parse(clear);}catch(_){return null;}}
+ var out=decB64(text);
+ if(!out){try{var inner=C.enc.Utf8.stringify(C.enc.Base64.parse(text));out=decB64(inner);}catch(_){}}
+ if(!out){try{var latin=C.enc.Latin1.parse(text);var clear2=C.AES.decrypt({ciphertext:latin},key,opts).toString(C.enc.Utf8);out=JSON.parse(clear2);}catch(_){}}
+ if(out)return out;
+ throw Error(Source.name+'加密响应格式已变化');
 };
 SiteAdapter.prototype.build=async function(base,path,params,method){
  var C=SiteCrypto(),dev=await this.deviceInfo(),get=method==='GET',user=siteUser;
@@ -91,7 +97,7 @@ SiteAdapter.prototype.build=async function(base,path,params,method){
  return {url:url,method:method,headers:headers,body:get?undefined:JSON.stringify(data)};
 };
 SiteAdapter.prototype.requestAt=async function(base,path,params,kind,method){
- var req=await this.build(base,path,params,method||'GET'),res=method==='POST'?await CCTVHttp.post(req.url,req.body,{headers:req.headers}):await CCTVHttp.get(req.url,{headers:req.headers});
+ var req=await this.build(base,path,params,method||'GET'),res=method==='POST'?await CCTVHttp.post(req.url,req.body,{headers:req.headers,buffer:1}):await CCTVHttp.get(req.url,{headers:req.headers,buffer:1});
  var status=Number(res.statusCode||res.status||200),data=this.decode(res);
  if(status<200||status>=300)throw Object.assign(Error(data&&data.message||Source.name+'请求失败（HTTP '+status+'）'),{code:Number(data&&data.code)||status});
  if(data&&data.code!=null&&Number(data.code)!==200&&String(data.code)!=='200')throw Object.assign(Error(data.message||Source.name+'拒绝了请求'),{code:data.code});
