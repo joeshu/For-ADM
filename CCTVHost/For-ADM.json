@@ -290,12 +290,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.shortfilm",
-      "name": "短剧（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/shortfilm.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.qixing",
       "name": "七星短剧（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/qixing.py",
