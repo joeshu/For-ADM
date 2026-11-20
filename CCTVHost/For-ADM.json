@@ -698,12 +698,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.qimaoduanjuviperpojie",
-      "name": "[通过]七貓短劇VIP二破解（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/qimaoduanjuviperpojie.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.qingniuyingshi",
       "name": "[通过]青牛影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/qingniuyingshi.py",
