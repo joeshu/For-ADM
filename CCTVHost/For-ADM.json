@@ -386,12 +386,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.juzi",
-      "name": "橘汁（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/juzi.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.1234yingshi",
       "name": "[通过]1234影视（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/1234yingshi.py",
@@ -897,12 +891,6 @@
       "key": "joeshu.hawk.blibli",
       "name": "[通过]B里B里（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/blibli.py",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.hawk.chiguawang",
-      "name": "[通过]吃瓜网（18+）（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/chiguawang.py",
       "type": "script"
     },
     {

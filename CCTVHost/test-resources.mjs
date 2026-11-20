@@ -51,13 +51,13 @@ const pythonSources=[
   ['bilizhibo','哔哩直播'],['duoduo1920','多多1920'],['yangkuyun','央库云'],
   ['yangshi','央视'],['yangshiyingshi','央视影视'],['miaokan','妙看'],
   ['yingtan4k','影探4K'],['xingya','星芽短剧'],['guazi','瓜子影视'],
-  ['juzi','橘汁'],['1234yingshi','[通过]1234影视'],
+  ['1234yingshi','[通过]1234影视'],
   ['28duanju','[通过]28短剧'],['57duanju','[通过]57短剧'],['618','[通过]618（18+）'],
   ['99yingshitv261030','[通过]99影視TV261030'],['aikanjiqiren','[通过]爱看机器人'],['animesex','[通过]AnimeSex（18+）'],
   ['avgc9','[通过]AVGC9（18+）'],['avjoy','[通过]avjoy（18+）'],
   ['baipiaozhiwang','[通过]白嫖之王（18+）'],['bajieyingshi','[通过]八戒影视'],
   ['bilizhibo2','[通过]哔哩直播'],['blibli','[通过]B里B里（18+）'],['cam4zhibo','[通过]Cam4直播'],
-  ['cat3movie','[通过]cat3movie'],['chabeihu2','[通过]茶杯狐'],['chiguawang','[通过]吃瓜网（18+）'],
+  ['cat3movie','[通过]cat3movie'],['chabeihu2','[通过]茶杯狐'],
   ['daishuyingshi','[通过]袋鼠影视'],['damahou','[通过]大马猴'],['dianyingtiantang','[通过]电影天堂'],
   ['diekayingshi','[通过]蝶卡影视'],['duanjudaquan','[通过]短剧大全'],['duboku','[通过]独播库'],
   ['duoduoyingshi','[通过]多多影视'],['duonaoyingyuan','[通过]多瑙影院'],
@@ -100,7 +100,7 @@ const jarSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-eight new SSR sources, no adult sources, one hundred and sixty-six Python sources, two JAR-bridge sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-eight new SSR sources, no adult sources, one hundred and sixty-four Python sources, two JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -436,4 +436,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 205 entries (including one hundred and sixty-six Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-six JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 203 entries (including one hundred and sixty-four Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-six JavaScript sources.');
