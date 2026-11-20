@@ -29,7 +29,7 @@ const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
  * 飞娱只跑通 mock（host 本机不通），文件暂存工作区未入库；1905、
  * 厂长影视、果果短剧、橘汁 AppDrama、瓜子影视 native 未解出。
  * 2026-11-14 1905 应用户要求直接装入订阅（m1905.js），由用户 iPhone 实测播放。 */
-const newNames=['tegou','fdzy','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe','wangzi','juquan99','banri99','yiqi','hanquan','xiqu','weiguan','bashi','guluapp','hema','m1905'];
+const newNames=['tegou','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe','wangzi','juquan99','banri99','yiqi','hanquan','xiqu','weiguan','bashi','guluapp','hema','m1905'];
 /* 2026-11-12 曾新增 7 组站的 10 个 18+ 成人适配器（黑桃/鬼片/野果/剧果/
  * 禁果/笔盒/黄果/红果黄剧/黄果剧场/帝果），2026-11-13 按用户要求全部从订阅
  * 移除；适配器文件已于同日从仓库删除，只能从 git 历史找回。 */
@@ -62,7 +62,7 @@ const pythonSources=[
   ['diekayingshi','[通过]蝶卡影视'],['duanjudaquan','[通过]短剧大全'],['duboku','[通过]独播库'],
   ['duoduoyingshi','[通过]多多影视'],['duonaoyingyuan','[通过]多瑙影院'],
   ['elaopingguo','[通过]E佬苹果'],['epornerdazhan','[通过]eporner大站（18+）'],
-  ['fandaziyingshi','[通过]饭搭子影视'],['fantuanyingshi','[通过]饭团影视'],
+  ['fantuanyingshi','[通过]饭团影视'],
   ['feikuaitv','[通过]飞快TV'],['getav','[通过]getav（18+）'],['guazi2','[通过]瓜子'],
   ['guaziapp','[通过]瓜子APP'],['guazi3','[通过]瓜子原生'],['guoguoduanju','[通过]果果短剧'],['hamigua','[通过]哈密瓜'],
   ['hanime','[通过]hanime（18+）'],['hemaduanju','[通过]河马短剧'],['hemajuchang','[通过]河马剧场1'],['hemajuchang2','[通过]河马剧场2'],['hongguo','[通过]红果短剧'],['dsxyuansheng','[通过]大师兄原生'],['bocaiyuan','[通过]菠菜园'],
@@ -100,7 +100,7 @@ const jarSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-eight new SSR sources, no adult sources, one hundred and sixty-three Python sources, two JAR-bridge sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-seven new SSR sources, no adult sources, one hundred and sixty-two Python sources, two JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -436,4 +436,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 202 entries (including one hundred and sixty-three Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-six JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 200 entries (including one hundred and sixty-two Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-five JavaScript sources.');

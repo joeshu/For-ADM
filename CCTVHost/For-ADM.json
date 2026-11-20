@@ -56,12 +56,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.fdzy",
-      "name": "饭搭子影视",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/fdzy.js?v=1",
-      "type": "script"
-    },
-    {
       "key": "joeshu.rejutv",
       "name": "热剧TV",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/rejutv.js?v=1",
@@ -497,12 +491,6 @@
       "key": "joeshu.hawk.elaopingguo",
       "name": "[通过]E佬苹果（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/elaopingguo.py",
-      "type": "script"
-    },
-    {
-      "key": "joeshu.hawk.fandaziyingshi",
-      "name": "[通过]饭搭子影视（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/fandaziyingshi.py",
       "type": "script"
     },
     {
