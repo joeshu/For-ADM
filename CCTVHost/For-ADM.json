@@ -488,12 +488,6 @@
       "type": "script"
     },
     {
-      "key": "joeshu.hawk.fantuanyingshi",
-      "name": "[通过]饭团影视（PY）",
-      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/fantuanyingshi.py",
-      "type": "script"
-    },
-    {
       "key": "joeshu.hawk.feikuaitv",
       "name": "[通过]飞快TV（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/feikuaitv.py",

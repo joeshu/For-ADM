@@ -62,7 +62,6 @@ const pythonSources=[
   ['diekayingshi','[通过]蝶卡影视'],['duanjudaquan','[通过]短剧大全'],['duboku','[通过]独播库'],
   ['duoduoyingshi','[通过]多多影视'],['duonaoyingyuan','[通过]多瑙影院'],
   ['elaopingguo','[通过]E佬苹果'],['epornerdazhan','[通过]eporner大站（18+）'],
-  ['fantuanyingshi','[通过]饭团影视'],
   ['feikuaitv','[通过]飞快TV'],['getav','[通过]getav（18+）'],['guazi2','[通过]瓜子'],
   ['guaziapp','[通过]瓜子APP'],['guazi3','[通过]瓜子原生'],['guoguoduanju','[通过]果果短剧'],['hamigua','[通过]哈密瓜'],
   ['hanime','[通过]hanime（18+）'],['hemaduanju','[通过]河马短剧'],['hemajuchang','[通过]河马剧场1'],['hemajuchang2','[通过]河马剧场2'],['hongguo','[通过]红果短剧'],['dsxyuansheng','[通过]大师兄原生'],['bocaiyuan','[通过]菠菜园'],
@@ -100,7 +99,7 @@ const jarSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-seven new SSR sources, no adult sources, one hundred and sixty-one Python sources, two JAR-bridge sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-seven new SSR sources, no adult sources, one hundred and sixty Python sources, two JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -436,4 +435,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 199 entries (including one hundred and sixty-one Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-five JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 198 entries (including one hundred and sixty Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-five JavaScript sources.');
