@@ -29,7 +29,7 @@ const names=['kkapp','ncat','happ','yqk','qntv','dyls','souju','kanju'];
  * 飞娱只跑通 mock（host 本机不通），文件暂存工作区未入库；1905、
  * 厂长影视、果果短剧、橘汁 AppDrama、瓜子影视 native 未解出。
  * 2026-11-14 1905 应用户要求直接装入订阅（m1905.js），由用户 iPhone 实测播放。 */
-const newNames=['tegou','rejutv','nongmin','yingxiang','jianpian','sikv4k','luoxue','hetun','xpg','huayi','bubu','huazi','ikanbot','jili','xingchen','fanshe','wangzi','juquan99','banri99','yiqi','hanquan','xiqu','weiguan','bashi','guluapp','hema','m1905'];
+const newNames=['nongmin','yingxiang','jianpian','sikv4k','luoxue','bubu','huazi','ikanbot','jili','fanshe','wangzi','juquan99','banri99','yiqi','weiguan','bashi','hema'];
 /* 2026-11-12 曾新增 7 组站的 10 个 18+ 成人适配器（黑桃/鬼片/野果/剧果/
  * 禁果/笔盒/黄果/红果黄剧/黄果剧场/帝果），2026-11-13 按用户要求全部从订阅
  * 移除；适配器文件已于同日从仓库删除，只能从 git 历史找回。 */
@@ -42,13 +42,13 @@ const adultNames=[];
  * 茶杯狐、麒麟影视、哔哩直播）靠 [通过] 前缀区分；看剧AI 有两个
  * 不同文件，[影]看剧AI.py 用 [通过]看剧AI，看剧AI.py 用 [通过]看剧AI2。） */
 const pythonSources=[
-  ['duoduo','多多影视'],['fengshang','风尚影视'],['junnian','君念影院'],
+  ['duoduo','多多影视'],['junnian','君念影院'],
   ['chabeihu','茶杯狐'],['dida','嘀嗒影视'],['douhua','豆花影视'],
-  ['qilin','麒麟影视'],['nunu','努努影院'],['ystj','影视追剧'],
+  ['qilin','麒麟影视'],['nunu','努努影院'],
   ['dsxys8','大师兄影音'],['aigua','爱瓜TV'],['bubuzhuiju','布布追剧'],
   ['qixing','七星短剧'],['qimao','七猫短剧'],
   ['shijietingshu','世界听书'],['juxiafan','剧下饭'],['gulu','咕噜'],
-  ['bilizhibo','哔哩直播'],['duoduo1920','多多1920'],['yangkuyun','央库云'],
+  ['duoduo1920','多多1920'],['yangkuyun','央库云'],
   ['yangshi','央视'],['yangshiyingshi','央视影视'],['miaokan','妙看'],
   ['yingtan4k','影探4K'],['xingya','星芽短剧'],['guazi','瓜子影视'],
   ['1234yingshi','[通过]1234影视'],
@@ -56,7 +56,7 @@ const pythonSources=[
   ['99yingshitv261030','[通过]99影視TV261030'],['aikanjiqiren','[通过]爱看机器人'],['animesex','[通过]AnimeSex（18+）'],
   ['avgc9','[通过]AVGC9（18+）'],['avjoy','[通过]avjoy（18+）'],
   ['baipiaozhiwang','[通过]白嫖之王（18+）'],['bajieyingshi','[通过]八戒影视'],
-  ['bilizhibo2','[通过]哔哩直播'],['blibli','[通过]B里B里（18+）'],['cam4zhibo','[通过]Cam4直播'],
+  ['blibli','[通过]B里B里（18+）'],['cam4zhibo','[通过]Cam4直播'],
   ['cat3movie','[通过]cat3movie'],['chabeihu2','[通过]茶杯狐'],
   ['daishuyingshi','[通过]袋鼠影视'],['damahou','[通过]大马猴'],['dianyingtiantang','[通过]电影天堂'],
   ['diekayingshi','[通过]蝶卡影视'],['duanjudaquan','[通过]短剧大全'],['duboku','[通过]独播库'],
@@ -65,14 +65,14 @@ const pythonSources=[
   ['feikuaitv','[通过]飞快TV'],['getav','[通过]getav（18+）'],['guazi2','[通过]瓜子'],
   ['guaziapp','[通过]瓜子APP'],['guazi3','[通过]瓜子原生'],['guoguoduanju','[通过]果果短剧'],['hamigua','[通过]哈密瓜'],
   ['hanime','[通过]hanime（18+）'],['hemaduanju','[通过]河马短剧'],['hemajuchang','[通过]河马剧场1'],['hemajuchang2','[通过]河马剧场2'],['hongguo','[通过]红果短剧'],['dsxyuansheng','[通过]大师兄原生'],['bocaiyuan','[通过]菠菜园'],
-  ['huangdouduanju','[通过]黄豆短剧（18+）'],['huayiyingshi','[通过]华谊影视'],
+  ['huangdouduanju','[通过]黄豆短剧（18+）'],
   ['hudieyingyuan','[通过]蝴蝶影院'],['hudieyingyuanneizhiquguanggaoanzhuobanben','[通过]蝴蝶影院（内置去广告）安卓版本'],['javday','[通过]JavDay（18+）'],
   ['javheo','[通过]javheo（18+）'],['jingdianlaopian','[通过]经典老片（18+）'],['jinpaiapp','[通过]金牌APP'],
   ['jinpaiapphuashiyingyuan','[通过]金牌APP-华视影院'],['jinpaiyingyuan','[通过]金牌影院'],['jiuheyi','[通过]九合一（18+）'],
-  ['juyingyunbo','[通过]巨婴云播（18+）'],['juzhishipin','[通过]橘汁视频'],['kafeizhibo','[通过]咖啡直播'],
+  ['juyingyunbo','[通过]巨婴云播（18+）'],['kafeizhibo','[通过]咖啡直播'],
   ['kaiduanyingshi','[通过]开端影视'],['kanjuai','[通过]看剧AI'],
   ['kanjuai19','[通过]看剧AI19'],['kanjuai2','[通过]看剧AI2'],['kanxiyingshi','[通过]看戏影视'],
-  ['keke','[通过]可可'],['kekeyingshi','[通过]可可影视'],['krx18','[通过]krx18（18+）'],['kxyy','[需手机测]开心影院'],
+  ['keke','[通过]可可'],['kekeyingshi','[通过]可可影视'],['kxyy','[需手机测]开心影院'],
   ['madouai','[通过]麻豆AI（18+）'],['maiduidui','[通过]埋堆堆'],
   ['meibushengshoumianfan','[通过]美不胜收（免翻）（18+）'],['mifan','[通过]米饭'],
   ['missavmianfan','[通过]Missav（免翻）（18+）'],['missavquanfenleiban','[通过]missav全分类版（18+）'],['mofayingshi','[通过]魔法影视'],
@@ -84,9 +84,9 @@ const pythonSources=[
   ['shequ','[通过]社区（18+）'],['shijueyingyuan','[通过]视觉影院'],
   ['shoujizhushou','[通过]手鸡助手（18+）'],['sweetpornos','[通过]sweetpornos（18+）'],
   ['tmdbduoxianyingshi','[通过]TMDB多线影视'],['trendypornus','[通过]trendypornUS（18+）'],
-  ['wanwushequ','[通过]玩物社区（18+）'],['wanwushequt3v15','[通过]玩物社区_T3v1.5（18+）'],
+  ['wanwushequ','[通过]玩物社区（18+）'],
   ['wushengduanju','[通过]悟圣短剧'],['xianyuyingshi','[通过]咸鱼影视'],['xiaopingguo','[通过]小苹果'],
-  ['xifuduanju','[通过]喜福短剧'],['xingmengasmr','[通过]星梦Asmr（18+）'],['xinxinyingshi','[通过]欣欣影视'],
+  ['xifuduanju','[通过]喜福短剧'],['xingmengasmr','[通过]星梦Asmr（18+）'],
   ['xx9yiguoyanzheng','[通过]xx9已过验证（18+）'],['yegouxinshi','[通过]夜勾心事（18+）'],['yeguoduanju','[通过]野果短剧'],
   ['yiqishua','[通过]一起刷'],
   ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视'],['youkutengxunmangguo','[通过]优酷·腾讯·芒果三擎聚合'],
@@ -99,7 +99,7 @@ const jarSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, twenty-seven new SSR sources, no adult sources, one hundred and sixty Python sources, two JAR-bridge sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, seventeen new SSR sources, no adult sources, one hundred and fifty-one Python sources, two JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -435,4 +435,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 198 entries (including one hundred and sixty Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the thirty-five JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 179 entries (including one hundred and fifty-one Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the twenty-five JavaScript sources.');
