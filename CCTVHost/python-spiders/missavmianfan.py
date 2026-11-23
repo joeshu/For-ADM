@@ -73,8 +73,6 @@ class Spider(SpiderBase):
 
         # 4. 忽略 SSL 证书校验，保障请求畅通
         self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
 
         # 5. Cookie 容器
         self.cj = http.cookiejar.CookieJar()

@@ -238,6 +238,7 @@ class Spider(BaseSpider):
         self._classes_cache = None
         self._pic_cache = {}
         self._pic_size = 0
+        self._play_vid = ""
 
     # ---------- 加密/鉴权工具 ----------
     @staticmethod
@@ -585,13 +586,16 @@ class Spider(BaseSpider):
             m = re.search(r"[?&]vid=([^&]+)", url)
             vid = m.group(1) if m else (self._play_vid or "")
         if not vid:
-            return _pack(200, "application/vnd.apple.mpegurl", "")
+            return _pack(404, "text/plain", b"no vid")
         try:
             m3 = self._m3u8(vid)
+            if not m3 or not m3.lstrip("\ufeff \r\n\t").startswith("#EXTM3U"):
+                # 上游返回的不是清单（如 {"code":1018} 错误 JSON），按失败处理
+                return _pack(404, "text/plain", b"m3u8 empty")
             return _pack(200, "application/vnd.apple.mpegurl", m3.encode("utf-8"),
                          {"User-Agent": self.ua})
         except Exception:
-            return _pack(200, "application/vnd.apple.mpegurl", "")
+            return _pack(404, "text/plain", b"m3u8 empty")
 
     def destroy(self):
         pass

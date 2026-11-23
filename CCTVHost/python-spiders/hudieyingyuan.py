@@ -37,8 +37,6 @@ class Spider(SpiderBase):
         self.options = {}
 
         self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
 
         self.cj = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(

@@ -73,7 +73,7 @@ class Spider(BaseSpider):
     def _get(self, url):
         for _ in range(2):
             try:
-                r = self.session.get(url, headers=self.headers, timeout=TIMEOUT, verify=False, proxies=self._proxies())
+                r = self.session.get(url, headers=self.headers, timeout=TIMEOUT, proxies=self._proxies())
                 if r.status_code == 200:
                     return r.text
             except Exception:

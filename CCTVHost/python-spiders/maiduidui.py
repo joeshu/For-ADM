@@ -187,7 +187,6 @@ class MddApi:
                         self._api + path,
                         json=body,
                         timeout=timeout,
-                        verify=False,
                         headers={"Content-Type": "application/json;charset=UTF-8"},
                     )
                 except Exception as e:
@@ -247,7 +246,6 @@ class Spider(_Base):
             "Referer": HOST_CANDIDATES[0] + "/",
             "Connection": "keep-alive",
         })
-        self.session.verify = False
         adapter = HTTPAdapter(pool_connections=8, pool_maxsize=16, max_retries=0, pool_block=False)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
@@ -313,7 +311,7 @@ class Spider(_Base):
                 return self._host
         for h in HOST_CANDIDATES:
             try:
-                r = self.session.get(h + "/", timeout=TIMEOUT_API, verify=False)
+                r = self.session.get(h + "/", timeout=TIMEOUT_API)
                 if r.status_code == 200 and "埋堆堆" in r.text[:200000]:
                     with self._lock:
                         self._host = h
@@ -815,14 +813,14 @@ class Spider(_Base):
         try:
             if ".m3u8" in url.lower():
                 r = self.session.get(url, headers={"User-Agent": UA, "Range": "bytes=0-0"},
-                                     timeout=5, verify=False, stream=True)
+                                     timeout=5, stream=True)
                 code = r.status_code
                 try:
                     r.close()
                 except Exception:
                     pass
                 return 200 <= code < 400
-            r = self.session.head(url, headers={"User-Agent": UA}, timeout=5, verify=False)
+            r = self.session.head(url, headers={"User-Agent": UA}, timeout=5)
             return 200 <= r.status_code < 400
         except Exception:
             return False

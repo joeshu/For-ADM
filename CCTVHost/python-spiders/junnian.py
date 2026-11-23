@@ -26,7 +26,6 @@ except ImportError:
         except Exception:
             pass
         _session = _rq.Session()
-        _session.verify = False
         _session.headers.update({"Connection": "keep-alive"})
 
         class Spider:
@@ -47,8 +46,6 @@ except ImportError:
             def fetch(self, url, headers=None, **kw):
                 timeout = kw.pop('timeout', 15)
                 ctx = _ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = _ssl.CERT_NONE
                 req = _ur.Request(url, headers=headers or {})
                 return _FakeResp(_ur.urlopen(req, timeout=timeout, context=ctx).read())
 
@@ -260,8 +257,6 @@ class Spider(Spider):
         try:
             import urllib.request as ur, ssl
             ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
             req = ur.Request(url, headers={"User-Agent": UA})
             data = ur.urlopen(req, timeout=timeout, context=ctx).read()
             return json.loads(data.decode('utf-8', 'ignore'))

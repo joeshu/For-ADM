@@ -48,7 +48,7 @@ class Spider(Spider):
     def init(self, extend=""):
         global HOST
         try:
-            r = _SES.get(HOST, headers={"User-Agent": UA}, verify=False, timeout=(3050, 15000))
+            r = _SES.get(HOST, headers={"User-Agent": UA}, timeout=(3050, 15000))
             if hasattr(r, 'url') and r.url and r.url != HOST.rstrip("/"):
                 HOST = r.url.rstrip("/")
         except:
@@ -59,7 +59,7 @@ class Spider(Spider):
         for k, v in CATEGORIES.items():
             r["class"].append({"type_id": k, "type_name": v})
         try:
-            resp = _SES.get(HOST, headers={"User-Agent": UA}, verify=False, timeout=(3050, 15000))
+            resp = _SES.get(HOST, headers={"User-Agent": UA}, timeout=(3050, 15000))
             html = resp.text if hasattr(resp, 'text') else str(resp)
             r["list"] = self._items(html)
         except:
@@ -68,7 +68,7 @@ class Spider(Spider):
 
     def homeVideoContent(self):
         try:
-            r = _SES.get(HOST, headers={"User-Agent": UA}, verify=False, timeout=(3050, 15000))
+            r = _SES.get(HOST, headers={"User-Agent": UA}, timeout=(3050, 15000))
             html = r.text if hasattr(r, 'text') else str(r)
             return {"list": self._items(html)}
         except:
@@ -83,7 +83,7 @@ class Spider(Spider):
         cat = str(tid)
         try:
             url = f"{HOST}{cat}" + (f"/page/{pn}" if pn > 1 else "")
-            r = _SES.get(url, headers={"User-Agent": UA}, verify=False, timeout=(3050, 25000))
+            r = _SES.get(url, headers={"User-Agent": UA}, timeout=(3050, 25000))
             html = r.text if hasattr(r, 'text') else str(r)
             txt = self._rsc(html)
             items = self._items(html, txt)
@@ -113,7 +113,7 @@ class Spider(Spider):
             if _KEY[0]:
                 return _KEY[0]
             try:
-                r = _SES.get(f"{HOST}/fronted/dictionary/by_key?key=img_key", headers={"User-Agent": UA}, verify=False, timeout=10000)
+                r = _SES.get(f"{HOST}/fronted/dictionary/by_key?key=img_key", headers={"User-Agent": UA}, timeout=10000)
                 d = json.loads(r.text)
                 _KEY[0] = d["data"][0]["value"]
             except:
@@ -126,7 +126,7 @@ class Spider(Spider):
         if url in _IMG:
             return _IMG[url]
         try:
-            r = _SES.get(url, headers={"User-Agent": UA}, verify=False, timeout=(3050, 8000))
+            r = _SES.get(url, headers={"User-Agent": UA}, timeout=(3050, 8000))
             data = r.content
             key = self._img_key()
             dec = b""
@@ -172,7 +172,7 @@ class Spider(Spider):
         vid = unquote(unquote(vid))
         url = vid if vid.startswith("http") else urljoin(HOST, vid)
         try:
-            r = _SES.get(url, headers={"User-Agent": UA}, verify=False, timeout=(3050, 25000))
+            r = _SES.get(url, headers={"User-Agent": UA}, timeout=(3050, 25000))
             h = r.text if hasattr(r, 'text') else str(r)
         except:
             return {"list": []}
@@ -215,7 +215,7 @@ class Spider(Spider):
             eps = []
             if pid and rid:
                 try:
-                    r2 = _SES.get(f"{HOST}/fronted/sys_video_resource/detail_list_v2?project_id={pid}&resource_id={rid}", headers={"User-Agent": UA}, verify=False, timeout=(3050, 15000))
+                    r2 = _SES.get(f"{HOST}/fronted/sys_video_resource/detail_list_v2?project_id={pid}&resource_id={rid}", headers={"User-Agent": UA}, timeout=(3050, 15000))
                     data = json.loads(r2.text) if hasattr(r2, 'text') else json.loads(str(r2))
                     for ep in data.get("data", {}).get("video_details") or []:
                         u = ep.get("url") or ep.get("preview") or ""
@@ -249,7 +249,7 @@ class Spider(Spider):
             items = []
             for p in (f"{HOST}/search?q={quote(key)}", f"{HOST}/search?wd={quote(key)}"):
                 try:
-                    r = _SES.get(p, headers={"User-Agent": UA}, verify=False, timeout=55000)
+                    r = _SES.get(p, headers={"User-Agent": UA}, timeout=55000)
                     h = r.text if hasattr(r, 'text') else str(r)
                     items = self._items(h)
                     if items:

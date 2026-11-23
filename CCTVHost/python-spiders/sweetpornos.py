@@ -85,8 +85,6 @@ class Spider(BaseSpider):
         for i in range(retry):
             try:
                 ctx = ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
 
                 req_obj = urllib.request.Request(url, headers=headers)
                 with urllib.request.urlopen(req_obj, timeout=timeout, context=ctx) as resp:
@@ -109,8 +107,6 @@ class Spider(BaseSpider):
             return ""
 
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
 
         try:
             yd_url = "https://aidemo.youdao.com/trans"

@@ -196,7 +196,7 @@ class Spider(_BaseSpider):
         for i in range(tries + 1):
             try:
                 if requests is not None:
-                    r = requests.get(url, headers=headers, timeout=self.timeout, verify=False)
+                    r = requests.get(url, headers=headers, timeout=self.timeout)
                     if r.status_code == 200:
                         r.encoding = r.apparent_encoding or "utf-8"
                         return r.text

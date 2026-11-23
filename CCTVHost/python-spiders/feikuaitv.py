@@ -197,7 +197,7 @@ class Spider(Spider):
         try:
             _r7 = self.fetch(_u5, headers=self._get_header(), timeout=45)
             if not _r7 or not _r7.text:
-                return {"parse": 0, "url": _v7, "header": self._get_header()}
+                return {"parse": 0, "url": "", "header": self._get_header()}
 
             _p3 = r'(?:var\s+)?player_[a-zA-Z0-9_]+\s*=\s*(\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})(?=\s*</script>)'
             _m1 = re.search(_p3, _r7.text, re.S)
@@ -208,10 +208,13 @@ class Spider(Spider):
                 if _v7.startswith('//'):
                     _v7 = 'https:' + _v7
                 if _v7.endswith('.m3u8'):
-                    return {"parse": 1, "url": _v7, "header": self._get_header()}
+                    return {"parse": 0, "url": _v7, "header": self._get_header()}
         except Exception:
             pass
-        return {"parse": 0, "url": _v7, "header": self._get_header()}
+        # 非 m3u8：只有直链媒体后缀才返回，播放页 URL 一律返回 parse:0 空链接
+        if isinstance(_v7, str) and _v7.startswith('http') and _v7.split('?')[0].lower().endswith(('.mp4', '.ts', '.flv', '.mov', '.mkv')):
+            return {"parse": 0, "url": _v7, "header": self._get_header()}
+        return {"parse": 0, "url": "", "header": self._get_header()}
 
     def _parse_item(self, a_element):
         try:

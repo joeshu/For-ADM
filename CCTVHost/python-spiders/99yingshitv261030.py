@@ -11,12 +11,6 @@ import urllib.parse
 import urllib.request
 from base.spider import Spider
 
-try:
-    ssl._create_default_https_context = ssl._create_unverified_context
-except Exception:
-    pass
-
-
 class Spider(Spider):
     def __init__(self):
         self.host = 'https://99itv.cc'
@@ -103,8 +97,6 @@ class Spider(Spider):
                     h['Referer'] = referer
                 req = urllib.request.Request(url, headers=h)
                 ctx = ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
                 with urllib.request.urlopen(req, timeout=self.timeout, context=ctx) as r:
                     raw = r.read()
                     enc = (r.info().get('Content-Encoding') or '').lower()

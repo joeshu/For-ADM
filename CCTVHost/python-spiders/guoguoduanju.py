@@ -77,11 +77,11 @@ except ImportError:
                 def fetch(self, url, headers={}, cookies=""):
                     if not _HAS_REQUESTS:
                         raise RuntimeError('need requests')
-                    return requests.get(url, headers=headers, timeout=15, verify=False)
+                    return requests.get(url, headers=headers, timeout=15)
                 def post(self, url, data, headers={}, cookies={}):
-                    return requests.post(url, data=data, headers=headers, timeout=15, verify=False)
+                    return requests.post(url, data=data, headers=headers, timeout=15)
                 def postJson(self, url, json, headers={}, cookies={}):
-                    return requests.post(url, json=json, headers=headers, timeout=15, verify=False)
+                    return requests.post(url, json=json, headers=headers, timeout=15)
                 def html(self, content):
                     return content
                 def xpText(self, root, expr):
@@ -246,7 +246,7 @@ class Spider(Spider):
         for i in range(self.RETRY + 1):
             try:
                 if _HAS_REQUESTS and self.session is not None:
-                    r = self.session.get(url, timeout=self.TIMEOUT, verify=False)
+                    r = self.session.get(url, timeout=self.TIMEOUT)
                     if r.status_code == 200:
                         return self._aes_decrypt(r.text)
                     self._dbg('GET %d: %s' % (r.status_code, url))
@@ -267,7 +267,7 @@ class Spider(Spider):
         for i in range(self.RETRY + 1):
             try:
                 if _HAS_REQUESTS and self.session is not None:
-                    r = self.session.post(url, data=post_data, timeout=self.TIMEOUT, verify=False)
+                    r = self.session.post(url, data=post_data, timeout=self.TIMEOUT)
                     if r.status_code == 200:
                         return self._aes_decrypt(r.text)
                     self._dbg('POST %d: %s' % (r.status_code, url))
@@ -543,7 +543,7 @@ class Spider(Spider):
         # 非 m3u8/mp4 链接, 尝试从播放页提取
         try:
             if _HAS_REQUESTS and self.session is not None:
-                r = self.session.get(play_url, timeout=self.TIMEOUT, verify=False)
+                r = self.session.get(play_url, timeout=self.TIMEOUT)
                 if r and r.status_code == 200:
                     html = r.text
                     # 正则抠 m3u8

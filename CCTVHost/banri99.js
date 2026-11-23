@@ -264,27 +264,44 @@ async function a99Call(path,bodyObj,tokenOverride,_retried){
     client_type:'android',uuid:A99.uuid,timestamp:ts,sign:sign,nonce:nonce,
     version:A99Site.versionName,api_version:'v1'};
   var r,raw,text,d;
-  try{
-    r=await CCTVHttp.post(A99Site.host+path,enc,{headers:headers,timeout:15000});
-    var status=r.statusCode||r.status;
-    if(status!==200) throw new Error('本站接口暂不可用（HTTP '+status+'）');
-    raw=r.data;
-    if(typeof raw!=='string'||!raw) throw new Error('本站返回了无效数据，请稍后重试');
-    text=a99DecryptText(a99Key(),raw);
-    d=JSON.parse(text);
-    if(!d||typeof d!=='object') throw new Error('本站返回了无效数据，请稍后重试');
-  }catch(e){
-    // A stale saved visitor token (or a rotated uuid) fails decrypt/parse:
-    // drop it, fetch a fresh one, and retry the same call once.
-    if(!_retried&&A99.token&&path.indexOf('/vod/')===0||!_retried&&A99.token&&path==='/app/vodParser'){
+  // A stale saved visitor token (or a rotated uuid) fails decrypt/parse:
+  // drop it, fetch a fresh one, and retry the same call once.
+  async function a99RetryStaleToken(){
+    if(!_retried&&A99.token&&(path.indexOf('/vod/')===0||path==='/app/vodParser')){
       A99.token=''; A99.sessionPromise=null;
       await a99Set('session',{uuid:A99.uuid,token:''});
       await a99EnsureSession();
       return a99Call(path,bodyObj,tokenOverride,true);
     }
-    if(/本站接口暂不可用|本站返回了无效数据/.test(e.message)) throw e;
+    return null;
+  }
+  try{
+    r=await CCTVHttp.post(A99Site.host+path,enc,{headers:headers,timeout:15000});
+  }catch(e){
+    // Transport failure (timeout/DNS/TLS/reset) is NOT a decrypt failure:
+    // the old catch-all relabelled every transport error as
+    // "无法解密的数据", which misdirected diagnosis of home-screen
+    // failures (2026-11-23). Only a real decrypt/JSON failure keeps that
+    // message; anything else reports its own cause.
+    var retriedNet=await a99RetryStaleToken();
+    if(retriedNet) return retriedNet;
+    if(/timed?out|超时/i.test(e&&e.message||'')) throw new Error('本站请求超时，请稍后重试或检查网络');
+    throw new Error('本站网络请求失败，请检查网络后重试');
+  }
+  var status=r.statusCode||r.status;
+  if(status!==200) throw new Error('本站接口暂不可用（HTTP '+status+'）');
+  raw=r.data;
+  if(typeof raw!=='string'||!raw) throw new Error('本站返回了无效数据，请稍后重试');
+  try{
+    text=a99DecryptText(a99Key(),raw);
+    d=JSON.parse(text);
+  }catch(e){
+    var retriedDec=await a99RetryStaleToken();
+    if(retriedDec) return retriedDec;
+    if(/本站返回了无效数据/.test(e&&e.message||'')) throw e;
     throw new Error('本站返回了无法解密的数据，请重新进入组件');
   }
+  if(!d||typeof d!=='object') throw new Error('本站返回了无效数据，请稍后重试');
   return d;
 }
 async function a99EnsureSession(){

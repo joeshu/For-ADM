@@ -155,7 +155,7 @@ class Spider(BaseSpider):
         h = dict(self.headers)
         h.update({"version": self.version, "deviceType": self.device_type, "time": str(ts), "sign": sign, "requestId": rid, "sessionId": self.session_id, "deviceBrand": "", "deviceModel": "", "systemName": "", "systemVersion": ""})
         try:
-            r = self.session.post(self.api + path, data=body, headers=h, timeout=20, verify=False)
+            r = self.session.post(self.api + path, data=body, headers=h, timeout=20)
             r.raise_for_status()
             return self._decode(r.content, rid)
         except Exception:

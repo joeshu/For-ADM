@@ -508,7 +508,7 @@ class Spider(BaseSpider):
         if isinstance(headers, dict):
             req_headers.update(headers)
         req = urllib.request.Request(str(url), headers=req_headers, method='GET')
-        ssl_ctx = ssl._create_unverified_context()
+        ssl_ctx = ssl.create_default_context()
         try:
             ssl_ctx.set_ciphers('DEFAULT:@SECLEVEL=1')
         except Exception:

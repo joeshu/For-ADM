@@ -42,8 +42,6 @@ CATS = [
 ]
 
 CTX = ssl.create_default_context()
-CTX.check_hostname = False
-CTX.verify_mode = ssl.CERT_NONE
 
 TIMEOUT = 30
 

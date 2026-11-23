@@ -42,7 +42,7 @@ class Spider(Spider):
 
     def categoryContent(self, tid, pg, filter, extend):
         if not self.host: return None
-        response = self.fetch(f'{self.host}/user/movie/cms/v1/category?count=20&names={tid}&page={pg}',headers=self.headers, verify=False, timeout=self.timeout).text
+        response = self.fetch(f'{self.host}/user/movie/cms/v1/category?count=20&names={tid}&page={pg}',headers=self.headers, timeout=self.timeout).text
         data = json.loads(self.decrypt(response))['datas']
         videos = self.arr2vods(data)
         return {'list': videos}
@@ -58,7 +58,7 @@ class Spider(Spider):
                 path = f"{self.path['search']}{key}"
         if not path.startswith('http'):
             path = f'{self.host}{path}'
-        response = self.decrypt(self.fetch(path, headers=self.headers, verify=False, timeout=self.timeout).text)
+        response = self.decrypt(self.fetch(path, headers=self.headers, timeout=self.timeout).text)
         response = json.loads(response)
         if 'datas' in response or 'data' in response:
             data = response.get('datas',response.get('data'))
@@ -77,7 +77,7 @@ class Spider(Spider):
             else:
                 path = f"{self.path['detail']}{ids[0]}"
             if not path.startswith('http'): path = f'{self.host}{path}'
-        data = self.decrypt(self.fetch(path,headers=self.headers, verify=False, timeout=self.timeout).text)
+        data = self.decrypt(self.fetch(path,headers=self.headers, timeout=self.timeout).text)
         raw_data = json.loads(data)
         show, play_urls = [], []
         if 'data' in raw_data:

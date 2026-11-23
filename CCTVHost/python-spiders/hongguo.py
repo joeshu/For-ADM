@@ -2417,7 +2417,7 @@ def _get_bytes(url, headers, timeout, max_bytes=8 * 1024 * 1024):
             raw = r.read(max_bytes + 1)
             encoding = str(r.headers.get("Content-Encoding", "") or "").strip().lower()
     except Exception:
-        _ctx = ssl._create_unverified_context()
+        _ctx = ssl.create_default_context()
         with _ureq.urlopen(req, timeout=timeout, context=_ctx) as r:
             raw = r.read(max_bytes + 1)
             encoding = str(r.headers.get("Content-Encoding", "") or "").strip().lower()
@@ -2465,7 +2465,7 @@ def _post_bytes(url, body, headers, timeout, max_bytes=8 * 1024 * 1024):
             raw = r.read(max_bytes + 1)
             encoding = str(r.headers.get("Content-Encoding", "") or "").strip().lower()
     except Exception:
-        _ctx = ssl._create_unverified_context()
+        _ctx = ssl.create_default_context()
         with _ureq.urlopen(req, timeout=timeout, context=_ctx) as r:
             raw = r.read(max_bytes + 1)
             encoding = str(r.headers.get("Content-Encoding", "") or "").strip().lower()
@@ -2599,7 +2599,7 @@ def _fetch_fallback_video_model(fb_url, seed_hint=""):
         with _ureq.urlopen(req, timeout=15) as r:
             raw = r.read(4 * 1024 * 1024)
     except Exception:
-        with _ureq.urlopen(req, timeout=15, context=ssl._create_unverified_context()) as r:
+        with _ureq.urlopen(req, timeout=15, context=ssl.create_default_context()) as r:
             raw = r.read(4 * 1024 * 1024)
     if raw[:2] == b"\x1f\x8b":
         try:
@@ -3670,7 +3670,7 @@ def _decrypt_to_file_impl(vid, want):
             try:
                 resp_cm = _ureq.urlopen(req, timeout=60)
             except Exception:
-                resp_cm = _ureq.urlopen(req, timeout=60, context=ssl._create_unverified_context())
+                resp_cm = _ureq.urlopen(req, timeout=60, context=ssl.create_default_context())
             with resp_cm as r, open(tmp, "wb") as f:
                 _total_dl = 0
                 while True:

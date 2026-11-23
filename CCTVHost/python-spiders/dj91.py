@@ -170,61 +170,96 @@ def _ctx():
     return ctx
 
 
-def _http_get(url, referer=None, timeout=25):
+# P1 超时收紧(2026-11-23): 单请求 5s、最多 1 次重试, 超时不走 urllib 兜底
+# （单次尝试=2×timeout 会让总预算翻倍）；搜索/详情/分类结果 120s 缓存，
+# 分类 600s 缓存。全链路最坏（源全死）：home 20.6s + 其余各 10.3s ≈ 51s < 60s。
+REQ_TIMEOUT = 5
+REQ_RETRIES = 1
+RETRY_SLEEP = 0.3
+API_CACHE_TTL = 120
+CATS_CACHE_TTL = 600
+_API_CACHE = {}
+_CATS_CACHE = None  # (ts, [(cid, name), ...])
+
+
+def _api_cached(path):
+    """带 TTL 的 _api 包装: 同一 path 在 TTL 内直接复用, 减少串行重复请求。"""
+    now = time.time()
+    hit = _API_CACHE.get(path)
+    if hit and now - hit[0] < API_CACHE_TTL:
+        return hit[1]
+    body = _api(path)
+    if isinstance(body, dict) and body:
+        _API_CACHE[path] = (now, body)
+        if len(_API_CACHE) > 64:
+            oldest = min(_API_CACHE, key=lambda k: _API_CACHE[k][0])
+            _API_CACHE.pop(oldest, None)
+    return body
+
+
+def _http_get(url, referer=None, timeout=REQ_TIMEOUT):
     h = {'User-Agent': UA, 'Accept': 'application/json, text/plain, */*', 'Accept-Language': 'zh-CN,zh;q=0.9', 'Accept-Encoding': 'gzip, deflate'}
     if referer:
         h['Referer'] = referer
-    for _ in range(3):
+    for _ in range(REQ_RETRIES + 1):
+        timed_out = False
         if _HAS_REQ:
             try:
                 r = requests.get(url, headers=h, timeout=timeout)
                 if r.status_code == 200 and r.text:
                     return r.text
+            except Exception as e:
+                # 超时不再走 urllib 兜底（否则单次尝试=2×timeout，总预算翻倍）；
+                # 只把非超时异常交给 urllib 再试一次。
+                if 'Timeout' in type(e).__name__ or 'Timeout' in repr(e):
+                    timed_out = True
+        if not timed_out:
+            try:
+                req = urllib.request.Request(url, headers=h)
+                with urllib.request.urlopen(req, timeout=timeout, context=_ctx()) as resp:
+                    data = resp.read()
+                    enc = (resp.headers.get('Content-Encoding') or '').lower()
+                    if enc == 'gzip' or data[:2] == b'\x1f\x8b':
+                        try:
+                            data = gzip.decompress(data)
+                        except Exception:
+                            pass
+                    return data.decode('utf-8', 'replace')
+            except urllib.error.HTTPError as e:
+                try:
+                    return e.read().decode('utf-8', 'ignore')
+                except http.client.IncompleteRead as ie:
+                    return ie.partial.decode('utf-8', 'ignore')
             except Exception:
                 pass
-        try:
-            req = urllib.request.Request(url, headers=h)
-            with urllib.request.urlopen(req, timeout=timeout, context=_ctx()) as resp:
-                data = resp.read()
-                enc = (resp.headers.get('Content-Encoding') or '').lower()
-                if enc == 'gzip' or data[:2] == b'\x1f\x8b':
-                    try:
-                        data = gzip.decompress(data)
-                    except Exception:
-                        pass
-                return data.decode('utf-8', 'replace')
-        except urllib.error.HTTPError as e:
-            try:
-                return e.read().decode('utf-8', 'ignore')
-            except http.client.IncompleteRead as ie:
-                return ie.partial.decode('utf-8', 'ignore')
-        except Exception:
-            pass
-        time.sleep(1)
+        time.sleep(RETRY_SLEEP)
     return ''
 
 
-def _fetch_bytes(url, referer=None, timeout=30):
+def _fetch_bytes(url, referer=None, timeout=10):
     h = {'User-Agent': UA, 'Accept': 'image/*, */*'}
     if referer:
         h['Referer'] = referer
-    for _ in range(3):
+    for _ in range(REQ_RETRIES + 1):
+        timed_out = False
         if _HAS_REQ:
             try:
                 r = requests.get(url, headers=h, timeout=timeout)
                 if r.status_code == 200 and r.content:
                     return r.content
+            except Exception as e:
+                if 'Timeout' in type(e).__name__ or 'Timeout' in repr(e):
+                    timed_out = True
+        if not timed_out:
+            try:
+                req = urllib.request.Request(url, headers=h)
+                with urllib.request.urlopen(req, timeout=timeout, context=_ctx()) as resp:
+                    data = resp.read()
+                    if data:
+                        return data
             except Exception:
                 pass
-        try:
-            req = urllib.request.Request(url, headers=h)
-            with urllib.request.urlopen(req, timeout=timeout, context=_ctx()) as resp:
-                data = resp.read()
-                if data:
-                    return data
-        except Exception:
-            pass
-        time.sleep(1)
+        time.sleep(RETRY_SLEEP)
     return b''
 
 
@@ -333,7 +368,11 @@ class Spider(BaseSpider):
         pass
 
     def _cats(self):
-        body = _api('/config')
+        global _CATS_CACHE
+        now = time.time()
+        if _CATS_CACHE and now - _CATS_CACHE[0] < CATS_CACHE_TTL:
+            return list(_CATS_CACHE[1])
+        body = _api_cached('/config')
         data = body.get('data') if isinstance(body, dict) else None
         ids = []
         if isinstance(data, dict):
@@ -341,7 +380,7 @@ class Spider(BaseSpider):
                 raw = data.get(field) or ''
                 ids += [p.strip() for p in str(raw).split(',') if p.strip()]
         if ids:
-            batch = _api('/categories/batch/%s' % ','.join(ids))
+            batch = _api_cached('/categories/batch/%s' % ','.join(ids))
             bdata = batch.get('data') if isinstance(batch, dict) else None
             lst = None
             if isinstance(bdata, dict):
@@ -359,12 +398,14 @@ class Spider(BaseSpider):
                 if cid and name:
                     out.append((cid, name))
             if out:
+                _CATS_CACHE = (now, list(out))
                 return out
+        _CATS_CACHE = (now, list(CATS))
         return list(CATS)
 
     def _catalog(self, tid, pg):
         path = '/videos?category_id=%s&page=%s&ps=28' % (urllib.parse.quote(tid), pg)
-        body = _api(path)
+        body = _api_cached(path)
         items = _parse_items(body)
         data = body.get('data') if isinstance(body, dict) else None
         total = 0
@@ -437,7 +478,7 @@ class Spider(BaseSpider):
         nid = _norm_id(ids)
         if not nid:
             return {'list': []}
-        body = _api('/movie?id=%s' % urllib.parse.quote(nid))
+        body = _api_cached('/movie?id=%s' % urllib.parse.quote(nid))
         data = body.get('data') if isinstance(body, dict) else None
         info = data.get('info') if isinstance(data, dict) else None
         if not isinstance(info, dict):
@@ -474,7 +515,7 @@ class Spider(BaseSpider):
     def searchContent(self, key, quick=False, pg=1):
         pg = _norm_pg(pg)
         path = '/videos?kw=%s&page=1&ps=13' % urllib.parse.quote(key or '')
-        body = _api(path)
+        body = _api_cached(path)
         items = _parse_items(body)
         return {'list': self._cards(items), 'page': pg, 'pagecount': 0, 'total': 0}
 
@@ -486,7 +527,7 @@ class Spider(BaseSpider):
         m3u8 = ''
         if raw.startswith('http'):
             path = '/parse_video?url=%s' % urllib.parse.quote(raw, safe='')
-            body = _api(path)
+            body = _api_cached(path)
             data = body.get('data') if isinstance(body, dict) else None
             if isinstance(data, dict):
                 m3u8 = data.get('m3u8_url') or ''

@@ -55,8 +55,6 @@ class Spider(_BaseSpider):
         self._cookie_domain = "." + ".".join(parts[-2:]) if len(parts) >= 2 else host
         if self._ssl_ctx is None:
             ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
             self._ssl_ctx = ctx
         if self._session is None:
             s = requests.Session()
@@ -89,8 +87,6 @@ class Spider(_BaseSpider):
     def _ssl(self):
         if self._ssl_ctx is None:
             ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
             self._ssl_ctx = ctx
         return self._ssl_ctx
 

@@ -91,7 +91,7 @@ class Spider(Spider):
         videos = []
         try:
             url = f'{self.site}/channel/1.html'
-            r = self.session.get(url, timeout=15, verify=False)
+            r = self.session.get(url, timeout=15)
             r.encoding = 'utf-8'
             doc = pq(r.text)
             items = doc('.module-item')
@@ -129,7 +129,7 @@ class Spider(Spider):
         page = int(pg) if pg else 1
         try:
             url = f'{self.site}/channel/{tid}.html?page={page}'
-            r = self.session.get(url, timeout=15, verify=False)
+            r = self.session.get(url, timeout=15)
             r.encoding = 'utf-8'
             doc = pq(r.text)
             items = doc('.module-item')
@@ -172,7 +172,7 @@ class Spider(Spider):
             return result
         try:
             url = f'{self.site}/detail/{vid}.html'
-            r = self.session.get(url, timeout=15, verify=False)
+            r = self.session.get(url, timeout=15)
             r.encoding = 'utf-8'
             html = r.text
 
@@ -265,7 +265,7 @@ class Spider(Spider):
             if id and not id.startswith('http'):
                 play_url = self.site + id
 
-            r = self.session.get(play_url, timeout=15, verify=False)
+            r = self.session.get(play_url, timeout=15)
             r.encoding = 'utf-8'
 
             video_url = ''
@@ -323,7 +323,7 @@ class Spider(Spider):
         page = int(pg) if pg else 1
         try:
             search_url = f'{self.site}/search?k={quote(key)}'
-            r = self.session.get(search_url, timeout=15, verify=False)
+            r = self.session.get(search_url, timeout=15)
             r.encoding = 'utf-8'
             t_match = re.search(r'name="t" value="([^"]+)"', r.text)
             t = t_match.group(1) if t_match else ''
@@ -332,7 +332,7 @@ class Spider(Spider):
                 url = f'{self.site}/search?k={quote(key)}&t={quote(t)}'
                 if page > 1:
                     url += f'&page={page}'
-                r = self.session.get(url, timeout=15, verify=False)
+                r = self.session.get(url, timeout=15)
                 r.encoding = 'utf-8'
 
             doc = pq(r.text)

@@ -99,7 +99,7 @@ class Spider(Spider):
         if not url.startswith("http"):
             url = self._domain_get() + url
         try:
-            r = self.session.get(url, timeout=timeout, verify=False)
+            r = self.session.get(url, timeout=timeout)
             if r.status_code != 200:
                 return None
             if is_json:

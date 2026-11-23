@@ -222,8 +222,6 @@ class Spider(BaseSpider):
 
     def _init_opener(self):
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
         handlers = [urllib.request.HTTPSHandler(context=ctx)]
         p = self.proxy or os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
         if p:

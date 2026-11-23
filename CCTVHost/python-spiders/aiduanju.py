@@ -32,8 +32,6 @@ FALLBACK_CATS = [
 ]
 
 CTX = ssl.create_default_context()
-CTX.check_hostname = False
-CTX.verify_mode = ssl.CERT_NONE
 
 CACHE = {}
 CATS_TTL = 3600

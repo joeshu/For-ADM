@@ -40,7 +40,7 @@ def _pick_fastest():
     import ssl
     import threading
     import time
-    ctx = ssl._create_unverified_context()
+    ctx = ssl.create_default_context()
     result = {}
     def _probe(domain):
         try:
@@ -200,7 +200,7 @@ class _ImgHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(400); self.end_headers(); return
         try:
             import ssl
-            ctx = ssl._create_unverified_context()
+            ctx = ssl.create_default_context()
             req = urllib.request.Request(target, headers={
                 "User-Agent": UA, "Referer": HOST + "/",
             })
@@ -292,7 +292,7 @@ class Spider(BaseSpider):
         last_err = None
         for u in urls:
             try:
-                ctx = ssl._create_unverified_context()
+                ctx = ssl.create_default_context()
                 req = urllib.request.Request(u, headers={
                     "User-Agent": UA,
                     "Referer": referer or HOST + "/",

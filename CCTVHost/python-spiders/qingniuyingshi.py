@@ -57,7 +57,7 @@ class Spider(Spider):
 
     def fetch(self, url, timeout=10):
         try:
-            res = self.sess.get(url, headers=self.headers, timeout=timeout, verify=False)
+            res = self.sess.get(url, headers=self.headers, timeout=timeout)
             res.encoding = "utf-8"
             return res
         except Exception as e:
@@ -82,7 +82,7 @@ class Spider(Spider):
         url = self.kj_url + path
         headers = self._kj_sign_headers("GET", path)
         try:
-            resp = self.sess.get(url, headers=headers, timeout=12, verify=False)
+            resp = self.sess.get(url, headers=headers, timeout=12)
             if not resp or resp.status_code != 200:
                 self.log("kj api non-200: " + str(getattr(resp, "status_code", "None")) + " path=" + path)
                 return {}
@@ -149,7 +149,7 @@ class Spider(Spider):
                     resp = self.sess.post(self.kj_url + "/v1/playback/resolve-line",
                                           headers={**self._kj_sign_headers("POST", "/v1/playback/resolve-line"),
                                                    "Content-Type": "application/json"},
-                                          data=json.dumps(payload, ensure_ascii=False), timeout=12, verify=False)
+                                          data=json.dumps(payload, ensure_ascii=False), timeout=12)
                     line_data = json.loads(resp.text) if resp and resp.ok else {}
                     real = (line_data.get("line") or {}).get("url", "")
                 except Exception as e:

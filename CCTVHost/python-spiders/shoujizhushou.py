@@ -22,7 +22,6 @@ except ImportError:
 _proxy_port = 0
 _proxy_started = False
 _proxy_session = requests.Session()
-_proxy_session.verify = False
 
 class _ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     daemon_threads = True
@@ -38,7 +37,7 @@ class _ProxyHandler(BaseHTTPRequestHandler):
             r = _proxy_session.get(real_url, headers={
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Referer': 'https://wknd.sjzstv.sbs/'
-            }, timeout=20, verify=False)
+            }, timeout=20)
             ct = r.headers.get('Content-Type', 'image/jpeg')
             self.send_response(200)
             self.send_header('Content-Type', ct)
@@ -133,7 +132,6 @@ class Spider(BaseSpider):
                     self._log(f'通过 extend 切换域名: {self.HOST}')
             except Exception as e:
                 self._log(f'extend 解析失败: {e}')
-        self.session.verify = False
         self.session.headers.update(self._get_headers())
         _start_proxy()
 

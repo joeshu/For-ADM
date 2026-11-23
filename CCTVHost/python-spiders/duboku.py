@@ -115,7 +115,7 @@ class Spider(Spider):
         return result
 
     def homeVideoContent(self):
-        response = self.fetch(self.sign(f'{self.host}/home'), headers=self.headers, verify=False).json()
+        response = self.fetch(self.sign(f'{self.host}/home'), headers=self.headers).json()
         videos = []
         for i in response:
             for j in i.get('VodList',[]):
@@ -136,7 +136,7 @@ class Spider(Spider):
         pg_str = '' if str(pg) == '1' else str(pg)
         # URL格式: /vodshow/{tid}-{area}-{order}-{class}-{lang}-{letter}-{?}-{?}-{pg}-{?}-{year}
         path = f"{self.host}/vodshow/{tid}-{area}-{order}-{cls}-{lang}----{pg_str}---{year}"
-        response = self.fetch(self.sign(path), headers=self.headers, verify=False).json()
+        response = self.fetch(self.sign(path), headers=self.headers).json()
         videos,pagecount = [], 0
         for i in response['VodList']:
             videos.append({
@@ -163,7 +163,7 @@ class Spider(Spider):
         return {'list': videos,'pagecount': pagecount, 'page': pg}
 
     def searchContent(self, key, quick, pg='1'):
-        response = self.fetch(f"{self.sign(f'{self.host}/vodsearch')}&wd={key}", headers=self.headers, verify=False).json()
+        response = self.fetch(f"{self.sign(f'{self.host}/vodsearch')}&wd={key}", headers=self.headers).json()
         videos = []
         for i in response:
             videos.append({
@@ -177,7 +177,7 @@ class Spider(Spider):
         return {'list': videos, 'page': pg}
 
     def detailContent(self, ids):
-        data = self.fetch(self.sign(f"{self.host}{ids[0]}"), headers=self.headers, verify=False).json()
+        data = self.fetch(self.sign(f"{self.host}{ids[0]}"), headers=self.headers).json()
         play_urls = [f"{i['EpisodeName']}${self.decode(i['VId'])}" for i in data['Playlist']]
         video = {
             'vod_id': ids[0],
@@ -196,7 +196,7 @@ class Spider(Spider):
         return {'list': [video]}
 
     def playerContent(self, flag, video_id, vip_flags):
-        res = self.fetch(self.sign(f"{self.host}{video_id}"), headers=self.headers, verify=False).json()
+        res = self.fetch(self.sign(f"{self.host}{video_id}"), headers=self.headers).json()
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
             'Accept-Encoding': 'gzip, deflate',

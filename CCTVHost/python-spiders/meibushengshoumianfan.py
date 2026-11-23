@@ -23,7 +23,7 @@ class Spider(Spider):
                 'Referer': 'https://mbss3.xyz/'
             }
             # verify=False 忽略证书报错，替换掉不稳定的 ssl 库
-            response = requests.get(url, headers=headers, verify=False, timeout=10)
+            response = requests.get(url, headers=headers, timeout=10)
             response.encoding = 'utf-8'
             return response.text
         except Exception:

@@ -257,8 +257,6 @@ def _of_extend(extend):
 def _mk_ssl():
     try:
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
         return ctx
     except Exception:
         return None

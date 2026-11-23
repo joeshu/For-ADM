@@ -112,8 +112,6 @@ DESC_RE = re.compile(r'<meta name="description" content="([^"]*)"')
 
 def _ctx():
     ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
     return ctx
 
 

@@ -502,7 +502,7 @@ t5lYKfpe8k83ZA==
         """
         encoded = urllib.parse.urlencode(body).encode('utf-8')
         req = urllib.request.Request(url, data=encoded, headers=headers, method='POST')
-        ssl_ctx = ssl._create_unverified_context()
+        ssl_ctx = ssl.create_default_context()
         try:
             ssl_ctx.set_ciphers('DEFAULT:@SECLEVEL=1')
         except Exception:

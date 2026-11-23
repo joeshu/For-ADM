@@ -73,8 +73,6 @@ class Spider(SpiderBase):
 
     def _build_opener(self):
         self.ctx = ssl.create_default_context()
-        self.ctx.check_hostname = False
-        self.ctx.verify_mode = ssl.CERT_NONE
 
         cipher_list = [
             "ECDHE-ECDSA-AES128-GCM-SHA256",

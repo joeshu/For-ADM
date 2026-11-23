@@ -163,8 +163,6 @@ class Spider(BaseSpider):
 
     def _build_opener(self):
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
         https_handler = urllib.request.HTTPSHandler(context=ctx)
         cookie_handler = urllib.request.HTTPCookieProcessor(self.cookie_jar)
         return urllib.request.build_opener(https_handler, cookie_handler)

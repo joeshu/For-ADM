@@ -246,7 +246,7 @@ class Spider(Spider):
 
             if action == 'm3u8':
                 # 获取m3u8内容
-                resp = requests.get(url, verify=False, timeout=15, headers=headers)
+                resp = requests.get(url, timeout=15, headers=headers)
                 content = resp.text
 
                 # 获取代理URL前缀, 用于重写ts URL
@@ -271,7 +271,7 @@ class Spider(Spider):
 
             elif action == 'ts':
                 # 代理ts分段
-                resp = requests.get(url, verify=False, timeout=30, headers=headers)
+                resp = requests.get(url, timeout=30, headers=headers)
                 return [200, 'video/mp2t', resp.content]
 
             return [200, 'text/plain', b'error: unknown type']
@@ -320,7 +320,7 @@ class Spider(Spider):
         url = f'{self.host}{path}'
         if params:
             url = f'{url}?{urlencode(params)}'
-        resp = requests.get(url, headers=self._headers(), verify=False, timeout=30)
+        resp = requests.get(url, headers=self._headers(), timeout=30)
         return resp.json()
 
     # ============================================================
@@ -784,7 +784,6 @@ class Spider(Spider):
                     'Origin': self.host,
                     'User-Agent': 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile',
                 },
-                verify=False,
                 timeout=15
             )
 

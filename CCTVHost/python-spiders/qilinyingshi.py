@@ -78,7 +78,6 @@ class Spider(_Base):
         self.s = requests.Session()
         self.s.headers.update({'User-Agent': UA, 'Referer': HOST + '/',
                                'Accept-Language': 'zh-CN,zh;q=0.9'})
-        self.s.verify = False
         ad = HTTPAdapter(pool_connections=20, pool_maxsize=40, max_retries=0)
         self.s.mount('http://', ad)
         self.s.mount('https://', ad)

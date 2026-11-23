@@ -82,7 +82,7 @@ class Spider(Spider):
 
     def fetch(self, url, timeout=10):
         try:
-            res = self.sess.get(url, headers=self.headers, timeout=timeout, verify=False)
+            res = self.sess.get(url, headers=self.headers, timeout=timeout)
             res.encoding = "utf-8"
             return res
         except Exception:
@@ -150,7 +150,7 @@ class Spider(Spider):
         # 详情单独用一次性请求：共享 session 挂了 Retry(total=3)，详情页一旦 stalls
         # 会重试 4 次 x 10 秒（>40 秒）直接超时；实测一次性请求 2 秒即回 200
         try:
-            _r = requests.get(vod_id, headers=self.headers, timeout=10, verify=False)
+            _r = requests.get(vod_id, headers=self.headers, timeout=10)
             _r.encoding = "utf-8"
             res = _r if _r.ok else None
         except Exception:

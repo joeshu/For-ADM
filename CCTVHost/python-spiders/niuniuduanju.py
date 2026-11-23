@@ -42,7 +42,6 @@ class Spider(Spider):
     def init(self, extend=""):
         self.session = requests.Session()
         self.session.headers.update(self.headers)
-        self.session.verify = False
 
     def _fetch(self, url):
         try:
@@ -394,11 +393,12 @@ class Spider(Spider):
                             }
                         }
                     elif video_url.startswith('http'):
-                        parse_url = self.PARSE_API + video_url
+                        # 非媒体后缀 URL：不再包 PARSE_API 解析页伪装直链，
+                        # 按提取失败处理，返回 parse:0 空链接
                         return {
                             "parse": 0,
                             "playUrl": "",
-                            "url": parse_url,
+                            "url": "",
                             "header": {
                                 "User-Agent": self.headers["User-Agent"],
                                 "Referer": self.base_url + "/",

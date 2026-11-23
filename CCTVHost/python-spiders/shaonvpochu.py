@@ -47,7 +47,7 @@ class Spider(BaseSpider):
 
     def _get(self, url):
         try:
-            ctx = ssl._create_unverified_context()
+            ctx = ssl.create_default_context()
         except Exception:
             ctx = None
 

@@ -16,10 +16,10 @@ except Exception:
     class BaseSpider(object):
         def fetch(self, url, headers=None, timeout=15, **kwargs):
             import requests
-            return requests.get(url, headers=headers, timeout=timeout, verify=False)
+            return requests.get(url, headers=headers, timeout=timeout)
         def post(self, url, headers=None, data=None, timeout=15, **kwargs):
             import requests
-            return requests.post(url, headers=headers, data=data, timeout=timeout, verify=False)
+            return requests.post(url, headers=headers, data=data, timeout=timeout)
 
 class Spider(BaseSpider):
     def __init__(self):

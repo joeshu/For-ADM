@@ -2,8 +2,6 @@
 import sys
 import re
 import json
-import base64
-import threading
 from urllib.parse import urljoin, quote, unquote
 
 sys.path.append('..')
@@ -20,18 +18,9 @@ except ImportError:
 
 import requests as _rq
 _SES = _rq.Session()
-_LK = threading.Lock()
-
-try:
-    from Crypto.Cipher import AES as _AES
-    from Crypto.Util.Padding import unpad as _unpad
-except ImportError:
-    _AES = None
 
 HOST = "https://chabeihuvideo.com"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-_KEY = [""]
-_IMG = {}
 
 CATEGORIES = {
     "/dianying/zuixindianying": "电影",
@@ -106,61 +95,11 @@ class Spider(Spider):
                 pass
         return txt
 
-    def _img_key(self):
-        if _KEY[0]:
-            return _KEY[0]
-        with _LK:
-            if _KEY[0]:
-                return _KEY[0]
-            try:
-                r = _SES.get(f"{HOST}/fronted/dictionary/by_key?key=img_key", headers={"User-Agent": UA}, verify=False, timeout=10000)
-                d = json.loads(r.text)
-                _KEY[0] = d["data"][0]["value"]
-            except:
-                pass
-        return _KEY[0]
-
     def _ppic(self, url):
-        if not url or ".bnc" not in url:
-            return url
-        if url in _IMG:
-            return _IMG[url]
-        try:
-            r = _SES.get(url, headers={"User-Agent": UA}, verify=False, timeout=(3050, 8000))
-            data = r.content
-            key = self._img_key()
-            dec = b""
-            if key and _AES and data and len(data) % 16 == 0:
-                dec = _unpad(_AES.new(key.encode(), _AES.MODE_ECB).decrypt(data), 16)
-            if not dec:
-                return url
-            mime = "image/jpeg"
-            if dec[:4] == b"\x89PNG":
-                mime = "image/png"
-            elif dec[:3] == b"GIF":
-                mime = "image/gif"
-            elif dec[:4] == b"RIFF":
-                mime = "image/webp"
-            uri = "data:%s;base64,%s" % (mime, base64.b64encode(dec).decode())
-            _IMG[url] = uri
-            return uri
-        except:
-            return url
-
-    def _pics(self, urls):
-        if not urls:
-            return
-        self._img_key()
-        urls = urls[:16]
-        self._ppic(urls[0])
-        ts = []
-        for u in urls[1:]:
-            if u not in _IMG:
-                ts.append(threading.Thread(target=self._ppic, args=(u,)))
-        for t in ts:
-            t.start()
-        for t in ts:
-            t.join()
+        # 不再下载/解密/内联 base64 图片：首页内联多张 base64 图会让响应超过
+        # host_media_runtime 的 2 MiB 上限（RESULT_TOO_LARGE）。只返回普通
+        # poster URL，图片由 App 端按需加载。运行时 2 MiB 上限绝不放宽。
+        return url
 
     def detailContent(self, ids):
         if isinstance(ids, list):
@@ -293,7 +232,6 @@ class Spider(Spider):
             txt = self._rsc(html)
         for m in re.finditer(r'"id":"([0-9a-f]{20,40})"[^}]{0,400}?"cover_image":"(https?://[^"]+)"', txt):
             pics[m.group(1)] = m.group(2)
-        self._pics(list(pics.values()))
         for m in re.finditer(r'<a[^>]*title="([^"]*)"[^>]*href="(/video-player/[^"]+)"[^>]*>', html):
             vid = m.group(2)
             if vid in seen:
@@ -308,7 +246,7 @@ class Spider(Spider):
             items.append({
                 "vod_id": vid,
                 "vod_name": name[:50],
-                "vod_pic": _IMG.get(cover, cover),
+                "vod_pic": cover,
                 "vod_remarks": "",
             })
         for m in re.finditer(r'"id":"([0-9a-f]{20,40})","is_ad":false,"resource_id":"[^"]*","detail_id":"","name":"((?:[^"\\]|\\.)*)","cat_id":"9"[^}]{0,800}?"cover_image":"(https?://[^"]+)"', txt):
@@ -324,10 +262,11 @@ class Spider(Spider):
             items.append({
                 "vod_id": vid,
                 "vod_name": nm[:50],
-                "vod_pic": _IMG.get(cov, cov),
+                "vod_pic": cov,
                 "vod_remarks": "",
             })
-        return items
+        # 首页/列表只返小字段分页结果：封面只给普通 URL，不内联图片；限量防响应膨胀。
+        return items[:30]
 
 # --- System Signature ---
 #‍​​‌‌​​​‌​​‌‌​​‌​​​‌‌​​​‌​​‌‌‌​​‌​​‌‌​‌​​​​‌‌​​‌‌​​‌‌​​‌​​​‌‌‌​​‌​​‌‌‌​​​​​‌‌​‌‌‌‍

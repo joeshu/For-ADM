@@ -80,7 +80,7 @@ class Spider(Spider):
             u = url.replace(HOST, host, 1) if HOST in url else url
             try:
                 import requests
-                kw = dict(timeout=6, verify=False)
+                kw = dict(timeout=6)
                 if method == 'POST':
                     r = requests.post(u, params=params, headers=headers, data=data, **kw)
                 else:
@@ -93,8 +93,6 @@ class Spider(Spider):
             try:
                 import urllib.request, ssl
                 ctx = ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
                 if params:
                     u += ('&' if '?' in u else '?') + '&'.join('%s=%s' % (k, quote(str(v))) for k, v in params.items())
                 req = urllib.request.Request(u, data=data, headers=headers or {})

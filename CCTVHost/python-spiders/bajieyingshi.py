@@ -40,7 +40,7 @@ def _req(self, method, url, **kw):
     """独立运行时的 requests 兜底实现，框架加载时会提供原生 fetch/post。"""
     if requests is None:
         raise RuntimeError("requests 未安装，且当前不在 hipy/CatVod 框架中运行")
-    resp = requests.request(method, url, verify=False, timeout=15, **kw)
+    resp = requests.request(method, url, timeout=15, **kw)
     class _R:
         pass
     r = _R()

@@ -116,7 +116,7 @@ class Spider(Spider):
         hd = self._headers(headers)
         try:
             if requests:
-                r = requests.get(url, headers=hd, timeout=timeout / 1000.0, verify=False)
+                r = requests.get(url, headers=hd, timeout=timeout / 1000.0)
                 r.encoding = 'utf-8'
                 return r.text
             r = self.fetch(url, headers=hd, timeout=timeout)
@@ -160,7 +160,7 @@ class Spider(Spider):
         try:
             if requests:
                 r = requests.request(m, self.base + path_qs, data=body, headers=hd,
-                                     timeout=timeout, verify=False)
+                                     timeout=timeout)
                 if r.status_code == 200:
                     return r.json()
                 return {}
@@ -434,7 +434,7 @@ class Spider(Spider):
         hd = {'User-Agent': self.ua, 'Referer': self.pic_ref or self.ref, 'Accept': '*/*'}
         try:
             if requests:
-                r = requests.get(p, headers=hd, timeout=25, verify=False)
+                r = requests.get(p, headers=hd, timeout=25)
                 ct = r.headers.get('Content-Type', 'application/octet-stream')
                 return {'code': r.status_code, 'content': r.content, 'headers': {'Content-Type': ct}}
             import urllib.request as _urq
@@ -448,7 +448,7 @@ class Spider(Spider):
         hd = {'User-Agent': self.ua, 'Referer': self.ref, 'Accept': '*/*'}
         try:
             if requests:
-                r = requests.get(url, headers=hd, timeout=25, verify=False)
+                r = requests.get(url, headers=hd, timeout=25)
                 raw = r.content
             else:
                 import urllib.request as _urq

@@ -70,7 +70,7 @@ TAG_STRIP_RE = re.compile(r"<[^>]+>")
 
 
 def _ctx():
-    return ssl._create_unverified_context()
+    return ssl.create_default_context()
 
 
 def _unescape(text):
@@ -88,7 +88,7 @@ def _http_get(url, referer="", timeout=20):
     for attempt in range(3):
         if _HAS_REQ:
             try:
-                resp = requests.get(url, headers=headers, timeout=timeout, verify=False)
+                resp = requests.get(url, headers=headers, timeout=timeout)
                 if resp.status_code in (200, 206):
                     resp.encoding = resp.apparent_encoding or "utf-8"
                     return resp.text
@@ -460,7 +460,7 @@ class Spider(BaseSpider):
             }
             if _HAS_REQ:
                 try:
-                    resp = requests.get(target, headers=headers, timeout=20, verify=False)
+                    resp = requests.get(target, headers=headers, timeout=20)
                     ctype = resp.headers.get("Content-Type") or "application/octet-stream"
                     return [resp.status_code, ctype, resp.content, {}]
                 except Exception:

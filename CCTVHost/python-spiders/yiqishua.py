@@ -67,7 +67,6 @@ class Spider(Spider):
         self._api_base = None
         self._photo_domain = None
         self._session = rq.Session()
-        self._session.verify = False
         self._session.headers.update({
             'User-Agent': self.ua,
             'Content-Type': 'application/json',
@@ -80,7 +79,7 @@ class Spider(Spider):
     def _detectApiBase(self):
         try:
             t = time.time()
-            r = rq.get(self.DNS_URL.format(t=t), timeout=8, verify=False,
+            r = rq.get(self.DNS_URL.format(t=t), timeout=8,
                        headers={'User-Agent': self.ua})
             dns_result = r.json()
             txt = dns_result[0].replace('"', '').replace(' ', '')
@@ -93,7 +92,7 @@ class Spider(Spider):
                 try:
                     r = rq.get(api_url + '/ping',
                                headers={'Content-Type': 'application/json'},
-                               timeout=5, verify=False)
+                               timeout=5)
                     if r.status_code == 200 and r.text.strip() == 'pong':
                         self._api_base = api_url
                         self._api_servers = urls

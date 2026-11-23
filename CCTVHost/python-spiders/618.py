@@ -47,11 +47,9 @@ class Spider(_BaseSpider):
         for _ in range(tries):
             try:
                 if requests is not None:
-                    r = requests.get(url, headers=headers, timeout=20, verify=False)
+                    r = requests.get(url, headers=headers, timeout=20)
                     return r.content.decode('utf-8', 'ignore')
                 ctx = ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
                 req = urllib.request.Request(url, headers=headers)
                 r = urllib.request.urlopen(req, timeout=20, context=ctx)
                 raw = r.read()

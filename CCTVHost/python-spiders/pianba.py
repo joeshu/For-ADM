@@ -65,7 +65,7 @@ class Spider(Spider):
         if headers:
             h.update(headers)
         try:
-            r = self.session.get(url, headers=h, timeout=timeout, verify=False)
+            r = self.session.get(url, headers=h, timeout=timeout)
             r.raise_for_status()
             if is_json:
                 return r.json()

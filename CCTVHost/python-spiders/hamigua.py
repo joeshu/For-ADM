@@ -58,7 +58,6 @@ class Spider(BaseSpider):
             pass
         self.session = requests.Session()
         self.session.headers.update(self.HEADERS)
-        self.session.verify = False
         self._cache = {}
         self._cache_ttl = 300
 

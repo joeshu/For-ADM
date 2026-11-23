@@ -38,7 +38,6 @@ class Spider(BaseSpider):
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update(self.HEADERS)
-        self.session.verify = False
 
     def init(self, extend=""):
         if extend and extend.startswith("http"):

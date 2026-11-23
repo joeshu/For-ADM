@@ -89,7 +89,7 @@ def _get(url, referer=BASE):
         return ""
     for _ in range(2):
         try:
-            r = requests.get(url, headers=_headers(referer), timeout=15, verify=False)
+            r = requests.get(url, headers=_headers(referer), timeout=15)
             if r.status_code == 200 and r.text:
                 if not r.encoding or r.encoding.lower() == "iso-8859-1":
                     r.encoding = "utf-8"
