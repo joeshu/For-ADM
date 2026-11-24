@@ -99,27 +99,37 @@ class Spider(Spider):
         data = None
         if body is not None:
             data = json.dumps(body, ensure_ascii=False).encode("utf-8")
-        headers = dict(self.headers)
-        headers["Referer"] = BASE + "/"
-        headers.update(self._sign_headers(method, target))
-        if data is not None:
-            headers["Content-Type"] = "application/json"
-        last = None
-        for _ in range(2):
+        # 2026-11-24：dongpian17 的 API 会间歇性截断响应（连接中途断开、
+        # IncompleteRead，约 15KB 的 JSON 只读到一部分），单次请求失败率可达
+        # 五成以上，详情/分集/搜索都会因此返回空，手机上就是“播不了”。请求本身
+        # 是幂等的，改为最多重试 4 次、退避 0.5/1/2 秒；每次重试重新签名（新
+        # 时间戳 + 新 nonce），避免服务端拒收重放的签名。其它 4xx 是确定性
+        # 错误，不重试。
+        for attempt in range(4):
+            headers = dict(self.headers)
+            headers["Referer"] = BASE + "/"
+            headers.update(self._sign_headers(method, target))
+            if data is not None:
+                headers["Content-Type"] = "application/json"
             req = urllib.request.Request(BASE + target, data=data, headers=headers,
                                          method=method.upper())
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                     if resp.status != 200:
                         return None
-                    return json.loads(resp.read().decode("utf-8"))
+                    raw = resp.read()
+                    if not raw:
+                        raise ValueError("empty response")
+                    return json.loads(raw.decode("utf-8"))
             except urllib.error.HTTPError as exc:
-                last = exc
-                if exc.code in (429, 500, 502, 503, 504):
-                    time.sleep(0.4)
+                if exc.code in (429, 500, 502, 503, 504) and attempt < 3:
+                    time.sleep(0.5 * (2 ** attempt))
                     continue
                 return None
             except Exception:
+                if attempt < 3:
+                    time.sleep(0.5 * (2 ** attempt))
+                    continue
                 return None
         return None
 
