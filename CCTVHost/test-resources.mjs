@@ -42,13 +42,13 @@ const adultNames=[];
  * 茶杯狐、麒麟影视、哔哩直播）靠 [通过] 前缀区分；看剧AI 有两个
  * 不同文件，[影]看剧AI.py 用 [通过]看剧AI，看剧AI.py 用 [通过]看剧AI2。） */
 const pythonSources=[
-  ['duoduo','多多影视'],['junnian','君念影院'],
+  ['junnian','君念影院'],
   ['chabeihu','茶杯狐'],['dida','嘀嗒影视'],['douhua','豆花影视'],
-  ['qilin','麒麟影视'],['nunu','努努影院'],
+  ['nunu','努努影院'],
   ['dsxys8','大师兄影音'],['aigua','爱瓜TV'],['bubuzhuiju','布布追剧'],
   ['qixing','七星短剧'],['qimao','七猫短剧'],
   ['shijietingshu','世界听书'],['juxiafan','剧下饭'],['gulu','咕噜'],
-  ['duoduo1920','多多1920'],['yangkuyun','央库云'],
+  ['yangkuyun','央库云'],
   ['yangshi','央视'],['yangshiyingshi','央视影视'],['miaokan','妙看'],
   ['yingtan4k','影探4K'],['xingya','星芽短剧'],['guazi','瓜子影视'],
   ['1234yingshi','[通过]1234影视'],
@@ -60,10 +60,10 @@ const pythonSources=[
   ['cat3movie','[通过]cat3movie'],['chabeihu2','[通过]茶杯狐'],
   ['daishuyingshi','[通过]袋鼠影视'],['damahou','[通过]大马猴'],['dianyingtiantang','[通过]电影天堂'],
   ['diekayingshi','[通过]蝶卡影视'],['duanjudaquan','[通过]短剧大全'],['duboku','[通过]独播库'],
-  ['duoduoyingshi','[通过]多多影视'],['duonaoyingyuan','[通过]多瑙影院'],
+  ['duonaoyingyuan','[通过]多瑙影院'],
   ['elaopingguo','[通过]E佬苹果'],['epornerdazhan','[通过]eporner大站（18+）'],
   ['feikuaitv','[通过]飞快TV'],['getav','[通过]getav（18+）'],['guazi2','[通过]瓜子'],
-  ['guaziapp','[通过]瓜子APP'],['guazi3','[通过]瓜子原生'],['guoguoduanju','[通过]果果短剧'],['hamigua','[通过]哈密瓜'],
+  ['guaziapp','[通过]瓜子APP'],['guoguoduanju','[通过]果果短剧'],
   ['hanime','[通过]hanime（18+）'],['hemaduanju','[通过]河马短剧'],['hemajuchang','[通过]河马剧场1'],['hemajuchang2','[通过]河马剧场2'],['hongguo','[通过]红果短剧'],['dsxyuansheng','[通过]大师兄原生'],['bocaiyuan','[通过]菠菜园'],
   ['huangdouduanju','[通过]黄豆短剧（18+）'],
   ['hudieyingyuan','[通过]蝴蝶影院'],['hudieyingyuanneizhiquguanggaoanzhuobanben','[通过]蝴蝶影院（内置去广告）安卓版本'],['javday','[通过]JavDay（18+）'],
@@ -78,19 +78,19 @@ const pythonSources=[
   ['missavmianfan','[通过]Missav（免翻）（18+）'],['missavquanfenleiban','[通过]missav全分类版（18+）'],['mofayingshi','[通过]魔法影视'],
   ['nishipin','[通过]泥视频'],['niuniuduanju','[通过]牛牛短剧'],['nongminyingshi','[通过]农民影视'],
   ['pianba','[通过]片吧'],['pinpornxuboliu','[通过]pinporn续播流（18+）'],
-  ['pornav','[通过]pornav（18+）'],['qilinyingshi','[通过]麒麟影视'],
-  ['qingniuyingshi','[通过]青牛影视'],['qingtingfm','[通过]蜻蜓 FM'],
+  ['pornav','[通过]pornav（18+）'],
+  ['qingtingfm','[通过]蜻蜓 FM'],
   ['shaonvpochu','[通过]少女破处（18+）'],['shenmidianying','[通过]神秘电影（18+）'],
   ['shequ','[通过]社区（18+）'],['shijueyingyuan','[通过]视觉影院'],
   ['shoujizhushou','[通过]手鸡助手（18+）'],['sweetpornos','[通过]sweetpornos（18+）'],
   ['tmdbduoxianyingshi','[通过]TMDB多线影视'],['trendypornus','[通过]trendypornUS（18+）'],
-  ['wanwushequ','[通过]玩物社区（18+）'],
+
   ['wushengduanju','[通过]悟圣短剧'],['xianyuyingshi','[通过]咸鱼影视'],['xiaopingguo','[通过]小苹果'],
   ['xifuduanju','[通过]喜福短剧'],['xingmengasmr','[通过]星梦Asmr（18+）'],
-  ['xx9yiguoyanzheng','[通过]xx9已过验证（18+）'],['yegouxinshi','[通过]夜勾心事（18+）'],['yeguoduanju','[通过]野果短剧'],
+  ['xx9yiguoyanzheng','[通过]xx9已过验证（18+）'],['yeguoduanju','[通过]野果短剧'],
   ['yiqishua','[通过]一起刷'],
   ['zhibo','[通过]直播'],['zhuijudaren','[通过]追剧达人'],['zip0yingshi','[通过]ZIP0影视'],['youkutengxunmangguo','[通过]优酷·腾讯·芒果三擎聚合'],
-  ['juping','[通过]剧评'],['yongye','[通过]永夜'],['51xz','[通过]51X（18+）'],['ai4k','[通过]4K.AI短剧（18+）'],['aidj','[通过]AI短剧AV（18+）'],['aiduanju','[通过]AI短剧网（18+）'],['aihi','[通过]AIHI（18+）'],['aimove','[通过]新黄果短剧（18+）'],['aipornx','[通过]AiPorn（18+）'],['aiwu','[通过]AI污短剧（18+）'],['avhwa','[通过]AVHWA（18+）'],['avtoday','[通过]AV Today（18+）'],['avyanjiuyuan','[通过]AV研究院（18+）'],['chinax','[通过]中国X站（18+）'],['chinaxselecla08','[通过]中国X站精选（18+）'],['danai','[通过]大奶Ai短剧（18+）'],['dingjiaseku','[通过]顶级AI色库（18+）'],['dj69','[通过]69短剧（18+）'],['dj91','[通过]91短剧（18+）'],['djwo','[通过]短剧窝（18+）'],['ficeforand','[通过]AI小视频（18+）'],['fuchou','[通过]妇愁者联盟（18+）'],['kankux','[通过]看裤X（18+）'],['memojav','[通过]MemoJav（18+）'],['sexaix','[通过]幻影AI（18+）'],['tanhuavip14','[通过]探花AV（18+）'],['xhongyan','[通过]X红颜（18+）'],['jinguo','[通过]金果短剧（18+）'],['duoduo2','[通过]多多影视2'],['porncgw','[通过]Porn吃瓜网（18+）'],['dongpian','[通过]懂片帝']
+  ['juping','[通过]剧评'],['yongye','[通过]永夜'],['51xz','[通过]51X（18+）'],['ai4k','[通过]4K.AI短剧（18+）'],['aidj','[通过]AI短剧AV（18+）'],['aiduanju','[通过]AI短剧网（18+）'],['aihi','[通过]AIHI（18+）'],['aimove','[通过]新黄果短剧（18+）'],['aipornx','[通过]AiPorn（18+）'],['aiwu','[通过]AI污短剧（18+）'],['avhwa','[通过]AVHWA（18+）'],['avtoday','[通过]AV Today（18+）'],['avyanjiuyuan','[通过]AV研究院（18+）'],['chinax','[通过]中国X站（18+）'],['chinaxselecla08','[通过]中国X站精选（18+）'],['danai','[通过]大奶Ai短剧（18+）'],['dingjiaseku','[通过]顶级AI色库（18+）'],['dj69','[通过]69短剧（18+）'],['dj91','[通过]91短剧（18+）'],['djwo','[通过]短剧窝（18+）'],['sexaix','[通过]幻影AI（18+）'],['tanhuavip14','[通过]探花AV（18+）'],['xhongyan','[通过]X红颜（18+）'],['jinguo','[通过]金果短剧（18+）'],['duoduo2','[通过]多多影视2'],['porncgw','[通过]Porn吃瓜网（18+）'],['dongpian','[通过]懂片帝']
 ];
 const jarSources=[
   ['ningmeng','[通过]💡柠檬｜影视'],
@@ -99,7 +99,7 @@ const jarSources=[
 const subscription=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.fwd'),'utf8'));
 assert.equal(subscription.widgets.length,names.length,'the unified subscription lists all eight standalone widgets');
 const catalog=JSON.parse(fs.readFileSync(path.join(here,'For-ADM.json'),'utf8'));
-assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, seventeen new SSR sources, no adult sources, one hundred and fifty-one Python sources, two JAR-bridge sources, and native title index');
+assert.equal(catalog.sites.length,names.length+newNames.length+adultNames.length+pythonSources.length+jarSources.length+1,'the CCTVHost catalog lists the eight existing sources, seventeen new SSR sources, no adult sources, one hundred and thirty-seven Python sources, two JAR-bridge sources, and native title index');
 assert.equal(catalog.lives.length,0,'the VOD catalog does not add unrelated live subscriptions');
 for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
@@ -112,7 +112,7 @@ for(const id of newNames){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v=1',id+' points to its standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+(['juquan99','banri99'].includes(id)?'2':'1'),id+' points to its standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of adultNames){
@@ -435,4 +435,4 @@ for(const id of [...names,...newNames,...adultNames]){
   assert.equal(playback.header.Referer,'https://media.example/',id+' preserves media request headers');
 }
 
-console.log('CCTVHost catalog checks passed for 179 entries (including one hundred and fifty-one Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the twenty-five JavaScript sources.');
+console.log('CCTVHost catalog checks passed for 165 entries (including one hundred and thirty-seven Python Spiders, two JAR-bridge sources, and the native Douban index); mocked Widget and CatVod flows passed for the twenty-five JavaScript sources.');
