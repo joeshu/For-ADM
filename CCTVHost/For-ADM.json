@@ -684,6 +684,12 @@
       "type": "script"
     },
     {
+      "key": "joeshu.hawk.yingtan",
+      "name": "[需手机测]影探红果（PY）",
+      "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/yingtan.py",
+      "type": "script"
+    },
+    {
       "key": "joeshu.hawk.618",
       "name": "[通过]618（18+）（PY）",
       "api": "https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/python-spiders/618.py",
