@@ -105,7 +105,7 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+(['kkapp','ncat','happ'].includes(id)?'5':'3'),id+' points to its current standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+({kkapp:'6',dyls:'4'}[id]||(['ncat','happ'].includes(id)?'5':'3')),id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of newNames){
@@ -193,8 +193,7 @@ for(const id of names){
 for(const id of ['kkapp','ncat','happ']){
   const site=JSON.parse(fs.readFileSync(path.join(here,'../ios-app/Web/sites.json'),'utf8')).find(item=>item.id===id);
   const calls=[];
-  const context=makeWidgetContext(id,async(method,url,options={})=>{
-    calls.push({method,url,options});
+  const serve=async(method,url,options={})=>{
     if(url.startsWith('https://img-encrypted.example/'))return {statusCode:200,headers:{'Content-Type':'application/octet-stream','Encrypted':'1'},data:''};
     if(url.startsWith('https://img-clear.example/'))return {statusCode:200,headers:{'Content-Type':'image/webp'},data:''};
     if(url.startsWith('https://img-only-encrypted.example/'))return {statusCode:200,headers:{'Content-Type':'application/octet-stream','Encrypted':'1'},data:''};
@@ -203,9 +202,20 @@ for(const id of ['kkapp','ncat','happ']){
     if(url.includes('/user/anonymous'))return {statusCode:200,data:{data:{id:'guest-1',token:'guest-token'}}};
     if(url.includes('/vod/episodePlayUrl'))return {statusCode:200,data:{data:{playUrls:[{name:'主线路',url:'https://media.example/master.m3u8',headers:{'User-Agent':'fixture'}}]}}};
     throw Error('unexpected endpoint '+url);
-  });
+  };
+  const respond=async(method,url,options={})=>{calls.push({method,url,options});return serve(method,url,options);};
+  const context=makeWidgetContext(id,respond);
   const detail=await context.loadDetail(site.origin+'/__cctvhost__/'+id+'/vod?id=movie-1');
   assert.equal(detail.episodeItems.length,1,id+' exposes the selected episode in its detail view');
+  if(id==='kkapp'){
+    // Fresh context on the unrecorded stub: loadDetail caches {detail,lines} under
+    // the id, so a second detail open in the same session reads the wrapper,
+    // not the raw detail.
+    const bareContext=makeWidgetContext('kkapp',serve);
+    const bareDetail=await bareContext.loadDetail('movie-1');
+    assert.equal(bareDetail.episodeItems.length,1,'kkapp accepts a bare detail id from a stale history or cache entry');
+    assert.equal(bareDetail.title,detail.title,'kkapp resolves the bare detail id to the same film');
+  }
   assert.equal(detail.coverUrl,'https://img-clear.example/vod1/poster.webp',id+' skips the encrypted mirror and selects the clear image mirror');
   const probes=calls.filter(call=>call.options&&call.options.buffer===1&&call.url.startsWith('https://img-'));
   assert.equal(probes.length,2,id+' probes each image mirror once');
@@ -314,6 +324,9 @@ for(const id of ['kkapp','ncat','happ']){
   assert.ok(calls.some(call=>call.url.includes('signature=')),'Dyls signs the original request pack');
   assert.ok(calls.some(call=>call.url==='https://media.example/movie.m3u8'&&call.options.timeout===15000),'Dyls validates direct HLS manifests with a bounded timeout');
   assert.equal(calls.filter(call=>call.url.includes('/movie_addr/parse_url')).length,0,'Dyls does not send a direct playable URL through its parser');
+  const bareDetail=await context.loadDetail('m-1');
+  assert.equal(bareDetail.title,'测试电影','Dyls accepts a bare detail id from a stale history or cache entry');
+  assert.equal(bareDetail.episodeItems.length,1,'Dyls resolves the bare detail id to its episodes');
 }
 
 const makeCatVodContext=id=>{
