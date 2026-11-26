@@ -105,7 +105,7 @@ for(const id of names){
   const entry=catalog.sites.find(site=>site.key==='joeshu.'+id);
   assert.ok(entry,id+' is present in the CCTVHost catalog');
   assert.equal(entry.type,'script',id+' is marked as an importable script');
-  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+({kkapp:'6',dyls:'4'}[id]||(['ncat','happ'].includes(id)?'5':'3')),id+' points to its current standalone CatVod source');
+  assert.equal(entry.api,'https://raw.githubusercontent.com/joeshu/For-ADM/data/CCTVHost/'+id+'.js?v='+({kkapp:'7',dyls:'4'}[id]||(['ncat','happ'].includes(id)?'5':'3')),id+' points to its current standalone CatVod source');
   assert.equal(new URL(entry.api).pathname.split('.').pop(),'js',id+' uses an extension recognized by the CCTVHost script importer');
 }
 for(const id of newNames){
@@ -221,6 +221,11 @@ for(const id of ['kkapp','ncat','happ']){
   assert.equal(probes.length,2,id+' probes each image mirror once');
   assert.ok(probes.every(call=>call.options.timeout===3000),id+' bounds image mirror probes');
   assert.match(detail.episodeItems[0].link,/siteId=line-a/,id+' keeps the selected source route in the episode link');
+  if(id==='kkapp'){
+    const secondDetail=await context.loadDetail(site.origin+'/__cctvhost__/kkapp/vod?id=movie-1');
+    assert.equal(secondDetail.episodeItems.length,1,'kkapp opens the same film detail twice in one session');
+    assert.equal(secondDetail.title,detail.title,'kkapp returns the same film on the second detail open');
+  }
   const link=site.origin+'/__cctvhost__/'+id+'/episode?vodId=movie-1&siteId=line-a&episodeId=ep-1';
   const resources=await context.loadResource({link});
   assert.equal(resources.length,1,id+' returns one validated media resource');
